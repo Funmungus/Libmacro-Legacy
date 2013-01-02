@@ -1,0 +1,9 @@
+# To be ignored by git
+
+*~
+bin
+out
+
+*.swp
+
+include/rapidxml/*
