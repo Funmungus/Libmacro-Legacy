@@ -1,0 +1,630 @@
+
+// ! \brief Important, implement in native files. \ref KeyToMod
+//	std::vector < std::string > KeySignal::defaultNameList ( )
+//	{
+//		std::vector < std::string > ret = {
+//			"Reserved", 		//0
+//			"Esc", 		//	1
+//			"1", 		//	2
+//			"2", 		//	3
+//			"3", 		//	4
+//			"4", 		//	5
+//			"5", 		//	6
+//			"6", 		//	7
+//			"7", 		//	8
+//			"8", 		//	9
+//			"9", 		//	10
+//			"0", 		//	11
+//			"Minus", 		//12
+//			"Equal", 		//13
+//			"Backspace", 		//14
+//			"Tab", 		//	15
+//			"q", 		//	16
+//			"w", 		//	17
+//			"e", 		//	18
+//			"r", 		//	19
+//			"t", 		//	20
+//			"y", 		//	21
+//			"u", 		//	22
+//			"i", 		//	23
+//			"o", 		//	24
+//			"p", 		//	25
+//			"LeftBrace", 		//26
+//			"RightBrace", 		//27
+//			"Enter", 		//28
+//			"LeftCtrl", 		//29
+//			"a", 		//	30
+//			"s", 		//	31
+//			"d", 		//	32
+//			"f", 		//	33
+//			"g", 		//	34
+//			"h", 		//	35
+//			"j", 		//	36
+//			"k", 		//	37
+//			"l", 		//	38
+//			"Semicolon", 		//39
+//			"Apostrophe", 		//40
+//			"Grave", 		//41
+//			"LeftShift", 		//42
+//			"Backslash", 		//43
+//			"z", 		//	44
+//			"x", 		//	45
+//			"c", 		//	46
+//			"v", 		//	47
+//			"b", 		//	48
+//			"n", 		//	49
+//			"m", 		//	50
+//			"Comma", 		//51
+//			"Dot", 		//	52
+//			"Slash", 		//53
+//			"RightShift", 		//54
+//			"KPAsterisk", 		//55
+//			"LeftAlt", 		//56
+//			"Space", 		//57
+//			"CapsLock", 		//58
+//			"F1", 		//	59
+//			"F2", 		//	60
+//			"F3", 		//	61
+//			"F4", 		//	62
+//			"F5", 		//	63
+//			"F6", 		//	64
+//			"F7", 		//	65
+//			"F8", 		//	66
+//			"F9", 		//	67
+//			"F10", 		//	68
+//			"NumLock", 		//69
+//			"ScrollLock", 		//70
+//			"KP7", 		//	71
+//			"KP8", 		//	72
+//			"KP9", 		//	73
+//			"KPMinus", 		//74
+//			"KP4", 		//	75
+//			"KP5", 		//	76
+//			"KP6", 		//	77
+//			"KPPlus", 		//78
+//			"KP1", 		//	79
+//			"KP2", 		//	80
+//			"KP3", 		//	81
+//			"KP0", 		//	82
+//			"KPdot", 		//83
+//			"Unknown", 		//84
+//			"ZenkakuHankaku", 	//85
+//			"102ND", 		//86
+//			"F11", 		//	87
+//			"F12", 		//	88
+//			"RO", 		//	89
+//			"Katakana", 		//90
+//			"Hiragana", 		//91
+//			"Henkan", 		//92
+//			"KatakanaHiragana", 	//93
+//			"Muhenkan", 		//94
+//			"KPJPComma", 		//95
+//			"KPEnter", 		//96
+//			"RightCtrl", 		//97
+//			"KPSlash", 		//98
+//			"SysRQ", 		//99
+//			"RightAlt", 		//100
+//			"LineFeed", 		//101
+//			"Home", 		//102
+//			"Up", 		//	103
+//			"PageUp", 		//104
+//			"Left", 		//105
+//			"Right", 		//106
+//			"End", 		//	107
+//			"Down", 		//108
+//			"PageDown", 		//109
+//			"Insert", 		//110
+//			"Delete", 		//111
+//			"Macro", 		//112
+//			"Mute", 		//113
+//			"VolumeDown", 		//114
+//			"VolumeUp", 		//115
+//			"Power", 		//116	/* SC System Power Down */
+//			"KPEqual", 		//117
+//			"KPPlusMinus", 		//118
+//			"Pause", 		//119
+//			"Scale", 		//120	/* AL Compiz Scale ( Expose ) */
+
+//			"KPComma", 		//121
+//			"Hangeul", 		//122
+//			"Hanja", 		//123
+//			"Yen", 		//	124
+//			"LeftMeta", 		//125
+//			"RightMeta", 		//126
+//			"Compose", 		//127
+
+//			"Stop", 		//128	/* AC Stop */
+//			"Again", 		//129
+//			"Props", 		//130	/* AC Properties */
+//			"Undo", 		//131	/* AC Undo */
+//			"Front", 		//132
+//			"Copy", 		//133	/* AC Copy */
+//			"Open", 		//134	/* AC Open */
+//			"Paste", 		//135	/* AC Paste */
+//			"Find", 		//136	/* AC Search */
+//			"Cut", 		//	137	/* AC Cut */
+//			"Help", 		//138	/* AL Integrated Help Center */
+//			"Menu", 		//139	/* Menu ( show menu ) */
+//			"Calc", 		//140	/* AL Calculator */
+//			"Setup", 		//141
+//			"Sleep", 		//142	/* SC System Sleep */
+//			"Wakeup", 		//143	/* System Wake Up */
+//			"File", 		//144	/* AL Local Machine Browser */
+//			"SendFile", 		//145
+//			"DeleteFile", 		//146
+//			"Xfer", 		//147
+//			"Prog1", 		//148
+//			"Prog2", 		//149
+//			"Www", 		//	150	/* AL Internet Browser */
+//			"MsDOS", 		//151
+//			"ScreenLock", 		//152	/* AL Terminal Lock/Screensaver */
+//			"Direction", 		//153
+//			"CycleWindows", 	//154
+//			"Mail", 		//155
+//			"Bookmarks", 		//156	/* AC Bookmarks */
+//			"Computer", 		//157
+//			"Back", 		//158	/* AC Back */
+//			"Forward", 		//159	/* AC Forward */
+//			"CloseCD", 		//160
+//			"EjectCD", 		//161
+//			"EjectCloseCD", 	//162
+//			"NextSong", 		//163
+//			"PlayPause", 		//164
+//			"PreviousSong", 	//165
+//			"StopCD", 		//166
+//			"Record", 		//167
+//			"Rewind", 		//168
+//			"Phone", 		//169	/* Media Select Telephone */
+//			"ISO", 		//	170
+//			"Config", 		//171	/* AL Consumer Control Configuration */
+//			"HomePage", 		//172	/* AC Home */
+//			"Refresh", 		//173	/* AC Refresh */
+//			"Exit", 		//174	/* AC Exit */
+//			"Move", 		//175
+//			"Edit", 		//176
+//			"ScrollUp", 		//177
+//			"ScrollDown", 		//178
+//			"KPLeftParen", 		//179
+//			"KPRightParen", 	//180
+//			"New", 		//	181	/* AC New */
+//			"Redo", 		//182	/* AC Redo/Repeat */
+//			"F13", 		//	183
+//			"F14", 		//	184
+//			"F15", 		//	185
+//			"F16", 		//	186
+//			"F17", 		//	187
+//			"F18", 		//	188
+//			"F19", 		//	189
+//			"F20", 		//	190
+//			"F21", 		//	191
+//			"F22", 		//	192
+//			"F23", 		//	193
+//			"F24", 		//	194
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", 	// 195-199
+//			"PlayCD", 		//200
+//			"PauseCD", 		//201
+//			"Prog3", 		//202
+//			"Prog4", 		//203
+//			"Dashboard", 		//204	/* AL Dashboard */
+//			"Suspend", 		//205
+//			"Close", 		//206	/* AC Close */
+//			"Play", 		//207
+//			"FastForward", 		//208
+//			"BassBoost", 		//209
+//			"Print", 		//210	/* AC Print */
+//			"HP", 		//	211
+//			"Camera", 		//212
+//			"Sound", 		//213
+//			"Question", 		//214
+//			"Email", 		//215
+//			"Chat", 		//216
+//			"Search", 		//217
+//			"Connect", 		//218
+//			"Finance", 		//219	/* AL Checkbook/Finance */
+//			"Sport", 		//220
+//			"Shop", 		//221
+//			"AltErase", 		//222
+//			"Cancel", 		//223	/* AC Cancel */
+//			"BrightnessDown", 	//224
+//			"BrightnessUp", 	//225
+//			"Media", 		//226
+
+//			"SwitchVideoMode", 	//227	/* Cycle between available video
+//								/* outputs ( Monitor/LCD/TV-out/etc ) */
+//			"KBDIllumToggle", 	//228
+//			"KBDIllumDown", 	//229
+//			"KBDIllumUp", 		//230
+
+//			"Send", 		//231	/* AC Send */
+//			"Reply", 		//232	/* AC Reply */
+//			"ForwardMail", 		//233	/* AC Forward Msg */
+//			"Save", 		//234	/* AC Save */
+//			"Documents", 		//235
+
+//			"Battery", 		//236
+
+//			"Bluetooth", 		//237
+//			"WLAN", 		//238
+//			"UWB", 		//	239
+
+//			"Unknown", 		//240
+
+//			"VidwoNext", 		//241	/* drive next video source */
+//			"VideoPrev", 		//242	/* drive previous video source */
+//			"BrightnessCycle", 	//243	/* brightness up, after max is min */
+//			"BrightnessZero", 	//244	/* brightness off, use ambient */
+//			"DisplayOff", 		//245	/* display device to off state */
+
+//			"WWAN", 		//246	/* Wireless WAN ( LTE, UMTS, GSM, etc. ) */
+//			"RFKill", 		//247	/* Key that controls all radios */
+
+//			"MicMute", 		//248	/* Mute / unmute the microphone */
+//			//249-0x0FE==254
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			/* Code 255 is reserved for special needs of AT keyboard driver */
+//			"AT_KBD_Driver",
+
+//			"BTN_0", 		//	0x100
+//			"BTN_1", 		//	0x101
+//			"BTN_2", 		//	0x102
+//			"BTN_3", 		//	0x103
+//			"BTN_4", 		//	0x104
+//			"BTN_5", 		//	0x105
+//			"BTN_6", 		//	0x106
+//			"BTN_7", 		//	0x107
+//			"BTN_8", 		//	0x108
+//			"BTN_9", 		//	0x109
+
+//			// 0x10A-0x10F
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"BTN_Left", 		//0x110
+//			"BTN_Right", 		//0x111
+//			"BTN_Middle", 		//0x112
+//			"BTN_Side", 		//0x113
+//			"BTN_Extra", 		//0x114
+//			"BTN_Forward", 		//0x115
+//			"BTN_Back", 		//0x116
+//			"BTN_Task", 		//0x117
+
+//			// 0x118-11F
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"BTN_Trigger", 		//0x120
+//			"BTN_Thumb", 		//0x121
+//			"BTN_Thumb2", 		//0x122
+//			"BTN_Top", 		//	0x123
+//			"BTN_Top2", 		//0x124
+//			"BTN_Pinkie", 		//0x125
+//			"BTN_Base", 		//0x126
+//			"BTN_Base2", 		//0x127
+//			"BTN_Base3", 		//0x128
+//			"BTN_Base4", 		//0x129
+//			"BTN_Base5", 		//0x12a
+//			"BTN_Base6", 		//0x12b
+//			"Unknown", "Unknown", "Unknown", 		//0x12c-0x12e
+//			"BTN_Dead", 		//0x12f
+
+//			"BTN_A", 		//	//0x130 BTN_SOUTH
+//			"BTN_B", 		////0x131	BTN_EAST
+//			"BTN_C", 		//	0x132
+//			"BTN_X", 		////0x133	BTN_NORTH
+//			"BTN_Y", 		////0x134	BTN_WEST
+//			"BTN_Z", 		//	0x135
+//			"BTN_TL", 		//	0x136
+//			"BTN_TR", 		//	0x137
+//			"BTN_TL2", 		//	0x138
+//			"BTN_TR2", 		//	0x139
+//			"BTN_Select", 		//0x13a
+//			"BTN_Start", 		//0x13b
+//			"BTN_Mode", 		//0x13c
+//			"BTN_ThumbL", 		//0x13d
+//			"BTN_ThumbR", 		//0x13e
+//			"Unknown", 		//0x13f
+//			//"BTN_DIGI", 		//0x140
+//			"BTN_Tool_Pen", 		//0x140
+//			"BTN_Tool_Rubber", 		//0x141
+//			"BTN_Tool_Brush", 		//0x142
+//			"BTN_Tool_Pencil", 		//0x143
+//			"BTN_Tool_Airbrush", 	//0x144
+//			"BTN_Tool_Finger", 		//0x145
+//			"BTN_Tool_Mouse", 		//0x146
+//			"BTN_Tool_Lens", 		//0x147
+//			"BTN_Tool_QuintTap", 	//0x148	/* Five fingers on trackpad */
+//			"Unknown", 		//0x149
+//			"BTN_Touch", 		//0x14a
+//			"BTN_Stylus", 		//0x14b
+//			"BTN_Stylus2", 		//0x14c
+//			"BTN_Tool_DoubleTap", 	//0x14d
+//			"BTN_Tool_TripleTap", 	//0x14e
+//			"BTN_Tool_QuadTap", 	//0x14f	/* Four fingers on trackpad */
+
+//			"BTN_Wheel", 		//0x150
+//			"BTN_Gear_Up", 		//0x151
+
+//			// 0x152-0x15f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"OK", 		//	0x160
+//			"Select", 		//0x161
+//			"Goto", 		//0x162
+//			"Clear", 		//0x163
+//			"Power2", 		//0x164
+//			"Option", 		//0x165
+//			"Info", 		//0x166	/* AL OEM Features/Tips/Tutorial */
+//			"Time", 		//0x167
+//			"Vendor", 		//0x168
+//			"Archive", 		//0x169
+//			"Program", 		//0x16a	/* Media Select Program Guide */
+//			"Channel", 		//0x16b
+//			"Favorites", 		//0x16c
+//			"EPG", 		//	0x16d
+//			"PVR", 		//	0x16e	/* Media Select Home */
+//			"MHP", 		//	0x16f
+//			"Language", 		//0x170
+//			"Title", 		//0x171
+//			"Subtitle", 		//0x172
+//			"Angle", 		//0x173
+//			"Zoom", 		//0x174
+//			"Mode", 		//0x175
+//			"Keyboard", 		//0x176
+//			"Screen", 		//0x177
+//			"PC", 		//	0x178	/* Media Select Computer */
+//			"TV", 		//	0x179	/* Media Select TV */
+//			"TV2", 		//	0x17a	/* Media Select Cable */
+//			"VCR", 		//	0x17b	/* Media Select VCR */
+//			"VCR2", 		//0x17c	/* VCR Plus */
+//			"SAT", 		//	0x17d	/* Media Select Satellite */
+//			"SAT2", 		//0x17e
+//			"CD", 		//	0x17f	/* Media Select CD */
+//			"Tape", 		//0x180	/* Media Select Tape */
+//			"Radio", 		//0x181
+//			"Tuner", 		//0x182	/* Media Select Tuner */
+//			"Player", 		//0x183
+//			"Text", 		//0x184
+//			"DVD", 		//	0x185	/* Media Select DVD */
+//			"AUX", 		//	0x186
+//			"MP3", 		//	0x187
+//			"Audio", 		//0x188	/* AL Audio Browser */
+//			"Viddo", 		//0x189	/* AL Movie Browser */
+//			"Directory", 		//0x18a
+//			"List", 		//0x18b
+//			"Memo", 		//0x18c	/* Media Select Messages */
+//			"Calendar", 		//0x18d
+//			"Red", 		//	0x18e
+//			"Green", 		//0x18f
+//			"Yellow", 		//0x190
+//			"Blue", 		//0x191
+//			"ChannelUp", 		//0x192	/* Channel Increment */
+//			"ChannelDown", 		//0x193	/* Channel Decrement */
+//			"First", 		//0x194
+//			"Last", 		//0x195	/* Recall Last */
+//			"AB", 		//	0x196
+//			"Next", 		//0x197
+//			"Restart", 		//0x198
+//			"Slow", 		//0x199
+//			"Shuffle", 		//0x19a
+//			"Berak", 		//0x19b
+//			"Previous", 		//0x19c
+//			"Digits", 		//0x19d
+//			"TEEN", 		//0x19e
+//			"TWEN", 		//0x19f
+//			"VideoPhone", 		//0x1a0	/* Media Select Video Phone */
+//			"Games", 		//0x1a1	/* Media Select Games */
+//			"ZoomIn", 		//0x1a2	/* AC Zoom In */
+//			"ZoomOut", 		//0x1a3	/* AC Zoom Out */
+//			"ZoomReset", 		//0x1a4	/* AC Zoom */
+//			"WordProcessor", 	//0x1a5	/* AL Word Processor */
+//			"Editor", 		//0x1a6	/* AL Text Editor */
+//			"Spreadsheet", 		//0x1a7	/* AL Spreadsheet */
+//			"GraphicsEditor", 	//0x1a8	/* AL Graphics Editor */
+//			"Presentation", 	//0x1a9	/* AL Presentation App */
+//			"Database", 		//0x1aa	/* AL Database App */
+//			"News", 		//0x1ab	/* AL Newsreader */
+//			"VoiceMail", 		//0x1ac	/* AL Voicemail */
+//			"AddressBook", 		//0x1ad	/* AL Contacts/Address Book */
+//			"Messenger", 		//0x1ae	/* AL Instant Messaging */
+//			"DisplayToggle", 	//0x1af	/* Turn display ( LCD ) on and off */
+//			"SpellCheck", 		//0x1b0 /* AL Spell Check */
+//			"LogOff", 		//0x1b1 /* AL Logoff */
+
+//			"Dollar", 		//0x1b2
+//			"Euro", 		//0x1b3
+
+//			"FrameBack", 		//0x1b4	/* Consumer - transport controls */
+//			"FrameForward", 	//0x1b5
+//			"ContextMenu", 	//0x1b6	/* GenDesc - system context menu */
+//			"MediaRepeat", 	//0x1b7	/* Consumer - transport control */
+//			"10ChannelsUp", 	//0x1b8	/* 10 channels up ( 10+ ) */
+//			"10ChannelsDown", 	//0x1b9	/* 10 channels down ( 10- ) */
+//			"Images", 		//0x1ba	/* AL Image Browser */
+
+//			// 0x1bb-0x1bf
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"DEL_EOL", 		//0x1c0
+//			"DEL_EOS", 		//0x1c1
+//			"INS_Line", 		//0x1c2
+//			"DEL_Line", 		//0x1c3
+
+//			//0x1c4-0x1cf
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"FN", 		//	0x1d0
+//			"FN_Esc", 		//0x1d1
+//			"FN_F1", 		//0x1d2
+//			"FN_F2", 		//0x1d3
+//			"FN_F3", 		//0x1d4
+//			"FN_F4", 		//0x1d5
+//			"FN_F5", 		//0x1d6
+//			"FN_F6", 		//0x1d7
+//			"FN_F7", 		//0x1d8
+//			"FN_F8", 		//0x1d9
+//			"FN_F9", 		//0x1da
+//			"FN_F10", 		//0x1db
+//			"FN_F11", 		//0x1dc
+//			"FN_F12", 		//0x1dd
+//			"FN_1", 		//0x1de
+//			"FN_2", 		//0x1df
+//			"FN_D", 		//0x1e0
+//			"FN_E", 		//0x1e1
+//			"FN_F", 		//0x1e2
+//			"FN_S", 		//0x1e3
+//			"FN_B", 		//0x1e4
+
+//			// 0x1e5-0x1f0
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"BRL_Dot1", 		//0x1f1
+//			"BRL_Dot2", 		//0x1f2
+//			"BRL_Dot3", 		//0x1f3
+//			"BRL_Dot4", 		//0x1f4
+//			"BRL_Dot5", 		//0x1f5
+//			"BRL_Dot6", 		//0x1f6
+//			"BRL_Dot7", 		//0x1f7
+//			"BRL_Dot8", 		//0x1f8
+//			"BRL_Dot9", 		//0x1f9
+//			"BRL_Dot10", 		//0x1fa
+
+//			//0x1fb-0x1ff
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"Numeric_0", 		//0x200	/* used by phones, remote controls, */
+//			"Numeric_1", 		//0x201	/* and other keypads */
+//			"Numeric_2", 		//0x202
+//			"Numeric_3", 		//0x203
+//			"Numeric_4", 		//0x204
+//			"Numeric_5", 		//0x205
+//			"Numeric_6", 		//0x206
+//			"Numeric_7", 		//0x207
+//			"Numeric_8", 		//0x208
+//			"Numeric_9", 		//0x209
+//			"Numeric_Star", 	//0x20a
+//			"Numeric_Pound", 	//0x20b
+
+//			// 0x20c-0x20f
+//			"Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"CameraFocus", 	//0x210
+//			"WPS_Button", 		//0x211	/* WiFi Protected Setup key */
+
+//			"TouchpadToggle", 	//0x212	/* Request switch touchpad on or off */
+//			"TouchpadOn", 		//0x213
+//			"TouchpadOff", 	//0x214
+
+//			"CameraZoomIn", 	//0x215
+//			"CameraZoomOut", 	//0x216
+//			"CameraUp", 		//0x217
+//			"CameraDown", 		//0x218
+//			"CameraLeft", 		//0x219
+//			"CameraRight", 	//0x21a
+
+//			"AttendantOn", 	//0x21b
+//			"AttendantOff", 	//0x21c
+//			"AttendantToggle", 	//0x21d	/* Attendant call on or off */
+//			"LightsToggle", 	//0x21e	/* Reading light on or off */
+
+//			"Unknown", 		// 0x21f
+
+//			"BTN_DPAD_Up", 		//0x220
+//			"BTN_DPAD_Down", 		//0x221
+//			"BTN_DPAD_Left", 		//0x222
+//			"BTN_DPAD_Right", 		//0x223
+
+//			// 0x224-0x22f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"ALS_Toggle", 		//0x230	/* Ambient light sensor */
+
+//			// 0x231-0x2bf
+//			// 0x231-0x23f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x240-0x24f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x250-0x25f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x260-0x26f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x270-0x27f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x280-0x28f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x290-0x29f
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x2a0-0x2af
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			// 0x2b0-0x2bf
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+//			"Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown",
+
+//			"BTN_TriggerHappy", 		//0x2c0
+//			"BTN_TriggerHappy2", 		//0x2c1
+//			"BTN_TriggerHappy3", 		//0x2c2
+//			"BTN_TriggerHappy4", 		//0x2c3
+//			"BTN_TriggerHappy5", 		//0x2c4
+//			"BTN_TriggerHappy6", 		//0x2c5
+//			"BTN_TriggerHappy7", 		//0x2c6
+//			"BTN_TriggerHappy8", 		//0x2c7
+//			"BTN_TriggerHappy9", 		//0x2c8
+//			"BTN_TriggerHappy10", 		//0x2c9
+//			"BTN_TriggerHappy11", 		//0x2ca
+//			"BTN_TriggerHappy12", 		//0x2cb
+//			"BTN_TriggerHappy13", 		//0x2cc
+//			"BTN_TriggerHappy14", 		//0x2cd
+//			"BTN_TriggerHappy15", 		//0x2ce
+//			"BTN_TriggerHappy16", 		//0x2cf
+//			"BTN_TriggerHappy17", 		//0x2d0
+//			"BTN_TriggerHappy18", 		//0x2d1
+//			"BTN_TriggerHappy19", 		//0x2d2
+//			"BTN_TriggerHappy20", 		//0x2d3
+//			"BTN_TriggerHappy21", 		//0x2d4
+//			"BTN_TriggerHappy22", 		//0x2d5
+//			"BTN_TriggerHappy23", 		//0x2d6
+//			"BTN_TriggerHappy24", 		//0x2d7
+//			"BTN_TriggerHappy25", 		//0x2d8
+//			"BTN_TriggerHappy26", 		//0x2d9
+//			"BTN_TriggerHappy27", 		//0x2da
+//			"BTN_TriggerHappy28", 		//0x2db
+//			"BTN_TriggerHappy29", 		//0x2dc
+//			"BTN_TriggerHappy30", 		//0x2dd
+//			"BTN_TriggerHappy31", 		//0x2de
+//			"BTN_TriggerHappy32", 		//0x2df
+//			"BTN_TriggerHappy33", 		//0x2e0
+//			"BTN_TriggerHappy34", 		//0x2e1
+//			"BTN_TriggerHappy35", 		//0x2e2
+//			"BTN_TriggerHappy36", 		//0x2e3
+//			"BTN_TriggerHappy37", 		//0x2e4
+//			"BTN_TriggerHappy38", 		//0x2e5
+//			"BTN_TriggerHappy39", 		//0x2e6
+//			"BTN_TriggerHappy40", 		//0x2e7
+//		} ;
+//		return ret ;
+//	}
+
+//	std::map < std::string, int> Key::defaultNameMap ( )
+//	{
+//		std::vector < std::string > names = defaultNameList ( ) ;
+//		std::map < std::string, int > ret ;
+//		for ( unsigned int i = 0 ; i < names.size ( ) ; i++ )
+//		{
+//			std::string upDown = names [ i ] ;
+//			ret.insert ( std::pair < std::string, int > ( upDown, i ) ) ;
+//			transform ( upDown.begin ( ), upDown.end ( ), upDown.begin ( ), ::tolower ) ;
+//			ret.insert ( std::pair < std::string, int > ( upDown, i ) ) ;
+//			transform ( upDown.begin ( ), upDown.end ( ), upDown.begin ( ), ::toupper ) ;
+//			ret.insert ( std::pair < std::string, int > ( upDown, i ) ) ;
+//		}
+//		return ret ;
+//	}
+
+//	std::map < std::string, int > KeySignal::_keyInts = defaultNameMap ( ) ;
+//	std::vector < std::string > KeySignal::_keyNames = defaultNameList ( ) ;
+

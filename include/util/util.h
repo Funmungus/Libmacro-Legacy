@@ -1,133 +1,39 @@
-/*! \file util.h
- * \brief Utilities for funlibrary.
+/*! \file util/util.h
+ * \brief Utilities for macro.
  */
 
-# ifndef FUN_UTIL_H
-# define FUN_UTIL_H
+# ifndef MCR_UTIL_H
+# define MCR_UTIL_H
 
+# include "util/mcrstrings.h"
+# include "util/map.h"
+# include "util/threads.h"
 
-//# include "util/event.h"
-# include "util/xml.h"
-# include "util/serial.h"
-
-/*! \namespace funlibrary
- * \brief funlibrary is created by Funmungus.  License to be decided.
+/*! \brief If cleaner cannot be registered in at_exit
+ * program will be exited immediately.
  *
- * funlibrary was originally created for Macropus.  Macropus was
- * originally written purely in C#, but has been rewritten with this
- * C++ library to be portable.  The Macropus front-end may be any
- * language as a daemon, service, or user interface that uses this
- * library.
- */
-namespace funlibrary
-{
+ * \param cleaner Will be called before program ends.
+ * */
+MCR_API void mcr_reg_cleanup ( void ( * cleaner ) ( void ) ) ;
+/*! \brief \ref mcr_reg_cleanup With debug message for
+ * offending file name on failure.
+ *
+ * \param cleaner Will be called before program ends.
+ * */
+MCR_API void mcr_reg_cleanup_filed ( void ( * cleaner ) ( void ),
+		const char * fileName ) ;
 
-	
-	
-	
+/*! \brief For given bit return the corresponding array index.
+ * Requires at least one "on" bit.
+ *
+ * \return Array index of bit value.
+ * */
+MCR_API unsigned int mcr_bit_index ( unsigned int bitval ) ;
 
-
-	/*! \brief Contains a file descriptor which is closed upon object destruction.
-	 *
-	 * The file descriptor is publicly accessible, and unmanaged until object destruction.
-	 */
-	struct FileSafety
-	{
-	public :
-# ifdef WIN
-		/*! \brief The object file descriptor.
-		 *
-		 * An empty descriptor is NULL.
-		 */
-		FILE * fd ;
-
-		/*! \brief ctor */
-		FileSafety ( FILE * fd = NULL )
-		{
-			this->fd = fd ;
-		}
-
-		/*! \brief Dereferences fd from copytron.
-		 *
-		 * There is no copy constructor, only this move constructor.
-		 */
-		FileSafety ( FileSafety && copytron )
-			: fd ( NULL )
-		{
-			fd = copytron.fd ;
-			copytron.fd = NULL ;
-		}
-
-		/*! \brief fclose fd, then NULLify it */
-		void close ( )
-		{
-			if ( fd != NULL )
-			{
-				fclose ( fd ) ;
-				fd = NULL ;
-			}
-		}
-# endif
-# ifdef LNX
-		/*! \brief The object file descriptor.
-		 *
-		 * An empty descriptor is -1.
-		 */
-		int fd ;
-
-		/*! \brief ctor */
-		FileSafety ( int fd = -1 )
-		{
-			this->fd = fd ;
-		}
-
-		/*! \brief Dereferences fd from copytron.
-		 *
-		 * There is no copy constructor, only this move constructor.
-		 */
-		FileSafety ( FileSafety && copytron )
-			: fd ( -1 )
-		{
-			fd = copytron.fd ;
-			copytron.fd = -1 ;
-		}
-
-		/*! \brief Dereferences fd from copytron.
-		 *
-		 * There is no copy assignment, only this move assignment.
-		 */
-		inline FileSafety & operator= ( FileSafety && other)
-		{
-			if ( this != &other )
-			{
-				if ( fd != other.fd )
-					this->close ( ) ;
-				fd = other.fd ;
-				other.fd = -1 ;
-			}
-
-			return *this ;
-		}
-
-		/*! \brief ::close fd, then NULLify it */
-		void close ( )
-		{
-			if ( fd != -1 )
-			{
-				::close ( fd ) ;
-				fd = -1 ;
-			}
-		}
-# endif
-		/*! \brief dtor, fd will be closed. */
-		~FileSafety ( )
-		{
-			this->close ( ) ;
-		}
-
-	};
-
-}
+/*! \brief For given array index return the corresponding bitwise value.
+ *
+ * \return Bit value of array index.
+ * */
+MCR_API unsigned int mcr_index_bit ( const unsigned int index ) ;
 
 # endif
-

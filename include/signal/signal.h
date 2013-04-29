@@ -1,44 +1,51 @@
-/*! \file signal.h
- * \brief SignalFactory, and functions to receive sets of signals from xml and serial strings.
+/*! \file signal/signal.h
+ * Usage :
  */
 
-# ifndef FUN_SIGNAL_H
-# define FUN_SIGNAL_H
+/* Given object data type Key
+ * mcr_Key key ;
+ * mcr_Key_init ( & key, 'A', 0, BOTH ) ;
+ *
+ * Or, data type specific if speed needed for 'native' types.
+ * MCR_KEY_INIT ( & key, 'A', 0, BOTH ) ;
+ * mcr_Signal keysig = { & mcr_IKey, & key } ;
+ * int success = 1 ;
+ * MCR_SEND ( & keysig, success ) ;
+ *
+ * Or, data type sending without dispatch, if not dispatch necessary.
+ * MCR_KEY_SEND ( key ) ;
+ *
+ * Usage in an array set :
+ * mcr_Key keys [ 2 ] ;
+ * mcr_Key_init ( keys, 'A', 0, DOWN ) ;
+ * mcr_Key_init ( keys + 1, 'A', 0, UP ) ;
+ * mcr_NoOp noop = { { 1, 0 } } ;
+ * mcr_MoveCursor curs [ 2 ] ;
+ * mcr_MoveCursor_init ( curs, -5000, -5000, -5000, true ) ;
+ * mcr_MoveCursor_init ( curs + 1, 50, 50, 50, true ) ;
+ * mcr_Signal set [ ] =
+ * {
+ * 		{ & mcr_Signal_MoveCursor, curs },
+ * 		{ & mcr_Signal_NoOp, & noop },
+ * 		{ & mcr_Signal_MoveCursor, curs + 1 },
+ * 		{ & mcr_Signal_NoOp, & noop },
+ * 		{ & mcr_Signal_Key, keys },
+ * 		{ & mcr_Signal_NoOp, & noop },
+ * 		{ & mcr_Signal_Key, keys + 1 }
+ * } ;
+ * size_t len = sizeof ( set ) / sizeof ( mcr_Signal ) ;
+ * int success = 1 ;
+ * MCR_SEND_ARRAY ( set, len, success ) ;
+ *
+ * repeat sending as needed.
+ *
+ * All macros have a function that may be used insted, except for MCR_SEND_ARRAY.
+ * \ref \file signal/isignal.h
+ */
 
-# include "signal/keysignal.h"
-# include "signal/spacesignal.h"
-# include "signal/mods.h"
-# include "signal/scriptsignal.h"
-# include "signal/comsignal.h"
-# include "signal/noop.h"
-# include "signal/keystring.h"
+# ifndef MCR_SIGNAL_H
+# define MCR_SIGNAL_H
 
-namespace funlibrary
-{
-
-	/*! \brief How to create a set of signals from xml.
-	 * 
-	 * To create a set of signals... <br>
-	 * Firstly, one must have an xml C-string (char *), and a vector of DPointers to contain ISignals. <br>
-	 * Both objects are referenced as pointers.  If either object is NULL, gimmeSiggy will do nothing. <br>
-	 * Both references will be modified, and cannot be constant. <br>
-	 * Items added to siggySet will be dynamically allocated ISignal objects. DPointers delete automatically on destruction, so items are added with the "new" operator. <br>
-	 */
-	SIGNAL_API void usage_xmlSignalSet ( ) ;
-
-	/*! \brief Put in xml string all_signal_xml, and siggySet will have signals added
-	 * to it from the xml string.
-	 */
-	SIGNAL_API void xmlToSiggy ( char * all_signal_xml,
-		std::vector < std::unique_ptr < ISignal > > * siggySet ) ;
-
-	/*! \brief Put in serial string all_signal_serial, and siggySet will have signals added
-	 * to it from the serial string.
-	 */
-	SIGNAL_API void serialToSiggy ( std::string all_signal_serial,
-		std::vector < std::unique_ptr < ISignal > > * siggySet ) ;
-
-}
+# include "signal/standard.h"
 
 # endif
-

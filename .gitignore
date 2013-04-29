@@ -3,7 +3,24 @@
 *~
 bin
 out
-
+obj
+doxygen
+nohup.*
+*.bak
+*.autosave
 *.swp
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*Makefile
+*makefile
+*.pro.user
+template
+build*
+tests/test
 
 include/rapidxml/*

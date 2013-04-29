@@ -2,64 +2,59 @@
  * \brief Definitions for utilities.
  */
 
-# ifndef FUN_UTIL_DEFINES
-# define FUN_UTIL_DEFINES
+# ifndef MCR_UTIL_DEFINES_H
+# define MCR_UTIL_DEFINES_H
 
-# ifdef WIN
+# include <stdarg.h>
+# include <stdio.h>
+# include <string.h>	// c library memcpy/strncpy and concats
+# include <stdlib.h>
+# include <ctype.h>
+# include <time.h>
 
-# include <WinSDKVer.h>
+// From http://goodliffe.blogspot.com/2009/07/c-how-to-say-warning-to-visual-studio-c.html
+// Year 2014
+# define STRINGIFY_HELPER( x ) #x
+# define STRINGIFY( x ) STRINGIFY_HELPER ( x )
+// TOKENPASTE found at http://stackoverflow.com/questions/16522341/pseudo-generics-in-c
+// Year 2014
+# define TOKENPASTE_HELPER( x, y ) x ## y
+# define SNAKEPASTE_HELPER( x, y ) x ## _ ## y
+# define TOKENPASTE(x, y) TOKENPASTE_HELPER ( x, y )
+# define SNAKEPASTE(x, y) SNAKEPASTE_HELPER ( x, y )
 
-// Windows Version
-# define _WIN32_WINNT _WIN32_WINNT_WINXP	// 0x0501
-// Including SDKDDKVer.h defines the highest available Windows platform.
-// If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
-// set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
+# define WARNING( desc ) message("warning:" __FILE__ "(" \
+		STRINGIFY(__LINE__) "): " #desc )
+// usage:
+//#pragma WARNING ( FIXME: Code removed because... )
 
-# include <SDKDDKVer.h>
+# ifndef MCR_NATIVE_DIR
+# pragma WARNING(MCR_NATIVE_DIR is undefined, defaulting to nativeless. Native functions will be unusable.)
+# define MCR_NATIVE_DIR nativeless
+# endif
 
-# define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
-# include <windows.h>
+# ifndef MCR_API
+// The result is as if MCR_API is not there if not yet given a value
+# define MCR_API
+# endif
 
-// The following ifdef block is the standard way of creating macros which make exporting 
-// from a DLL simpler. All files within this DLL are compiled with the FUN_EXPORTS
-// symbol defined on the command line. This symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
-// FUN_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
-# ifdef UTIL_STATIC
-# define UTIL_API 
+# ifndef UNUSED
+# define UNUSED( x ) (void)(x)
+# endif
+
+# ifdef DEBUG
+# define DMSG( format, ... ) \
+	fprintf ( stderr, __FILE__ ":" STRINGIFY ( __LINE__ ) ":" \
+	format "\n", __VA_ARGS__ ) ;
 # else
-	# ifdef UTIL_EXPORTS
-	# define UTIL_API __declspec(dllexport)
-	# else
-	# define UTIL_API __declspec(dllimport)
-	# endif
+# define DMSG(format,...)
 # endif
 
-# endif
+/*! \brief
+ * Function to call for elements of iteration.
+ * */
+typedef void ( * mcr_iterate_fnc ) ( void *, va_list ) ;
 
-# ifndef UTIL_API // If not using windows
-					// The result is as if FUN_API is not there on other platforms.
-# define UTIL_API 
-# endif
-
-# include <cstdint>
-# include <cstdio>
-# include <iostream>
-# include <locale>
-# include <memory>
-# include <sstream>
-# include <string>
-# include <string.h>
-
-# ifdef WIN
-# include <fstream>
-# endif
-
-# ifdef LNX
-# include <fcntl.h>
-# include <unistd.h>
-# endif
+# include STRINGIFY(util/MCR_NATIVE_DIR/def.h)
 
 # endif
-

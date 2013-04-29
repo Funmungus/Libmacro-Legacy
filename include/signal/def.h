@@ -2,65 +2,93 @@
  * \brief Definitions for signals.
  */
 
-# ifndef FUN_SIGNAL_DEFINES
-# define FUN_SIGNAL_DEFINES
-
-# if defined ( WIN )
-
-/* WIN SDK defined in util.
-# include <WinSDKVer.h>
-
-// Windows Version
-# define _WIN32_WINNT _WIN32_WINNT_WINXP	// 0x0501
-
-# include <SDKDDKVer.h>
-
-# define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
-# include <windows.h>
-*/
-// The following ifdef block is the standard way of creating macros which make exporting 
-// from a DLL simpler. All files within this DLL are compiled with the FUN_EXPORTS
-// symbol defined on the command line. This symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
-// FUN_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
-
-# ifdef SIGNAL_STATIC
-# define SIGNAL_API 
-# else
-	# ifdef SIGNAL_EXPORTS
-	# define SIGNAL_API __declspec(dllexport)
-	# else
-	# define SIGNAL_API __declspec(dllimport)
-	# endif
-# endif
-
-# endif
-
-# ifndef SIGNAL_API // If not using windows, or define FUN_API as nothing.
-					// The result is as if FUN_API is not there on other platforms.
-# define SIGNAL_API
-# endif
-
-
-# include <algorithm>
-# include <chrono>
-# include <cstdlib>
-# include <cstring>
-# include <map>
-# include <mutex>
-# include <thread>
-# include <vector>
-
-# ifdef LNX
-# include <dirent.h>
-# include <linux/input.h>
-# include <linux/keyboard.h>
-# include <linux/uinput.h>
-# include <X11/Xlib.h>
-# endif
+# ifndef MCR_SIGNAL_DEFINES_H
+# define MCR_SIGNAL_DEFINES_H
 
 # include "util/util.h"
 
+// Usable spatial dimensions for cursor/spatial events
+# define MCR_DIMENSION_MIN 0
+# define MCR_X 0
+# define MCR_Y1 0
+# define MCR_Y 1
+# define MCR_Y2 1
+# define MCR_Z 2
+# define MCR_Y3 2
+# define MCR_W 3
+# define MCR_Y4 3
+# ifndef MCR_DIMENSION_MAX
+# define MCR_DIMENSION_MAX MCR_Z
 # endif
+# define MCR_DIMENSION_CNT (MCR_DIMENSION_MAX + 1)
 
+/*!
+ * \brief To signify a signal is being set released, or both.
+ */
+typedef enum mcr_KeyUpType
+{
+	MCR_DOWN = 0,
+	MCR_UP = 1,
+	MCR_BOTH = 2
+} mcr_KeyUpType ;
+
+/*! \brief Spatial position, indices are coordinates.
+ * \ref \def MCR_DIMENSION_CNT
+ * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
+ * */
+typedef long long mcr_SpacePosition [ MCR_DIMENSION_CNT ] ;
+//! \brief \ref mcr_SpacePosition
+typedef mcr_SpacePosition mcr_Dimensions ;
+
+/*!
+ * \brief Inline: 1 ) dispatch specific, if not blocking
+ * 2 ) dispatch unspecific, if not blocking
+ * 3 ) send signal.
+ *
+ * \param signalPt mcr_Signal *
+ * \param success int Set to 0 on failure.
+ * */
+# define MCR_SEND( signalPt, success ) \
+	if ( ! ( signalPt )->type->dispatch || \
+			! ( signalPt )->type->dispatch ( ( signalPt ) ) ) \
+	{ \
+		if ( ! mcr_AllDispatch || \
+			! mcr_AllDispatch ( ( signalPt ) ) ) \
+		{ \
+			if ( ! ( signalPt )->type->send ( ( signalPt ) ) ) \
+				success = 0 ; \
+		} \
+	}
+
+/*!
+ * \brief \ref MCR_SEND with array of pointers to mcr_Signal
+ *
+ * \param signalPtArray mcr_Signal * [ ]
+ * \param arrLen size_t Length of signalPtArray.
+ * \param success int Set to 0 on failure.
+ * */
+# define MCR_SEND_ARRAY( signalPtArray, arrLen, success ) \
+	for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < arrLen ; \
+			_arrayIterator_ ++ ) \
+	{ \
+		MCR_SEND ( ( signalPtArray ) [ _arrayIterator_ ], success ) ; \
+	}
+
+/*!
+ * \brief For pointer to mcr_ISignal set the name, send,
+ * data_allocator, and copy_allocator.
+ *
+ * Should we reset id to 0?
+ * \param isignalPt mcr_ISignal * Object to set values into.
+ * \param namePt const char * mcr_ISignal name.
+ * \param sender mcr_signal_fnc mcr_ISignal send.
+ * \param dataSize size_t mcr_ISignal data_size.
+ * */
+# define MCR_ISIGNAL_INIT( isignalPt, namePt, sender, dataSize ) \
+	( isignalPt )->name = ( namePt ) ; \
+	( isignalPt )->send = ( sender ) ; \
+	( isignalPt )->data_size = ( dataSize ) ;
+
+# include STRINGIFY(signal/MCR_NATIVE_DIR/def.h)
+
+# endif
