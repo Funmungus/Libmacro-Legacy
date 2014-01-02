@@ -63,7 +63,7 @@ typedef void * cnd_t ;
 //
 // C standard thread.
 //
-MCR_API int thrd_create ( thrd_t * thr, thrd_start_t func, void * arg ) ; 	// "new"
+MCR_API int thrd_create ( thrd_t * thr, thrd_start_t func, void * arg ) ;
 MCR_API int thrd_equal ( thrd_t lhs, thrd_t rhs ) ;
 MCR_API thrd_t thrd_current ( ) ;
 MCR_API int thrd_sleep ( const struct timespec * time_point,

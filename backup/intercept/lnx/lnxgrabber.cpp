@@ -12,17 +12,17 @@ namespace funlibrary
 	{
 		enable ( beginEnabled ) ;
 	}
-	
+
 	Grabber::Grabber ( Grabber && copytron )
 		: path ( copytron.path ),
 			fd_accessor ( copytron._fs.fd ), enable_accessor ( copytron._enable ),
 			_fs ( -1 ), _enable ( copytron._enable )
-	{	
+	{
 		copytron._enable = copytron.enable_accessor = false ;
 		_fs = std::move ( copytron._fs ) ;
 		copytron.fd_accessor = -1 ;
 	}
-	
+
 	Grabber & Grabber::operator= ( Grabber && copytron )
 	{
 		if ( & copytron != this )

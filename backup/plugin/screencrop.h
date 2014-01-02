@@ -12,14 +12,14 @@
 namespace macro
 {
 	/*! \brief Take a screen shot and crop it to size. Bitmap is saved to file.
-	* If filename is stdout or stderr, the bitmap is printed in binary to those file pointers.
+	 * If filename is stdout or stderr, the bitmap is printed in binary to those file pointers.
 	 */
 	class ScreenCrop : public ISignal
 	{
 	public:
 		/*! \brief ScreenCrop
-		*
-		* \ref ISignal::name
+		 *
+		 * \ref ISignal::name
 		 */
 		static MCR_API const std::string name ;
 		// ! \brief \ref ISignal#dispatch ( )
@@ -111,7 +111,7 @@ namespace macro
 		/*! \brief \ref ScreenCrop::name */
 		virtual MCR_API std::string type ( ) const ;
 		/*! \ref With given dimensions at given point crop the screen
-		* and output to file.
+		 * and output to file.
 		 */
 		virtual inline bool send ( )
 		{

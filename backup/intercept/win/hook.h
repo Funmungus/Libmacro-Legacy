@@ -12,19 +12,19 @@
 namespace macro
 {
 	/*! \brief Registers a hook for specific hardware type, and sends events to given callbacks for that type.
-	*
-	* If the callback returns true, then the signal is dropped and has no more effect.<br>
-	* If the callback returns false, then the signal is continued on, to be used by processes and
-	* the operating system.
+	 *
+	 * If the callback returns true, then the signal is dropped and has no more effect.<br>
+	 * If the callback returns false, then the signal is continued on, to be used by processes and
+	 * the operating system.
 	 */
 	class Hook
 	{
 	public:
 		/*! \brief ctor
-		*
-		* Bothe hookType and hookingProc must be defined to begin enabled.
-		* \param beginEnabled If true, this hook will begin intercepting immediately.
-		* Otherwise enable ( true ) must be called explicitly.
+		 *
+		 * Bothe hookType and hookingProc must be defined to begin enabled.
+		 * \param beginEnabled If true, this hook will begin intercepting immediately.
+		 * Otherwise enable ( true ) must be called explicitly.
 		 */
 		Hook ( const int hookType = 0, HOOKPROC hookingProc = NULL, bool beginEnabled = false ) ;
 		// ! \brief dtor

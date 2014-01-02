@@ -24,7 +24,8 @@ void setup ( )
 	{
 		assert ( mcr_ISignal_from_name ( knowns [ i ]->name ) == knowns [ i ] ) ;
 		assert ( mcr_ISignal_get ( knowns [ i ]->id ) == knowns [ i ] ) ;
-		assert ( mcr_ISignal_get_id ( knowns [ i ]->name ) == knowns [ i ]->id ) ;
+		assert ( mcr_ISignal_get_id ( knowns [ i ]->name ) ==
+				knowns [ i ]->id ) ;
 	}
 
 	printf ( "Setup - OK\n" ) ;
@@ -146,7 +147,8 @@ void test_Key_inits ( )
 	printf ( "mcr_Key_init_with - OK\n" ) ;
 }
 
-void space_equal ( const mcr_SpacePosition lhs, const mcr_SpacePosition rhs )
+void space_equal ( const mcr_SpacePosition lhs,
+		const mcr_SpacePosition rhs )
 {
 	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i++ )
 	{
@@ -630,8 +632,6 @@ int main ( void )
 	test_resembles_justified ( ) ;
 	test_resembles_absolute ( ) ;
 	test_resembles ( ) ;
-
-
 
 	printf ( "Test complete without assertion error.\n" ) ;
 

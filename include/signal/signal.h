@@ -39,7 +39,8 @@
  *
  * repeat sending as needed.
  *
- * All macros have a function that may be used insted, except for MCR_SEND_ARRAY.
+ * All macros have a function that may be used insted,
+ * except for MCR_SEND_ARRAY.
  * \ref \file signal/isignal.h
  */
 

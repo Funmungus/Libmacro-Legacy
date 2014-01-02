@@ -52,15 +52,8 @@ if ( expression ) \
 	return ; \
 }
 
-void onComplete ( void )
-{
-//	fprintf ( stderr, "Test program is ending with the following map...\n" ) ;
-//	mcr_Map_print ( & map ) ;
-}
-
 void setup ( )
 {
-	mcr_reg_cleanup_filed ( onComplete, __FILE__ ) ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		memset ( set1 + i, i, SIZEOF ( set1 [ 0 ] ) ) ;
@@ -90,7 +83,7 @@ void reset ( )
 	assert ( map.set.used == SIZE ) ;
 }
 
-void map_init ( )
+void test_map_init ( )
 {
 	mcr_Map_init ( & map, SIZE1, SIZE2 ) ;
 	map.compare = set1compare ;
@@ -101,7 +94,7 @@ void map_init ( )
 	printf ( "init OK\n" ) ;
 }
 
-void map_free ( )
+void test_map_free ( )
 {
 	mcr_Map_free ( & map ) ;
 	assert ( map.compare == set1compare ) ;
@@ -115,14 +108,6 @@ void map_free ( )
 	printf ( "free OK\n" ) ;
 }
 
-void map_print ( )
-{
-	printf ( "Print test is manual. Please read below, and make sure "
-				"this prints from 0 to 0x%x.\n", SIZE - 1 ) ;
-	mcr_Map_print ( & map ) ;
-	printf ( "print OK\n" ) ;
-}
-
 # define CHKMAP \
 	for ( i = 0 ; i < SIZE ; i++ ) \
 	{ \
@@ -130,7 +115,7 @@ void map_print ( )
 		assert ( ! memcmp ( it, setboth + i, SIZEBOTH ) ) ; \
 	}
 
-void map_map ( )
+void test_map_map ( )
 {
 	// If mapping was correct in reset, then each s1+s2 should be
 	// the same sboth.
@@ -148,7 +133,8 @@ void map_map ( )
 	for ( i = SIZE - 1 ; i >= 0 ; i-- )
 	{
 		FAILIF ( ! mcr_Map_map ( & map, set1 + i, set2 + i ) ) ;
-		assert ( ! memcmp ( mcr_Map_get ( & map, set1 + i ), setboth + i, SIZEBOTH ) ) ;
+		assert ( ! memcmp ( mcr_Map_get ( & map, set1 + i ), setboth + i,
+				SIZEBOTH ) ) ;
 	}
 	map.compare = set1compare ;
 	mcr_Map_sort ( & map ) ;
@@ -157,7 +143,7 @@ void map_map ( )
 	printf ( "map OK\n" ) ;
 }
 
-void map_map_pair ( )
+void test_map_map_pair ( )
 {
 	mcr_Map_free ( & map ) ;
 	// Same as reset, but using sboth.
@@ -184,7 +170,8 @@ void map_map_pair ( )
 	for ( i = SIZE - 1 ; i >= 0 ; i-- )
 	{
 		FAILIF ( ! mcr_Map_map_pair ( & map, setboth + i ) ) ;
-		assert ( ! memcmp ( mcr_Array_at ( & map.set, SIZE - 1 - i ), setboth + i, SIZEBOTH ) ) ;
+		assert ( ! memcmp ( mcr_Array_at ( & map.set, SIZE - 1 - i ), setboth + i,
+				SIZEBOTH ) ) ;
 	}
 	map.compare = set1compare ;
 	mcr_Map_sort ( & map ) ;
@@ -193,19 +180,21 @@ void map_map_pair ( )
 	printf ( "map_pair OK\n" ) ;
 }
 
-void map_get ( )
+void test_map_get ( )
 {
 	CHKMAP ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		assert ( ! memcmp ( mcr_Map_get ( & map, set1 + i ), setboth + i, SIZEBOTH ) ) ;
+		assert ( ! memcmp ( mcr_Map_get ( & map, set1 + i ), setboth + i,
+				SIZEBOTH ) ) ;
 	}
 	// get from empty map always null
 	mcr_Map_free ( & map ) ;
 	assert ( mcr_Map_get ( & map, set1 + 0 ) == NULL ) ;
 	assert ( mcr_Map_get ( & map, set1 + 1 ) == NULL ) ;
 	mcr_Map_map_pair ( & map, setboth + 0 ) ;
-	assert ( ! memcmp ( mcr_Map_get ( & map, set1 + 0 ), setboth + 0, SIZEBOTH ) ) ;
+	assert ( ! memcmp ( mcr_Map_get ( & map, set1 + 0 ), setboth + 0,
+			SIZEBOTH ) ) ;
 	assert ( mcr_Map_get ( & map, set1 + 1 ) == NULL ) ;
 	reset ( ) ;
 	CHKMAP ;
@@ -214,17 +203,18 @@ void map_get ( )
 	printf ( "get OK\n" ) ;
 }
 
-void map_get_slow ( )
+void test_map_get_slow ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		assert ( ! memcmp ( mcr_Map_get_slow ( & map, set1 + i ), setboth + i, SIZEBOTH ) ) ;
+		assert ( ! memcmp ( mcr_Map_get_slow ( & map, set1 + i ), setboth + i,
+				SIZEBOTH ) ) ;
 	}
 	CHKMAP ;
 	printf ( "get_slow OK\n" ) ;
 }
 
-void map_get_ensured ( )
+void test_map_get_ensured ( )
 {
 	mcr_Map_free ( & map ) ;
 	assert ( map.set.used == 0 ) ;
@@ -270,7 +260,7 @@ void map_get_ensured ( )
 	printf ( "get_ensured OK\n" ) ;
 }
 
-void map_index_of ( )
+void test_map_index_of ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
@@ -287,7 +277,7 @@ void map_index_of ( )
 	printf ( "index_of OK\n" ) ;
 }
 
-void map_unmap ( )
+void test_map_unmap ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
@@ -308,7 +298,8 @@ void map_unmap ( )
 		assert ( mcr_Map_get ( & map, set1 + i ) == NULL ) ;
 		if ( i > 0 )
 		{
-			assert ( mcr_Map_index_of ( & map, set1 + i - 1 ) == map.set.used - 1 ) ;
+			assert ( mcr_Map_index_of ( & map, set1 + i - 1 ) ==
+					map.set.used - 1 ) ;
 		}
 		assert ( map.set.used == ( size_t ) i ) ;
 	}
@@ -323,7 +314,7 @@ void map_unmap ( )
 	printf ( "unmap OK\n" ) ;
 }
 
-void map_sort ( )
+void test_map_sort ( )
 {
 	// sort already sorted
 	mcr_Map_sort ( & map ) ;
@@ -341,7 +332,8 @@ void map_sort ( )
 	// should still be backwards after sort
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		assert ( ! memcmp ( mcr_Array_at ( & map.set, i ), setboth + SIZE - 1 - i, SIZEBOTH ) ) ;
+		assert ( ! memcmp ( mcr_Array_at ( & map.set, i ), setboth + SIZE - 1 - i,
+				SIZEBOTH ) ) ;
 	}
 	// check real sorting works too
 	map.compare = set1compare ;
@@ -350,7 +342,7 @@ void map_sort ( )
 	printf ( "sort OK\n" ) ;
 }
 
-void map_clear ( )
+void test_map_clear ( )
 {
 	mcr_Map_clear ( & map ) ;
 	assert ( map.compare == set1compare ) ;
@@ -364,7 +356,7 @@ void map_clear ( )
 	printf ( "clear OK\n" ) ;
 }
 
-void map_trim ( )
+void test_map_trim ( )
 {
 	mcr_Map_trim ( & map ) ;
 	assert ( map.set.used == map.set.size ) ;
@@ -381,7 +373,15 @@ void map_trim ( )
 	printf ( "trim OK\n" ) ;
 }
 
-void map_value ( )
+void test_map_print ( )
+{
+	printf ( "Print test is manual. Please read below, and make sure "
+				"this prints from 0 to 0x%x.\n", SIZE - 1 ) ;
+	mcr_Map_print ( & map ) ;
+	printf ( "print OK\n" ) ;
+}
+
+void test_map_value ( )
 {
 	assert ( MCR_MAP_VALUE ( & map, NULL ) == NULL ) ;
 	for ( i = 0 ; i < SIZE ; i++ )
@@ -394,37 +394,53 @@ void map_value ( )
 	printf ( "value OK\n" ) ;
 }
 
-void chk_redirect ( void * itPt,... )
+void chk_redirect_impl ( void * itPt, va_list lst )
 {
+	typedef int * intPt ;
 	assert ( itPt == mcr_Map_get ( & map, set1 + i ) ) ;
-	va_list lst ;
-	va_start ( lst, itPt ) ;
-	assert ( va_arg ( lst, int ) == i ) ;
-	va_end ( lst ) ;
+	assert ( * va_arg ( lst, intPt ) == i ) ;
 	++ i ;
 }
 
-void map_for_each ( )
+void chk_redirect ( void * itPt,... )
+{
+	va_list lst ;
+	va_start ( lst, itPt ) ;
+	chk_redirect_impl ( itPt, lst ) ;
+	va_end ( lst ) ;
+}
+
+void test_map_for_each ( )
 {
 	i = 0 ;
-	MCR_MAP_FOR_EACH ( & map, chk_redirect, i ) ;
+	MCR_MAP_FOR_EACH ( & map, chk_redirect, & i ) ;
+	i = 0 ;
+	mcr_Map_for_each ( & map, chk_redirect_impl, & i ) ;
+
 	printf ( "for_each OK\n" ) ;
+}
+
+void chk_value_redirect_impl ( void * itPt, va_list lst )
+{
+	typedef int * intPt ;
+	assert ( itPt == MCR_MAP_VALUE ( & map, mcr_Map_get (
+			& map, set1 + i ) ) ) ;
+	assert ( * va_arg ( lst, intPt ) == i ) ;
+	++ i ;
 }
 
 void chk_value_redirect ( void * itPt,... )
 {
-	assert ( itPt == MCR_MAP_VALUE ( & map, mcr_Map_get ( & map, set1 + i ) ) ) ;
 	va_list lst ;
 	va_start ( lst, itPt ) ;
-	assert ( va_arg ( lst, int ) == i ) ;
+	chk_value_redirect_impl ( itPt, lst ) ;
 	va_end ( lst ) ;
-	++ i ;
 }
 
-void map_for_each_value ( )
+void test_map_for_each_value ( )
 {
 	i = 0 ;
-	MCR_MAP_FOR_EACH_VALUE ( & map, chk_value_redirect, i ) ;
+	MCR_MAP_FOR_EACH_VALUE ( & map, chk_value_redirect, & i ) ;
 	printf ( "for_each_value OK\n" ) ;
 }
 
@@ -433,23 +449,23 @@ int main ( void )
 {
 	setup ( ) ;
 
-	map_init ( ) ;
-	map_free ( ) ;
-	map_print ( ) ;
-	map_map ( ) ;
-	map_map_pair ( ) ;
-	map_get ( ) ;
-	map_get_slow ( ) ;
-	map_get_ensured ( ) ;
-	map_index_of ( ) ;
-	map_unmap ( ) ;
-	map_sort ( ) ;
-	map_clear ( ) ;
-	map_trim ( ) ;
+	test_map_init ( ) ;
+	test_map_free ( ) ;
+	test_map_map ( ) ;
+	test_map_map_pair ( ) ;
+	test_map_get ( ) ;
+	test_map_get_slow ( ) ;
+	test_map_get_ensured ( ) ;
+	test_map_index_of ( ) ;
+	test_map_unmap ( ) ;
+	test_map_sort ( ) ;
+	test_map_clear ( ) ;
+	test_map_trim ( ) ;
+	test_map_print ( ) ;
 
-	map_value ( ) ;
-	map_for_each ( ) ;
-	map_for_each_value ( ) ;
+	test_map_value ( ) ;
+	test_map_for_each ( ) ;
+	test_map_for_each_value ( ) ;
 
 	printf ( "Test complete without assertion error.\n" ) ;
 

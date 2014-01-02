@@ -169,7 +169,7 @@ void Dispatcher::enable ( bool enable )
 			{
 				InternalMods.remove ( Mods::modFromKey ( modori.getKey ( ) ) ) ;
 			}
-			
+
 			//bool isBlocking = call ( & modori, & inMod ) ;
 			bool isBlocking = trigger ( & modori, & InternalMods ) ;
 
@@ -277,7 +277,7 @@ void Dispatcher::enable ( bool enable )
 		// check for this is if keyState is in the right format.
 		if ( keyState == NULL || keyState_size < 0xFF )
 			return false ;
-		
+
 		// sample key state so windows refreshes keyboard state
 		result = GetKeyState ( key ) ;
 

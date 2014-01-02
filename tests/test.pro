@@ -23,7 +23,7 @@ HEADERS += \
     ../include/macro.h
 
 SOURCES += \
-    arraytest.c
+    dispatchtest.c
 #    dispatchtest.c
 #    hottest.c
 #    sendtest.c

@@ -11,16 +11,16 @@
 namespace macro
 {
 	/*!
-	* \brief ComSignal communicates signals accross language barriers.
-	*
-	* Planned communications are CLI, JNI, and P/Invoke.
+	 * \brief ComSignal communicates signals accross language barriers.
+	 *
+	 * Planned communications are CLI, JNI, and P/Invoke.
 	 */
 	class ComSignal : public ISignal
 	{
 	public:
 		/*! \brief Comsignal
-		*
-		* \ref ISignal::name
+		 *
+		 * \ref ISignal::name
 		 */
 		static MCR_API const std::string name ;
 		// ! \brief \ref ISignal#dispatch ( )
@@ -42,7 +42,7 @@ namespace macro
 		}
 
 		/*! \brief ctor
-		* \param newMessageDescriptor Descriptor of contained signal.
+		 * \param newMessageDescriptor Descriptor of contained signal.
 		 */
 		inline ComSignal ( const std::string & newMessageDescriptor )
 			: _messageDescriptor ( newMessageDescriptor )

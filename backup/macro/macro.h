@@ -73,19 +73,19 @@ namespace macro
 		/*! \brief \ref Macro::name */
 		std::string type ( ) const ;
 		/*! \brief Tag : \ref Macro::name
-		*
-		* \ref ISignal#xml ( ) const
-		* Other tags : name, \ref ISignal#type ( ) const, set, enable, sticky
-		* set child tags : \ref ISignal#type ( )
+		 *
+		 * \ref ISignal#xml ( ) const
+		 * Other tags : name, \ref ISignal#type ( ) const, set, enable, sticky
+		 * set child tags : \ref ISignal#type ( )
 		 */
 		std::string xml ( const std::string & extraAttributes = "" ) const ;
 		// ! \brief \ref ISignal#receive ( const std::string &, const std::string )
 		void receive ( const std::string & name, const std::string & value ) ;
 
 		/*!
-		* \brief send Send all signals in a set.
-		*
-		* Sends \ref Macro#sendCurrentThread ( ) in separate thread.
+		 * \brief send Send all signals in a set.
+		 *
+		 * Sends \ref Macro#sendCurrentThread ( ) in separate thread.
 		 **/
 		inline bool send ( )
 		{
@@ -94,9 +94,9 @@ namespace macro
 			return true ;
 		}
 		/*!
-		* \brief sendCurrentThread Send all signals in a set.
-		* If this macro is sticky, this will be repeated until
-		* \ref Macro#interrupt ( )
+		 * \brief sendCurrentThread Send all signals in a set.
+		 * If this macro is sticky, this will be repeated until
+		 * \ref Macro#interrupt ( )
 		 */
 		inline void sendCurrentThread ( )
 		{

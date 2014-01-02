@@ -136,7 +136,8 @@ void test_AllDispatch ( )
 	assert ( mcr_send ( sigs ) ) ;
 	verifyDispatched ( ) ;
 	assert ( ! alldispatchCalled ) ;
-	// Case 1.3 Specific does not exist, but alldispatch does. specific not called.
+	// Case 1.3 Specific does not exist, but alldispatch does.
+	// specific not called.
 	isigs [ 0 ].dispatch = NULL ;
 	mcr_AllDispatch = s1alldisp ;
 	// Blocked, send always true.
@@ -415,7 +416,7 @@ void test_size_t_compare ( )
 
 	printf ( "mcr_size_t_compare - OK\n" ) ;
 }
-void test_void_compare ( )
+void test_ref_compare ( )
 {
 	mcr_ISignal * lhs, * rhs ;
 	for ( i = 0, lhs = isigs + i, rhs = isigs + i ;
@@ -441,7 +442,8 @@ void test_void_compare ( )
 }
 
 
-// 1 global variable, 1 init fnc, 1 clean fnc, 3 signal functions, 7 isignal functions, 5 comparators
+// 1 global variable, 1 init fnc, 1 clean fnc, 3 signal functions,
+// 7 isignal functions, 5 comparators
 int main ( void )
 {
 	setup ( ) ;
@@ -462,7 +464,7 @@ int main ( void )
 	test_int_compare ( ) ;
 	test_unsigned_compare ( ) ;
 	test_size_t_compare ( ) ;
-	test_void_compare ( ) ;
+	test_ref_compare ( ) ;
 
 	printf ( "Test complete without assertion error.\n" ) ;
 

@@ -10,7 +10,7 @@ void mcr_Array_init ( mcr_Array * arrPt, size_t elementSize )
 void mcr_Array_free ( mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return ;
-	free ( arrPt->array ) ;
+	if ( arrPt->array ) free ( arrPt->array ) ;
 	mcr_Array_init ( arrPt, arrPt->element_size ) ;
 }
 int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
@@ -102,7 +102,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		size_t bytes = ( pos - arrPt->used ) * arrPt->element_size ;
 		p1 = MCR_ARR_AT ( arrPt, arrPt->used ) ;
 		if ( p1 )
-			memset ( p1 , 0, bytes ) ;
+			memset ( p1, 0, bytes ) ;
 		arrPt->used = pos + 1 ;
 	}
 	// Insert in-between
@@ -114,7 +114,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		{
 			// # elements to move is previous used count - insert index
 			size_t bytes = ( ( arrPt->used ++ ) - pos )
-					* arrPt->element_size ;
+					 * arrPt->element_size ;
 			memmove ( p2, p1, bytes ) ;
 		}
 		else
@@ -198,7 +198,7 @@ int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 			return 0 ;
 		}
 	}
-	size_t index = arrPt->used;
+	size_t index = arrPt->used ;
 	arrPt->used += count ;
 	void * it = MCR_ARR_AT ( arrPt, index ) ;
 	if ( it )
@@ -222,7 +222,8 @@ void mcr_Array_remove ( mcr_Array * arrPt, size_t pos )
 	size_t byteNum = end - found ;
 	memmove ( found, found + arrPt->element_size, byteNum ) ;
 }
-void mcr_Array_remove_all ( mcr_Array * arrPt, const void * removeElementPt )
+void mcr_Array_remove_all ( mcr_Array * arrPt,
+		const void * removeElementPt )
 {
 	if ( ! arrPt || ! removeElementPt )
 		return ;

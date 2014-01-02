@@ -33,7 +33,7 @@ typedef enum mcr_KeyUpType
 } mcr_KeyUpType ;
 
 /*! \brief Spatial position, indices are coordinates.
- * \ref \def MCR_DIMENSION_CNT
+ * \ref MCR_DIMENSION_CNT
  * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
  * */
 typedef long long mcr_SpacePosition [ MCR_DIMENSION_CNT ] ;
@@ -61,7 +61,7 @@ typedef mcr_SpacePosition mcr_Dimensions ;
 	}
 
 /*!
- * \brief \ref MCR_SEND with array of pointers to mcr_Signal
+ * \brief MCR_SEND with array of pointers to mcr_Signal
  *
  * \param signalPtArray mcr_Signal * [ ]
  * \param arrLen size_t Length of signalPtArray.

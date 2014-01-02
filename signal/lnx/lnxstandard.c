@@ -91,4 +91,3 @@ void mcr_standard_native_cleanup ( )
 	mcr_Device_cleanup ( ) ;
 	mcr_Array_free ( & mcr_EchoEvents ) ;
 }
-

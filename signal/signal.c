@@ -95,7 +95,7 @@ int mcr_name_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return strcasecmp ( * ( const char * const * ) lhs,
-						* ( const char * const * ) rhs ) ;
+						 * ( const char * const * ) rhs ) ;
 }
 
 int mcr_int_compare ( const void * lhs, const void * rhs )
@@ -105,7 +105,7 @@ int mcr_int_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return * ( const int * ) lhs < * ( const int * ) rhs ? -1 :
-			* ( const int * ) lhs > * ( const int * ) rhs ;
+			 * ( const int * ) lhs > * ( const int * ) rhs ;
 }
 
 int mcr_unsigned_compare ( const void * lhs, const void * rhs )
@@ -115,9 +115,9 @@ int mcr_unsigned_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return * ( const unsigned int * ) lhs <
-			* ( const unsigned int * ) rhs ? -1 :
-			* ( const unsigned int * ) lhs >
-			* ( const unsigned int * ) rhs ;
+			 * ( const unsigned int * ) rhs ? -1 :
+			 * ( const unsigned int * ) lhs >
+			 * ( const unsigned int * ) rhs ;
 }
 
 int mcr_size_t_compare ( const void * lhs, const void * rhs )
@@ -127,7 +127,7 @@ int mcr_size_t_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return * ( const size_t * ) lhs < * ( const size_t * ) rhs ? -1 :
-			* ( const size_t * ) lhs > * ( const size_t * ) rhs ;
+			 * ( const size_t * ) lhs > * ( const size_t * ) rhs ;
 }
 
 int mcr_ref_compare ( const void * lhs, const void * rhs )
@@ -137,7 +137,7 @@ int mcr_ref_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return * ( void * const * ) lhs < * ( void * const * ) rhs ? -1 :
-			* ( void * const * ) lhs > * ( void * const * ) rhs ;
+			 * ( void * const * ) lhs > * ( void * const * ) rhs ;
 }
 
 void mcr_signal_cleanup ( void )

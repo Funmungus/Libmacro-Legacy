@@ -17,8 +17,8 @@ namespace macro
 	{
 	public:
 		/*! \brief KeyString
-		*
-		* \ref ISignal::name
+		 *
+		 * \ref ISignal::name
 		 */
 		static MCR_API const std::string name ;
 		// ! \brief CharMap, Map key+shifted value to character index.
@@ -32,11 +32,11 @@ namespace macro
 		// ! \brief \ref ISignal#dispatch ( )
 		static MCR_API bool ( * dispatcher ) ( KeyString & ) ;
 		/*! \brief Map is <int, bool>, vector is int.
-		* Mapping key and shifted value to character as index
+		 * Mapping key and shifted value to character as index
 		 **/
 		static MCR_API charmap_t CharMap ;
 		/*! \brief The starting off charmap.
-		* Important, implement in native directory.
+		 * Important, implement in native directory.
 		 **/
 		static MCR_API charmap_t defaultCharMap ( ) ;
 
@@ -56,22 +56,22 @@ namespace macro
 
 		// static
 		/*! \brief Convert a set of signals into a KeyString object.
-		*
-		* Any signal that is not a "shift" Mods, NoOp, or key signal are ignored.<br>
-		* A NoOp between a key press and release is interpreted as a delay. Between separate keys is an interval.<br>
-		* The average of all delays will be the final delay value used. The same is true for all intervals.
+		 *
+		 * Any signal that is not a "shift" Mods, NoOp, or key signal are ignored.<br>
+		 * A NoOp between a key press and release is interpreted as a delay. Between separate keys is an interval.<br>
+		 * The average of all delays will be the final delay value used. The same is true for all intervals.
 		 */
 		static MCR_API KeyString fromKeys ( std::vector < std::unique_ptr < ISignal > > * keySet ) ;
 		/*! \brief Convert a KeyString object into a set of signals.
-		* \param retVals This vector is first cleared, and then values are added to it based on the string in container.
+		 * \param retVals This vector is first cleared, and then values are added to it based on the string in container.
 		 */
 		MCR_API void toKeys ( std::vector < std::unique_ptr < ISignal > > * retVals ) ;
 
 		// static util
 		/*! \brief Convert a key value into an ascii character.
-		*
-		* \param keyval The key code value to convert.
-		* \param shifted A shifted key may change the resulting ascii code.
+		 *
+		 * \param keyval The key code value to convert.
+		 * \param shifted A shifted key may change the resulting ascii code.
 		 */
 		static inline int charFromKey ( const int keyVal, const bool shifted )
 		{

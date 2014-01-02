@@ -1,18 +1,19 @@
 #!/bin/bash
 
-export FUN_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-echo "FUN_HOME set to ${FUN_HOME}"
-alias mcd="cd \"${FUN_HOME}\""
-alias ubu="ubuntu-sdk \"${FUN_HOME}/project/macro.pro\" \"${FUN_HOME}/tests/test.pro\""
+export MCR_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+echo "MCR_HOME set to ${MCR_HOME}"
+alias mcd="cd \"${MCR_HOME}\""
+alias ubu="ubuntu-sdk"
 alias pane="tmux resize-pane"
-alias a="git add --all"
+alias a="git add --all ; status"
 alias c="git commit -sm"
+alias t="tig --all"
 alias status="git status"
 alias push="git push"
 alias pull="git pull"
 alias fetch="git fetch --all"
-alias q="qmake -o \"${FUN_HOME}/project/Makefile\" \"${FUN_HOME}/project/macro.pro\""
-alias v="vim -S \"${FUN_HOME}/.vimrc\" -p"
+alias q="qmake -o Makefile *.pro"
+alias v="vim -S \"${MCR_HOME}/vimrc\" -p"
 alias m="make"
 
 alias msed="sed -i''"
@@ -30,12 +31,12 @@ alias excl="msed -E \"/(\/!)|(\!=)|(\*\!)/! s/\!/ \! /g\""
 alias inspace="msed \"s/\!=/ \!= /g\""
 alias semicol="msed \"s/;/ ; /g\""
 # Removing extra space
-alias tabs="msed \"/\t \*/! s/\t \+/\t/g\""
+alias tabs="msed \"/\t \+\*/! s/\t \+/\t/g\""
 alias comms="msed \"s/ \+,/,/g\""
 alias dots="msed \"s/ \+\./\./g\""
 alias derefs="msed \"s/ \+->/->/g\""
 alias lines="msed \"/^ \+\*/! s/^ \+//g\""
-alias linesend="msed \"s/ \+$//g\""
+alias linesend="msed \"s/\t* *$//g\""
 alias trapap="msed -E \"/(^ *\* *\*\/)|(\*=)/! s/\* *\*/\*\*/g\""
 alias trapref="msed \"/\&=/! s/\& *\&/\&\&/g\""
 alias single="msed \"s/ \+/ /g\""
@@ -45,7 +46,7 @@ alias single="msed \"s/ \+/ /g\""
 # alias commend="msed \"s,\* \+/,\*/,g\""
 # alias commdoxy="msed \"s,\* \+\!,\*\!,g\""
 # Clean out backup files
-alias cleanbak="find \"${FUN_HOME}\" -name '*.bak' -exec rm '{}' \;"
+alias cleanbak="find \"${MCR_HOME}\" -name '*.bak' -exec rm '{}' \;"
 
 function sedall() {
   cp "$1" "$1.bak"

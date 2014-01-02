@@ -34,7 +34,7 @@
 namespace macro
 {
 	/*! \brief To signify a key is being set to either pressed down,
-	* released, or both pressed and released.
+	 * released, or both pressed and released.
 	 */
 	enum KeyUpType
 	{
@@ -43,8 +43,8 @@ namespace macro
 		BOTH = 2
 	} ;
 	/*! \brief Spatial position, indices are coordinates.
-	* \ref \def MCR_DIMENSION_CNT
-	* This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
+	 * \ref \def MCR_DIMENSION_CNT
+	 * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
 	 **/
 	typedef long long SpacePosition [ MCR_DIMENSION_CNT ] ;
 	typedef SpacePosition Dimensions ;

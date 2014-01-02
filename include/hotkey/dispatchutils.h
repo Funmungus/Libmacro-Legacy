@@ -6,7 +6,7 @@
 
 typedef const void * cpointer_t ;
 
-/* Using macros instead of MCR_ARR_FOR_EACH because
+/* Using macros instead of mcr_Array_for_each because
  * sending and dispatching are special.
  * */
 

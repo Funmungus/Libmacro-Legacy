@@ -5,6 +5,30 @@
 static mcr_Array _dispatchers ;
 static mcr_Dispatch _dispatcherGeneric ;
 
+mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId )
+{
+	if ( signalTypeId == -1 )
+		return & _dispatcherGeneric ;
+	return MCR_ARR_AT ( & _dispatchers, ( unsigned int ) signalTypeId ) ;
+}
+
+void mcr_Dispatch_add ( mcr_Dispatch * dispPt, mcr_Hot * newHotkey )
+{
+	if ( ! newHotkey || ! dispPt ) return ;
+	mcr_Array_push_unique ( & dispPt->generics, & newHotkey ) ;
+}
+
+void mcr_Dispatch_add_specific ( mcr_Dispatch * dispPt,
+		mcr_Hot * newHotkey, mcr_Signal * interceptPt,
+		unsigned int interceptMods )
+{
+	if ( dispPt && dispPt->add_specific )
+	{
+		dispPt->add_specific ( dispPt, newHotkey, interceptPt,
+				interceptMods ) ;
+	}
+}
+
 void mcr_Dispatch_enable_auto ( mcr_Dispatch * dispPt )
 {
 	mcr_Dispatch_enable_auto_to ( dispPt, mcr_dispatch ) ;
@@ -72,75 +96,6 @@ int mcr_Dispatch_is_enabled_to ( mcr_Dispatch * dispPt,
 	return -1 ;
 }
 
-void mcr_Dispatch_init ( mcr_Dispatch * dispPt )
-{
-	if ( ! dispPt ) return ;
-	memset ( dispPt, 0, sizeof ( mcr_Dispatch ) ) ;
-	dispPt->enable_specific = 1 ;
-	dispPt->enable_unspecific = 1 ;
-	mcr_Array_init ( & dispPt->generics, sizeof ( mcr_Hot * ) ) ;
-}
-void mcr_Dispatch_register ( mcr_Dispatch * dispPt, int signalTypeId )
-{
-	if ( ! dispPt ) return ;
-	mcr_Array_set ( & _dispatchers, signalTypeId, dispPt ) ;
-}
-mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId )
-{
-	return MCR_ARR_AT ( & _dispatchers, ( unsigned int ) signalTypeId ) ;
-}
-void mcr_Dispatch_free ( mcr_Dispatch * dispPt )
-{
-	if ( ! dispPt ) return ;
-	mcr_Array_free ( & dispPt->generics ) ;
-}
-int mcr_dispatch ( mcr_Signal * signalData )
-{
-	mcr_Dispatch * found = MCR_ARR_AT ( & _dispatchers,
-			signalData->type->id ) ;
-	int block = 0 ;
-	mtx_lock ( & mcr_ModLock ) ;
-	// If found only dispatch to enabled methods.
-	if ( found )
-	{
-		MCR_DISPATCH_MODIFIED ( found, signalData, & mcr_InternalMods,
-				block ) ;
-	}
-	MCR_DISPATCH_MODIFIED ( & _dispatcherGeneric, signalData,
-			& mcr_InternalMods, block ) ;
-	mtx_unlock ( & mcr_ModLock ) ;
-	return block ;
-}
-void mcr_Dispatch_reset ( mcr_Dispatch * dispPt )
-{
-	if ( ! dispPt ) return ;
-	mcr_Dispatch_release ( dispPt ) ;
-	mcr_Dispatch_enable_auto ( dispPt ) ;
-}
-void mcr_Dispatch_release ( mcr_Dispatch * dispPt )
-{
-	if ( ! dispPt ) return ;
-	mcr_Dispatch_free ( dispPt ) ;
-	if ( dispPt->release_specific )
-	{
-		dispPt->release_specific ( dispPt ) ;
-	}
-}
-void mcr_Dispatch_add ( mcr_Dispatch * dispPt, mcr_Hot * newHotkey )
-{
-	if ( ! newHotkey || ! dispPt ) return ;
-	mcr_Array_push_unique ( & dispPt->generics, & newHotkey ) ;
-}
-void mcr_Dispatch_add_specific ( mcr_Dispatch * dispPt,
-		mcr_Hot * newHotkey, mcr_Signal * interceptPt,
-		unsigned int interceptMods )
-{
-	if ( dispPt && dispPt->add_specific )
-	{
-		dispPt->add_specific ( dispPt, newHotkey, interceptPt,
-				interceptMods ) ;
-	}
-}
 void mcr_Dispatch_remove ( mcr_Dispatch * dispPt, mcr_Hot * delHotkey )
 {
 	if ( ! delHotkey || ! dispPt ) return ;
@@ -151,6 +106,82 @@ void mcr_Dispatch_remove ( mcr_Dispatch * dispPt, mcr_Hot * delHotkey )
 		dispPt->remove_specific ( dispPt, delHotkey ) ;
 	}
 }
+
+void mcr_Dispatch_reset ( mcr_Dispatch * dispPt )
+{
+	if ( ! dispPt ) return ;
+	mcr_Dispatch_clear ( dispPt ) ;
+	mcr_Dispatch_enable_auto ( dispPt ) ;
+}
+
+void mcr_Dispatch_clear ( mcr_Dispatch * dispPt )
+{
+	if ( ! dispPt ) return ;
+	mcr_Dispatch_free ( dispPt ) ;
+	if ( dispPt->clear_specific )
+	{
+		dispPt->clear_specific ( dispPt ) ;
+	}
+}
+
+int mcr_dispatch ( mcr_Signal * signalData )
+{
+	mcr_Dispatch * found = MCR_ARR_AT ( & _dispatchers,
+			signalData->type->id ) ;
+	int block = 0 ;
+	int locked = mtx_timedlock ( & mcr_ModLock, & mcr_ModLockTimeout ) ;
+	// If found only dispatch to enabled methods.
+	if ( found )
+	{
+		MCR_DISPATCH_MODIFIED ( found, signalData, & mcr_InternalMods,
+				block ) ;
+	}
+	MCR_DISPATCH_MODIFIED ( & _dispatcherGeneric, signalData,
+			& mcr_InternalMods, block ) ;
+	if ( locked )
+		mtx_unlock ( & mcr_ModLock ) ;
+	return block ;
+}
+
+void mcr_Dispatch_init ( mcr_Dispatch * dispPt )
+{
+	if ( ! dispPt ) return ;
+	memset ( dispPt, 0, sizeof ( mcr_Dispatch ) ) ;
+	dispPt->enable_specific = 1 ;
+	dispPt->enable_unspecific = 1 ;
+	mcr_Array_init ( & dispPt->generics, sizeof ( mcr_Hot * ) ) ;
+}
+
+void mcr_Dispatch_register ( mcr_Dispatch * dispPt, int signalTypeId )
+{
+	if ( ! dispPt ) return ;
+	// id -1 is generic. Free before overwriting.
+	if ( signalTypeId == -1 )
+	{
+		// Do not free your own dispatcher
+		if ( dispPt == & _dispatcherGeneric )
+			return ;
+		mcr_DispatchGeneric_free ( ) ;
+		memcpy ( & _dispatcherGeneric, dispPt,
+				sizeof ( mcr_Dispatch ) ) ;
+		return ;
+	}
+
+	// Avoid segmentation fault, extra space in dispatchers is 0'd out.
+	if ( ( unsigned int ) signalTypeId >= _dispatchers.used )
+		mcr_Array_insert_filled ( & _dispatchers, signalTypeId,
+				dispPt, NULL ) ;
+	// Overwrite positions that exist.
+	else
+		mcr_Array_set ( & _dispatchers, signalTypeId, dispPt ) ;
+}
+
+void mcr_Dispatch_free ( mcr_Dispatch * dispPt )
+{
+	if ( ! dispPt ) return ;
+	mcr_Array_free ( & dispPt->generics ) ;
+}
+
 int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
 		mcr_Signal * intercepted, unsigned int * mods )
 {
@@ -159,17 +190,52 @@ int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-// Blank mcr_Hot array for mcr_Map_get_ensured
+//
+// Generic dispatcher
+//
+// Blank mcr_Hot pointer array for mcr_Map_get_ensured
 static mcr_Array _hotsInitial ;
+// Blank map from pointer to pointers of mcr_Hot.
 static mcr_Map _addressMapInitial ;
-
 
 // Map address to modifier to mcr_Hot *
 static mcr_Map _modAddress ;
+void mcr_DispatchGeneric_init ( )
+{
+	// mcr_Dispatch object.
+	mcr_Dispatch_init ( & _dispatcherGeneric ) ;
+	MCR_DISPATCH_SET ( & _dispatcherGeneric, & mcr_AllDispatch,
+		mcr_DispatchGeneric_add_specific,
+		mcr_DispatchGeneric_dispatch_specific,
+		mcr_DispatchGeneric_remove_specific,
+		mcr_DispatchGeneric_clear ) ;
+	// Map modifier to address to hotkeys.
+	mcr_Map_init ( & _modAddress, sizeof ( unsigned int ),
+			sizeof ( mcr_Map ) ) ;
+	_modAddress.compare = mcr_unsigned_compare ;
+}
+
 void mcr_DispatchGeneric_free ( )
 {
 	map_map_free ( & _modAddress ) ;
+	mcr_Dispatch_free ( & _dispatcherGeneric ) ;
 }
+
+void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * dispPt,
+		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
+{
+	if ( ! newHotkey ) return ;
+	if ( ! signalPt && mods == MCR_ANY_MOD )
+	{
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
+	}
+	else
+	{
+		add_mapped_map ( & _modAddress, & mods, & signalPt, & newHotkey,
+				& _addressMapInitial, & _hotsInitial ) ;
+	}
+}
+
 int mcr_DispatchGeneric_dispatch_specific ( mcr_Dispatch * dispPt,
 		mcr_Signal * signalPt, unsigned int * modsPt )
 {
@@ -191,25 +257,11 @@ int mcr_DispatchGeneric_dispatch_specific ( mcr_Dispatch * dispPt,
 	}
 	return block ;
 }
-void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * container,
-		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
-{
-	// Sanity.
-	if ( ! newHotkey ) return ;
-	if ( ! signalPt && mods == MCR_ANY_MOD )
-	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
-	}
-	else
-	{
-		add_mapped_map ( & _modAddress, & mods, & signalPt, & newHotkey,
-				& _addressMapInitial, & _hotsInitial ) ;
-	}
-}
-void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * container,
+
+void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	// Sanity.
 	if ( ! delHotkey ) return ;
 	if ( _modAddress.set.array )
@@ -217,7 +269,8 @@ void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * container,
 		map_map_remove_all ( & _modAddress, & delHotkey ) ;
 	}
 }
-void mcr_DispatchGeneric_release ( mcr_Dispatch * dispPt )
+
+void mcr_DispatchGeneric_clear ( mcr_Dispatch * dispPt )
 {
 	UNUSED ( dispPt ) ;
 	mcr_DispatchGeneric_free ( ) ;
@@ -227,33 +280,28 @@ void mcr_DispatchGeneric_release ( mcr_Dispatch * dispPt )
 
 void mcr_dispatch_initialize ( )
 {
+	// Insurance objects.
 	mcr_Array_init ( & _hotsInitial, sizeof ( mcr_Hot * ) ) ;
 	mcr_Map_init ( & _addressMapInitial, sizeof ( void * ),
 			sizeof ( mcr_Array ) ) ;
 	_addressMapInitial.compare = mcr_ref_compare ;
-
+	// Generic
+	mcr_DispatchGeneric_init ( ) ;
+	// Specifics
 	mcr_Array_init ( & _dispatchers, sizeof ( mcr_Dispatch ) ) ;
-
-	mcr_Dispatch_init ( & _dispatcherGeneric ) ;
-	MCR_DISPATCH_SET ( & _dispatcherGeneric,
-		& mcr_AllDispatch,
-		mcr_DispatchGeneric_dispatch_specific,
-		mcr_DispatchGeneric_add_specific,
-		mcr_DispatchGeneric_remove_specific,
-		mcr_DispatchGeneric_release ) ;
-
-	mcr_Map_init ( & _modAddress, sizeof ( unsigned int ),
-			sizeof ( mcr_Map ) ) ;
-	_modAddress.compare = mcr_unsigned_compare ;
 }
-static void disp_free_redirect ( void * arrIt,... )
+
+static void disp_free_redirect ( mcr_Dispatch * dispPt,... )
 {
-	mcr_Dispatch_free ( arrIt ) ;
+	mcr_Dispatch_free ( dispPt ) ;
 }
+
 void mcr_dispatch_cleanup ( void )
 {
+	// Specifics
 	MCR_ARR_FOR_EACH ( & _dispatchers, disp_free_redirect, 0 ) ;
 	mcr_Array_free ( & _dispatchers ) ;
-	mcr_Dispatch_free ( & _dispatcherGeneric ) ;
+	// Generic
 	mcr_DispatchGeneric_free ( ) ;
+	// Insurance objects should not need freeing.
 }

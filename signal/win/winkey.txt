@@ -1,8 +1,12 @@
 
+# include "signal/win/key.h"
+# include "signal/key.h"
+
 namespace funlibrary
 {
 /*
-	/// <summary>Names of keyCodes on Windows. Contains values 0-0xFE, but 0 is an invalid value.</summary>
+	/// <summary>Names of keyCodes on Windows. Contains values 0-0xFE,
+	/// but 0 is an invalid value.</summary>
 	/// <summary>
 	/// String representation for VirtualKey. Please use this instead of
 	/// enum value names. VirtualKey has gaps of unused or unnamed items,

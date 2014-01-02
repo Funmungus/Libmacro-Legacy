@@ -12,7 +12,7 @@ namespace funlibrary
 			ReleaseDC ( NULL, obj ) ;
 		obj = GetDC ( NULL ) ;
 	}
-		
+
 	ScreenCrop::ScreenSafety ScreenCrop::_hdc ;
 	int ScreenCrop::_scrHeight = 0 ;
 	int ScreenCrop::_scrWidth = 0 ;
@@ -25,17 +25,17 @@ namespace funlibrary
 		ret.z = ( spatial.z ) ;
 		return ret ;
 	}
-	
+
 	void ScreenCrop::resetBmp ( )
 	{
 		if ( _mDesk )
 			DeleteDC ( _mDesk ) ;
 		if ( _mBmp )
 			DeleteObject ( _mBmp ) ;
-			
+
 		_hdc.reset ( ) ; 	// recover main desktop screen
 		_mDesk = CreateCompatibleDC ( _hdc.obj ) ;
-		
+
 		_scrHeight = GetSystemMetrics ( SM_CYVIRTUALSCREEN ) ;
 		_scrWidth = GetSystemMetrics ( SM_CXVIRTUALSCREEN ) ;
 		if ( _pos.x > _scrWidth ) _pos.x = _scrWidth ;
@@ -44,12 +44,12 @@ namespace funlibrary
 		// TODO decide if x and y can be negative
 		if ( _pos.x < 0 ) _pos.x = 0 ;
 		if ( _pos.y < 0 ) _pos.y = 0 ;
-		
+
 		_actualWidth = ( int ) _pos.x + _dm.x < _scrWidth ?
 			( int ) _dm.x : _scrWidth - ( int ) _pos.x ;
 		_actualHeight = ( int ) _pos.y + _dm.y < _scrHeight ?
 			( int ) _dm.y : _scrHeight - ( int ) _pos.y ;
-		
+
 		if ( _actualWidth == 0 ) _actualWidth = 1 ;
 		if ( _actualHeight == 0 ) _actualHeight = 1 ;
 
@@ -57,7 +57,7 @@ namespace funlibrary
 		// use the previously created device context with the bitmap
 		SelectObject ( _mDesk, _mBmp ) ;
 	}
-	
+
 	bool ScreenCrop::send ( )
 	{
 		FILE * fp ;
@@ -74,16 +74,16 @@ namespace funlibrary
 			else
 				fs.fp = fp ;
 		}
-		
+
 		// copy from the desktop device context to the bitmap device context
 		// call this once per 'frame'
 		BitBlt ( _mDesk, 0, 0, _actualWidth, _actualHeight,
 			_hdc.obj, ( int ) _pos.x, ( int ) _pos.y, SRCCOPY ) ;
-	
+
 		LPVOID pBuf = NULL ;
 		BITMAPINFO bmpInfo ;
 		BITMAPFILEHEADER bmpFileHeader ;
-		
+
 		do
 		{
 			ZeroMemory ( & bmpInfo, sizeof ( BITMAPINFO ) ) ;
@@ -128,7 +128,7 @@ namespace funlibrary
 				fwrite ( pBuf, bmpInfo.bmiHeader.biSizeImage, 1, fp ) ;
 			}
 		} while ( false ) ;
-		
+
 		if ( pBuf ) free ( pBuf ) ;
 
 		return true ;

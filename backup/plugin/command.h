@@ -14,8 +14,8 @@ namespace macro
 	{
 	public:
 		/*! \brief Command
-		*
-		* \ref ISignal::name
+		 *
+		 * \ref ISignal::name
 		 */
 		static MCR_API const std::string name ;
 		// ! \brief \ref ISignal#dispatch ( )

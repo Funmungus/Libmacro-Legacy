@@ -23,6 +23,6 @@ ret.replace ( keys [ ++i ], modval ) ;
 		}
 		return ret ;
 	}
-	
+
 	KeyMod::map_t KeyMod::KeyToMod = defaultKeyToMod ( ) ;
 }

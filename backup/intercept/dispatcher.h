@@ -10,8 +10,8 @@
 namespace macro
 {
 /*! \brief Interprets values from \ref NativeDispatcher.
-	* Signals use \ref ISignal#dispatch ( ) before letting
-	* the system use the signal, or blocking before the system signal is continued.
+	 * Signals use \ref ISignal#dispatch ( ) before letting
+	 * the system use the signal, or blocking before the system signal is continued.
 	 **/
 	class Dispatcher
 	{

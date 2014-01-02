@@ -15,15 +15,6 @@ void mcr_Map_free ( mcr_Map * mapPt )
 	mcr_Array_free ( & mapPt->set ) ;
 }
 
-void mcr_Map_print ( mcr_Map * mapPt )
-{
-	if ( ! mapPt ) return ;
-	printf ( "Map %p: first %llu, second %llu, compare %p.\n\tMember... ",
-			mapPt, ( long long unsigned ) mapPt->sizeof_first,
-			( long long unsigned ) mapPt->sizeof_second, mapPt->compare ) ;
-	mcr_Array_print ( & mapPt->set ) ;
-}
-
 void * mcr_Map_get_slow ( const mcr_Map * mapPt, const void * keyPt )
 {
 	if ( ! mapPt || ! mapPt->set.used )
@@ -192,4 +183,13 @@ void mcr_Map_clear ( mcr_Map * mapPt )
 void mcr_Map_trim ( mcr_Map * mapPt )
 {
 	mcr_Array_trim ( & mapPt->set ) ;
+}
+
+void mcr_Map_print ( mcr_Map * mapPt )
+{
+	if ( ! mapPt ) return ;
+	printf ( "Map %p: first %llu, second %llu, compare %p.\n\tMember... ",
+			mapPt, ( long long unsigned ) mapPt->sizeof_first,
+			( long long unsigned ) mapPt->sizeof_second, mapPt->compare ) ;
+	mcr_Array_print ( & mapPt->set ) ;
 }

@@ -1,5 +1,5 @@
 /*! \file util/array.h
- * \brief mcr_Array dynamic resizing array, with utility functions.
+ * \brief Dynamic resizing array, with utility functions.
  * */
 
 # ifndef MCR_ARRAY_H
@@ -198,7 +198,7 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * to accept both the array member reference, and all variadic
  * parameters given to this macro.
  * */
-# define MCR_ARR_FOR_EACH( arrPt, iterateFnc, ... ) \
+# define MCR_ARR_FOR_EACH( arrPt, iterateFnc,... ) \
 {\
 	void * _itPt_ = MCR_ARR_AT ( arrPt, 0 ) ; \
 	void * _endPt_ = MCR_ARR_END ( arrPt ) ; \

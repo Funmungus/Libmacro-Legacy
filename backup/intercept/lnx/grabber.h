@@ -35,24 +35,24 @@ namespace macro
 		// ! \brief The set of input_events from the last read operation.
 		input_event grabSet [ MCR_GRAB_SET_LENGTH ] ;
 		/*! \brief Quick-access variable for the /dev/input event file descriptor.
-		*
-		* Not used by this struct in any function, and only modified in enable.
-		* Changing this value will do nothing in this object,
-		* but will very likely disable anything that uses this object.
+		 *
+		 * Not used by this struct in any function, and only modified in enable.
+		 * Changing this value will do nothing in this object,
+		 * but will very likely disable anything that uses this object.
 		 */
 		int fd_accessor ;
 		/*! \brief Quick-access variable for enabled state of this Grabber.
-		*
-		* Not used by this struct in any function, and only modified in enable.
-		* Changing this value will do nothing in this object,
-		* but will very likely disable anything that uses this object.
+		 *
+		 * Not used by this struct in any function, and only modified in enable.
+		 * Changing this value will do nothing in this object,
+		 * but will very likely disable anything that uses this object.
 		 */
 		bool enable_accessor ;
 
 		// ! \brief Allow or disallow this object to function.
 		bool enable ( bool enable ) ;
 		/*! \brief Sets grabSet with the values of the next read operation
-		* to the /dev/input device.
+		 * to the /dev/input device.
 		 */
 		int read ( ) ;
 		// ! \brief Obtain the current key state of this device. size is the bytesize of buffer.

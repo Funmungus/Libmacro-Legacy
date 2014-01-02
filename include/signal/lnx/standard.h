@@ -66,7 +66,7 @@ typedef struct mcr_Scroll
 # define MCR_ECHO_SEND( echoPt, success ) \
 	if ( ( size_t ) ( ( echoPt )->event ) < mcr_EchoEvents.used ) \
 	{ \
-		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents , \
+		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
 				( unsigned int ) ( echoPt )->event ), success ) \
 	}
 

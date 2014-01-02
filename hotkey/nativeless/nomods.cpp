@@ -5,7 +5,7 @@ namespace funlibrary
 	bool Mods::send ( )
 	{
 		bool modori = true ;
-	
+
 		if ( get ( ) != 0 )
 		{
 			KeySignal modSig ;
@@ -36,7 +36,7 @@ namespace funlibrary
 				modori = modSig.send ( ) ? modori : false ;
 			}
 		}
-		
+
 		return modori ;
 	}
 
