@@ -166,7 +166,7 @@ void mcr_DispatchScroll_free ( )
 // Interface functions for specific dispatchers
 //
 // Alarm
-void mcr_DispatchAlarm_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchAlarm_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	// Currently not dispatching specific from Alarm data.
@@ -175,7 +175,7 @@ void mcr_DispatchAlarm_add_specific ( mcr_Dispatch * container,
 	// Unspecific mods add to generic dispatch.
 	if ( mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 		return ;
 	}
 	add_mapped_array ( & _alarmModMap, & mods, & newHotkey,
@@ -196,10 +196,10 @@ int mcr_DispatchAlarm_dispatch_specific ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-void mcr_DispatchAlarm_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchAlarm_remove_specific ( mcr_Dispatch * dispPt,
 									mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( ! delHotkey ) return ;
 	if ( _alarmModMap.set.array )
 	{
@@ -216,7 +216,7 @@ void mcr_DispatchAlarm_clear ( mcr_Dispatch * dispPt )
 }
 
 // Echo
-void mcr_DispatchHIDEcho_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchHIDEcho_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	if ( ! newHotkey ) return ;
@@ -225,7 +225,7 @@ void mcr_DispatchHIDEcho_add_specific ( mcr_Dispatch * container,
 			( int ) MCR_ANY_MOD ;
 	if ( ( unsigned int ) echoKey == MCR_ANY_MOD && mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 	}
 	else
 	{
@@ -261,10 +261,10 @@ int mcr_DispatchHIDEcho_dispatch_specific ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-void mcr_DispatchHIDEcho_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchHIDEcho_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( ! delHotkey ) return ;
 	if ( _modEcho.set.array )
 	{
@@ -281,7 +281,7 @@ void mcr_DispatchHIDEcho_clear ( mcr_Dispatch * dispPt )
 }
 
 // Key
-void mcr_DispatchKey_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchKey_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	if ( ! newHotkey ) return ;
@@ -304,7 +304,7 @@ void mcr_DispatchKey_add_specific ( mcr_Dispatch * container,
 	if ( key == MCR_ANY_KEY && scan == MCR_ANY_KEY &&
 		mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 	}
 	// Trigger for some specific is assured.
 	else
@@ -416,10 +416,10 @@ int mcr_DispatchKey_dispatch_specific ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-void mcr_DispatchKey_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchKey_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( ! delHotkey ) return ;
 	for ( int i = 0 ; i < KEY_COUNT ; i ++ )
 	{
@@ -442,15 +442,16 @@ void mcr_DispatchKey_clear ( mcr_Dispatch * dispPt )
 }
 
 // MoveCursor
-void mcr_DispatchMoveCursor_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchMoveCursor_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	if ( ! newHotkey ) return ;
-	int justify = signalPt && signalPt->data ? MCR_MOVECURSOR_IS_JUSTIFY (
+	int justify = signalPt && signalPt->data ?
+			MCR_MOVECURSOR_IS_JUSTIFY (
 			( mcr_MoveCursor * ) signalPt->data ) : -1 ;
 	if ( mods == MCR_ANY_MOD && justify == -1 )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 		return ;
 	}
 	if ( justify == -1 )
@@ -462,8 +463,10 @@ void mcr_DispatchMoveCursor_add_specific ( mcr_Dispatch * container,
 	}
 	else
 	{
-		add_mapped_array ( _cursorModMaps + justify, & mods, & newHotkey,
-				& _hotsInitial ) ;
+		justify &= 0x01 ;
+		// Justify index is only 0 or 1.
+		add_mapped_array ( _cursorModMaps + justify,
+				& mods, & newHotkey, & _hotsInitial ) ;
 	}
 }
 
@@ -473,32 +476,38 @@ int mcr_DispatchMoveCursor_dispatch_specific ( mcr_Dispatch * dispPt,
 	UNUSED ( dispPt ) ;
 	int justify = signalPt && signalPt->data ?
 			MCR_MOVECURSOR_IS_JUSTIFY (
-			// Array index can only be 0 or 1.
-			( mcr_MoveCursor * ) signalPt->data ) & 0x01 : -1 ;
+			( mcr_MoveCursor * ) signalPt->data ) : -1 ;
 	int block = 0 ;
 	// Any mod is dispatched in generics.
 	if ( modsPt && * modsPt != MCR_ANY_MOD )
 	{
 		if ( justify == -1 )
 		{
-			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, modsPt, signalPt, modsPt,
-					block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, modsPt, signalPt,
+					modsPt, block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, & MCR_ANY_MOD,
+					signalPt, modsPt, block ) ;
 			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + 1, modsPt, signalPt,
 					modsPt, block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + 1, & MCR_ANY_MOD,
+					signalPt, modsPt, block ) ;
 		}
 		else
 		{
-			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + justify, modsPt,
-					signalPt, modsPt, block ) ;
+			justify &= 0x01 ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + justify,
+					modsPt, signalPt, modsPt, block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + justify,
+					& MCR_ANY_MOD, signalPt, modsPt, block ) ;
 		}
 	}
 	return block ;
 }
 
-void mcr_DispatchMoveCursor_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchMoveCursor_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( ! delHotkey ) return ;
 	map_arr_remove_all ( _cursorModMaps, & delHotkey ) ;
 	map_arr_remove_all ( _cursorModMaps + 1, & delHotkey ) ;
@@ -515,13 +524,13 @@ void mcr_DispatchMoveCursor_clear ( mcr_Dispatch * dispPt )
 }
 
 // NoOp
-void mcr_DispatchNoOp_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchNoOp_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( signalPt ) ;
 	if ( mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 		return ;
 	}
 	add_mapped_array ( & _noopModMap, & mods, & newHotkey,
@@ -542,10 +551,10 @@ int mcr_DispatchNoOp_dispatch_specific ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-void mcr_DispatchNoOp_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchNoOp_remove_specific ( mcr_Dispatch * dispPt,
 									mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( _noopModMap.set.array )
 	{
 		map_arr_remove_all ( & _noopModMap, & delHotkey ) ;
@@ -561,14 +570,14 @@ void mcr_DispatchNoOp_clear ( mcr_Dispatch * dispPt )
 }
 
 // Scroll
-void mcr_DispatchScroll_add_specific ( mcr_Dispatch * container,
+void mcr_DispatchScroll_add_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( signalPt ) ;
 	if ( ! newHotkey ) return ;
 	if ( mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( container, newHotkey ) ;
+		mcr_Dispatch_add ( dispPt, newHotkey ) ;
 		return ;
 	}
 	add_mapped_array ( & _scrollModMap, & mods, & newHotkey,
@@ -589,10 +598,10 @@ int mcr_DispatchScroll_dispatch_specific ( mcr_Dispatch * dispPt,
 	return block ;
 }
 
-void mcr_DispatchScroll_remove_specific ( mcr_Dispatch * container,
+void mcr_DispatchScroll_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey )
 {
-	UNUSED ( container ) ;
+	UNUSED ( dispPt ) ;
 	if ( ! delHotkey ) return ;
 	if ( _scrollModMap.set.array )
 	{
