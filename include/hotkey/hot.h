@@ -10,7 +10,7 @@
 typedef struct mcr_Hot mcr_Hot ;
 //! \brief Function to call when hotkey is triggered.
 typedef void ( * mcr_trigger_fnc ) ( mcr_Hot *, mcr_Signal *,
-		unsigned int * ) ;
+		unsigned int ) ;
 
 //! \brief Register to be triggered for \ref mcr_Signal or modifiers.
 typedef struct mcr_Hot
@@ -35,11 +35,11 @@ MCR_API void mcr_Hot_init_with ( mcr_Hot * hotPt, int block,
  * blocking status.
  *
  * \param signalPt Intercepted signal.
- * \param modsPt Intercepted modifiers.
+ * \param mods Intercepted modifiers.
  * \return 0 To not block, otherwise block intercepted signal.
  */
 MCR_API int mcr_Hot_trigger ( mcr_Hot * hotPt, mcr_Signal * signalPt,
-		unsigned int * modsPt ) ;
+		unsigned int mods ) ;
 /*!
  * \brief mcr_Hot_trigger_array \ref mcr_Hot_trigger for all members
  * in given array.
@@ -47,22 +47,22 @@ MCR_API int mcr_Hot_trigger ( mcr_Hot * hotPt, mcr_Signal * signalPt,
  * \param hotArray Set of hotkeys to trigger, unconditionally.
  * \param count Number of members to iterate in hotArray.
  * \param signalPt Intercepted signal.
- * \param modsPt Intercepted modifiers.
+ * \param mods Intercepted modifiers.
  * \return 0 To not block, otherwise block intercepted signal.
  */
 MCR_API int mcr_Hot_trigger_array ( mcr_Hot ** hotArray, size_t count,
-		mcr_Signal * signalPt, unsigned int * modsPt ) ;
+		mcr_Signal * signalPt, unsigned int mods ) ;
 
 //! \brief \ref mcr_Hot_trigger Will not return blocking status.
-# define MCR_HOT_TRIGGER( mcr_HotPt, mcr_SignalPt, modsPt ) \
+# define MCR_HOT_TRIGGER( mcr_HotPt, mcr_SignalPt, mods ) \
 	if ( ( mcr_HotPt )->trigger ) \
 	{ \
-		( mcr_HotPt )->trigger ( mcr_HotPt, mcr_SignalPt, modsPt ) ; \
+		( mcr_HotPt )->trigger ( mcr_HotPt, mcr_SignalPt, mods ) ; \
 	}
 
 //! \brief \ref mcr_Hot_trigger_array Will set blocking status
 //! into block parameter.
-# define MCR_HOT_TRIGGER_ARRAY( hotPtArray, count, signalPt, modsPt, \
+# define MCR_HOT_TRIGGER_ARRAY( hotPtArray, count, signalPt, mods, \
 		block ) \
 { \
 	if ( ! block ) \
@@ -70,7 +70,7 @@ MCR_API int mcr_Hot_trigger_array ( mcr_Hot ** hotArray, size_t count,
 		for ( size_t _iterator_ = 0 ; _iterator_ < count ; _iterator_ ++ ) \
 		{ \
 			MCR_HOT_TRIGGER ( hotPtArray [ _iterator_ ], \
-				signalPt, modsPt ) ; \
+				signalPt, mods ) ; \
 			if ( hotPtArray [ _iterator_ ]->block ) \
 			{ \
 				block = 1 ; \

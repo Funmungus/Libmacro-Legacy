@@ -183,14 +183,14 @@ void mcr_DispatchAlarm_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchAlarm_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int block = 0 ;
 	// If mods are MCR_ANY_MOD, then this should be triggered by generics.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
-		TRIGGER_MAPPED_ARRAY ( & _alarmModMap, modsPt, signalPt, modsPt,
+		TRIGGER_MAPPED_ARRAY ( & _alarmModMap, & mods, signalPt, mods,
 				block ) ;
 	}
 	return block ;
@@ -235,7 +235,7 @@ void mcr_DispatchHIDEcho_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchHIDEcho_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	// most specific, both mod and echo
@@ -246,17 +246,17 @@ int mcr_DispatchHIDEcho_dispatch_specific ( mcr_Dispatch * dispPt,
 	else
 		echoKey = MCR_ANY_MOD ;
 	// Any mod delivered below.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
 		// Trigger Map to map.
-		TRIGGER_MAPPED_MAPS ( & _modEcho, modsPt,
-				& echoKey, & MCR_ANY_MOD, signalPt, modsPt, block ) ;
+		TRIGGER_MAPPED_MAPS ( & _modEcho, & mods,
+				& echoKey, & MCR_ANY_MOD, signalPt, mods, block ) ;
 	}
 	// Any mod + any event should be added to generics.
 	if ( ( unsigned int ) echoKey != MCR_ANY_MOD )
 	{
 		TRIGGER_MAPPED_MAP ( & _modEcho, & MCR_ANY_MOD,
-				& echoKey, signalPt, modsPt, block ) ;
+				& echoKey, signalPt, mods, block ) ;
 	}
 	return block ;
 }
@@ -342,38 +342,38 @@ void mcr_DispatchKey_add_specific ( mcr_Dispatch * dispPt,
 }
 
 // Will not trigger MCR_ANY_MOD, but will trigger MCR_ANY_KEY.
-# define KeyTriggerModifier(keyKey,scanKey,type,signalPt,modsPt,block) \
-	if ( ( modsPt ) && * ( modsPt ) != MCR_ANY_MOD ) \
+# define KeyTriggerModifier(keyKey,scanKey,type,signalPt,mods,block) \
+	if ( ( mods ) != MCR_ANY_MOD ) \
 	{ \
 		if ( ( type ) != MCR_UP ) \
 		{ \
-			TRIGGER_MAPPED_MAPS ( _modKeys, modsPt, \
-					& keyKey, & MCR_ANY_KEY, signalPt, modsPt, block ) ; \
-			TRIGGER_MAPPED_MAPS ( _modScans, modsPt, \
-					& scanKey, & MCR_ANY_KEY, signalPt, modsPt, block ) ; \
+			TRIGGER_MAPPED_MAPS ( _modKeys, & mods, \
+					& keyKey, & MCR_ANY_KEY, signalPt, mods, block ) ; \
+			TRIGGER_MAPPED_MAPS ( _modScans, & mods, \
+					& scanKey, & MCR_ANY_KEY, signalPt, mods, block ) ; \
 		} \
 		if ( ( type ) != MCR_DOWN ) \
 		{ \
-			TRIGGER_MAPPED_MAPS ( _modKeys+1, modsPt, \
-					& keyKey, & MCR_ANY_KEY, signalPt, modsPt, block ) ; \
-			TRIGGER_MAPPED_MAPS ( _modScans+1, modsPt, \
-					& scanKey, & MCR_ANY_KEY, signalPt, modsPt, block ) ; \
+			TRIGGER_MAPPED_MAPS ( _modKeys+1, & mods, \
+					& keyKey, & MCR_ANY_KEY, signalPt, mods, block ) ; \
+			TRIGGER_MAPPED_MAPS ( _modScans+1, & mods, \
+					& scanKey, & MCR_ANY_KEY, signalPt, mods, block ) ; \
 		} \
 	}
 
 // Will trigger MCR_ANY_MOD, but will not trigger MCR_ANY_KEY.
-# define KeyTriggerAnyMod(keyKey,scanKey,type,signalPt,modsPt,block) \
+# define KeyTriggerAnyMod(keyKey,scanKey,type,signalPt,mods,block) \
 	if ( keyKey != MCR_ANY_KEY ) \
 	{ \
 		if ( type != MCR_UP ) \
 		{ \
 			TRIGGER_MAPPED_MAP ( _modKeys, & MCR_ANY_MOD, & keyKey, \
-					signalPt, modsPt, block ) ; \
+					signalPt, mods, block ) ; \
 		} \
 		if ( type != MCR_DOWN ) \
 		{ \
 			TRIGGER_MAPPED_MAP ( _modKeys + 1, & MCR_ANY_MOD, & keyKey, \
-					signalPt, modsPt, block ) ; \
+					signalPt, mods, block ) ; \
 		} \
 	} \
 	if ( scanKey != MCR_ANY_KEY ) \
@@ -381,17 +381,17 @@ void mcr_DispatchKey_add_specific ( mcr_Dispatch * dispPt,
 		if ( type != MCR_UP ) \
 		{ \
 			TRIGGER_MAPPED_MAP ( _modScans, & MCR_ANY_MOD, & scanKey, \
-					signalPt, modsPt, block ) ; \
+					signalPt, mods, block ) ; \
 		} \
 		if ( type != MCR_DOWN ) \
 		{ \
 			TRIGGER_MAPPED_MAP ( _modScans + 1, & MCR_ANY_MOD, & scanKey, \
-					signalPt, modsPt, block ) ; \
+					signalPt, mods, block ) ; \
 		} \
 	}
 
 int mcr_DispatchKey_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int block = 0 ;
@@ -410,9 +410,9 @@ int mcr_DispatchKey_dispatch_specific ( mcr_Dispatch * dispPt,
 		type = MCR_BOTH ;
 	}
 	// Will not trigger MCR_ANY_MOD, but will trigger MCR_ANY_KEY.
-	KeyTriggerModifier ( key, scan, type, signalPt, modsPt, block ) ;
+	KeyTriggerModifier ( key, scan, type, signalPt, mods, block ) ;
 	// Will trigger MCR_ANY_MOD, but will not trigger MCR_ANY_KEY.
-	KeyTriggerAnyMod ( key, scan, type, signalPt, modsPt, block ) ;
+	KeyTriggerAnyMod ( key, scan, type, signalPt, mods, block ) ;
 	return block ;
 }
 
@@ -471,7 +471,7 @@ void mcr_DispatchMoveCursor_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchMoveCursor_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int justify = signalPt && signalPt->data ?
@@ -479,26 +479,26 @@ int mcr_DispatchMoveCursor_dispatch_specific ( mcr_Dispatch * dispPt,
 			( mcr_MoveCursor * ) signalPt->data ) : -1 ;
 	int block = 0 ;
 	// Any mod is dispatched in generics.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
 		if ( justify == -1 )
 		{
-			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, modsPt, signalPt,
-					modsPt, block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, & mods, signalPt,
+					mods, block ) ;
 			TRIGGER_MAPPED_ARRAY ( _cursorModMaps, & MCR_ANY_MOD,
-					signalPt, modsPt, block ) ;
-			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + 1, modsPt, signalPt,
-					modsPt, block ) ;
+					signalPt, mods, block ) ;
+			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + 1, & mods, signalPt,
+					mods, block ) ;
 			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + 1, & MCR_ANY_MOD,
-					signalPt, modsPt, block ) ;
+					signalPt, mods, block ) ;
 		}
 		else
 		{
 			justify &= 0x01 ;
 			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + justify,
-					modsPt, signalPt, modsPt, block ) ;
+					& mods, signalPt, mods, block ) ;
 			TRIGGER_MAPPED_ARRAY ( _cursorModMaps + justify,
-					& MCR_ANY_MOD, signalPt, modsPt, block ) ;
+					& MCR_ANY_MOD, signalPt, mods, block ) ;
 		}
 	}
 	return block ;
@@ -538,14 +538,14 @@ void mcr_DispatchNoOp_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchNoOp_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int block = 0 ;
 	// If mods are MCR_ANY_MOD, then this should be triggered by generics.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
-		TRIGGER_MAPPED_ARRAY ( & _noopModMap, modsPt, signalPt, modsPt,
+		TRIGGER_MAPPED_ARRAY ( & _noopModMap, & mods, signalPt, mods,
 				block ) ;
 	}
 	return block ;
@@ -585,14 +585,14 @@ void mcr_DispatchScroll_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchScroll_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int block = 0 ;
 	// If mods are MCR_ANY_MOD, then this should be triggered by generics.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
-		TRIGGER_MAPPED_ARRAY ( & _scrollModMap, modsPt, signalPt, modsPt,
+		TRIGGER_MAPPED_ARRAY ( & _scrollModMap, & mods, signalPt, mods,
 				block ) ;
 	}
 	return block ;

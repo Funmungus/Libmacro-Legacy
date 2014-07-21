@@ -13,9 +13,10 @@ typedef void ( * mcr_dispatch_fnc ) ( mcr_Dispatch * ) ;
 typedef void ( * mcr_add_specific_fnc ) ( mcr_Dispatch *, mcr_Hot *,
 		mcr_Signal *, unsigned int ) ;
 typedef int ( * mcr_dispatch_specific_fnc ) ( mcr_Dispatch *,
-		mcr_Signal *, unsigned int * ) ;
+		mcr_Signal *, unsigned int ) ;
 typedef void ( * mcr_remove_specific_fnc ) ( mcr_Dispatch *, mcr_Hot * ) ;
-typedef void ( * mcr_modifier_provider ) ( mcr_Signal *, unsigned int * ) ;
+typedef unsigned int ( * mcr_modifier_provider ) ( mcr_Signal *,
+		unsigned int ) ;
 
 /*! \brief Blocking Dispatcher for any signal type.
  * Dispatches into \ref mcr_Hot and specific hotkey types.
@@ -180,12 +181,12 @@ MCR_API void mcr_Dispatch_free ( mcr_Dispatch * dispPt ) ;
 /*!
  * \brief Blocking signal intercept, with given modifier.
  *
- * \param intercepted Signal to dispatch and possibly block.
- * \param mods Modifiers to dispatch with.
+ * \param interceptedPt Pointer to signal to dispatch and possibly block.
+ * \param modsPt Pointer to modifiers to dispatch with. May change.
  * \return 0 to not block intercepted signal. Otherwise block.
  * */
 MCR_API int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
-		mcr_Signal * intercepted, unsigned int * mods ) ;
+		mcr_Signal * interceptedPt, unsigned int * modsPt ) ;
 
 /*! \brief Set the dispatch reference, and the specific add, dispatch,
  * remove, and clear functions */
@@ -197,27 +198,32 @@ MCR_API int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
 	( dispatchPt )->remove_specific = ( remFnc ) ; \
 	( dispatchPt )->clear_specific = ( clearFnc ) ;
 
-/*! \brief Dispatch if enabled, block if required, and modify modsPt
- * with \ref mcr_Dispatch#modifier if not blocking.
- * */
-# define MCR_DISPATCH_MODIFIED( dispatchPt, interceptedPt, modsPt, \
-		block ) \
+
+# define MCR_DISPATCH( dispatchPt, interceptedPt, mods, block ) \
 	if ( ( dispatchPt )->enable_specific && \
 			( dispatchPt )->dispatch_specific ) \
 	{ \
 		if ( ( dispatchPt )->dispatch_specific \
-				( dispatchPt, interceptedPt, modsPt ) ) \
+				( dispatchPt, interceptedPt, mods ) ) \
 			block = 1 ; \
 	} \
 	if ( ( dispatchPt )->enable_unspecific ) \
 	{ \
 		MCR_HOT_TRIGGER_ARRAY ( ( ( mcr_Hot ** ) \
 				( dispatchPt )->generics.array ), \
-				( dispatchPt )->generics.used, interceptedPt, modsPt, \
+				( dispatchPt )->generics.used, interceptedPt, mods, \
 				block ) \
-	} \
+	}
+
+
+/*! \brief Dispatch if enabled, block if required, and modify mods
+ * with \ref mcr_Dispatch#modifier if not blocking.
+ * */
+# define MCR_DISPATCH_MODIFY( dispatchPt, interceptedPt, mods, \
+		block ) \
+	MCR_DISPATCH ( dispatchPt, interceptedPt, mods, block ) ; \
 	if ( ! block && ( dispatchPt )->modifier ) \
-		( dispatchPt )->modifier ( interceptedPt, modsPt ) ;
+		( mods ) = ( dispatchPt )->modifier ( interceptedPt, mods ) ;
 
 //
 // Dispatching based on modifiers and signal reference.
@@ -233,7 +239,7 @@ MCR_API void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * dispPt,
  * signal address.
  * */
 MCR_API int mcr_DispatchGeneric_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt ) ;
+		mcr_Signal * signalPt, unsigned int mods ) ;
 //! \brief \ref mcr_Array_remove_all
 MCR_API void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey ) ;

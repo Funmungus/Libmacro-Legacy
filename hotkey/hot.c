@@ -16,15 +16,15 @@ void mcr_Hot_init_with ( mcr_Hot * hotPt, int block,
 }
 
 int mcr_Hot_trigger ( mcr_Hot * hotPt, mcr_Signal * signalPt,
-		unsigned int * modsPt )
+		unsigned int mods )
 {
-	MCR_HOT_TRIGGER ( hotPt, signalPt, modsPt ) ;
+	MCR_HOT_TRIGGER ( hotPt, signalPt, mods ) ;
 	return hotPt->block ;
 }
 int mcr_Hot_trigger_array ( mcr_Hot ** hotArray, size_t count,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	int block = 0 ;
-	MCR_HOT_TRIGGER_ARRAY ( hotArray, count, signalPt, modsPt, block ) ;
+	MCR_HOT_TRIGGER_ARRAY ( hotArray, count, signalPt, mods, block ) ;
 	return block ;
 }

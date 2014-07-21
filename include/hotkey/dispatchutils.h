@@ -12,20 +12,19 @@ typedef const void * cpointer_t ;
 
 /* 1 ) Get array for keyPt.
  * 2 ) Array is mcr_Hot **
- * 3 ) Trigger array with signalPt, modsPt, and block.
+ * 3 ) Trigger array with signalPt, mods, and block.
  * */
-# define TRIGGER_MAPPED_ARRAY( mcr_MapPt, keyPt, signalPt, modsPt, \
+# define TRIGGER_MAPPED_ARRAY( mcr_MapPt, keyPt, signalPt, mods, \
 		block ) \
 { \
-	mcr_Array * _arrPt_ = MCR_MAP_GET ( mcr_MapPt, keyPt ) ; \
+	mcr_Array * _arrPt_ = MCR_MAP_GET_VALUE ( mcr_MapPt, keyPt ) ; \
 	if ( _arrPt_ ) \
 	{ \
-		_arrPt_ = MCR_MAP_VALUE ( mcr_MapPt, _arrPt_ ) ; \
 		if ( _arrPt_->used ) \
 		{ \
 			mcr_Hot ** _hotsPt_ = MCR_ARR_AT ( _arrPt_, 0 ) ; \
 			MCR_HOT_TRIGGER_ARRAY ( _hotsPt_, ( _arrPt_ )->used, \
-					signalPt, modsPt, block ) ; \
+					signalPt, mods, block ) ; \
 		} \
 	} \
 }
@@ -36,32 +35,30 @@ typedef const void * cpointer_t ;
  * 3 ) Then MCR_MAP_TRIGGER_ARRAY for mapped map and genericKeyPt.
  * */
 # define TRIGGER_MAPPED_MAPS( mcr_MapPt, mapKeyPt, specificKeyPt, \
-		genericKeyPt, signalPt, modsPt, block ) \
+		genericKeyPt, signalPt, mods, block ) \
 { \
-	mcr_Map * _mapPt_ = MCR_MAP_GET ( mcr_MapPt, mapKeyPt ) ; \
+	mcr_Map * _mapPt_ = MCR_MAP_GET_VALUE ( mcr_MapPt, mapKeyPt ) ; \
 	if ( _mapPt_ ) \
 	{ \
-		_mapPt_ = MCR_MAP_VALUE ( mcr_MapPt, _mapPt_ ) ; \
 		if ( _mapPt_->compare && _mapPt_->compare ( specificKeyPt, \
 				genericKeyPt ) ) \
 		{ \
 			TRIGGER_MAPPED_ARRAY ( _mapPt_, specificKeyPt, \
-				signalPt, modsPt, block ) ; \
+				signalPt, mods, block ) ; \
 		} \
 		TRIGGER_MAPPED_ARRAY ( _mapPt_, genericKeyPt, \
-				signalPt, modsPt, block ) ; \
+				signalPt, mods, block ) ; \
 	} \
 }
 
 // Trigger only one map out of given mapPt
 # define TRIGGER_MAPPED_MAP( mapPt, keyPt, mappedKeyPt, signalPt, \
-		modsPt, block ) \
+		mods, block ) \
 { \
-	mcr_Map * _found_ = MCR_MAP_GET ( mapPt, keyPt ) ; \
+	mcr_Map * _found_ = MCR_MAP_GET_VALUE ( mapPt, keyPt ) ; \
 	if ( _found_ ) \
 	{ \
-		_found_ = MCR_MAP_VALUE ( mapPt, _found_ ) ; \
-		TRIGGER_MAPPED_ARRAY ( _found_, mappedKeyPt, signalPt, modsPt, \
+		TRIGGER_MAPPED_ARRAY ( _found_, mappedKeyPt, signalPt, mods, \
 				block ) ; \
 	} \
 }

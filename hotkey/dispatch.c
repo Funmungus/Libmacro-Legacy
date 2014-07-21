@@ -133,11 +133,11 @@ int mcr_dispatch ( mcr_Signal * signalData )
 	// If found only dispatch to enabled methods.
 	if ( found )
 	{
-		MCR_DISPATCH_MODIFIED ( found, signalData, & mcr_InternalMods,
+		MCR_DISPATCH_MODIFY ( found, signalData, mcr_InternalMods,
 				block ) ;
 	}
-	MCR_DISPATCH_MODIFIED ( & _dispatcherGeneric, signalData,
-			& mcr_InternalMods, block ) ;
+	MCR_DISPATCH_MODIFY ( & _dispatcherGeneric, signalData,
+			mcr_InternalMods, block ) ;
 	if ( locked )
 		mtx_unlock ( & mcr_ModLock ) ;
 	return block ;
@@ -183,10 +183,17 @@ void mcr_Dispatch_free ( mcr_Dispatch * dispPt )
 }
 
 int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
-		mcr_Signal * intercepted, unsigned int * mods )
+		mcr_Signal * interceptedPt, unsigned int * modsPt )
 {
 	int block = 0 ;
-	MCR_DISPATCH_MODIFIED ( dispPt, intercepted, mods, block ) ;
+	if ( ! modsPt )
+	{
+		MCR_DISPATCH ( dispPt, interceptedPt, MCR_ANY_MOD, block ) ;
+	}
+	else
+	{
+		MCR_DISPATCH_MODIFY ( dispPt, interceptedPt, * modsPt, block ) ;
+	}
 	return block ;
 }
 
@@ -205,10 +212,10 @@ void mcr_DispatchGeneric_init ( )
 	// mcr_Dispatch object.
 	mcr_Dispatch_init ( & _dispatcherGeneric ) ;
 	MCR_DISPATCH_SET ( & _dispatcherGeneric, & mcr_AllDispatch,
-		mcr_DispatchGeneric_add_specific,
-		mcr_DispatchGeneric_dispatch_specific,
-		mcr_DispatchGeneric_remove_specific,
-		mcr_DispatchGeneric_clear ) ;
+			mcr_DispatchGeneric_add_specific,
+			mcr_DispatchGeneric_dispatch_specific,
+			mcr_DispatchGeneric_remove_specific,
+			mcr_DispatchGeneric_clear ) ;
 	// Map modifier to address to hotkeys.
 	mcr_Map_init ( & _modAddress, sizeof ( unsigned int ),
 			sizeof ( mcr_Map ) ) ;
@@ -237,23 +244,23 @@ void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * dispPt,
 }
 
 int mcr_DispatchGeneric_dispatch_specific ( mcr_Dispatch * dispPt,
-		mcr_Signal * signalPt, unsigned int * modsPt )
+		mcr_Signal * signalPt, unsigned int mods )
 {
 	UNUSED ( dispPt ) ;
 	int block = 0 ;
 	// Any address is NULL.
 	const void * nullPt = NULL ;
 	// Any mod delivered below.
-	if ( modsPt && * modsPt != MCR_ANY_MOD )
+	if ( mods != MCR_ANY_MOD )
 	{
 		// Trigger Map to map.
-		TRIGGER_MAPPED_MAPS ( & _modAddress, modsPt,
-			& signalPt, & nullPt, signalPt, modsPt, block ) ;
+		TRIGGER_MAPPED_MAPS ( & _modAddress, & mods,
+				& signalPt, & nullPt, signalPt, mods, block ) ;
 	}
 	if ( signalPt != NULL )
 	{
 		TRIGGER_MAPPED_MAP ( & _modAddress, & MCR_ANY_MOD,
-								& signalPt, signalPt, modsPt, block ) ;
+				& signalPt, signalPt, mods, block ) ;
 	}
 	return block ;
 }
@@ -264,7 +271,7 @@ void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * dispPt,
 	UNUSED ( dispPt ) ;
 	// Sanity.
 	if ( ! delHotkey ) return ;
-	if ( _modAddress.set.array )
+	if ( _modAddress.set.used )
 	{
 		map_map_remove_all ( & _modAddress, & delHotkey ) ;
 	}
