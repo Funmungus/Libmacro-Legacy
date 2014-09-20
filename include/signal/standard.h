@@ -16,15 +16,12 @@
 //
 // Alarm
 /*! \brief A signal to pause execution until a day, hour and minute mark.
+ *
+ * tm members are tm_sec 0-60, tm_min 0-59,
+ * tm_hour 0-23, tm_mday 1-31, tm_mon 0-11, tm_year, tm_wday 0-6,
+ * tm_yday 0-365, tm_isdst ( daylight savings ).
  * */
-typedef struct mcr_Alarm
-{
-	/*! tm members are tm_sec 0-60, tm_min 0-59,
-	 * tm_hour 0-23, tm_mday 1-31, tm_mon 0-11, tm_year, tm_wday 0-6,
-	 * tm_yday 0-365, tm_isdst ( daylight savings ).
-	 **/
-	struct tm time_point ;
-} mcr_Alarm ;
+typedef struct tm mcr_Alarm ;
 // HIDEcho
 /*!
  * \brief Simulate mouse click, screen tap, etc.
@@ -49,12 +46,10 @@ typedef struct mcr_Key mcr_Key ;
 typedef struct mcr_MoveCursor mcr_MoveCursor ;
 // NoOp
 /*! \brief A signal to pause execution in seconds and nanoseconds.
+ *
+ * timespec members are : tv_sec, and tv_nsec.
  * */
-typedef struct mcr_NoOp
-{
-	//! timespec members are : tv_sec, and tv_nsec.
-	struct timespec tv ;
-} mcr_NoOp ;
+typedef struct timespec mcr_NoOp ;
 // Scroll
 //! \brief Scroll through pages/visible area.
 typedef struct mcr_Scroll mcr_Scroll ;
@@ -402,7 +397,7 @@ MCR_API void mcr_standard_native_cleanup ( ) ;
 //
 //! \brief \ref mcr_Alarm_send
 # define MCR_ALARM_SEND( alarmPt, success ) \
-	if ( thrd_sleep_until ( ( struct tm * ) alarmPt ) != thrd_success ) \
+	if ( thrd_sleep_until ( alarmPt ) != thrd_success ) \
 		success = 0 ;
 //! \brief \ref mcr_Echo_send
 # define MCR_ECHO_SEND( echoPt, success )
@@ -412,7 +407,7 @@ MCR_API void mcr_standard_native_cleanup ( ) ;
 # define MCR_MOVECURSOR_SEND( movePt, success )
 //! \brief \ref mcr_NoOp_send
 # define MCR_NOOP_SEND( noopPt, success ) \
-	if ( thrd_sleep ( ( struct timespec * ) noopPt, NULL ) != thrd_success ) \
+	if ( thrd_sleep ( noopPt, NULL ) != thrd_success ) \
 		success = 0 ;
 //! \brief \ref mcr_Scroll_send
 # define MCR_SCROLL_SEND( scrollPt, success )

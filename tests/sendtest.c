@@ -15,7 +15,7 @@ void justify ( ) ;
 void absolute ( ) ;
 void scroll ( ) ;
 
-static mcr_NoOp delay = { { 1, 0 } } ;
+static mcr_NoOp delay = { 1, 0 } ;
 static mcr_Signal delaySig = { & mcr_INoOp, & delay } ;
 static char buffer [ SIZE ] ;
 
@@ -25,6 +25,7 @@ int main ( )
 	printf ( "\nBegin...\n" ) ;
 	printf ( "MCR_DIMENSION_CNT = %d, DOUBLEDIM = %d\n",
 			MCR_DIMENSION_CNT, DOUBLEDIM ) ;
+	// Some platforms need to rest before being able to send some signals.
 	mcr_send ( & delaySig ) ;
 	for ( int i = selectTest ( ) ;
 		i != -1 ; i = selectTest ( ) )

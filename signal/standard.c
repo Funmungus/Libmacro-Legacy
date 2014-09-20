@@ -62,6 +62,7 @@ void mcr_Echo_init_with ( mcr_HIDEcho * echoPt, const int event )
 	mcr_Echo_init ( echoPt ) ;
 	MCR_ECHO_SET ( echoPt, event ) ;
 }
+
 void mcr_Key_init_with ( mcr_Key * keyPt, const int key, const int scan,
 		const mcr_KeyUpType keyUp )
 {
@@ -84,6 +85,7 @@ void mcr_Key_init_with ( mcr_Key * keyPt, const int key, const int scan,
 		MCR_KEY_SET_UP_TYPE ( keyPt, keyUp ) ;
 	}
 }
+
 void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
 		const mcr_SpacePosition blip, const int cursorJustify )
 {
@@ -91,6 +93,7 @@ void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
 	MCR_MOVECURSOR_SET ( mcPt, blip ) ;
 	MCR_MOVECURSOR_ENABLE_JUSTIFY ( mcPt, cursorJustify ) ;
 }
+
 void mcr_Scroll_init_with ( mcr_Scroll * scrollPt,
 		const mcr_Dimensions dimVals )
 {
@@ -106,15 +109,18 @@ int mcr_Echo_get ( const mcr_HIDEcho * echoPt )
 {
 	return MCR_ECHO_GET ( echoPt ) ;
 }
+
 void mcr_Echo_set ( mcr_HIDEcho * echoPt, int echo )
 {
 	MCR_ECHO_SET ( echoPt, echo ) ;
 }
+
 // Key
 int mcr_Key_get ( const mcr_Key * keyPt )
 {
 	return MCR_KEY_GET ( keyPt ) ;
 }
+
 void mcr_Key_set ( mcr_Key * keyPt, int key )
 {
 	if ( key == -1 )
@@ -126,18 +132,22 @@ void mcr_Key_set ( mcr_Key * keyPt, int key )
 		MCR_KEY_SET ( keyPt, key ) ;
 	}
 }
+
 int mcr_Key_get_scan ( const mcr_Key * keyPt )
 {
 	return MCR_KEY_GET_SCAN ( keyPt ) ;
 }
+
 void mcr_Key_set_scan ( mcr_Key * keyPt, int scan )
 {
 	MCR_KEY_SET_SCAN ( keyPt, scan ) ;
 }
+
 mcr_KeyUpType mcr_Key_get_up_type ( const mcr_Key * keyPt )
 {
 	return MCR_KEY_GET_UP_TYPE ( keyPt ) ;
 }
+
 void mcr_Key_set_up_type ( mcr_Key * keyPt, const mcr_KeyUpType keyUp )
 {
 	if ( ( unsigned int ) keyUp > MCR_BOTH )
@@ -149,49 +159,59 @@ void mcr_Key_set_up_type ( mcr_Key * keyPt, const mcr_KeyUpType keyUp )
 		MCR_KEY_SET_UP_TYPE ( keyPt, keyUp ) ;
 	}
 }
+
 // MoveCursor
 void mcr_MoveCursor_get ( const mcr_MoveCursor * mcPt,
 		mcr_SpacePosition buffer )
 {
 	MCR_MOVECURSOR_GET ( mcPt, buffer ) ;
 }
+
 void mcr_MoveCursor_set ( mcr_MoveCursor * mcPt,
 		const mcr_SpacePosition pos )
 {
 	MCR_MOVECURSOR_SET ( mcPt, pos ) ;
 }
+
 long long mcr_MoveCursor_get_position ( const mcr_MoveCursor * mcPt,
 		int coordinate )
 {
 	return MCR_MOVECURSOR_GET_POSITION ( mcPt, coordinate ) ;
 }
+
 void mcr_MoveCursor_set_position ( mcr_MoveCursor * mcPt, int coordinate,
 		long long value )
 {
 	MCR_MOVECURSOR_SET_POSITION ( mcPt, coordinate, value ) ;
 }
+
 int mcr_MoveCursor_is_justify ( const mcr_MoveCursor * mcPt )
 {
 	return MCR_MOVECURSOR_IS_JUSTIFY ( mcPt ) ;
 }
+
 void mcr_MoveCursor_enable_justify ( mcr_MoveCursor * mcPt,
 		int cursorJustify )
 {
 	MCR_MOVECURSOR_ENABLE_JUSTIFY ( mcPt, cursorJustify ) ;
 }
+
 // Scroll
 void mcr_Scroll_get ( const mcr_Scroll * scrollPt, mcr_Dimensions buffer )
 {
 	MCR_SCROLL_GET ( scrollPt, buffer ) ;
 }
+
 void mcr_Scroll_set ( mcr_Scroll * scrollPt, const mcr_Dimensions pos )
 {
 	MCR_SCROLL_SET ( scrollPt, pos ) ;
 }
+
 long long mcr_Scroll_get_dimension ( mcr_Scroll * scrollPt, int coordinate )
 {
 	return MCR_SCROLL_GET_DIMENSION ( scrollPt, coordinate ) ;
 }
+
 void mcr_Scroll_set_dimension ( mcr_Scroll * scrollPt, int coordinate,
 		long long value )
 {
@@ -203,44 +223,44 @@ void mcr_Scroll_set_dimension ( mcr_Scroll * scrollPt, int coordinate,
 //
 int mcr_Alarm_send ( mcr_Signal * signalData )
 {
-	mcr_Alarm * data = signalData->data ;
 	int success = 1 ;
-	MCR_ALARM_SEND ( data, success ) ;
+	MCR_ALARM_SEND ( ( mcr_Alarm * ) signalData->data, success ) ;
 	return success ;
 }
+
 int mcr_Echo_send ( mcr_Signal * signalData )
 {
-	mcr_HIDEcho * data = signalData->data ;
 	int success = 1 ;
-	MCR_ECHO_SEND ( data, success ) ;
+	MCR_ECHO_SEND ( ( mcr_HIDEcho * ) signalData->data, success ) ;
 	return success ;
 }
+
 int mcr_Key_send ( mcr_Signal * signalData )
 {
-	mcr_Key * data = signalData->data ;
 	int success = 1 ;
-	MCR_KEY_SEND ( data, success ) ;
-	return 1 ;
+	MCR_KEY_SEND ( ( mcr_Key * ) signalData->data, success ) ;
+	return success ;
 }
+
 int mcr_MoveCursor_send ( mcr_Signal * signalData )
 {
-	mcr_MoveCursor * data = signalData->data ;
 	int success = 1 ;
-	MCR_MOVECURSOR_SEND ( data, success ) ;
+	MCR_MOVECURSOR_SEND ( ( mcr_MoveCursor * )
+			signalData->data, success ) ;
 	return success ;
 }
+
 int mcr_NoOp_send ( mcr_Signal * signalData )
 {
-	mcr_NoOp * data = signalData->data ;
 	int success = 1 ;
-	MCR_NOOP_SEND ( data, success ) ;
+	MCR_NOOP_SEND ( ( mcr_NoOp * ) signalData->data, success ) ;
 	return success ;
 }
+
 int mcr_Scroll_send ( mcr_Signal * signalData )
 {
-	mcr_Scroll * data = signalData->data ;
 	int success = 1 ;
-	MCR_SCROLL_SEND ( data, success ) ;
+	MCR_SCROLL_SEND ( ( mcr_Scroll * ) signalData->data, success ) ;
 	return success ;
 }
 
