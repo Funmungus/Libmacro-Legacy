@@ -7,12 +7,14 @@ void mcr_Array_init ( mcr_Array * arrPt, size_t elementSize )
 	memset ( arrPt, 0, sizeof ( mcr_Array ) ) ;
 	arrPt->element_size = elementSize ;
 }
+
 void mcr_Array_free ( mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return ;
 	if ( arrPt->array ) free ( arrPt->array ) ;
 	mcr_Array_init ( arrPt, arrPt->element_size ) ;
 }
+
 int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
 {
 	if ( ! arrPt ) return 0 ;
@@ -34,6 +36,7 @@ int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
 		memset ( arrPos, 0, arrPt->element_size ) ;
 	return 1 ;
 }
+
 int mcr_Array_push_unique ( mcr_Array * arrPt, const void * elementPt )
 {
 	if ( ! arrPt || ! elementPt ) return 0 ;
@@ -53,6 +56,7 @@ int mcr_Array_push_unique ( mcr_Array * arrPt, const void * elementPt )
 	}
 	return mcr_Array_push ( arrPt, elementPt ) ;
 }
+
 int mcr_Array_set ( mcr_Array * arrPt, size_t pos, const void * elementPt )
 {
 	if ( ! arrPt ) return 0 ;
@@ -70,6 +74,7 @@ int mcr_Array_set ( mcr_Array * arrPt, size_t pos, const void * elementPt )
 	}
 	return 1 ;
 }
+
 int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		const void * elementPt )
 {
@@ -137,6 +142,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 	}
 	return 1 ;
 }
+
 int mcr_Array_insert_filled ( mcr_Array * arrPt, size_t pos,
 		const void * elementPt, const void * fillerElementPt )
 {
@@ -171,6 +177,7 @@ int mcr_Array_insert_filled ( mcr_Array * arrPt, size_t pos,
 	}
 	return 1 ;
 }
+
 int mcr_Array_from_array ( mcr_Array * arrPt, const void * arraySource,
 		size_t count )
 {
@@ -185,6 +192,7 @@ int mcr_Array_from_array ( mcr_Array * arrPt, const void * arraySource,
 	arrPt->used = count ;
 	return 1 ;
 }
+
 int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 		size_t count )
 {
@@ -206,12 +214,14 @@ int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 				arrPt->element_size ) ;
 	return 1 ;
 }
+
 void * mcr_Array_pop ( mcr_Array * arrPt )
 {
 	if ( ! arrPt || ! arrPt->used )
 		return NULL ;
 	return arrPt->array + ( --arrPt->used * arrPt->element_size ) ;
 }
+
 void mcr_Array_remove ( mcr_Array * arrPt, size_t pos )
 {
 	if ( ! arrPt ) return ;
@@ -222,6 +232,7 @@ void mcr_Array_remove ( mcr_Array * arrPt, size_t pos )
 	size_t byteNum = end - found ;
 	memmove ( found, found + arrPt->element_size, byteNum ) ;
 }
+
 void mcr_Array_remove_all ( mcr_Array * arrPt,
 		const void * removeElementPt )
 {
@@ -243,26 +254,31 @@ void mcr_Array_remove_all ( mcr_Array * arrPt,
 		}
 	}
 }
+
 void * mcr_Array_at ( mcr_Array * arrPt, size_t pos )
 {
 	if ( ! arrPt ) return NULL ;
 	return MCR_ARR_AT ( arrPt, pos ) ;
 }
+
 void * mcr_Array_next ( mcr_Array * arrPt, void * posPt )
 {
 	if ( ! arrPt ) return NULL ;
 	return MCR_ARR_NEXT ( arrPt, posPt ) ;
 }
+
 void * mcr_Array_prev ( mcr_Array * arrPt, void * posPt )
 {
 	if ( ! arrPt ) return NULL ;
 	return MCR_ARR_PREV ( arrPt, posPt ) ;
 }
+
 void * mcr_Array_end ( mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return NULL ;
 	return MCR_ARR_END ( arrPt ) ;
 }
+
 void mcr_Array_for_each ( const mcr_Array * arrPt,
 		mcr_iterate_fnc iterateFnc,... )
 {
@@ -282,11 +298,13 @@ void mcr_Array_for_each ( const mcr_Array * arrPt,
 	}
 	va_end ( lst ) ;
 }
+
 void mcr_Array_trim ( mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return ;
 	mcr_Array_resize ( arrPt, arrPt->used ) ;
 }
+
 int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 {
 	if ( ! arrPt ) return 0 ;
@@ -318,6 +336,7 @@ int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 		arrPt->used = arrPt->size ;
 	return 1 ;
 }
+
 void mcr_Array_print ( const mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return ;

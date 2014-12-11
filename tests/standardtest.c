@@ -77,23 +77,19 @@ void test_Echo_count ( )
 }
 const char * testEchoName = "TestEchoName" ;
 int testEchoValue = -1 ;
-void test_Echo_register ( )
+void test_Echo_set_name ( )
 {
 	// good check
-	testEchoValue = mcr_Echo_register ( testEchoName ) ;
+	testEchoValue = mcr_Echo_count ( ) ;
+	int success = mcr_Echo_set_name ( testEchoValue, testEchoName ) ;
+	assert ( success ) ;
 	assert ( testEchoValue == ( int ) mcr_Echo_count ( ) - 1 ) ;
 	const char * retName = mcr_Echo_name ( testEchoValue ) ;
 	assert ( ! strcmp ( retName, testEchoName ) ) ;
 	int retVal = mcr_Echo_code ( testEchoName ) ;
 	assert ( retVal == testEchoValue ) ;
 
-	// bad check
-	retVal = mcr_Echo_register ( NULL ) ;
-	assert ( retVal == -1 ) ;
-	retVal = mcr_Echo_register ( "" ) ;
-	assert ( retVal == -1 ) ;
-
-	printf ( "mcr_Echo_register - OK\n" ) ;
+	printf ( "mcr_Echo_set_name - OK\n" ) ;
 }
 
 void test_Echo_inits ( )
@@ -606,7 +602,7 @@ int main ( void )
 	test_Echo_code ( ) ;
 	test_Echo_name ( ) ;
 	test_Echo_count ( ) ;
-	test_Echo_register ( ) ;
+	test_Echo_set_name ( ) ;
 
 	test_Echo_inits ( ) ;
 

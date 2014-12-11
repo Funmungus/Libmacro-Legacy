@@ -49,6 +49,15 @@ MCR_API void mcr_Map_free ( mcr_Map * mapPt ) ;
  * */
 MCR_API int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 		const void * valuePt ) ;
+/*! \brief Map remove mapped value from one mapping, and remap
+ * it for a different key.
+ *
+ * \param previousKeyPt Pointer to key to remove from.
+ * \param newKeyPt Pointer to key to remap into.
+ * \return 0 on failure, otherwise successful.
+ * */
+MCR_API int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
+		const void * newKeyPt ) ;
 /*! \brief Map key+value pair.
  *
  * \param mappingPair Pointer to key + value pair to
@@ -62,6 +71,13 @@ MCR_API int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair ) ;
  * \return Pointer to key-value pair. NULL if not found.
  * */
 MCR_API void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt ) ;
+/*! \brief Get a pointer to the value mapped from key pointer.
+ *
+ * \param keyPt Pointer to key to find from.
+ * \return Pointer to a value, or NULL if not found.
+ * */
+MCR_API void * mcr_Map_get_value ( const mcr_Map * mapPt,
+		const void * keyPt ) ;
 /*!
  * \brief Get a key-value pair. Instead of binary
  * search this will be a memory comparison.
@@ -130,16 +146,16 @@ MCR_API void mcr_Map_trim ( mcr_Map * mapPt ) ;
 MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
 
 /*!
- * \brief \return Pointer to found key, or NULL.
+ * \brief Get a pointer to found key, or NULL.
  *
  * \param mapPt \ref mcr_Map *
  * \param keyPt const void * key to find from.
+ * \return void *
  * */
 # define MCR_MAP_GET( mapPt, keyPt ) \
 	( mapPt )->set.used ? bsearch ( keyPt, ( mapPt )->set.array, \
 			( mapPt )->set.used, ( mapPt )->set.element_size, \
 			( mapPt )->compare ) : NULL
-
 /*!
  * \brief \return Change address from key to value.
  *
@@ -149,6 +165,16 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
 # define MCR_MAP_VALUE( mapPt, pairPt ) \
 	( void * ) ( pairPt ? ( unsigned char * ) ( pairPt ) \
 			+ ( mapPt )->sizeof_first : NULL )
+
+/*!
+ * \brief Get a pointer to found value, or NULL.
+ *
+ * \param mapPt \ref mcr_Map *
+ * \param keyPt const void * key to find from.
+ * \return void *
+ * */
+# define MCR_MAP_GET_VALUE( mapPt, keyPt ) \
+	MCR_MAP_VALUE ( mapPt, ( MCR_MAP_GET ( mapPt, keyPt ) ) )
 
 /*!
  * \brief If compare is available, qsort given map.

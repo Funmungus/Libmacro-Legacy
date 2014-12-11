@@ -73,8 +73,9 @@ extern mcr_ISignal mcr_IScroll ;
 
 
 //
-// mcr_HIDEcho echo code memory.
+// Codes by name.
 //
+// Echo
 /*!
  * \brief mcr_Echo_code Get event code from its name.
  *
@@ -90,14 +91,22 @@ MCR_API const char * mcr_Echo_name ( int eventCode ) ;
  * \brief Get the count of registered echo codes.
  * */
 MCR_API size_t mcr_Echo_count ( ) ;
+// Key
 /*!
- * \brief mcr_Echo_register
+ * \brief Get key code from its name.
  *
- * \param eventName Name of event code.
- * \return Value of event code, or -1 if not successful.
+ * \param keyName Name of key code.
+ * \return Key code. 0 if it is not registered.
  * */
-MCR_API int mcr_Echo_register ( const char * eventName ) ;
-
+MCR_API int mcr_Key_code ( const char * keyName ) ;
+/*!
+ * \brief Get name of key code.
+ * */
+MCR_API const char * mcr_Key_name ( int keyCode ) ;
+/*!
+ * \brief Get the count of registered key codes.
+ * */
+MCR_API size_t mcr_Key_count ( ) ;
 
 //
 // ctors for native types
@@ -315,6 +324,72 @@ MCR_API int mcr_resembles_absolute ( const mcr_Dimensions first,
 MCR_API int mcr_resembles ( const mcr_MoveCursor * lhs,
 		const mcr_MoveCursor * rhs,
 		const unsigned int measurementError ) ;
+
+//
+// Code development.
+//
+// Echo
+/*!
+ * \brief Set the name mapped by a echo code.
+ *
+ * The name will also map to this echo code.
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Echo_set_name ( int eventCode, const char * eventName ) ;
+/*!
+ * \brief Map an additional name to this echo code.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Echo_add_name ( int eventCode, const char * addName ) ;
+/*!
+ * \brief Rename an echo code.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Echo_rename ( int eventCode,
+		const char * newName ) ;
+/*!
+ * \brief Rename an echo code. The code is first found from its
+ * old name.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Echo_rename_from_name ( const char * oldName,
+		const char * newName ) ;
+/*! \brief Remove all mapped echo codes. */
+MCR_API void mcr_Echo_clear_all ( ) ;
+// Key
+/*!
+ * \brief Set the name mapped by a key code.
+ *
+ * The name will also map to this key code.
+ * \return 0 if unsuccessful, othewise successful.
+ * */
+MCR_API int mcr_Key_set_name ( int keyCode, const char * newName ) ;
+/*!
+ * \brief Map an additional name to this key code.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Key_add_name ( int keyCode, const char * addName ) ;
+/*!
+ * \brief Rename a key code.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Key_rename ( int keyCode,
+		const char * newName ) ;
+/*!
+ * \brief Rename a key code. The code is first found from its
+ * old name.
+ *
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_Key_rename_from_name ( const char * oldName,
+		const char * newName ) ;
+/*! \brief Remove all mapped key codes. */
+MCR_API void mcr_Key_clear_all ( ) ;
 
 /*!
  * \brief Initialize standard signals.

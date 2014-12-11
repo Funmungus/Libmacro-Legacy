@@ -143,6 +143,51 @@ void test_map_map ( )
 	printf ( "map OK\n" ) ;
 }
 
+void test_map_remap ( )
+{
+	for ( i = 0 ; i < SIZE - 1 ; i ++ )
+	{
+		FAILIF ( ! mcr_Map_remap ( & map, set1 + i, set1 + i + 1 ) ) ;
+		// At i is removed, i + 1 has { set1 + i + 1, set2 + i }.
+		assert ( ! mcr_Map_get ( & map, set1 + i ) ) ;
+		void * getPt = mcr_Map_get ( & map, set1 + i + 1 ) ;
+		assert ( getPt ) ;
+		// Lowest number was removed, i + 1 is new lowest.
+		void * it = mcr_Array_at ( & map.set, 0 ) ;
+		assert ( getPt == it ) ;
+		assert ( ! memcmp ( it, set1 + i + 1, SIZE1 ) ) ;
+		it = MCR_MAP_VALUE ( & map, it ) ;
+		assert ( ! memcmp ( it, set2 + i, SIZE2 ) ) ;
+		// Revert value to old value.
+		memcpy ( it, set2 + i + 1, SIZE2 ) ;
+	}
+
+	reset ( ) ;
+	CHKMAP ;
+
+	for ( i = SIZE - 1 ; i > 0 ; i -- )
+	{
+		FAILIF ( ! mcr_Map_remap ( & map, set1 + i, set1 + i - 1 ) ) ;
+		// At i is removed, i - 1 has { set1 + i - 1, set2 + i }.
+		assert ( ! mcr_Map_get ( & map, set1 + i ) ) ;
+		void * getPt = mcr_Map_get ( & map, set1 + i - 1 ) ;
+		assert ( getPt ) ;
+		// Highest number was removed, i - 1 is new highest.
+		void * it = mcr_Array_at ( & map.set, map.set.used - 1 ) ;
+		assert ( getPt == it ) ;
+		assert ( ! memcmp ( it, set1 + i - 1, SIZE1 ) ) ;
+		it = ( ( unsigned char * ) it ) + SIZE1 ;
+		assert ( ! memcmp ( it, set2 + i, SIZE2 ) ) ;
+		// Revert value to old value.
+		memcpy ( it, set2 + i - 1, SIZE2 ) ;
+	}
+
+	reset ( ) ;
+	CHKMAP ;
+
+	printf ( "remap OK\n" ) ;
+}
+
 void test_map_map_pair ( )
 {
 	mcr_Map_free ( & map ) ;
@@ -452,6 +497,7 @@ int main ( void )
 	test_map_init ( ) ;
 	test_map_free ( ) ;
 	test_map_map ( ) ;
+	test_map_remap ( ) ;
 	test_map_map_pair ( ) ;
 	test_map_get ( ) ;
 	test_map_get_slow ( ) ;

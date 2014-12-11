@@ -9,6 +9,7 @@ void mcr_Map_init ( mcr_Map * mapPt, size_t sizeofFirst,
 	mapPt->sizeof_second = sizeofSecond ;
 	mcr_Array_init ( & mapPt->set, sizeofFirst + sizeofSecond ) ;
 }
+
 void mcr_Map_free ( mcr_Map * mapPt )
 {
 	if ( ! mapPt ) return ;
@@ -64,6 +65,47 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 
 	return 1 ;
 }
+
+int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
+		const void * newKeyPt )
+{
+	if ( ! mapPt ) return 0 ;
+	void * oldPlace = previousKeyPt ?
+			mcr_Map_get ( mapPt, previousKeyPt ) : NULL ;
+	void * newPlace = newKeyPt ? mcr_Map_get ( mapPt, newKeyPt ) : NULL ;
+	// No new place to put, add a mapping if we have a key to use.
+	if ( ! newPlace && newKeyPt )
+	{
+		if ( ! mcr_Array_push ( & mapPt->set, NULL ) )
+		{
+			DMSG ( "%s", "mcr_Map_remap" ) ;
+			return 0 ;
+		}
+		newPlace = MCR_ARR_AT ( & mapPt->set, mapPt->set.used - 1 ) ;
+		memcpy ( newPlace, newKeyPt, mapPt->sizeof_first ) ;
+	}
+	if ( newPlace )
+	{
+		newPlace = MCR_MAP_VALUE ( mapPt, newPlace ) ;
+		// copy from old and unmap old, then sort
+		if ( oldPlace )
+		{
+			oldPlace = MCR_MAP_VALUE ( mapPt, oldPlace ) ;
+			memcpy ( newPlace, oldPlace, mapPt->sizeof_second ) ;
+		}
+		// No old place to copy from, nullify mapped value.
+		else
+		{
+			memset ( newPlace, 0, mapPt->sizeof_second ) ;
+		}
+	}
+	// If no newKey, then we are just removing the old.
+	if ( oldPlace )
+		mcr_Map_unmap ( mapPt, previousKeyPt ) ;
+	mcr_Map_sort ( mapPt ) ;
+	return 1 ;
+}
+
 int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 {
 	if ( ! mapPt || ! mappingPair ) return 0 ;
@@ -83,6 +125,7 @@ int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 	MCR_MAP_SORT ( mapPt ) ;
 	return 1 ;
 }
+
 void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt )
 {
 	if ( ! mapPt || ! keyPt )
@@ -90,6 +133,13 @@ void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt )
 	return mapPt->compare ? MCR_MAP_GET ( mapPt, keyPt ) :
 			mcr_Map_get_slow ( mapPt, keyPt ) ;
 }
+
+void * mcr_Map_get_value ( const mcr_Map * mapPt,
+		const void * keyPt )
+{
+	return MCR_MAP_VALUE ( mapPt, mcr_Map_get ( mapPt, keyPt ) ) ;
+}
+
 void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 		const void * valueBackupPt )
 {
@@ -110,6 +160,7 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 		return MCR_MAP_GET ( mapPt, keyPt ) ;
 	}
 }
+
 size_t mcr_Map_index_of ( const mcr_Map * mapPt, const void * keyPt )
 {
 	if ( ! mapPt || ! mapPt->set.element_size )
@@ -120,6 +171,7 @@ size_t mcr_Map_index_of ( const mcr_Map * mapPt, const void * keyPt )
 	size_t diff = mapping - mapPt->set.array ;
 	return diff / mapPt->set.element_size ;
 }
+
 void mcr_Map_for_each ( const mcr_Map * mapPt,
 		mcr_iterate_fnc iterateFnc,... )
 {
@@ -139,6 +191,7 @@ void mcr_Map_for_each ( const mcr_Map * mapPt,
 	}
 	va_end ( lst ) ;
 }
+
 void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 		mcr_iterate_fnc iterateFnc,... )
 {
@@ -159,6 +212,7 @@ void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 	}
 	va_end ( lst ) ;
 }
+
 void mcr_Map_unmap ( mcr_Map * mapPt, const void * keyPt )
 {
 	if ( ! mapPt || ! keyPt )
@@ -170,16 +224,19 @@ void mcr_Map_unmap ( mcr_Map * mapPt, const void * keyPt )
 		MCR_MAP_SORT ( mapPt ) ;
 	}
 }
+
 void mcr_Map_sort ( mcr_Map * mapPt )
 {
 	if ( ! mapPt || ! mapPt->compare )
 		return ;
 	MCR_MAP_SORT ( mapPt ) ;
 }
+
 void mcr_Map_clear ( mcr_Map * mapPt )
 {
 	mapPt->set.used = 0 ;
 }
+
 void mcr_Map_trim ( mcr_Map * mapPt )
 {
 	mcr_Array_trim ( & mapPt->set ) ;

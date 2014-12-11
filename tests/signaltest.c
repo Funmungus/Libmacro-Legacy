@@ -275,7 +275,8 @@ void test_ISignal_from_name ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_ISignal * got = mcr_ISignal_from_name ( isigs [ i ].name ) ;
+		mcr_ISignal * got = mcr_ISignal_from_name (
+				isigs [ i ].name ) ;
 		assert ( got == isigs + i ) ;
 	}
 

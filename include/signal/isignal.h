@@ -101,12 +101,41 @@ MCR_API int mcr_send ( mcr_Signal * sigPt ) ;
 MCR_API void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
 		mcr_signal_fnc sender, size_t dataSize ) ;
 /*!
- * \brief mcr_ISignal_register Id is set as a unique value.
+ * \brief Id is set as a unique value.
  *
  * \param newType The signal interface to register as new ISignal type.
  * \return Value of id for new type. -1 if not successful.
  * */
 MCR_API size_t mcr_ISignal_register ( mcr_ISignal * newType ) ;
+/*!
+ * \brief Map an additional name to this signal.
+ *
+ * \param sigPt Pointer to signal to add name for.
+ * \param addName This name will be mapped to the signal.
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_ISignal_add_name ( mcr_ISignal * sigPt,
+		const char * addName ) ;
+/*!
+ * \brief Reset the mapped name for a signal.
+ *
+ * This will also set the name member, \ref mcr_ISignal#name.
+ * \param isigPt Pointer to signal to replace name for.
+ * \param newName The value to put in \ref mcr_ISignal#name.
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_ISignal_rename ( mcr_ISignal * isigPt,
+		const char * newName ) ;
+/*!
+ * \brief Reset the mapped name for a signal. First that signal
+ * will be found by the old name.
+ *
+ * This will also set the name member, \ref mcr_ISignal#name.
+ * \param oldName Name to search for signal to replace name for.
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_ISignal_rename_by_name ( const char * oldName,
+		const char * newName ) ;
 /*! \brief Get the \ref mcr_ISignal for given id.
  *
  * \param typeId Id of given \ref mcr_ISignal
@@ -136,6 +165,12 @@ MCR_API size_t mcr_ISignal_count ( ) ;
  * */
 MCR_API void mcr_ISignal_get_all ( mcr_ISignal ** buffer,
 		size_t bufferLength ) ;
+/*! \brief Remove all registered \ref mcr_ISignal. */
+MCR_API void mcr_ISignal_clear_all ( ) ;
+
+//
+// Comparisons
+//
 /*! \brief Compare const c-strings referenced by each pointer,
  * case insensitive.
  *

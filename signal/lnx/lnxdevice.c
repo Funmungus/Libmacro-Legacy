@@ -36,30 +36,29 @@ static int device_create ( mcr_Device * devPt ) ;
 
 void mcr_Device_init ( mcr_Device * devPt )
 {
+	if ( ! devPt ) return ;
 	memset ( devPt, 0, sizeof ( mcr_Device ) ) ;
-	mcr_Map_init ( & devPt->type_value_map, sizeof ( int ), \
+	mcr_Map_init ( & devPt->type_value_map, sizeof ( int ),
 			sizeof ( mcr_Array ) ) ;
 	devPt->type_value_map.compare = mcr_int_compare ;
 	devPt->fd = -1 ;
 	devPt->event_fd = -1 ;
 }
+
+static void arr_free_redirect ( mcr_Array * arrPt,... )
+{
+	mcr_Array_free ( arrPt ) ;
+}
+
 void mcr_Device_free ( mcr_Device * devPt )
 {
+	if ( ! devPt ) return ;
 	device_close_event ( devPt ) ;
 	device_close ( devPt ) ;
 	if ( devPt->type_value_map.set.used > 0 )
 	{
-		void * arr = devPt->type_value_map.set.array ;
-		// iterate mapped arrays
-		arr = MCR_MAP_VALUE ( & devPt->type_value_map, arr ) ;
-		// Free allocated dynamic arrays.
-		// One past last.
-		void * end = MCR_ARR_END ( & devPt->type_value_map.set ) ;
-		for ( ; arr < end ;
-				arr = MCR_ARR_NEXT ( & devPt->type_value_map.set, arr ) )
-		{
-			mcr_Array_free ( arr ) ;
-		}
+		MCR_MAP_FOR_EACH_VALUE ( & devPt->type_value_map,
+				arr_free_redirect, 0 ) ;
 	}
 	mcr_Map_free ( & devPt->type_value_map ) ;
 	mcr_Device_init ( devPt ) ;
@@ -67,6 +66,7 @@ void mcr_Device_free ( mcr_Device * devPt )
 
 int mcr_Device_enable ( mcr_Device * devPt, int enable )
 {
+	if ( ! devPt ) return 0 ;
 	// If already enabled, need to close and restart.
 	if ( ! device_close ( devPt ) )
 	{
@@ -132,6 +132,7 @@ void mcr_Device_usage ( )
 int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 		size_t bitLen )
 {
+	if ( ! devPt || ! bits || bitLen == ( size_t ) -1 ) return 0 ;
 	mcr_Array value ;
 	mcr_Array_init ( & value, sizeof ( int ) ) ;
 	// Unable to append array, free and exit.
@@ -155,23 +156,17 @@ int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 
 mcr_Array * mcr_Device_get_bits ( mcr_Device * devPt, int bitType )
 {
-	void * found = MCR_MAP_GET ( & devPt->type_value_map, & bitType ) ;
-	if ( found == NULL )
-		return NULL ;
-	return MCR_MAP_VALUE ( & devPt->type_value_map, found ) ;
+	if ( ! devPt ) return NULL ;
+	return MCR_MAP_GET_VALUE ( & devPt->type_value_map, & bitType ) ;
 }
 
 int mcr_Device_has_evbit ( mcr_Device * devPt )
 {
+	if ( ! devPt ) return 0 ;
 	int evbit = UI_SET_EVBIT ;
-	void * evbit_pair = MCR_MAP_GET ( & devPt->type_value_map, & evbit ) ;
-	mcr_Array * evbit_arr = MCR_MAP_VALUE (
-			& devPt->type_value_map, evbit_pair ) ;
-	if ( evbit_pair == NULL || evbit_arr->used == 0 )
-	{
-		return 0 ;
-	}
-	return 1 ;
+	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
+			& evbit ) ;
+	return evbit_arr && evbit_arr->used ;
 }
 
 static int device_open ( mcr_Device * devPt )
@@ -222,6 +217,7 @@ static int device_open_event ( mcr_Device * devPt )
 		DMSG ( "%s\n", "open_event" ) ;
 		return 0 ;
 	}
+	// Get the current working directory to return to later.
 	ptr = getcwd ( wd, size ) ;
 	UNUSED ( ptr ) ;
 	if ( ! wd || chdir ( STRINGIFY ( MCR_EVENT_PATH ) ) == -1 )
@@ -294,8 +290,9 @@ static int device_open_event_wd ( mcr_Device * devPt )
 			DMSG ( "%s\n", "Cannot stat." ) ;
 			continue ;
 		}
+		// Our uinput devices are always char devices.
 		if ( S_ISCHR ( s.st_mode ) )
-		{	// if entry is a char device
+		{
 			devPt->event_fd = open ( entry->d_name, O_RDONLY ) ;
 			if ( devPt->event_fd == -1 )
 				continue ;
@@ -347,62 +344,56 @@ static int device_verify_event_device ( mcr_Device * devPt,
 			UINPUT_MAX_NAME_SIZE ) ;
 }
 
+// bitPt is iterator through array
+static void write_bit_redirect ( int * bitPt, int fd,
+		int setBit, int * success )
+{
+	if ( ioctl ( fd, setBit, * bitPt ) == -1 )
+	{
+		DMSG ( "%s%d\n", "error set bit, type ", setBit ) ;
+		 * success = 0 ;
+	}
+}
+
 static int device_write_bits ( mcr_Device * devPt, int setBit,
 		mcr_Array * bits )
 {
-	if ( bits->used == 0 )
+	if ( ! bits->used )
 		return 1 ;
 	int success = 1 ;
-
-	int * end = MCR_ARR_END ( bits ) ; // one past last
-	for ( int * i = ( int * ) bits->array ; i < end ; i++ )
-	{
-		if ( ioctl ( devPt->fd, setBit, * i ) == -1 )
-		{
-			DMSG ( "%s%d\n", "error set bit, type ", setBit ) ;
-			success = 0 ;
-		}
-	}
-
+	MCR_ARR_FOR_EACH ( bits, write_bit_redirect, devPt->fd,
+			setBit, & success ) ;
 	return success ;
 }
 
 static int device_write_evbit ( mcr_Device * devPt )
 {
 	int evbit = UI_SET_EVBIT ;
-	void * evbit_pair = MCR_MAP_GET ( & devPt->type_value_map, & evbit ) ;
-	mcr_Array * evbit_arr = MCR_MAP_VALUE (
-			& devPt->type_value_map, evbit_pair ) ;
-	if ( evbit_pair == NULL || evbit_arr->used == 0 )
-	{
-		return 0 ;
-	}
-	return device_write_bits ( devPt, evbit, evbit_arr ) ;
+	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
+			& evbit ) ;
+	return evbit_arr && evbit_arr->used &&
+			device_write_bits ( devPt, evbit, evbit_arr ) ;
+}
+
+static void write_non_evbit_redirect ( int * evbitPair,
+		mcr_Device * devPt, int * success )
+{
+	if ( * evbitPair == UI_SET_EVBIT ) return ;
+	mcr_Array * evbitArr = MCR_MAP_VALUE ( & devPt->type_value_map,
+			evbitPair ) ;
+	if ( ! device_write_bits ( devPt, * evbitPair, evbitArr ) )
+		 * success = 0 ;
 }
 
 static int device_write_non_evbit ( mcr_Device * devPt )
 {
 	// All non-evbits.
-	int * evbit_pair = ( int * ) devPt->type_value_map.set.array ;
-	mcr_Array * evbit_arr = MCR_MAP_VALUE ( & devPt->type_value_map,
-			evbit_pair ) ;
-	if ( evbit_pair == NULL || evbit_arr->used == 0 )
+	if ( ! devPt->type_value_map.set.used )
 		return 0 ;
-	int * end = MCR_ARR_END ( & devPt->type_value_map.set ) ;
-	int valid = 1 ;
-	while ( evbit_pair < end )
-	{
-		if ( * evbit_pair != UI_SET_EVBIT )
-		{
-			valid = device_write_bits ( devPt, * evbit_pair, evbit_arr ) ?
-					valid : 0 ;
-		}
-		evbit_pair = MCR_ARR_NEXT ( & devPt->type_value_map.set,
-				evbit_pair ) ;
-		evbit_arr = MCR_ARR_NEXT ( & devPt->type_value_map.set,
-				evbit_arr ) ;
-	}
-	return valid ;
+	int success = 1 ;
+	MCR_MAP_FOR_EACH ( & devPt->type_value_map, write_non_evbit_redirect,
+			devPt, & success ) ;
+	return success ;
 }
 
 static int device_create ( mcr_Device * devPt )
@@ -413,10 +404,6 @@ static int device_create ( mcr_Device * devPt )
 		return 0 ;
 	}
 
-	// Device is not recognized for i/o until time has passed.
-	// 1 milli = 1000000 nano
-	//struct timespec time_point = { 0, 1000000 } ;
-	//thrd_sleep ( & time_point, NULL ) ;
 	return 1 ;
 }
 
@@ -553,8 +540,6 @@ void mcr_Device_initialize ( )
 	keyDevice_init ( ) ;
 	absDevice_init ( ) ;
 	relDevice_init ( ) ;
-	// Magic sleep to wait for device handlers.
-	sleep ( 1 ) ;
 }
 
 void mcr_Device_cleanup ( )

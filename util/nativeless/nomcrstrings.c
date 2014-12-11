@@ -18,6 +18,7 @@ int strcasecmp ( const char * s1, const char * s2 )
 	// Whichever is NULL is the lesser.
 	return ( * lhs == '\0' ) ? -1 : 1 ;
 }
+
 int strncasecmp ( const char * s1, const char * s2, size_t n )
 {
 	size_t i = 0 ;
@@ -36,10 +37,12 @@ int strncasecmp ( const char * s1, const char * s2, size_t n )
 	// One is lesser than the other.
 	return ( lhs [ i ] == '\0' ) ? -1 : 1 ;
 }
+
 int stricmp ( const char * lhs, const char * rhs )
 {
 	return strcasecmp ( lhs, rhs ) ;
 }
+
 int strnicmp ( const char * lhs, const char * rhs, size_t count )
 {
 	return strncasecmp ( lhs, rhs, count ) ;

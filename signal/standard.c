@@ -8,51 +8,55 @@ MCR_API mcr_ISignal mcr_IMoveCursor ;
 MCR_API mcr_ISignal mcr_INoOp ;
 MCR_API mcr_ISignal mcr_IScroll ;
 
+//
+// Code memory
+//
+// Echo
 // echo name-> echo index
 static mcr_Map _echoMap ;
 // echo index-> echo name
 static mcr_Array _echoNames ;
-
 int mcr_Echo_code ( const char * eventName )
 {
 	if ( ! eventName )
 		return -1 ;
-	int * codePt = MCR_MAP_GET ( & _echoMap, & eventName ) ;
-	if ( codePt )
-	{
-		codePt = MCR_MAP_VALUE ( & _echoMap, codePt ) ;
-		return * codePt ;
-	}
-	return -1 ;
+	int * codePt = MCR_MAP_GET_VALUE ( & _echoMap, & eventName ) ;
+	return codePt ? * codePt : -1 ;
 }
+
 const char * mcr_Echo_name ( int eventCode )
 {
 	const char ** namePt = MCR_ARR_AT ( & _echoNames,
 			( size_t ) eventCode ) ;
 	return namePt ? * namePt : NULL ;
 }
+
 size_t mcr_Echo_count ( )
 {
 	return _echoNames.used ;
 }
-int mcr_Echo_register ( const char * eventName )
+
+// Key
+static mcr_Array _keyNames ;
+static mcr_Map _keyMap ;
+int mcr_Key_code ( const char * keyName )
 {
-	if ( ! eventName || * eventName == '\0' )
-		return -1 ;
-	int * codePt = MCR_MAP_GET ( & _echoMap, & eventName ) ;
-	if ( codePt )
-	{
-		return * codePt ;
-	}
-	int ret = mcr_Array_push ( & _echoNames, & eventName ) ;
-	if ( ! ret )
-	{
-		DMSG ( "%s\n", "mcr_Echo_register unable to pushed" ) ;
-		return -1 ;
-	}
-	ret = _echoNames.used - 1 ; // Last index, last pushed item.
-	mcr_Map_map ( & _echoMap, & eventName, & ret ) ;
-	return ret ;
+	if ( ! keyName )
+		return 0 ;
+	int * keyPt = MCR_MAP_GET_VALUE ( & _keyMap, & keyName ) ;
+	return keyPt ? * keyPt : 0 ;
+}
+
+const char * mcr_Key_name ( int keyCode )
+{
+	const char ** namePt = MCR_ARR_AT ( & _keyNames,
+			( size_t ) keyCode ) ;
+	return namePt ? * namePt : NULL ;
+}
+
+size_t mcr_Key_count ( )
+{
+	return _keyNames.used ;
 }
 
 // Initializers
@@ -314,14 +318,136 @@ int mcr_resembles_absolute ( const mcr_Dimensions first,
 
 }
 
+//
+// Code development
+//
+// Echo
+int mcr_Echo_set_name ( int eventCode, const char * eventName )
+{
+	int ret = 0 ;
+	if ( eventCode != -1 )
+	{
+		if ( ( unsigned int ) eventCode > _echoNames.used )
+		{
+			ret = mcr_Array_insert_filled ( & _echoNames, eventCode,
+					& eventName, NULL ) ;
+		}
+		else
+		{
+			ret = mcr_Array_set ( & _echoNames, eventCode, & eventName ) ;
+		}
+	}
+	if ( ret )
+	{
+		ret = mcr_Echo_add_name ( eventCode, eventName ) ;
+	}
+	return ret ;
+}
+
+int mcr_Echo_add_name ( int eventCode, const char * addName )
+{
+	return mcr_Map_map ( & _echoMap, & addName, & eventCode ) ;
+}
+
+int mcr_Echo_rename ( int eventCode,
+		const char * newName )
+{
+	const char ** found = mcr_Array_at ( & _echoNames, eventCode ) ;
+	if ( found )
+	{
+		if ( mcr_Map_remap ( & _echoMap, found, & newName ) )
+		{
+			 * found = newName ;
+			return 1 ;
+		}
+	}
+	return 0 ;
+}
+
+int mcr_Echo_rename_from_name ( const char * oldName,
+		const char * newName )
+{
+	int * found = MCR_MAP_GET_VALUE ( & _echoMap, & oldName ) ;
+	if ( found )
+		return mcr_Echo_rename ( * found, newName ) ;
+	return 0 ;
+}
+
+void mcr_Echo_clear_all ( )
+{
+	mcr_Map_free ( & _echoMap ) ;
+	mcr_Array_free ( & _echoNames ) ;
+}
+
+// Key
+int mcr_Key_set_name ( int keyCode, const char * newName )
+{
+	int ret = 0 ;
+	if ( keyCode != -1 )
+	{
+		if ( ( unsigned int ) keyCode > _keyNames.used )
+		{
+			ret = mcr_Array_insert_filled ( & _keyNames, keyCode,
+					& newName, NULL ) ;
+		}
+		else
+		{
+			ret = mcr_Array_set ( & _keyNames, keyCode, & newName ) ;
+		}
+	}
+	if ( ret )
+	{
+		ret = mcr_Key_add_name ( keyCode, newName ) ;
+	}
+	return ret ;
+}
+
+int mcr_Key_add_name ( int keyCode, const char * addName )
+{
+	return mcr_Map_map ( & _keyMap, & addName, & keyCode ) ;
+}
+
+int mcr_Key_rename ( int keyCode, const char * newName )
+{
+	const char ** found = mcr_Array_at ( & _keyNames, keyCode ) ;
+	if ( found )
+	{
+		if ( mcr_Map_remap ( & _keyMap, found, & newName ) )
+		{
+			 * found = newName ;
+			return 1 ;
+		}
+	}
+	return 0 ;
+}
+
+int mcr_Key_rename_from_name ( const char * oldName,
+		const char * newName )
+{
+	int * found = MCR_MAP_GET_VALUE ( & _keyMap, & oldName ) ;
+	if ( found )
+		return mcr_Key_rename ( * found, newName ) ;
+	return 0 ;
+}
+
+void mcr_Key_clear_all ( )
+{
+	mcr_Map_free ( & _keyMap ) ;
+	mcr_Array_free ( & _keyNames ) ;
+}
+
 void mcr_standard_initialize ( )
 {
 	mcr_Array_init ( & _echoNames, sizeof ( const char * ) ) ;
 	mcr_Map_init ( & _echoMap, sizeof ( const char * ), sizeof ( int ) ) ;
 	_echoMap.compare = mcr_name_compare ;
+	mcr_Array_init ( & _keyNames, sizeof ( const char * ) ) ;
+	mcr_Map_init ( & _keyMap, sizeof ( const char * ), sizeof ( int ) ) ;
+	_keyMap.compare = mcr_name_compare ;
+
 	mcr_ISignal_init ( & mcr_IAlarm, "Alarm", mcr_Alarm_send,
 			sizeof ( mcr_Alarm ) ) ;
-	mcr_ISignal_init ( & mcr_IHIDEcho, "Echo", mcr_Echo_send,
+	mcr_ISignal_init ( & mcr_IHIDEcho, "HIDEcho", mcr_Echo_send,
 			sizeof ( mcr_HIDEcho ) ) ;
 	mcr_ISignal_init ( & mcr_IKey, "Key", mcr_Key_send,
 			sizeof ( mcr_Key ) ) ;
@@ -339,16 +465,24 @@ void mcr_standard_initialize ( )
 	unsigned int count = sizeof ( sigs ) / sizeof ( mcr_ISignal * ) ;
 	for ( unsigned int i = 0 ; i < count ; i++ )
 	{
+		sigs [ i ]->dispatch = NULL ;
 		if ( mcr_ISignal_register ( sigs [ i ] ) == ( size_t ) -1 )
 		{
 			DMSG ( "%s%s", "Unable to register signal type ",
 					sigs [ i ] [ 0 ].name ) ;
 		}
 	}
+	mcr_ISignal_add_name ( & mcr_IHIDEcho, "hid echo" ) ;
+	mcr_ISignal_add_name ( & mcr_IHIDEcho, "hid_echo" ) ;
+	mcr_ISignal_add_name ( & mcr_IHIDEcho, "echo" ) ;
+	mcr_ISignal_add_name ( & mcr_IMoveCursor, "move cursor" ) ;
+	mcr_ISignal_add_name ( & mcr_IMoveCursor, "move_cursor" ) ;
+	mcr_ISignal_add_name ( & mcr_INoOp, "no op" ) ;
+	mcr_ISignal_add_name ( & mcr_INoOp, "no_op" ) ;
 }
 
 void mcr_standard_cleanup ( )
 {
-	mcr_Map_free ( & _echoMap ) ;
-	mcr_Array_free ( & _echoNames ) ;
+	mcr_Echo_clear_all ( ) ;
+	mcr_Key_clear_all ( ) ;
 }

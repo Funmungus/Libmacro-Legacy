@@ -65,6 +65,16 @@ void mcr_standard_native_initialize ( )
 		"LeftDown", "LeftUp", "MiddleDown", "MiddleUp",
 		"RightDown", "RightUp"
 	} ;
+	const char * extraNames [ ] =
+	{
+		"left down", "left up", "middle down", "middle up",
+		"right down", "right up"
+	} ;
+	const char * extraNames2 [ ] =
+	{
+		"left_down", "left_up", "middle_down", "middle_up",
+		"right_down", "right_up"
+	} ;
 	size_t count = sizeof ( keys ) / sizeof ( int ) ;
 	mcr_Array_resize ( & mcr_EchoEvents, count ) ;
 	mcr_Key key ;
@@ -73,15 +83,23 @@ void mcr_standard_native_initialize ( )
 	{
 		MCR_KEY_SET ( & key, keys [ i ] ) ;
 		MCR_KEY_SET_UP_TYPE ( & key, ups [ i ] ) ;
-		int code = mcr_Echo_register ( names [ i ] ) ;
-		if ( code == -1 )
+		int success = mcr_Echo_set_name ( i, names [ i ] ) ;
+		if ( success )
 		{
-			DMSG ( "%s%s", "Unable to register echo: ", names [ i ] ) ;
+			// TODO Native register.
+			mcr_Array_set ( & mcr_EchoEvents, success, & key ) ;
 		}
 		else
 		{
-			// TODO Native register.
-			mcr_Array_set ( & mcr_EchoEvents, code, & key ) ;
+			DMSG ( "%s%s", "Unable to register echo: ", names [ i ] ) ;
+		}
+		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
+		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
+			success = 0 ;
+		if ( ! success )
+		{
+			DMSG ( "%s%s", "Unable to add extra name: ",
+					extraNames [ i ] ) ;
 		}
 	}
 }

@@ -9,6 +9,7 @@ void mcr_Signal_init ( mcr_Signal * sigPt, mcr_ISignal * type )
 {
 	sigPt->type = type ;
 }
+
 void mcr_Signal_init_with ( mcr_Signal * sigPt, mcr_ISignal * type,
 		void * data )
 {
@@ -22,6 +23,7 @@ int mcr_send ( mcr_Signal * sigPt )
 	MCR_SEND ( sigPt, success ) ;
 	return success ;
 }
+
 void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
 		mcr_signal_fnc sender, size_t dataSize )
 {
@@ -41,7 +43,7 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 	}
 	// If successful, we can set the id.
 	newType->id = id ;
-	if ( ! mcr_Map_map ( & _nameMap, ( void * ) & newType->name,
+	if ( ! mcr_Map_map ( & _nameMap, & newType->name,
 			& newType ) )
 	{
 		mcr_Array_pop ( & _iSignalSet ) ; // Remove unmapped signal.
@@ -49,6 +51,32 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 		return -1 ;
 	}
 	return id ;
+}
+
+int mcr_ISignal_add_name ( mcr_ISignal * sigPt,
+		const char * addName )
+{
+	return mcr_Map_map ( & _nameMap, & addName, & sigPt ) ;
+}
+
+int mcr_ISignal_rename ( mcr_ISignal * isigPt,
+		const char * newName )
+{
+	if ( ! isigPt ) return 0 ;
+	return mcr_ISignal_rename_by_name ( isigPt->name, newName ) ;
+}
+
+int mcr_ISignal_rename_by_name ( const char * oldName,
+		const char * newName )
+{
+	mcr_ISignal * sigPt = mcr_ISignal_from_name ( oldName ) ;
+	if ( ! sigPt )
+		return 0 ;
+	int ret = mcr_Map_remap ( & _nameMap, & oldName, & newName ) ;
+	if ( ! ret )
+		return 0 ;
+	sigPt->name = newName ;
+	return ret ;
 }
 
 mcr_ISignal * mcr_ISignal_get ( size_t typeId )
@@ -59,11 +87,11 @@ mcr_ISignal * mcr_ISignal_get ( size_t typeId )
 
 mcr_ISignal * mcr_ISignal_from_name ( const char * typeName )
 {
-	mcr_ISignal ** found = MCR_MAP_GET ( & _nameMap, & typeName ) ;
-	if ( ! found )
+	if ( ! typeName )
 		return NULL ;
-	found = MCR_MAP_VALUE ( & _nameMap, found ) ;
-	return * found ;
+	mcr_ISignal ** ret = MCR_MAP_GET_VALUE ( & _nameMap,
+			& typeName ) ;
+	return ret ? * ret : NULL ;
 }
 
 size_t mcr_ISignal_get_id ( const char * typeName )
@@ -86,6 +114,12 @@ void mcr_ISignal_get_all ( mcr_ISignal ** buffer, size_t bufferLength )
 	{
 		buffer [ i ] = arr [ i ] ;
 	}
+}
+
+void mcr_ISignal_clear_all ( )
+{
+	mcr_Array_free ( & _iSignalSet ) ;
+	mcr_Map_free ( & _nameMap ) ;
 }
 
 int mcr_name_compare ( const void * lhs, const void * rhs )
@@ -144,8 +178,7 @@ void mcr_signal_cleanup ( void )
 {
 	mcr_standard_native_cleanup ( ) ;
 	mcr_standard_cleanup ( ) ;
-	mcr_Array_free ( & _iSignalSet ) ;
-	mcr_Map_free ( & _nameMap ) ;
+	mcr_ISignal_clear_all ( ) ;
 }
 
 void mcr_signal_initialize ( )
