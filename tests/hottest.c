@@ -37,13 +37,13 @@ void test_Hot_init ( )
 
 int triggerCalled = 0 ;
 mcr_Signal * trigSignal ;
-unsigned int * trigMods ;
+unsigned int trigMods ;
 void triggerFnc ( mcr_Hot * hotPt, mcr_Signal * sigPt,
-		unsigned int * modsPt )
+		unsigned int mods )
 {
 	assert ( hotPt == & hotty ) ;
 	assert ( sigPt == trigSignal ) ;
-	assert ( modsPt == trigMods ) ;
+	assert ( mods == trigMods ) ;
 	triggerCalled = 1 ;
 }
 void test_Hot_init_with ( )
@@ -60,27 +60,27 @@ void test_Hot_trigger ( )
 	mcr_Hot_init_with ( & hotty, 0, triggerFnc, & obj ) ;
 	triggerCalled = 0 ;
 	trigSignal = NULL ;
-	trigMods = NULL ;
+	trigMods = 0 ;
 	int block = mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
 	assert ( ! block ) ;
 	hotty.block = 1 ;
-	trigMods = ( unsigned int * ) & obj ;
+	trigMods = obj ;
 	block = mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
 	assert ( block ) ;
 	trigSignal = & sig ;
 	mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
-	trigMods = NULL ;
+	trigMods = 0 ;
 	mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
 
 	printf ( "mcr_Hot_trigger - OK\n" ) ;
 }
 void trigIncFnc ( mcr_Hot * hotPt, mcr_Signal * sigPt,
-		unsigned int * modsPt )
+		unsigned int mods )
 {
 	++ triggerCalled ;
 	UNUSED ( hotPt ) ;
 	UNUSED ( sigPt ) ;
-	UNUSED ( modsPt ) ;
+	UNUSED ( mods ) ;
 }
 
 void test_Hot_trigger_array ( )

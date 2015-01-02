@@ -20,11 +20,10 @@ mcr_Hot hots [ SIZE ] ;
 
 int specCalled = 0 ;
 
-void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int * c )
+void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int c )
 {
 	UNUSED ( a ) ; UNUSED ( b ) ;
-	assert ( c ) ;
-	assert ( c == & mcr_InternalMods ) ;
+	assert ( c == mcr_InternalMods ) ;
 	++ specCalled ;
 }
 
@@ -64,7 +63,7 @@ void setup ( )
 # define TESTN( calledNumber ) \
 	specCalled = 0 ; \
 	pt->dispatch_specific ( pt, NULL, \
-			& mcr_InternalMods ) ; \
+			mcr_InternalMods ) ; \
 	assert ( specCalled == ( calledNumber ) ) ;
 
 # define TEST_ADDGENERIC( dispPt, addSpecFnc ) \
@@ -84,7 +83,7 @@ void alarmTest ( )
 {
 	MSET ( & mcr_IAlarm, & alm, mcr_IAlarm.id ) ;
 
-	memset ( & alm.time_point, 0, sizeof ( struct tm ) ) ;
+	memset ( & alm, 0, sizeof ( mcr_Alarm ) ) ;
 
 	TEST_ADDGENERIC ( pt, mcr_DispatchAlarm_add_specific ) ;
 
@@ -258,7 +257,7 @@ void noopTest ( )
 {
 	MSET ( & mcr_INoOp, & noop, mcr_INoOp.id ) ;
 
-	memset ( & noop.tv, 0, sizeof ( struct timeval ) ) ;
+	memset ( & noop, 0, sizeof ( mcr_NoOp ) ) ;
 
 	TEST_ADDGENERIC ( pt, mcr_DispatchNoOp_add_specific ) ;
 
