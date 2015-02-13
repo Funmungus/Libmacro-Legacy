@@ -7,6 +7,7 @@
 # define MCR_DISPATCH_H
 
 # include "hotkey/hot.h"
+# include "hotkey/mods.h"
 
 typedef struct mcr_Dispatch mcr_Dispatch ;
 typedef void ( * mcr_dispatch_fnc ) ( mcr_Dispatch * ) ;

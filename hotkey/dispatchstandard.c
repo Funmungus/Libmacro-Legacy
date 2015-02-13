@@ -48,6 +48,7 @@ void mcr_DispatchHIDEcho_init ( mcr_Dispatch * dispPt )
 			mcr_DispatchHIDEcho_dispatch_specific,
 			mcr_DispatchHIDEcho_remove_specific,
 			mcr_DispatchHIDEcho_clear ) ;
+	dispPt->modifier = mcr_HIDEcho_modify ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
@@ -79,6 +80,7 @@ void mcr_DispatchKey_init ( mcr_Dispatch * dispPt )
 			mcr_DispatchKey_dispatch_specific,
 			mcr_DispatchKey_remove_specific,
 			mcr_DispatchKey_clear ) ;
+	dispPt->modifier = mcr_Key_modify ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
