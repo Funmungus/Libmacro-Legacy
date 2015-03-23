@@ -20,7 +20,7 @@ nohup.*
 *makefile
 *.pro.user
 template
-build*
-tests/test
+build*/
+tests/*test
 
 include/rapidxml/*

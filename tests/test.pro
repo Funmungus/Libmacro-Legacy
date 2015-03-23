@@ -19,16 +19,49 @@ win32:LIBS += ../project/macro.lib
 win32:DEFINES += MCR_NATIVE_DIR=win
 else:unix:DEFINES += MCR_NATIVE_DIR=lnx
 
-HEADERS += \
-    ../include/macro.h
+HEADERS = ../include/macro.h
 
-SOURCES += \
-    dispatchstandardtest.c
-#    dispatchstandardtest.c
-#    dispatchtest.c
-#    hottest.c
-#    sendtest.c
-#    standardtest.c
-#    signaltest.c
-#    maptest.c
-#    arraytest.c
+arraytest {
+TARGET = arraytest
+SOURCES = arraytest.c
+}
+
+maptest {
+TARGET = maptest
+SOURCES = maptest.c
+}
+
+signaltest {
+TARGET = signaltest
+SOURCES = signaltest.c
+}
+
+standardtest {
+TARGET = standardtest
+SOURCES = standardtest.c
+}
+
+sendtest {
+TARGET = sendtest
+SOURCES = sendtest.c
+}
+
+hottest {
+TARGET = hottest
+SOURCES = hottest.c
+}
+
+modstest {
+TARGET = modstest
+SOURCES = modstest.c
+}
+
+dispatchtest {
+TARGET = dispatchtest
+SOURCES = dispatchtest.c
+}
+
+dispatchstandardtest {
+TARGET = dispatchstandardtest
+SOURCES = dispatchstandardtest.c
+}
