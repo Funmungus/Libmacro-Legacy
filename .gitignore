@@ -7,6 +7,7 @@ obj
 doxygen
 nohup.*
 *.bak
+*.log
 *.autosave
 *.swp
 *.o
