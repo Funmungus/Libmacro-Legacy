@@ -65,17 +65,15 @@ MCR_API int mcr_Hot_trigger_array ( mcr_Hot ** hotArray, size_t count,
 # define MCR_HOT_TRIGGER_ARRAY( hotPtArray, count, signalPt, mods, \
 		block ) \
 { \
-	if ( ! block ) \
+	for ( size_t _iterator_ = 0 ; _iterator_ < count ; \
+			_iterator_ ++ ) \
 	{ \
-		for ( size_t _iterator_ = 0 ; _iterator_ < count ; _iterator_ ++ ) \
+		MCR_HOT_TRIGGER ( hotPtArray [ _iterator_ ], \
+			signalPt, mods ) ; \
+		if ( hotPtArray [ _iterator_ ]->block ) \
 		{ \
-			MCR_HOT_TRIGGER ( hotPtArray [ _iterator_ ], \
-				signalPt, mods ) ; \
-			if ( hotPtArray [ _iterator_ ]->block ) \
-			{ \
-				block = 1 ; \
-				break ; \
-			} \
+			block = 1 ; \
+			break ; \
 		} \
 	} \
 }

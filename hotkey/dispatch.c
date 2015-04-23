@@ -5,6 +5,22 @@
 static mcr_Array _dispatchers ;
 static mcr_Dispatch _dispatcherGeneric ;
 
+void mcr_Dispatch_add ( mcr_Hot * hotPt,
+		mcr_Signal * interceptPt, unsigned int mods )
+{
+	if ( interceptPt && interceptPt->type )
+	{
+		mcr_Dispatch_add_specific ( mcr_Dispatch_get (
+				interceptPt->type->id ), hotPt, interceptPt,
+				mods ) ;
+	}
+	else
+	{
+		mcr_Dispatch_add_specific ( & _dispatcherGeneric,
+				hotPt, interceptPt, mods ) ;
+	}
+}
+
 mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId )
 {
 	if ( signalTypeId == -1 )
@@ -12,7 +28,8 @@ mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId )
 	return MCR_ARR_AT ( & _dispatchers, ( unsigned int ) signalTypeId ) ;
 }
 
-void mcr_Dispatch_add ( mcr_Dispatch * dispPt, mcr_Hot * newHotkey )
+void mcr_Dispatch_add_unspecific ( mcr_Dispatch * dispPt,
+		mcr_Hot * newHotkey )
 {
 	if ( ! newHotkey || ! dispPt ) return ;
 	mcr_Array_push_unique ( & dispPt->generics, & newHotkey ) ;
@@ -234,7 +251,7 @@ void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * dispPt,
 	if ( ! newHotkey ) return ;
 	if ( ! signalPt && mods == MCR_ANY_MOD )
 	{
-		mcr_Dispatch_add ( dispPt, newHotkey ) ;
+		mcr_Dispatch_add_unspecific ( dispPt, newHotkey ) ;
 	}
 	else
 	{

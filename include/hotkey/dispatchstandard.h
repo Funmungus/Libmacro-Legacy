@@ -7,7 +7,6 @@
 
 # include "hotkey/dispatch.h"
 
-
 // Initialize and free for specific dispatchers
 MCR_API void mcr_DispatchAlarm_init ( mcr_Dispatch * dispPt ) ;
 MCR_API void mcr_DispatchAlarm_free ( ) ;
@@ -21,6 +20,8 @@ MCR_API void mcr_DispatchNoOp_init ( mcr_Dispatch * dispPt ) ;
 MCR_API void mcr_DispatchNoOp_free ( ) ;
 MCR_API void mcr_DispatchScroll_init ( mcr_Dispatch * dispPt ) ;
 MCR_API void mcr_DispatchScroll_free ( ) ;
+MCR_API void mcr_DispatchMod_init ( mcr_Dispatch * dispPt ) ;
+MCR_API void mcr_DispatchMod_free ( ) ;
 
 
 // Interface function implementation for specific dispatchers.
@@ -72,6 +73,14 @@ MCR_API int mcr_DispatchScroll_dispatch_specific ( mcr_Dispatch * dispPt,
 MCR_API void mcr_DispatchScroll_remove_specific ( mcr_Dispatch * dispPt,
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchScroll_clear ( mcr_Dispatch * dispPt ) ;
+
+MCR_API void mcr_DispatchMod_add_specific ( mcr_Dispatch * dispPt,
+		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods ) ;
+MCR_API int mcr_DispatchMod_dispatch_specific ( mcr_Dispatch * dispPt,
+		mcr_Signal * signalPt, unsigned int mods ) ;
+MCR_API void mcr_DispatchMod_remove_specific ( mcr_Dispatch * dispPt,
+		mcr_Hot * delHotkey ) ;
+MCR_API void mcr_DispatchMod_clear ( mcr_Dispatch * dispPt ) ;
 
 MCR_API void mcr_dispatchstandard_initialize ( ) ;
 

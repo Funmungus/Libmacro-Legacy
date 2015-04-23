@@ -52,6 +52,13 @@ typedef struct mcr_Dispatch
 } mcr_Dispatch ;
 
 /*!
+ * \brief Add hotkey to the dispatch for given signal.
+ *
+ * \param interceptPt If NULL, hotkey will add to generics.
+ * */
+MCR_API void mcr_Dispatch_add ( mcr_Hot * hotPt,
+		mcr_Signal * interceptPt, unsigned int mods ) ;
+/*!
  * \brief Get a dispatcher from signal id.
  *
  * \return Reference to a dispatcher registered for
@@ -63,7 +70,7 @@ MCR_API mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId ) ;
  *
  * \param newHotkey New hotkey reference to add into dispatcher.
  * */
-MCR_API void mcr_Dispatch_add ( mcr_Dispatch * dispPt,
+MCR_API void mcr_Dispatch_add_unspecific ( mcr_Dispatch * dispPt,
 		mcr_Hot * newHotkey ) ;
 /*!
  * \brief Register hotkey to intercept specific signal and modifier.

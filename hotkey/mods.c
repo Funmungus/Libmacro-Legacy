@@ -3,7 +3,7 @@
 
 MCR_API mcr_ISignal mcr_IMod ;
 
-static mcr_Mod defaultMod ;
+static mcr_Mod _defaultMod ;
 
 static mcr_Map _modToName ;
 static mcr_Map _nameToMod ;
@@ -87,7 +87,7 @@ void mcr_Mod_get_all ( unsigned int * modBuffer,
 mcr_Mod mcr_Mod_echo_get ( const int echo )
 {
 	mcr_Mod * found = MCR_MAP_GET_VALUE ( & _echoToMod, & echo ) ;
-	return found ? * found : defaultMod ;
+	return found ? * found : _defaultMod ;
 }
 
 int mcr_Mod_echo_get_echo ( const mcr_Mod modifier )
@@ -397,11 +397,11 @@ void mcr_mods_initialize ( )
 	mcr_IMod.dispatch = NULL ;
 	if ( mcr_ISignal_register ( & mcr_IMod ) == ( size_t ) -1 )
 	{
-		DMSG ( "%s", "Mods unable to register signal type." ) ;
+		dmsg ( "%s", "Mods unable to register signal type." ) ;
 	}
 	if ( ! mcr_ISignal_add_name ( & mcr_IMod, "Mods" ) )
 	{
-		DMSG ( "%s", "Mods unable to add signal name." ) ;
+		dmsg ( "%s", "Mods unable to add signal name." ) ;
 	}
 	mcr_ISignal_add_name ( & mcr_IMod, "Mods" ) ;
 	names_init ( ) ;
@@ -412,8 +412,8 @@ void mcr_mods_initialize ( )
 	mcr_Mod_add_name ( -1, "AnyMod" ) ;
 	mcr_Mod_add_name ( -1, "any mod" ) ;
 	mcr_Mod_add_name ( -1, "any_mod" ) ;
-	defaultMod.modifiers = MCR_ANY_MOD ;
-	defaultMod.up_type = MCR_BOTH ;
+	_defaultMod.modifiers = MCR_ANY_MOD ;
+	_defaultMod.up_type = MCR_BOTH ;
 }
 
 void mcr_mods_cleanup ( )
