@@ -18,7 +18,9 @@ void mcr_Map_free ( mcr_Map * mapPt )
 
 void * mcr_Map_get_slow ( const mcr_Map * mapPt, const void * keyPt )
 {
-	if ( ! mapPt || ! mapPt->set.used )
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
+	if ( ! mapPt->set.used )
 		return NULL ;
 	void * end = MCR_ARR_END ( & mapPt->set ) ;
 	for ( void * i = MCR_ARR_AT ( & mapPt->set, 0 ) ;
@@ -33,7 +35,8 @@ void * mcr_Map_get_slow ( const mcr_Map * mapPt, const void * keyPt )
 int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 		const void * valuePt )
 {
-	if ( ! mapPt || ! keyPt ) return 0 ;
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
 	unsigned char * mapping = mcr_Map_get ( mapPt, keyPt ) ;
 	// Found. Copy and sort.
 	if ( mapping )
@@ -48,7 +51,7 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 	}
 	if ( ! mcr_Array_push ( & mapPt->set, NULL ) )
 	{
-		DMSG ( "%s\n", "map." ) ;
+		dmsg ( "%s\n", "map." ) ;
 		return 0 ;
 	}
 	// Point to pushed member.
@@ -69,7 +72,7 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
 		const void * newKeyPt )
 {
-	if ( ! mapPt ) return 0 ;
+	dassert ( mapPt ) ;
 	void * oldPlace = previousKeyPt ?
 			mcr_Map_get ( mapPt, previousKeyPt ) : NULL ;
 	void * newPlace = newKeyPt ? mcr_Map_get ( mapPt, newKeyPt ) : NULL ;
@@ -78,7 +81,7 @@ int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
 	{
 		if ( ! mcr_Array_push ( & mapPt->set, NULL ) )
 		{
-			DMSG ( "%s", "mcr_Map_remap" ) ;
+			dmsg ( "%s", "mcr_Map_remap" ) ;
 			return 0 ;
 		}
 		newPlace = MCR_ARR_AT ( & mapPt->set, mapPt->set.used - 1 ) ;
@@ -108,7 +111,8 @@ int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
 
 int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 {
-	if ( ! mapPt || ! mappingPair ) return 0 ;
+	dassert ( mapPt ) ;
+	dassert ( mappingPair ) ;
 	void * mapping = mcr_Map_get ( mapPt, mappingPair ) ;
 	// Found. Copy and sort.
 	if ( mapping )
@@ -119,7 +123,7 @@ int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 	}
 	if ( ! mcr_Array_push ( & mapPt->set, mappingPair ) )
 	{
-		DMSG ( "%s\n", "map_pair." ) ;
+		dmsg ( "%s\n", "map_pair." ) ;
 		return 0 ;
 	}
 	MCR_MAP_SORT ( mapPt ) ;
@@ -128,8 +132,8 @@ int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 
 void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt )
 {
-	if ( ! mapPt || ! keyPt )
-		return NULL ;
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
 	return mapPt->compare ? MCR_MAP_GET ( mapPt, keyPt ) :
 			mcr_Map_get_slow ( mapPt, keyPt ) ;
 }
@@ -137,14 +141,16 @@ void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt )
 void * mcr_Map_get_value ( const mcr_Map * mapPt,
 		const void * keyPt )
 {
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
 	return MCR_MAP_VALUE ( mapPt, mcr_Map_get ( mapPt, keyPt ) ) ;
 }
 
 void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 		const void * valueBackupPt )
 {
-	if ( ! mapPt || ! keyPt )
-		return NULL ;
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
 	void * found = mcr_Map_get ( mapPt, keyPt ) ;
 	if ( found )
 	{
@@ -154,7 +160,7 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 	{
 		if ( ! mcr_Map_map ( mapPt, keyPt, valueBackupPt ) )
 		{
-			DMSG ( "%s\n", "get_ensured allocation error." ) ;
+			dmsg ( "%s\n", "get_ensured allocation error." ) ;
 			return NULL ;
 		}
 		return MCR_MAP_GET ( mapPt, keyPt ) ;
@@ -163,7 +169,8 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 
 size_t mcr_Map_index_of ( const mcr_Map * mapPt, const void * keyPt )
 {
-	if ( ! mapPt || ! mapPt->set.element_size )
+	dassert ( mapPt ) ;
+	if ( ! mapPt->set.element_size )
 		return -1 ;
 	unsigned char * mapping = mcr_Map_get ( mapPt, keyPt ) ;
 	if ( ! mapping )
@@ -175,7 +182,9 @@ size_t mcr_Map_index_of ( const mcr_Map * mapPt, const void * keyPt )
 void mcr_Map_for_each ( const mcr_Map * mapPt,
 		mcr_iterate_fnc iterateFnc,... )
 {
-	if ( ! mapPt || ! mapPt->set.used ) return ;
+	dassert ( mapPt ) ;
+	if ( ! mapPt->set.used )
+		return ;
 	va_list lst ;
 	void * it = MCR_ARR_AT ( & mapPt->set, 0 ) ;
 	if ( ! it ) return ;
@@ -195,7 +204,8 @@ void mcr_Map_for_each ( const mcr_Map * mapPt,
 void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 		mcr_iterate_fnc iterateFnc,... )
 {
-	if ( ! mapPt || ! mapPt->set.used ) return ;
+	dassert ( mapPt ) ;
+	if ( ! mapPt->set.used ) return ;
 	va_list lst ;
 	void * it = MCR_ARR_AT ( & mapPt->set, 0 ) ;
 	if ( ! it ) return ;
@@ -215,8 +225,8 @@ void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 
 void mcr_Map_unmap ( mcr_Map * mapPt, const void * keyPt )
 {
-	if ( ! mapPt || ! keyPt )
-		return ;
+	dassert ( mapPt ) ;
+	dassert ( keyPt ) ;
 	size_t index = mcr_Map_index_of ( mapPt, keyPt ) ;
 	if ( index != ( size_t ) -1 )
 	{
@@ -227,24 +237,27 @@ void mcr_Map_unmap ( mcr_Map * mapPt, const void * keyPt )
 
 void mcr_Map_sort ( mcr_Map * mapPt )
 {
-	if ( ! mapPt || ! mapPt->compare )
+	dassert ( mapPt ) ;
+	if ( ! mapPt->compare )
 		return ;
 	MCR_MAP_SORT ( mapPt ) ;
 }
 
 void mcr_Map_clear ( mcr_Map * mapPt )
 {
+	dassert ( mapPt ) ;
 	mapPt->set.used = 0 ;
 }
 
 void mcr_Map_trim ( mcr_Map * mapPt )
 {
+	dassert ( mapPt ) ;
 	mcr_Array_trim ( & mapPt->set ) ;
 }
 
 void mcr_Map_print ( mcr_Map * mapPt )
 {
-	if ( ! mapPt ) return ;
+	dassert ( mapPt ) ;
 	printf ( "Map %p: first %llu, second %llu, compare %p.\n\tMember... ",
 			mapPt, ( long long unsigned ) mapPt->sizeof_first,
 			( long long unsigned ) mapPt->sizeof_second, mapPt->compare ) ;

@@ -3,6 +3,7 @@
 
 int mcr_convert_bool ( const char * value, int * retVal )
 {
+	dassert ( retVal ) ;
 	if ( value == NULL || * value == '\0' )
 	{
 		 * retVal = 0 ;

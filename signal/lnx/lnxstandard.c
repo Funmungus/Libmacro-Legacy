@@ -6,10 +6,12 @@ MCR_API mcr_Array mcr_EchoEvents ;
 
 void mcr_Echo_init ( mcr_HIDEcho * echoPt )
 {
+	dassert ( echoPt ) ;
 	echoPt->event = 0 ;
 }
 void mcr_Key_init ( mcr_Key * keyPt )
 {
+	dassert ( keyPt ) ;
 	memset ( keyPt, 0, sizeof ( mcr_Key ) ) ;
 	keyPt->events [ 0 ].type = EV_MSC ;
 	keyPt->events [ 0 ].code = MSC_SCAN ;
@@ -19,6 +21,7 @@ void mcr_Key_init ( mcr_Key * keyPt )
 }
 void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
 {
+	dassert ( mcPt ) ;
 	memset ( mcPt, 0, sizeof ( mcr_MoveCursor ) ) ;
 	mcPt->absvent [ 0 ].type = mcPt->absvent [ 1 ].type =
 			mcPt->absvent [ 2 ].type = EV_ABS ;
@@ -36,6 +39,7 @@ void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
 }
 void mcr_Scroll_init ( mcr_Scroll * scrollPt )
 {
+	dassert ( scrollPt ) ;
 	memset ( scrollPt, 0, sizeof ( mcr_Scroll ) ) ;
 	scrollPt->events [ 0 ].type = scrollPt->events [ 1 ].type =
 			scrollPt->events [ 2 ].type = EV_REL ;
@@ -91,14 +95,14 @@ void mcr_standard_native_initialize ( )
 		}
 		else
 		{
-			DMSG ( "%s%s", "Unable to register echo: ", names [ i ] ) ;
+			dmsg ( "%s%s", "Unable to register echo: ", names [ i ] ) ;
 		}
 		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
 		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
 			success = 0 ;
 		if ( ! success )
 		{
-			DMSG ( "%s%s", "Unable to add extra name: ",
+			dmsg ( "%s%s", "Unable to add extra name: ",
 					extraNames [ i ] ) ;
 		}
 	}

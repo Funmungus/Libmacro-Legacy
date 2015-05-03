@@ -3,7 +3,7 @@
 # include "hotkey/mods.h"
 # include <assert.h>
 
-# define SIZE 0x10
+# define SIZE 0xFF
 
 mcr_Mod data ;
 mcr_Signal mod ;

@@ -5,7 +5,7 @@ void mcr_reg_cleanup ( void ( * cleaner ) ( void ) )
 {
 	if ( atexit ( cleaner ) )
 	{
-		DMSG ( "%s\n", "Unable to register cleanup." ) ;
+		dmsg ( "%s\n", "Unable to register cleanup." ) ;
 		exit ( 2 ) ;
 	}
 }
@@ -15,7 +15,7 @@ void mcr_reg_cleanup_filed ( void ( * cleaner ) ( void ),
 {
 	if ( atexit ( cleaner ) )
 	{
-		DMSG ( "%s: %s\n", fileName, "Unable to register cleanup." ) ;
+		dmsg ( "%s: %s\n", fileName, "Unable to register cleanup." ) ;
 		exit ( 2 ) ;
 	}
 }

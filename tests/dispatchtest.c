@@ -38,29 +38,29 @@ void test_Dispatch_get ( )
 	printf ( "mcr_Dispatch_get - OK\n" ) ;
 }
 
-void test_Dispatch_add ( )
+void test_Dispatch_add_unspecific ( )
 {
 	mcr_Hot obj ;
 	assert ( ! disp.generics.used ) ;
 
-	mcr_Dispatch_add ( & disp, & obj ) ;
+	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
 	assert ( disp.generics.used == 1 ) ;
 	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
 			== & obj ) ;
 
-	mcr_Dispatch_add ( & disp, & obj ) ;
+	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
 	assert ( disp.generics.used == 1 ) ;
 	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
 			== & obj ) ;
 
-	mcr_Dispatch_add ( & disp, NULL ) ;
+	mcr_Dispatch_add_unspecific ( & disp, NULL ) ;
 	assert ( disp.generics.used == 1 ) ;
 	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
 			== & obj ) ;
 
 	mcr_Dispatch_clear ( & disp ) ;
 
-	printf ( "mcr_Dispatch_add - OK\n" ) ;
+	printf ( "mcr_Dispatch_add_unspecific - OK\n" ) ;
 }
 
 void chk_add_specific ( mcr_Dispatch * a, mcr_Hot * b, mcr_Signal * c,
@@ -221,7 +221,7 @@ void test_Dispatch_remove ( )
 	mcr_Hot obj ;
 	disp.generics.used = 0 ;
 	disp.remove_specific = NULL ;
-	mcr_Dispatch_add ( & disp, & obj ) ;
+	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
 	assert ( * ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 )
 			== & obj ) ;
 	mcr_Dispatch_remove ( & disp, & obj ) ;
@@ -243,7 +243,7 @@ void test_Dispatch_reset ( )
 	disp.enable_specific = 1 ;
 	for ( int i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_Dispatch_add ( & disp, hots + i ) ;
+		mcr_Dispatch_add_unspecific ( & disp, hots + i ) ;
 	}
 	assert ( disp.generics.used == SIZE ) ;
 	mcr_Dispatch_reset ( & disp ) ;
@@ -269,7 +269,7 @@ void test_Dispatch_clear ( )
 	mcr_Hot hots [ SIZE ] ;
 	for ( int i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_Dispatch_add ( & disp, hots + i ) ;
+		mcr_Dispatch_add_unspecific ( & disp, hots + i ) ;
 	}
 	assert ( disp.generics.used == SIZE ) ;
 	mcr_Dispatch_clear ( & disp ) ;
@@ -317,7 +317,7 @@ void test_dispatch ( )
 	for ( int i = 0 ; i < SIZE ; i ++ )
 	{
 		mcr_Hot_init_with ( hots + i, 0, chk_hot_disp, NULL ) ;
-		mcr_Dispatch_add ( pt, hots + i ) ;
+		mcr_Dispatch_add_unspecific ( pt, hots + i ) ;
 	}
 	specCalled = 0 ;
 	mcr_dispatch ( & sig ) ;
@@ -491,7 +491,7 @@ int main ( void )
 	setup ( ) ;
 
 	test_Dispatch_get ( ) ;
-	test_Dispatch_add ( ) ;
+	test_Dispatch_add_unspecific ( ) ;
 	test_Dispatch_add_specific ( ) ;
 	test_Dispatch_enable_auto ( ) ;
 	test_Dispatch_enable_auto_to ( ) ;

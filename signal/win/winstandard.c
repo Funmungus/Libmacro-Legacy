@@ -7,20 +7,24 @@ MCR_API mcr_Array mcr_EchoEvents ;
 
 void mcr_Echo_init ( mcr_HIDEcho * echoPt )
 {
+	dassert ( echoPt ) ;
 	echoPt->event = 0 ;
 }
 void mcr_Key_init ( mcr_Key * keyPt )
 {
+	dassert ( keyPt ) ;
 	memset ( keyPt, 0, sizeof ( mcr_Key ) ) ;
 }
 void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
 {
+	dassert ( mcPt ) ;
 	memset ( mcPt, 0, sizeof ( mcr_MoveCursor ) ) ;
 	// Justify for default relative event.
 	mcPt->cursor_justify = 1 ;
 }
 void mcr_Scroll_init ( mcr_Scroll * scrollPt )
 {
+	dassert ( scrollPt ) ;
 	memset ( scrollPt, 0, sizeof ( mcr_Scroll ) ) ;
 }
 
@@ -58,7 +62,7 @@ void mcr_standard_native_initialize ( )
 	size_t count = sizeof ( echoEvents ) / sizeof ( int ) ;
 	if ( ! mcr_Array_resize ( & mcr_EchoEvents, count ) )
 	{
-		DMSG ( "%s\n", "mcr_standard_native_initialize unable to "
+		dmsg ( "%s\n", "mcr_standard_native_initialize unable to "
 				"size native events." ) ;
 		return ;
 	}
@@ -72,14 +76,14 @@ void mcr_standard_native_initialize ( )
 		}
 		else
 		{
-			DMSG ( "%s%s\n", "Unable to register echo: ", names [ i ] ) ;
+			dmsg ( "%s%s\n", "Unable to register echo: ", names [ i ] ) ;
 		}
 		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
 		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
 			success = 0 ;
 		if ( ! success )
 		{
-			DMSG ( "%s%s", "Unable to add extra name: ",
+			dmsg ( "%s%s", "Unable to add extra name: ",
 					extraNames [ i ] ) ;
 		}
 	}

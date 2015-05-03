@@ -36,7 +36,7 @@ static int device_create ( mcr_Device * devPt ) ;
 
 void mcr_Device_init ( mcr_Device * devPt )
 {
-	if ( ! devPt ) return ;
+	dassert ( devPt ) ;
 	memset ( devPt, 0, sizeof ( mcr_Device ) ) ;
 	mcr_Map_init ( & devPt->type_value_map, sizeof ( int ),
 			sizeof ( mcr_Array ) ) ;
@@ -47,12 +47,13 @@ void mcr_Device_init ( mcr_Device * devPt )
 
 static void arr_free_redirect ( mcr_Array * arrPt,... )
 {
+	dassert ( arrPt ) ;
 	mcr_Array_free ( arrPt ) ;
 }
 
 void mcr_Device_free ( mcr_Device * devPt )
 {
-	if ( ! devPt ) return ;
+	dassert ( devPt ) ;
 	device_close_event ( devPt ) ;
 	device_close ( devPt ) ;
 	if ( devPt->type_value_map.set.used > 0 )
@@ -66,11 +67,11 @@ void mcr_Device_free ( mcr_Device * devPt )
 
 int mcr_Device_enable ( mcr_Device * devPt, int enable )
 {
-	if ( ! devPt ) return 0 ;
+	dassert ( devPt ) ;
 	// If already enabled, need to close and restart.
 	if ( ! device_close ( devPt ) )
 	{
-		DMSG ( "%s\n", "Could not disable old device." ) ;
+		dmsg ( "%s\n", "Could not disable old device." ) ;
 		return 0 ;
 	}
 	devPt->enabled = 0 ;
@@ -81,7 +82,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	// Must have at least 1 UI_SET_EVBIT.
 	if ( ! mcr_Device_has_evbit ( devPt ) )
 	{
-		DMSG ( "%s\n", "No UI_SET_EVBIT available." ) ;
+		dmsg ( "%s\n", "No UI_SET_EVBIT available." ) ;
 		return 0 ;
 	}
 
@@ -89,7 +90,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	mtx_lock ( & _deviceLock ) ;
 	if ( ! device_open ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot open." ) ;
+		dmsg ( "%s\n", "Cannot open." ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -97,7 +98,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	// Force evbit satisfaction.
 	if ( ! device_write_evbit ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot write evbit." ) ;
+		dmsg ( "%s\n", "Cannot write evbit." ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -107,7 +108,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 
 	if ( ! device_create ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot create device." ) ;
+		dmsg ( "%s\n", "Cannot create device." ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -117,7 +118,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	devPt->enabled = 1 ;
 	if ( ! device_open_event ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot find device event file." ) ;
+		dmsg ( "%s\n", "Cannot find device event file." ) ;
 		valid = 0 ;
 	}
 	mtx_unlock ( & _deviceLock ) ;
@@ -132,20 +133,22 @@ void mcr_Device_usage ( )
 int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 		size_t bitLen )
 {
-	if ( ! devPt || ! bits || bitLen == ( size_t ) -1 ) return 0 ;
+	dassert ( devPt ) ;
+	dassert ( bits ) ;
+	dassert ( bitLen != ( size_t ) -1 ) ;
 	mcr_Array value ;
 	mcr_Array_init ( & value, sizeof ( int ) ) ;
 	// Unable to append array, free and exit.
 	if ( ! mcr_Array_from_array ( & value, bits, bitLen ) )
 	{
-		DMSG ( "%s\n", "set_bits." ) ;
+		dmsg ( "%s\n", "set_bits." ) ;
 		mcr_Array_free ( & value ) ;
 		return 0 ;
 	}
 	// Unable to insert into map, free and exit.
 	if ( ! mcr_Map_map ( & devPt->type_value_map, & bitType, & value ) )
 	{
-		DMSG ( "%s\n", "set_bits." ) ;
+		dmsg ( "%s\n", "set_bits." ) ;
 		mcr_Array_free ( & value ) ;
 		return 0 ;
 	}
@@ -156,13 +159,13 @@ int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 
 mcr_Array * mcr_Device_get_bits ( mcr_Device * devPt, int bitType )
 {
-	if ( ! devPt ) return NULL ;
+	dassert ( devPt ) ;
 	return MCR_MAP_GET_VALUE ( & devPt->type_value_map, & bitType ) ;
 }
 
 int mcr_Device_has_evbit ( mcr_Device * devPt )
 {
-	if ( ! devPt ) return 0 ;
+	dassert ( devPt ) ;
 	int evbit = UI_SET_EVBIT ;
 	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
 			& evbit ) ;
@@ -171,24 +174,25 @@ int mcr_Device_has_evbit ( mcr_Device * devPt )
 
 static int device_open ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	// Close in case previously opened.
 	if ( ! device_close ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot close previous udev file." ) ;
+		dmsg ( "%s\n", "Cannot close previous udev file." ) ;
 		return 0 ;
 	}
 	devPt->fd = open ( STRINGIFY ( MCR_UINPUT_PATH ), O_RDWR | O_SYNC ) ;
 
 	if ( devPt->fd == -1 )
 	{
-		DMSG ( "%s\n, ", "Error opening uinput." ) ;
+		dmsg ( "%s\n, ", "Error opening uinput." ) ;
 		return 0 ;
 	}
 
 	if ( write ( devPt->fd, & devPt->device, sizeof ( devPt->device ) ) !=
 			sizeof ( devPt->device ) )
 	{
-		DMSG ( "%s\n, ", "Error writing user device" ) ;
+		dmsg ( "%s\n, ", "Error writing user device" ) ;
 		device_close ( devPt ) ;
 		return 0 ;
 	}
@@ -198,23 +202,24 @@ static int device_open ( mcr_Device * devPt )
 
 static int device_open_event ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	if ( ! device_close_event ( devPt ) )
 	{
-		DMSG ( "%s\n", "Cannot close previous event file." ) ;
+		dmsg ( "%s\n", "Cannot close previous event file." ) ;
 		return 0 ;
 	}
 	long int size ;
 	size = pathconf ( ".", _PC_PATH_MAX ) ;
 	if ( size == -1 )
 	{
-		DMSG ( "%s\n", "Cannot determine current dir length." ) ;
+		dmsg ( "%s\n", "Cannot determine current dir length." ) ;
 		return 0 ;
 	}
 	char * wd = malloc ( size ) ;
 	char * ptr ;
 	if ( ! wd )
 	{
-		DMSG ( "%s\n", "open_event" ) ;
+		dmsg ( "%s\n", "open_event" ) ;
 		return 0 ;
 	}
 	// Get the current working directory to return to later.
@@ -222,7 +227,7 @@ static int device_open_event ( mcr_Device * devPt )
 	UNUSED ( ptr ) ;
 	if ( ! wd || chdir ( STRINGIFY ( MCR_EVENT_PATH ) ) == -1 )
 	{
-		DMSG ( "%s\n", "open_event cd" ) ;
+		dmsg ( "%s\n", "open_event cd" ) ;
 		free ( wd ) ;
 		return 0 ;
 	}
@@ -230,7 +235,7 @@ static int device_open_event ( mcr_Device * devPt )
 	if ( ! device_open_event_wd ( devPt ) ||
 		chdir ( wd ) == -1 )
 	{
-		DMSG ( "%s\n", "open_event" ) ;
+		dmsg ( "%s\n", "open_event" ) ;
 		free ( wd ) ;
 		return 0 ;
 	}
@@ -240,12 +245,13 @@ static int device_open_event ( mcr_Device * devPt )
 
 static int device_close ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	if ( devPt->fd != -1 )
 	{
 		if ( ioctl ( devPt->fd, UI_DEV_DESTROY ) == -1
 				|| close ( devPt->fd ) == -1 )
 		{
-			DMSG ( "%s\n", "close" ) ;
+			dmsg ( "%s\n", "close" ) ;
 			return 0 ;
 		}
 		else
@@ -256,11 +262,12 @@ static int device_close ( mcr_Device * devPt )
 
 static int device_close_event ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	if ( devPt->event_fd != -1 )
 	{
 		if ( close ( devPt->event_fd ) == -1 )
 		{
-			DMSG ( "%s\n", "close" ) ;
+			dmsg ( "%s\n", "close" ) ;
 			return 0 ;
 		}
 		else
@@ -271,10 +278,11 @@ static int device_close_event ( mcr_Device * devPt )
 
 static int device_open_event_wd ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	DIR * dirp = opendir ( "." ) ;
 	if ( dirp == NULL )
 	{
-		DMSG ( "%s\n", "Error open_event_wd" ) ;
+		dmsg ( "%s\n", "Error open_event_wd" ) ;
 		return 0 ;
 	}
 
@@ -287,7 +295,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 	{	// if ! entry then end of directory
 		if ( stat ( entry->d_name, & s ) == -1 )
 		{
-			DMSG ( "%s\n", "Cannot stat." ) ;
+			dmsg ( "%s\n", "Cannot stat." ) ;
 			continue ;
 		}
 		// Our uinput devices are always char devices.
@@ -305,7 +313,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 				break ;
 			if ( ! device_close_event ( devPt ) )
 			{
-				DMSG ( "%s\n", "Error closing incorrect device." ) ;
+				dmsg ( "%s\n", "Error closing incorrect device." ) ;
 				break ;
 			}
 		}
@@ -317,6 +325,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 static int device_verify_event_device ( mcr_Device * devPt,
 		char * nameBuffer, int isJoy )
 {
+	dassert ( devPt ) ;
 	int comp = 0 ;
 	if ( isJoy )
 		// joysticks have different ioctl for names.
@@ -332,11 +341,11 @@ static int device_verify_event_device ( mcr_Device * devPt,
 	// Could not retrieve name, unknown error.
 	if ( comp == -1 )
 	{
-		DMSG ( "%s\n", "Read name unknown error." ) ;
+		dmsg ( "%s\n", "Read name unknown error." ) ;
 		// panic
 		if ( ! device_close_event ( devPt ) )
 		{
-			DMSG ( "%s\n", "Error closing incorrect device." ) ;
+			dmsg ( "%s\n", "Error closing incorrect device." ) ;
 		}
 		return 0 ;
 	}
@@ -348,9 +357,11 @@ static int device_verify_event_device ( mcr_Device * devPt,
 static void write_bit_redirect ( int * bitPt, int fd,
 		int setBit, int * success )
 {
+	dassert ( bitPt ) ;
+	dassert ( success ) ;
 	if ( ioctl ( fd, setBit, * bitPt ) == -1 )
 	{
-		DMSG ( "%s%d\n", "error set bit, type ", setBit ) ;
+		dmsg ( "%s%d\n", "error set bit, type ", setBit ) ;
 		 * success = 0 ;
 	}
 }
@@ -358,6 +369,8 @@ static void write_bit_redirect ( int * bitPt, int fd,
 static int device_write_bits ( mcr_Device * devPt, int setBit,
 		mcr_Array * bits )
 {
+	dassert ( devPt ) ;
+	dassert ( bits ) ;
 	if ( ! bits->used )
 		return 1 ;
 	int success = 1 ;
@@ -368,6 +381,7 @@ static int device_write_bits ( mcr_Device * devPt, int setBit,
 
 static int device_write_evbit ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	int evbit = UI_SET_EVBIT ;
 	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
 			& evbit ) ;
@@ -378,6 +392,9 @@ static int device_write_evbit ( mcr_Device * devPt )
 static void write_non_evbit_redirect ( int * evbitPair,
 		mcr_Device * devPt, int * success )
 {
+	dassert ( evbitPair ) ;
+	dassert ( devPt ) ;
+	dassert ( success ) ;
 	if ( * evbitPair == UI_SET_EVBIT ) return ;
 	mcr_Array * evbitArr = MCR_MAP_VALUE ( & devPt->type_value_map,
 			evbitPair ) ;
@@ -387,6 +404,7 @@ static void write_non_evbit_redirect ( int * evbitPair,
 
 static int device_write_non_evbit ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	// All non-evbits.
 	if ( ! devPt->type_value_map.set.used )
 		return 0 ;
@@ -398,9 +416,10 @@ static int device_write_non_evbit ( mcr_Device * devPt )
 
 static int device_create ( mcr_Device * devPt )
 {
+	dassert ( devPt ) ;
 	if ( ioctl ( devPt->fd, UI_DEV_CREATE ) < 0 )
 	{
-		DMSG ( "%s%d\n", "error UI_DEV_CREATE, fd ", devPt->fd ) ;
+		dmsg ( "%s%d\n", "error UI_DEV_CREATE, fd ", devPt->fd ) ;
 		return 0 ;
 	}
 
@@ -422,13 +441,13 @@ static int keyDevice_init ( )
 	int evbits [ ] = { EV_KEY, EV_MSC, EV_SYN } ;
 	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		DMSG ( "%s\n", "key init" ) ;
+		dmsg ( "%s\n", "key init" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = MSC_SCAN ;
 	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_MSCBIT, evbits, 1 ) )
 	{
-		DMSG ( "%s\n", "key init" ) ;
+		dmsg ( "%s\n", "key init" ) ;
 		return 0 ;
 	}
 	int keybits [ KEY_CNT ] ;
@@ -440,7 +459,7 @@ static int keyDevice_init ( )
 	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_KEYBIT, keybits,
 			KEY_CNT ) )
 	{
-		DMSG ( "%s\n", "key init" ) ;
+		dmsg ( "%s\n", "key init" ) ;
 		return 0 ;
 	}
 	return mcr_Device_enable ( & mcr_KeyDev, 1 ) ;
@@ -466,13 +485,13 @@ static int absDevice_init ( )
 	int evbits [ ] = { EV_ABS, EV_KEY, EV_SYN } ;
 	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = BTN_LEFT ;
 	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_KEYBIT, evbits, 1 ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	int absbits [ ABS_MISC ] ;
@@ -484,7 +503,7 @@ static int absDevice_init ( )
 	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_ABSBIT, absbits,
 			ABS_MISC ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	return mcr_Device_enable ( & mcr_AbsDev, 1 ) ;
@@ -510,13 +529,13 @@ static int relDevice_init ( )
 	int evbits [ ] = { EV_REL, EV_KEY, EV_SYN } ;
 	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = BTN_LEFT ;
 	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_KEYBIT, evbits, 1 ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	int relbits [ REL_MISC ] ;
@@ -528,7 +547,7 @@ static int relDevice_init ( )
 	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_RELBIT, relbits,
 			REL_MISC ) )
 	{
-		DMSG ( "%s\n", "abs init" ) ;
+		dmsg ( "%s\n", "abs init" ) ;
 		return 0 ;
 	}
 	return mcr_Device_enable ( & mcr_RelDev, 1 ) ;

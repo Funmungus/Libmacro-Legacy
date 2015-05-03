@@ -11,6 +11,9 @@
 # include <stdlib.h>
 # include <ctype.h>
 # include <time.h>
+# ifdef DEBUG
+	# include <assert.h>
+# endif
 
 /* From
  * http://goodliffe.blogspot.com/2009/07/c-how-to-say-warning-to-visual-studio-c.html
@@ -46,11 +49,15 @@ Native functions will be unusable. )
 # endif
 
 # ifdef DEBUG
-# define DMSG( format,... ) \
+# define dmsg( format,... ) \
 	fprintf ( stderr, __FILE__ ":" STRINGIFY ( __LINE__ ) ":" \
 	format "\n", __VA_ARGS__ ) ;
+# define dassert( expression ) assert ( expression )
 # else
 # define DMSG(format,...)
+# ifndef dassert
+# define dassert( expression )
+# endif
 # endif
 
 /*! \brief

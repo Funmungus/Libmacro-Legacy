@@ -243,8 +243,7 @@ void test_map_get ( )
 	assert ( mcr_Map_get ( & map, set1 + 1 ) == NULL ) ;
 	reset ( ) ;
 	CHKMAP ;
-	// get null should return null
-	assert ( mcr_Map_get ( & map, NULL ) == NULL ) ;
+
 	printf ( "get OK\n" ) ;
 }
 
@@ -299,8 +298,6 @@ void test_map_get_ensured ( )
 		assert ( ! memcmp ( it, & nullcheck, SIZEBOTH ) ) ;
 	}
 	reset ( ) ;
-	// get null should return null
-	assert ( mcr_Map_get_ensured ( & map, NULL, NULL ) == NULL ) ;
 	CHKMAP ;
 	printf ( "get_ensured OK\n" ) ;
 }

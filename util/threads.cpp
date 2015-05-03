@@ -11,6 +11,8 @@ extern "C" {
 
 int thrd_sleep_until ( struct tm * time_point )
 {
+	if ( ! time_point )
+		return thrd_error ;
 	std::chrono::system_clock::time_point until_time =
 			std::chrono::system_clock::from_time_t
 			( std::mktime ( time_point ) ) ;
@@ -25,17 +27,21 @@ int thrd_sleep_until ( struct tm * time_point )
 // C++ thread function has different syntax from C thread function.
 static void thrd_function ( thrd_start_t func, void * arg )
 {
+	dassert ( func ) ;
 	func ( arg ) ;
 }
 
 int thrd_create ( thrd_t * thr, thrd_start_t func, void * arg )
 {
+	dassert ( thr ) ;
 	 * thr = new std::thread ( thrd_function, func, arg ) ;
 	return thrd_success ;
 }
 
 int thrd_equal ( thrd_t lhs, thrd_t rhs )
 {
+	dassert ( lhs ) ;
+	dassert ( rhs ) ;
 	return ( ( std::thread * ) lhs )->get_id ( ) ==
 			( ( std::thread * ) rhs )->get_id ( ) ;
 }
@@ -69,6 +75,7 @@ void thrd_yield ( )
 
 int thrd_detach ( thrd_t thr )
 {
+	dassert ( thr ) ;
 	( ( std::thread * ) thr )->detach ( ) ;
 	delete ( std::thread * ) thr ;
 	return thrd_success ;
@@ -76,6 +83,7 @@ int thrd_detach ( thrd_t thr )
 
 int thrd_join ( thrd_t thr, int * )
 {
+	dassert ( thr ) ;
 	( ( std::thread * ) thr )->join ( ) ;
 	delete ( std::thread * ) thr ;
 	return thrd_success ;
@@ -86,6 +94,7 @@ int thrd_join ( thrd_t thr, int * )
 //
 int mtx_init ( mtx_t * mutex, int type )
 {
+	dassert ( mutex ) ;
 	switch ( type )
 	{
 	case mtx_recursive | mtx_timed :
@@ -105,12 +114,13 @@ int mtx_init ( mtx_t * mutex, int type )
 		mutex->type = mtx_plain ;
 		return thrd_success ;
 	}
-	DMSG ( "%s\n", "mtx_init, incorrect type." ) ;
+	dmsg ( "%s\n", "mtx_init, incorrect type." ) ;
 	return thrd_error ;
 }
 
 int mtx_lock ( mtx_t * mutex )
 {
+	dassert ( mutex ) ;
 	switch ( mutex->type )
 	{
 	case mtx_recursive | mtx_timed :
@@ -126,13 +136,15 @@ int mtx_lock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->lock ( ) ;
 		return thrd_success ;
 	}
-	DMSG ( "%s\n", "mtx_lock, incorrect type." ) ;
+	dmsg ( "%s\n", "mtx_lock, incorrect type." ) ;
 	return thrd_error ;
 }
 
 int mtx_timedlock ( mtx_t * restrict mutex,
 		const struct timespec * restrict time_point )
 {
+	dassert ( mutex ) ;
+	dassert ( time_point ) ;
 	std::chrono::seconds sec ( time_point->tv_sec ) ;
 	std::chrono::nanoseconds nsec ( time_point->tv_nsec ) ;
 	bool locked = false ;
@@ -156,7 +168,7 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 	}
 		break ;
 	default :
-		DMSG ( "%s\n", "mtx_timedlock, incorrect type." ) ;
+		dmsg ( "%s\n", "mtx_timedlock, incorrect type." ) ;
 		break ;
 	}
 	return locked ;
@@ -164,6 +176,7 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 
 int mtx_trylock ( mtx_t * mutex )
 {
+	dassert ( mutex ) ;
 	switch ( mutex->type )
 	{
 	case mtx_recursive | mtx_timed :
@@ -176,12 +189,13 @@ int mtx_trylock ( mtx_t * mutex )
 	case mtx_plain :
 		return ( ( std::mutex * ) mutex->mtx )->try_lock ( ) ;
 	}
-	DMSG ( "%s\n", "mtx_trylock, incorrect type." )
+	dmsg ( "%s\n", "mtx_trylock, incorrect type." )
 	return false ;
 }
 
 int mtx_unlock ( mtx_t * mutex )
 {
+	dassert ( mutex ) ;
 	switch ( mutex->type )
 	{
 	case mtx_recursive | mtx_timed :
@@ -197,12 +211,13 @@ int mtx_unlock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->unlock ( ) ;
 		return thrd_success ;
 	}
-	DMSG ( "%s\n", "mtx_unlock, incorrect type." )
+	dmsg ( "%s\n", "mtx_unlock, incorrect type." )
 	return thrd_error ;
 }
 
 void mtx_destroy ( mtx_t * mutex )
 {
+	dassert ( mutex ) ;
 	switch ( mutex->type )
 	{
 	case mtx_recursive | mtx_timed :
@@ -218,7 +233,7 @@ void mtx_destroy ( mtx_t * mutex )
 		delete ( std::mutex * ) mutex->mtx ;
 		break ;
 	default :
-		DMSG ( "%s\n", "mtx_destroy, incorrect type." ) ;
+		dmsg ( "%s\n", "mtx_destroy, incorrect type." ) ;
 		break ;
 	}
 	mutex->mtx = NULL ;
@@ -229,24 +244,29 @@ void mtx_destroy ( mtx_t * mutex )
 //
 int cnd_init ( cnd_t * cond )
 {
+	dassert ( cond ) ;
 	 * cond = new std::condition_variable ;
 	return thrd_success ;
 }
 
 int cnd_signal ( cnd_t * cond )
 {
+	dassert ( cond ) ;
 	( * ( std::condition_variable ** ) cond )->notify_one ( ) ;
 	return thrd_success ;
 }
 
 int cnd_broadcast ( cnd_t * cond )
 {
+	dassert ( cond ) ;
 	( * ( std::condition_variable ** ) cond )->notify_all ( ) ;
 	return thrd_success ;
 }
 
 int cnd_wait ( cnd_t * cond, mtx_t * mutex )
 {
+	dassert ( cond ) ;
+	dassert ( mutex ) ;
 	if ( mutex->type == mtx_plain )
 	{
 		std::condition_variable * caster =
@@ -256,16 +276,19 @@ int cnd_wait ( cnd_t * cond, mtx_t * mutex )
 		caster->wait ( lock ) ;
 		return thrd_success ;
 	}
-	DMSG ( "%s\n", "cnd_wait, incorrect mutex type." ) ;
+	dmsg ( "%s\n", "cnd_wait, incorrect mutex type." ) ;
 	return thrd_error ;
 }
 
 int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
 		const struct timespec * restrict time_point )
 {
+	dassert ( cond ) ;
+	dassert ( mutex ) ;
+	dassert ( time_point ) ;
 	if ( mutex->type != mtx_plain )
 	{
-		DMSG ( "%s\n", "cnd_timedwait, incorrect mutex type." ) ;
+		dmsg ( "%s\n", "cnd_timedwait, incorrect mutex type." ) ;
 		return thrd_error ;
 	}
 
@@ -288,5 +311,6 @@ int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
 
 void cnd_destroy ( cnd_t * cond )
 {
+	dassert ( cond ) ;
 	delete * ( std::condition_variable ** ) cond ;
 }

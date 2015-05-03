@@ -7,18 +7,21 @@ static mcr_Map _nameMap ;
 
 void mcr_Signal_init ( mcr_Signal * sigPt, mcr_ISignal * type )
 {
+	dassert ( sigPt ) ;
 	sigPt->type = type ;
 }
 
 void mcr_Signal_init_with ( mcr_Signal * sigPt, mcr_ISignal * type,
 		void * data )
 {
+	dassert ( sigPt ) ;
 	sigPt->type = type ;
 	sigPt->data = data ;
 }
 
 int mcr_send ( mcr_Signal * sigPt )
 {
+	dassert ( sigPt ) ;
 	int success = 1 ;
 	MCR_SEND ( sigPt, success ) ;
 	return success ;
@@ -27,6 +30,7 @@ int mcr_send ( mcr_Signal * sigPt )
 void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
 		mcr_signal_fnc sender, size_t dataSize )
 {
+	dassert ( newType ) ;
 	MCR_ISIGNAL_INIT ( newType, name, sender, dataSize ) ;
 }
 
@@ -35,10 +39,11 @@ void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
 //
 size_t mcr_ISignal_register ( mcr_ISignal * newType )
 {
+	dassert ( newType ) ;
 	size_t id = _iSignalSet.used ;
 	if ( ! mcr_Array_push ( & _iSignalSet, & newType ) )
 	{
-		DMSG ( "%s\n", "register" ) ;
+		dmsg ( "%s\n", "register" ) ;
 		return -1 ;
 	}
 	// If successful, we can set the id.
@@ -47,7 +52,7 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 			& newType ) )
 	{
 		mcr_Array_pop ( & _iSignalSet ) ; // Remove unmapped signal.
-		DMSG ( "%s\n", "register" ) ;
+		dmsg ( "%s\n", "register" ) ;
 		return -1 ;
 	}
 	return id ;
@@ -56,13 +61,14 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 int mcr_ISignal_add_name ( mcr_ISignal * sigPt,
 		const char * addName )
 {
+	dassert ( sigPt ) ;
 	return mcr_Map_map ( & _nameMap, & addName, & sigPt ) ;
 }
 
 int mcr_ISignal_rename ( mcr_ISignal * isigPt,
 		const char * newName )
 {
-	if ( ! isigPt ) return 0 ;
+	dassert ( isigPt ) ;
 	return mcr_ISignal_rename_by_name ( isigPt->name, newName ) ;
 }
 
@@ -109,6 +115,7 @@ size_t mcr_ISignal_count ( )
 
 void mcr_ISignal_get_all ( mcr_ISignal ** buffer, size_t bufferLength )
 {
+	dassert ( buffer ) ;
 	mcr_ISignal ** arr = ( mcr_ISignal ** ) _iSignalSet.array ;
 	for ( size_t i = 0 ; i < bufferLength && i < _iSignalSet.used ; i ++ )
 	{
@@ -174,13 +181,6 @@ int mcr_ref_compare ( const void * lhs, const void * rhs )
 			 * ( void * const * ) lhs > * ( void * const * ) rhs ;
 }
 
-void mcr_signal_cleanup ( void )
-{
-	mcr_standard_native_cleanup ( ) ;
-	mcr_standard_cleanup ( ) ;
-	mcr_ISignal_clear_all ( ) ;
-}
-
 void mcr_signal_initialize ( )
 {
 	mcr_Array_init ( & _iSignalSet, sizeof ( mcr_ISignal * ) ) ;
@@ -189,4 +189,11 @@ void mcr_signal_initialize ( )
 	_nameMap.compare = mcr_name_compare ;
 	mcr_standard_initialize ( ) ;
 	mcr_standard_native_initialize ( ) ;
+}
+
+void mcr_signal_cleanup ( void )
+{
+	mcr_standard_native_cleanup ( ) ;
+	mcr_standard_cleanup ( ) ;
+	mcr_ISignal_clear_all ( ) ;
 }
