@@ -120,14 +120,18 @@ HEADERS += \
     ../include/hotkey/dispatchstandard.h \
     ../include/hotkey/hot.h \
     ../include/hotkey/hotkey.h \
-    ../include/hotkey/mods.h
+    ../include/hotkey/mods.h \
+    ../include/hotkey/stage.h \
+    ../include/hotkey/hotstaged.h
 
 SOURCES += \
     ../hotkey/dispatch.c \
     ../hotkey/hot.c \
     ../hotkey/dispatchstandard.c \
     ../hotkey/hotkey.c \
-    ../hotkey/mods.c
+    ../hotkey/mods.c \
+    ../hotkey/stage.c \
+    ../hotkey/hotstaged.c
 
 # wrapper header and init/cleanup
 HEADERS += \

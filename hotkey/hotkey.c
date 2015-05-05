@@ -13,10 +13,12 @@ void mcr_hotkey_initialize ( )
 	mcr_mods_initialize ( ) ;
 	mcr_dispatch_initialize ( ) ;
 	mcr_dispatchstandard_initialize ( ) ;
+	mcr_stage_initialize ( ) ;
 }
 
 void mcr_hotkey_cleanup ( )
 {
+	mcr_stage_cleanup ( ) ;
 	mcr_dispatchstandard_cleanup ( ) ;
 	mcr_dispatch_cleanup ( ) ;
 	mcr_mods_cleanup ( ) ;

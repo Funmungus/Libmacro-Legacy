@@ -5,6 +5,7 @@
  */
 
 # include "hotkey/dispatchstandard.h"
+# include "hotkey/stage.h"
 
 MCR_API void mcr_hotkey_initialize ( ) ;
 

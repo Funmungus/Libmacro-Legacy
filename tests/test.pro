@@ -65,3 +65,13 @@ dispatchstandardtest {
 TARGET = dispatchstandardtest
 SOURCES = dispatchstandardtest.c
 }
+
+stagetest {
+TARGET = stagetest
+SOURCES = stagetest.c
+}
+
+hotstagedtest {
+TARGET = hotstagedtest
+SOURCES = hotstagedtest.c
+}
