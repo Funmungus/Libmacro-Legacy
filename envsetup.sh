@@ -3,7 +3,7 @@
 export MCR_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 echo "MCR_HOME set to ${MCR_HOME}"
 alias mcd="cd \"${MCR_HOME}\""
-alias ubu="ubuntu-sdk \"${MCR_HOME}/project/macro.pro\" \"${MCR_HOME}/tests/test.pro\""
+alias ubu="ubuntu-sdk \"${MCR_HOME}/project/macrolibrary.pro\" \"${MCR_HOME}/tests/test.pro\""
 alias pane="tmux resize-pane"
 alias a="git add --all ; status"
 alias c="git commit -sm"

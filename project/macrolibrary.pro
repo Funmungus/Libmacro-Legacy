@@ -133,6 +133,40 @@ SOURCES += \
     ../hotkey/stage.c \
     ../hotkey/hotstaged.c
 
+# agnostic intercept
+HEADERS += \
+    ../include/intercept/def.h \
+    ../include/intercept/intercept.h
+
+SOURCES += \
+    ../intercept/intercept.c
+
+win {
+HEADERS += \
+    ../include/intercept/win/def.h \
+    ../include/intercept/win/grabber.h \
+    ../include/intercept/win/intercept.h
+SOURCES += \
+    ../intercept/win/wingrabber.c \
+    ../intercept/win/winintercept.c
+}
+lnx {
+HEADERS += \
+    ../include/intercept/lnx/def.h \
+    ../include/intercept/lnx/grabber.h \
+    ../include/intercept/lnx/intercept.h
+SOURCES += \
+    ../intercept/lnx/lnxgrabber.c \
+    ../intercept/lnx/lnxintercept.c
+}
+mac {
+    message(mac not yet implemented)
+}
+nativeless {
+HEADERS += \
+    ../include/intercept/nativeless/def.h
+}
+
 # wrapper header and init/cleanup
 HEADERS += \
     ../include/macro.h
@@ -141,14 +175,11 @@ SOURCES += \
     ../macro.c
 
 lnx {
-    documentation.path = /usr/local/macro/doc
+    documentation.path = /usr/local/macrolibrary/doc
     documentation.files = ../doxygen/html/*
     man.path = /usr/local/share/man
     man.files = ../doxygen/man/*
-    lib.path = /usr/lib/macro
+    lib.path = /usr/lib/macrolibrary
     lib.files = *.a *.so
     INSTALLS += documentation lib man
 }
-
-OTHER_FILES += \
-    ../LICENSE.txt
