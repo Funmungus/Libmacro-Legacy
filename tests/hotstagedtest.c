@@ -1,3 +1,10 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "hotkey/hotkey.h"
 # include "hotkey/hotstaged.h"
@@ -39,7 +46,7 @@ int main ( )
 	mcr_HotStaged_init_with ( & hs, NULL, chkfnc, MCR_BLOCK_ALL ) ;
 	for ( i = 0 ; i < SIZE ; i ++ )
 	{
-		sigs [ i ].type = & mcr_IKey ;
+		sigs [ i ].type = & mcr_iKey ;
 		sigs [ i ].data = keys + i ;
 		mcr_Key_init_with ( keys + i, i, i, ( i % 3 ) + MCR_DOWN ) ;
 		mcr_HotStaged_push_with ( & hs, 0, sigs + i, 0, ( unsigned int ) i ) ;

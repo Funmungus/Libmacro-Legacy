@@ -1,6 +1,13 @@
+/* include/hotkey/dispatch.h - Blocking dispatcher to hotkeys.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file hotkey/dispatch.h
- * \brief \ref mcr_Dispatch, Blocking dispatcher definition for
- * all signals. Dispatches into \ref mcr_Hot.
+ * Blocking dispatcher to hotkeys.
  * */
 
 # ifndef MCR_DISPATCH_H

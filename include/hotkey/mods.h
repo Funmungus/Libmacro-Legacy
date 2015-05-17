@@ -1,5 +1,14 @@
+/* include/hotkey/mods.h - Signal type to modify mcr_internalMods.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file hotkey/mods.h
- * \brief mcr_Mods, To handle known modifiers.
+ * \brief mcr_Mods, signal to modify \ref mcr_internalMods. Also
+ * handle known modifiers.
  * */
 
 # ifndef MCR_MODS_H
@@ -8,7 +17,7 @@
 # include "hotkey/def.h"
 
 //! \brief Modify \ref mcr_InternalMods with either set or release.
-extern mcr_ISignal mcr_IMod ;
+extern mcr_ISignal mcr_iMod ;
 
 /*! \brief Pair of modifier bits and whether to set or release those
  * modifiers. May be sent with \ref mcr_IMod.
@@ -172,7 +181,7 @@ MCR_API void mcr_mods_cleanup ( ) ;
 	}
 
 # define MCR_MOD_SEND( modPt, success ) \
-	MCR_MOD_MODIFY_BITS ( mcr_InternalMods, ( modPt )->modifiers, \
+	MCR_MOD_MODIFY_BITS ( mcr_internalMods, ( modPt )->modifiers, \
 			( modPt )->up_type ) ;
 
 # endif

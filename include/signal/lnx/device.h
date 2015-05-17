@@ -1,3 +1,11 @@
+/* include/signal/lnx/device.h - uinput_device wrapper.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file signal/lnx/device.h
  * \brief Currently Linux-specific. mcr_Device is a wrapper for
  * creating uinput devices.
@@ -32,14 +40,16 @@ typedef struct mcr_Device
 
 // Non-static to inline write function.
 //! \brief To send Key and HIDEcho signals.
-extern mcr_Device mcr_KeyDev ;
+extern mcr_Device mcr_keyDev ;
 //! \brief To send MoveCursor unjustified.
-extern mcr_Device mcr_AbsDev ;
+extern mcr_Device mcr_absDev ;
 //! \brief To send MoveCursor justified.
-extern mcr_Device mcr_RelDev ;
+extern mcr_Device mcr_relDev ;
+//! \brief Reported current cursor position.
+extern mcr_SpacePosition mcr_cursor ;
 
 //! \brief Append similar input_event to the end of all sending of events.
-extern const struct input_event mcr_Syncer ;
+extern const struct input_event mcr_syncer ;
 
 /*! \brief ctor. Initialize empty device, map, and files.
  *
@@ -101,9 +111,8 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
 # define MCR_DEV_SEND( dev, eventObjects, size, success ) \
 	if ( ( dev ).fd == -1 ) \
 		success = 0 ; \
-	else \
-		success = write ( ( dev ).fd, eventObjects, size ) == -1 ? \
-				0 : success ;
+	else if ( write ( ( dev ).fd, eventObjects, size ) == -1 ) \
+		success = 0 ;
 
 /*!
  * \brief \ref MCR_DEV_SEND for single input_event.

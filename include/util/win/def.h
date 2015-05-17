@@ -1,6 +1,13 @@
+/* include/util/win/def.h
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file util/win/def.h
- * basic definitions and includes for windows
- */
+ * */
 
 # ifndef MCR_WIN_UTIL_DEFINES_H
 # define MCR_WIN_UTIL_DEFINES_H

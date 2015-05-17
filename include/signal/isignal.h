@@ -1,3 +1,11 @@
+/* include/signal/isignal.h - Interface type for signals.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file signal/isignal.h
  * \brief Interface for signals, and signal structure of
  * interface and data. Use signal with \ref mcr_send.
@@ -59,7 +67,7 @@ typedef struct mcr_Signal
  *
  * In order to inline, we cannot privatize generic dispatcher.
  * */
-extern mcr_signal_fnc mcr_AllDispatch ;
+extern mcr_signal_fnc mcr_allDispatch ;
 
 //
 // General use: initializer and send function.
@@ -180,6 +188,7 @@ MCR_API void mcr_ISignal_clear_all ( ) ;
  * > 0 if lhs > rhs.
  * */
 MCR_API int mcr_name_compare ( const void * lhs, const void * rhs ) ;
+MCR_API int mcr_str_compare ( const void * lhs, const void * rhs ) ;
 /*! \brief Compare integers referenced by each pointer.
  *
  * \param lhs Pointer to int.

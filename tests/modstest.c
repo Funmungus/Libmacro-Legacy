@@ -1,3 +1,11 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "hotkey/hotkey.h"
 # include "hotkey/mods.h"
@@ -19,7 +27,7 @@ void setup ( )
 	mcr_reg_cleanup ( cleanup ) ;
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
-	mod.type = & mcr_IMod ;
+	mod.type = & mcr_iMod ;
 	mod.data = & data ;
 }
 
@@ -28,19 +36,19 @@ void test_Mod_send ( )
 	data.up_type = MCR_DOWN ;
 	for ( unsigned int i = 0 ; i < SIZE ; i ++ )
 	{
-		mcr_InternalMods = 0 ;
+		mcr_internalMods = 0 ;
 		data.modifiers = i ;
 		mcr_send ( & mod ) ;
-		assert ( mcr_InternalMods == i ) ;
+		assert ( mcr_internalMods == i ) ;
 	}
 
 	data.up_type = MCR_UP ;
 	for ( unsigned int i = 0 ; i < SIZE ; i ++ )
 	{
-		mcr_InternalMods = ~ 0 ;
+		mcr_internalMods = ~ 0 ;
 		data.modifiers = i ;
 		mcr_send ( & mod ) ;
-		assert ( mcr_InternalMods == ~ i ) ;
+		assert ( mcr_internalMods == ~ i ) ;
 	}
 
 	printf ( "mcr_Mod_send - OK.\n" ) ;
@@ -134,7 +142,7 @@ void test_HIDEcho_modify ( )
 	mcr_Signal sig ;
 	mcr_HIDEcho echo ;
 	mcr_Echo_init ( & echo ) ;
-	mcr_Signal_init_with ( & sig, & mcr_IHIDEcho, & echo ) ;
+	mcr_Signal_init_with ( & sig, & mcr_iHIDEcho, & echo ) ;
 	for ( unsigned int mod = 0 ; mod < SIZE ; mod ++ )
 	{
 		data.modifiers = mod ;
@@ -167,7 +175,7 @@ void test_Key_modify ( )
 	mcr_Signal sig ;
 	mcr_Key key ;
 	mcr_Key_init_with ( & key, 0, 0, MCR_DOWN ) ;
-	mcr_Signal_init_with ( & sig, & mcr_IKey, & key ) ;
+	mcr_Signal_init_with ( & sig, & mcr_iKey, & key ) ;
 	for ( unsigned int mod = 0 ; mod < SIZE ; mod ++ )
 	{
 		for ( int i = 0 ; i < 0x42 ; i ++ )

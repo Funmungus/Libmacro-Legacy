@@ -1,3 +1,10 @@
+/* hotkey/dispatchstandard.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "hotkey/dispatchstandard.h"
 # include "hotkey/dispatchutils.h"
@@ -20,7 +27,7 @@ void mcr_DispatchAlarm_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IAlarm.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iAlarm.dispatch,
 			mcr_DispatchAlarm_add_specific,
 			mcr_DispatchAlarm_dispatch_specific,
 			mcr_DispatchAlarm_remove_specific,
@@ -43,7 +50,7 @@ void mcr_DispatchHIDEcho_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IHIDEcho.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iHIDEcho.dispatch,
 			mcr_DispatchHIDEcho_add_specific,
 			mcr_DispatchHIDEcho_dispatch_specific,
 			mcr_DispatchHIDEcho_remove_specific,
@@ -75,7 +82,7 @@ void mcr_DispatchKey_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IKey.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iKey.dispatch,
 			mcr_DispatchKey_add_specific,
 			mcr_DispatchKey_dispatch_specific,
 			mcr_DispatchKey_remove_specific,
@@ -105,7 +112,7 @@ void mcr_DispatchMoveCursor_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IMoveCursor.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iMoveCursor.dispatch,
 			mcr_DispatchMoveCursor_add_specific,
 			mcr_DispatchMoveCursor_dispatch_specific,
 			mcr_DispatchMoveCursor_remove_specific,
@@ -115,8 +122,8 @@ void mcr_DispatchMoveCursor_init ( mcr_Dispatch * dispPt )
 
 void mcr_DispatchMoveCursor_free ( )
 {
-	mcr_Map_free ( _cursorModMaps ) ;
-	mcr_Map_free ( _cursorModMaps + 1 ) ;
+	map_arr_free_redirect ( _cursorModMaps ) ;
+	map_arr_free_redirect ( _cursorModMaps + 1 ) ;
 }
 
 // mods to mcr_Hot *
@@ -129,7 +136,7 @@ void mcr_DispatchNoOp_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_INoOp.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iNoOp.dispatch,
 			mcr_DispatchNoOp_add_specific,
 			mcr_DispatchNoOp_dispatch_specific,
 			mcr_DispatchNoOp_remove_specific, mcr_DispatchNoOp_clear ) ;
@@ -151,7 +158,7 @@ void mcr_DispatchScroll_init ( mcr_Dispatch * dispPt )
 
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IScroll.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iScroll.dispatch,
 			mcr_DispatchScroll_add_specific,
 			mcr_DispatchScroll_dispatch_specific,
 			mcr_DispatchScroll_remove_specific,
@@ -173,7 +180,7 @@ void mcr_DispatchMod_init ( mcr_Dispatch * dispPt )
 	_modModMap.compare = mcr_Mod_compare ;
 
 	if ( ! dispPt ) return ;
-	MCR_DISPATCH_SET ( dispPt, & mcr_IMod.dispatch,
+	MCR_DISPATCH_SET ( dispPt, & mcr_iMod.dispatch,
 			mcr_DispatchMod_add_specific,
 			mcr_DispatchMod_dispatch_specific,
 			mcr_DispatchMod_remove_specific,
@@ -724,9 +731,9 @@ void mcr_dispatchstandard_initialize ( )
 		mcr_DispatchMod_init
 	} ;
 	int ids [ ] = {
-		mcr_IAlarm.id, mcr_IHIDEcho.id, mcr_IKey.id,
-		mcr_IMoveCursor.id, mcr_INoOp.id, mcr_IScroll.id,
-		mcr_IMod.id
+		mcr_iAlarm.id, mcr_iHIDEcho.id, mcr_iKey.id,
+		mcr_iMoveCursor.id, mcr_iNoOp.id, mcr_iScroll.id,
+		mcr_iMod.id
 	} ;
 	int length = sizeof ( ids ) / sizeof ( int ) ;
 	for ( int i = 0 ; i < length ; i++ )

@@ -1,3 +1,10 @@
+/* hotkey/dispatch.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "hotkey/dispatch.h"
 # include "hotkey/dispatchutils.h"
@@ -146,17 +153,17 @@ int mcr_dispatch ( mcr_Signal * signalData )
 	mcr_Dispatch * found = MCR_ARR_AT ( & _dispatchers,
 			signalData->type->id ) ;
 	int block = 0 ;
-	int locked = mtx_timedlock ( & mcr_ModLock, & mcr_ModLockTimeout ) ;
+	int locked = mtx_timedlock ( & mcr_modLock, & mcr_modLockTimeout ) ;
 	// If found only dispatch to enabled methods.
 	if ( found )
 	{
-		MCR_DISPATCH_MODIFY ( found, signalData, mcr_InternalMods,
+		MCR_DISPATCH_MODIFY ( found, signalData, mcr_internalMods,
 				block ) ;
 	}
 	MCR_DISPATCH_MODIFY ( & _dispatcherGeneric, signalData,
-			mcr_InternalMods, block ) ;
+			mcr_internalMods, block ) ;
 	if ( locked )
-		mtx_unlock ( & mcr_ModLock ) ;
+		mtx_unlock ( & mcr_modLock ) ;
 	return block ;
 }
 
@@ -228,7 +235,7 @@ void mcr_DispatchGeneric_init ( )
 {
 	// mcr_Dispatch object.
 	mcr_Dispatch_init ( & _dispatcherGeneric ) ;
-	MCR_DISPATCH_SET ( & _dispatcherGeneric, & mcr_AllDispatch,
+	MCR_DISPATCH_SET ( & _dispatcherGeneric, & mcr_allDispatch,
 			mcr_DispatchGeneric_add_specific,
 			mcr_DispatchGeneric_dispatch_specific,
 			mcr_DispatchGeneric_remove_specific,

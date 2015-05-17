@@ -1,3 +1,10 @@
+/* util/threads.cpp
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 // Extern C
 extern "C" {
@@ -28,7 +35,10 @@ int thrd_sleep_until ( struct tm * time_point )
 static void thrd_function ( thrd_start_t func, void * arg )
 {
 	dassert ( func ) ;
-	func ( arg ) ;
+	if ( func ( arg ) )
+	{
+		dmsg ( "Thread function returns failure.\n" ) ;
+	}
 }
 
 int thrd_create ( thrd_t * thr, thrd_start_t func, void * arg )
@@ -114,7 +124,7 @@ int mtx_init ( mtx_t * mutex, int type )
 		mutex->type = mtx_plain ;
 		return thrd_success ;
 	}
-	dmsg ( "%s\n", "mtx_init, incorrect type." ) ;
+	dmsg ( "mtx_init, incorrect type.\n" ) ;
 	return thrd_error ;
 }
 
@@ -136,7 +146,7 @@ int mtx_lock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->lock ( ) ;
 		return thrd_success ;
 	}
-	dmsg ( "%s\n", "mtx_lock, incorrect type." ) ;
+	dmsg ( "mtx_lock, incorrect type.\n" ) ;
 	return thrd_error ;
 }
 
@@ -168,7 +178,7 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 	}
 		break ;
 	default :
-		dmsg ( "%s\n", "mtx_timedlock, incorrect type." ) ;
+		dmsg ( "mtx_timedlock, incorrect type.\n" ) ;
 		break ;
 	}
 	return locked ;
@@ -189,7 +199,7 @@ int mtx_trylock ( mtx_t * mutex )
 	case mtx_plain :
 		return ( ( std::mutex * ) mutex->mtx )->try_lock ( ) ;
 	}
-	dmsg ( "%s\n", "mtx_trylock, incorrect type." )
+	dmsg ( "mtx_trylock, incorrect type.\n" )
 	return false ;
 }
 
@@ -211,7 +221,7 @@ int mtx_unlock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->unlock ( ) ;
 		return thrd_success ;
 	}
-	dmsg ( "%s\n", "mtx_unlock, incorrect type." )
+	dmsg ( "mtx_unlock, incorrect type.\n" )
 	return thrd_error ;
 }
 
@@ -233,7 +243,7 @@ void mtx_destroy ( mtx_t * mutex )
 		delete ( std::mutex * ) mutex->mtx ;
 		break ;
 	default :
-		dmsg ( "%s\n", "mtx_destroy, incorrect type." ) ;
+		dmsg ( "mtx_destroy, incorrect type.\n" ) ;
 		break ;
 	}
 	mutex->mtx = NULL ;
@@ -276,7 +286,7 @@ int cnd_wait ( cnd_t * cond, mtx_t * mutex )
 		caster->wait ( lock ) ;
 		return thrd_success ;
 	}
-	dmsg ( "%s\n", "cnd_wait, incorrect mutex type." ) ;
+	dmsg ( "cnd_wait, incorrect mutex type.\n" ) ;
 	return thrd_error ;
 }
 
@@ -288,7 +298,7 @@ int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
 	dassert ( time_point ) ;
 	if ( mutex->type != mtx_plain )
 	{
-		dmsg ( "%s\n", "cnd_timedwait, incorrect mutex type." ) ;
+		dmsg ( "cnd_timedwait, incorrect mutex type.\n" ) ;
 		return thrd_error ;
 	}
 

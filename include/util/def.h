@@ -1,6 +1,13 @@
+/* include/util/def.h
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file util/def.h
- * \brief Definitions for utilities.
- */
+ * */
 
 # ifndef MCR_UTIL_DEFINES_H
 # define MCR_UTIL_DEFINES_H
@@ -49,12 +56,14 @@ Native functions will be unusable. )
 # endif
 
 # ifdef DEBUG
-# define dmsg( format,... ) \
+# define dmsg(... ) \
 	fprintf ( stderr, __FILE__ ":" STRINGIFY ( __LINE__ ) ":" \
-	format "\n", __VA_ARGS__ ) ;
+			__VA_ARGS__ ) ;
 # define dassert( expression ) assert ( expression )
 # else
-# define DMSG(format,...)
+# ifndef dmsg
+# define dmsg(...)
+# endif
 # ifndef dassert
 # define dassert( expression )
 # endif

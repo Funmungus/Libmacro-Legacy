@@ -1,3 +1,10 @@
+/* util/map.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "util/map.h"
 
@@ -51,7 +58,7 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 	}
 	if ( ! mcr_Array_push ( & mapPt->set, NULL ) )
 	{
-		dmsg ( "%s\n", "map." ) ;
+		dmsg ( "map.\n" ) ;
 		return 0 ;
 	}
 	// Point to pushed member.
@@ -81,7 +88,7 @@ int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
 	{
 		if ( ! mcr_Array_push ( & mapPt->set, NULL ) )
 		{
-			dmsg ( "%s", "mcr_Map_remap" ) ;
+			dmsg ( "mcr_Map_remap.\n" ) ;
 			return 0 ;
 		}
 		newPlace = MCR_ARR_AT ( & mapPt->set, mapPt->set.used - 1 ) ;
@@ -123,7 +130,7 @@ int mcr_Map_map_pair ( mcr_Map * mapPt, const void * mappingPair )
 	}
 	if ( ! mcr_Array_push ( & mapPt->set, mappingPair ) )
 	{
-		dmsg ( "%s\n", "map_pair." ) ;
+		dmsg ( "map_pair.\n" ) ;
 		return 0 ;
 	}
 	MCR_MAP_SORT ( mapPt ) ;
@@ -160,7 +167,7 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 	{
 		if ( ! mcr_Map_map ( mapPt, keyPt, valueBackupPt ) )
 		{
-			dmsg ( "%s\n", "get_ensured allocation error." ) ;
+			dmsg ( "get_ensured allocation error.\n" ) ;
 			return NULL ;
 		}
 		return MCR_MAP_GET ( mapPt, keyPt ) ;

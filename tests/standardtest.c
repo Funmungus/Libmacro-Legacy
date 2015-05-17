@@ -1,11 +1,19 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "signal/signal.h"
 # include <assert.h>
 
 mcr_ISignal * knowns [ ] =
 {
-	& mcr_IAlarm, & mcr_IHIDEcho, & mcr_IKey,
-	& mcr_IMoveCursor, & mcr_INoOp, & mcr_IScroll
+	& mcr_iAlarm, & mcr_iHIDEcho, & mcr_iKey,
+	& mcr_iMoveCursor, & mcr_iNoOp, & mcr_iScroll
 } ;
 
 void onComplete ( void )

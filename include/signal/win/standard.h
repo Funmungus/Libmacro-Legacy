@@ -1,3 +1,10 @@
+/* include/signal/win/standard.h - Windows definitions for standard signals.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # ifndef MCR_WIN_STANDARD_H
 # define MCR_WIN_STANDARD_H

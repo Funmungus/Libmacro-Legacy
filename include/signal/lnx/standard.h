@@ -1,3 +1,10 @@
+/* include/signal/lnx/standard.h - Linux definitions of standard signals.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # ifndef MCR_LNX_STANDARD_H
 # define MCR_LNX_STANDARD_H
@@ -45,13 +52,13 @@ typedef struct mcr_Scroll
 	if ( ( keyPt )->key_up != MCR_UP ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 1 ; \
-		MCR_DEV_SEND ( mcr_KeyDev, ( keyPt )->events, \
+		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
 				sizeof ( ( keyPt )->events ), success ) ; \
 	} \
 	if ( success && ( keyPt )->key_up != MCR_DOWN ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 0 ; \
-		MCR_DEV_SEND ( mcr_KeyDev, ( keyPt )->events, \
+		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
 				sizeof ( ( keyPt )->events ), success ) ; \
 	}
 
@@ -68,6 +75,10 @@ typedef struct mcr_Scroll
 	{ \
 		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
 				( unsigned int ) ( echoPt )->event ), success ) \
+	} \
+	else \
+	{ \
+		dmsg ( "Event out of range.\n" ) ; \
 	}
 
 // mcr_Key
@@ -121,13 +132,31 @@ typedef struct mcr_Scroll
 # define MCR_MOVECURSOR_SEND( mcPt, success ) \
 	if ( ( mcPt )->cursor_justify ) \
 	{ \
-		MCR_DEV_SEND ( mcr_RelDev, ( mcPt )->relvent, \
+		MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
 				sizeof ( ( mcPt )->relvent ), success ) ; \
+		mcr_cursor [ MCR_X ] += ( mcPt )->relvent [ MCR_X ].value ; \
+		mcr_cursor [ MCR_Y ] += ( mcPt )->relvent [ MCR_Y ].value ; \
+		mcr_cursor [ MCR_Z ] += ( mcPt )->relvent [ MCR_Z ].value ; \
+		if ( mcr_cursor [ MCR_X ] > MCR_ABS_RESOLUTION ) \
+			mcr_cursor [ MCR_X ] = MCR_ABS_RESOLUTION ; \
+		else if ( mcr_cursor [ MCR_X ] < 0 ) \
+			mcr_cursor [ MCR_X ] = 0 ; \
+		if ( mcr_cursor [ MCR_Y ] > MCR_ABS_RESOLUTION ) \
+			mcr_cursor [ MCR_Y ] = MCR_ABS_RESOLUTION ; \
+		else if ( mcr_cursor [ MCR_Y ] < 0 ) \
+			mcr_cursor [ MCR_Y ] = 0 ; \
+		if ( mcr_cursor [ MCR_Z ] > MCR_ABS_RESOLUTION ) \
+			mcr_cursor [ MCR_Z ] = MCR_ABS_RESOLUTION ; \
+		else if ( mcr_cursor [ MCR_Z ] < 0 ) \
+			mcr_cursor [ MCR_Z ] = 0 ; \
 	} \
 	else \
 	{ \
-		MCR_DEV_SEND ( mcr_AbsDev, ( mcPt )->absvent, \
+		MCR_DEV_SEND ( mcr_absDev, ( mcPt )->absvent, \
 				sizeof ( ( mcPt )->absvent ), success ) ; \
+		mcr_cursor [ MCR_X ] += ( mcPt )->absvent [ MCR_X ].value ; \
+		mcr_cursor [ MCR_Y ] += ( mcPt )->absvent [ MCR_Y ].value ; \
+		mcr_cursor [ MCR_Z ] += ( mcPt )->absvent [ MCR_Z ].value ; \
 	}
 
 // mcr_Scroll
@@ -149,7 +178,7 @@ typedef struct mcr_Scroll
 # define MCR_SCROLL_SET_DIMENSION( scrollPt, pos, val ) \
 	( scrollPt )->events [ pos ].value = val
 # define MCR_SCROLL_SEND( scrollPt, success ) \
-	MCR_DEV_SEND ( mcr_RelDev, ( scrollPt )->events, \
+	MCR_DEV_SEND ( mcr_relDev, ( scrollPt )->events, \
 			sizeof ( ( scrollPt )->events ), success ) ;
 
 # endif // MCR_LNX_STANDARD_H

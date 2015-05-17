@@ -1,6 +1,15 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "macro.h"
 # include "time.h"
+# include "signal/lnx/standard.h"
 
 # define SIZE 64
 # define SAFESCAN(_buff_) scanf ( "%63s", _buff_ )
@@ -16,12 +25,13 @@ void absolute ( ) ;
 void scroll ( ) ;
 
 static mcr_NoOp delay = { 1, 0 } ;
-static mcr_Signal delaySig = { & mcr_INoOp, & delay } ;
+static mcr_Signal delaySig = { & mcr_iNoOp, & delay } ;
 static char buffer [ SIZE ] ;
 
 int main ( )
 {
-	mcr_macro_initialize ( ) ;
+	mcr_reg_cleanup ( mcr_signal_cleanup ) ;
+	mcr_signal_initialize ( ) ;
 	printf ( "\nBegin...\n" ) ;
 	printf ( "MCR_DIMENSION_CNT = %d, DOUBLEDIM = %d\n",
 			MCR_DIMENSION_CNT, DOUBLEDIM ) ;
@@ -91,7 +101,7 @@ void alarmTest ( )
 
 	t += difference ;
 	struct tm * alPt = localtime ( & t ) ;
-	mcr_Signal sig = { & mcr_IAlarm, 0 } ;
+	mcr_Signal sig = { & mcr_iAlarm, 0 } ;
 	sig.data = alPt ;
 	mcr_send ( & sig ) ;
 
@@ -104,9 +114,18 @@ void echo ( )
 	printf ( "\nEcho test.\n" ) ;
 	mcr_HIDEcho echo ;
 	mcr_Echo_init ( & echo ) ;
-	mcr_Signal sig = { & mcr_IHIDEcho, & echo } ;
+	mcr_Signal sig = { & mcr_iHIDEcho, & echo } ;
 	size_t count = mcr_Echo_count ( ) ;
 
+	mcr_Key kk ;
+	mcr_Key_init_with ( & kk, BTN_LEFT, 0, MCR_DOWN ) ;
+	mcr_Signal sig2 = { & mcr_iKey, & kk } ;
+	mcr_send ( & sig2 ) ;
+	MCR_KEY_SET_UP_TYPE ( & kk, MCR_UP ) ;
+	int tmp ;
+	UNUSED ( tmp ) ;
+	MCR_NOOP_SEND ( & delay, tmp ) ;
+	mcr_send ( & sig2 ) ;
 	for ( size_t i = 0 ; i < count ; i++ )
 	{
 		// Set current.
@@ -131,7 +150,7 @@ void keyPress ( )
 	int scan = atoi ( buffer ) ;
 
 	mcr_Key mKey ;
-	mcr_Signal sig = { & mcr_IKey, & mKey } ;
+	mcr_Signal sig = { & mcr_iKey, & mKey } ;
 	mcr_Key_init_with ( & mKey, key, scan, MCR_DOWN ) ;
 
 	printf ( "\nPressing key...\n" ) ;
@@ -157,7 +176,7 @@ void justify ( )
 	int displacement = atoi ( buffer ) ;
 
 	mcr_MoveCursor just ;
-	mcr_Signal sig = { & mcr_IMoveCursor, & just } ;
+	mcr_Signal sig = { & mcr_iMoveCursor, & just } ;
 	mcr_MoveCursor_init ( & just ) ;
 	mcr_MoveCursor_enable_justify ( & just, 1 ) ;
 
@@ -194,7 +213,7 @@ void absolute ( )
 
 	mcr_MoveCursor abs ;
 	mcr_MoveCursor_init ( & abs ) ;
-	mcr_Signal sig = { & mcr_IMoveCursor, & abs } ;
+	mcr_Signal sig = { & mcr_iMoveCursor, & abs } ;
 	mcr_MoveCursor_enable_justify ( & abs, 0 ) ;
 
 	// Get and set x, y, z.
@@ -227,7 +246,7 @@ void scroll ( )
 	long long scrolling = atoll ( buffer ) ;
 
 	mcr_Scroll scr ;
-	mcr_Signal sig = { & mcr_IScroll, & scr } ;
+	mcr_Signal sig = { & mcr_iScroll, & scr } ;
 	mcr_Dimensions dim = { 0 } ;
 	mcr_Scroll_init_with ( & scr, dim ) ;
 

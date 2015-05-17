@@ -1,3 +1,10 @@
+/* hotkey/stage.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "hotkey/stage.h"
 
@@ -113,7 +120,7 @@ int mcr_Stage_isref ( mcr_Stage * stagePt,
 int mcr_Stage_isalarm ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IAlarm.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iAlarm.id ) ;
 	time_t me = mktime ( stagePt->intercept_pt->data ) ;
 	time_t them = mktime ( interceptPt->data ) ;
 	if ( me == -1 )
@@ -129,7 +136,7 @@ int mcr_Stage_isalarm ( mcr_Stage * stagePt,
 int mcr_Stage_isecho ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IHIDEcho.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iHIDEcho.id ) ;
 	int me = MCR_ECHO_GET ( ( mcr_HIDEcho * )
 			stagePt->intercept_pt->data ) ;
 	int them = MCR_ECHO_GET ( ( mcr_HIDEcho * ) interceptPt->data ) ;
@@ -141,7 +148,7 @@ int mcr_Stage_isecho ( mcr_Stage * stagePt,
 int mcr_Stage_iskey ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IKey.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iKey.id ) ;
 	mcr_Key * mePt = stagePt->intercept_pt->data ;
 	mcr_Key * themPt = interceptPt->data ;
 	int me = MCR_KEY_GET ( mePt ) ;
@@ -160,7 +167,7 @@ int mcr_Stage_iskey ( mcr_Stage * stagePt,
 int mcr_Stage_ismovecursor ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IMoveCursor.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iMoveCursor.id ) ;
 	return mcr_resembles ( ( mcr_MoveCursor * )
 			stagePt->intercept_pt->data, ( mcr_MoveCursor * )
 			interceptPt->data, stagePt->measurement_error ) ;
@@ -169,7 +176,7 @@ int mcr_Stage_ismovecursor ( mcr_Stage * stagePt,
 int mcr_Stage_isnoop ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_INoOp.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iNoOp.id ) ;
 	time_t me = ( ( mcr_NoOp * ) stagePt->intercept_pt->data )->tv_sec,
 			them = ( ( mcr_NoOp * ) interceptPt->data )->tv_sec ;
 	them = me - them ;
@@ -181,7 +188,7 @@ int mcr_Stage_isnoop ( mcr_Stage * stagePt,
 int mcr_Stage_isscroll ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IScroll.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iScroll.id ) ;
 	mcr_Dimensions lhs, rhs ;
 	MCR_SCROLL_GET ( ( mcr_Scroll * ) stagePt->intercept_pt->data, lhs ) ;
 	MCR_SCROLL_GET ( ( mcr_Scroll * ) interceptPt->data, rhs ) ;
@@ -191,7 +198,7 @@ int mcr_Stage_isscroll ( mcr_Stage * stagePt,
 int mcr_Stage_ismod ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
-	ISCOMMONS ( stagePt, interceptPt, mods, mcr_IMod.id ) ;
+	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iMod.id ) ;
 	mcr_Mod * mePt = stagePt->intercept_pt->data,
 			 * themPt = interceptPt->data ;
 	if ( mePt->modifiers != MCR_ANY_MOD &&
@@ -227,8 +234,8 @@ void mcr_stage_initialize ( )
 {
 	mcr_Array_init ( & _ismeSet, sizeof ( mcr_isme_fnc ) ) ;
 	size_t ids [ ] = {
-		-1, mcr_IAlarm.id, mcr_IHIDEcho.id, mcr_IKey.id,
-		mcr_IMoveCursor.id, mcr_INoOp.id, mcr_IScroll.id, mcr_IMod.id
+		-1, mcr_iAlarm.id, mcr_iHIDEcho.id, mcr_iKey.id,
+		mcr_iMoveCursor.id, mcr_iNoOp.id, mcr_iScroll.id, mcr_iMod.id
 	} ;
 	mcr_isme_fnc fncs [ ] = {
 		mcr_Stage_isref, mcr_Stage_isalarm,

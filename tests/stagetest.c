@@ -1,3 +1,11 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "hotkey/hotkey.h"
 # include "hotkey/stage.h"
@@ -24,8 +32,8 @@ void setup ( )
 
 mcr_ISignal * knowns [ ] =
 {
-	& mcr_IAlarm, & mcr_IHIDEcho, & mcr_IKey,
-	& mcr_IMoveCursor, & mcr_INoOp, & mcr_IScroll, & mcr_IMod
+	& mcr_iAlarm, & mcr_iHIDEcho, & mcr_iKey,
+	& mcr_iMoveCursor, & mcr_iNoOp, & mcr_iScroll, & mcr_iMod
 } ;
 
 mcr_isme_fnc fncs [ ] =
@@ -134,9 +142,9 @@ void test_Stage_isref ( )
 void test_Stage_isalarm ( )
 {
 	mcr_Alarm alm, alm2 ;
-	mcr_Signal sig2 = { & mcr_IAlarm, & alm2 } ;
+	mcr_Signal sig2 = { & mcr_iAlarm, & alm2 } ;
 	sig.data = & alm ;
-	sig.type = & mcr_IAlarm ;
+	sig.type = & mcr_iAlarm ;
 	time_t t1 = time ( NULL ) ;
 	alm = * localtime ( & t1 ) ;
 	time_t t2 = t1 - 42 ;
@@ -166,9 +174,9 @@ void test_Stage_isecho ( )
 	mcr_HIDEcho e1, e2 ;
 	mcr_Echo_init_with ( & e1, MCR_ANY_MOD ) ;
 	mcr_Echo_init_with ( & e2, 0 ) ;
-	sig.type = & mcr_IHIDEcho ;
+	sig.type = & mcr_iHIDEcho ;
 	sig.data = & e1 ;
-	mcr_Signal sig2 = { & mcr_IHIDEcho, & e2 } ;
+	mcr_Signal sig2 = { & mcr_iHIDEcho, & e2 } ;
 	stage.modifiers = MCR_ANY_MOD ;
 	assert ( mcr_Stage_isecho ( & stage, & sig2, 0 ) ) ;
 	assert ( mcr_Stage_isecho ( & stage, & sig2, 42 ) ) ;
@@ -188,9 +196,9 @@ void test_Stage_iskey ( )
 	mcr_Key k1, k2 ;
 	mcr_Key_init_with ( & k1, MCR_ANY_KEY, MCR_ANY_KEY, MCR_BOTH ) ;
 	mcr_Key_init_with ( & k2, 42, 42, MCR_DOWN ) ;
-	sig.type = & mcr_IKey ;
+	sig.type = & mcr_iKey ;
 	sig.data = & k1 ;
-	mcr_Signal sig2 = { & mcr_IKey, & k2 } ;
+	mcr_Signal sig2 = { & mcr_iKey, & k2 } ;
 	stage.modifiers = MCR_ANY_MOD ;
 	assert ( mcr_Stage_iskey ( & stage, & sig2, 42 ) ) ;
 
@@ -223,9 +231,9 @@ void test_Stage_ismovecursor ( )
 	mcr_MoveCursor mc1, mc2 ;
 	mcr_MoveCursor_init_with ( & mc1, p1, 0 ) ;
 	mcr_MoveCursor_init_with ( & mc2, p1, 0 ) ;
-	sig.type = & mcr_IMoveCursor ;
+	sig.type = & mcr_iMoveCursor ;
 	sig.data = & mc1 ;
-	mcr_Signal sig2 = { & mcr_IMoveCursor, & mc2 } ;
+	mcr_Signal sig2 = { & mcr_iMoveCursor, & mc2 } ;
 	stage.modifiers = MCR_ANY_MOD ;
 	stage.measurement_error = 42 ;
 
@@ -276,9 +284,9 @@ void test_Stage_ismovecursor ( )
 void test_Stage_isnoop ( )
 {
 	mcr_NoOp n1, n2 ;
-	mcr_Signal sig2 = { & mcr_INoOp, & n2 } ;
+	mcr_Signal sig2 = { & mcr_iNoOp, & n2 } ;
 	sig.data = & n1 ;
-	sig.type = & mcr_INoOp ;
+	sig.type = & mcr_iNoOp ;
 	n1.tv_sec = 42 ;
 	n2.tv_sec = 0 ;
 	mcr_Stage_init_with ( & stage, 0, & sig, 42, MCR_ANY_MOD ) ;
@@ -304,9 +312,9 @@ void test_Stage_isscroll ( )
 	mcr_Scroll scr1, scr2 ;
 	mcr_Scroll_init_with ( & scr1, p1 ) ;
 	mcr_Scroll_init_with ( & scr2, p1 ) ;
-	sig.type = & mcr_IScroll ;
+	sig.type = & mcr_iScroll ;
 	sig.data = & scr1 ;
-	mcr_Signal sig2 = { & mcr_IScroll, & scr2 } ;
+	mcr_Signal sig2 = { & mcr_iScroll, & scr2 } ;
 	stage.modifiers = MCR_ANY_MOD ;
 	stage.measurement_error = 42 ;
 

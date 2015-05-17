@@ -1,7 +1,14 @@
+/* hotkey/mods.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "hotkey/mods.h"
 
-MCR_API mcr_ISignal mcr_IMod ;
+MCR_API mcr_ISignal mcr_iMod ;
 
 static mcr_Mod _defaultMod ;
 
@@ -392,18 +399,18 @@ void mcr_Mod_clear_all ( )
 
 void mcr_mods_initialize ( )
 {
-	mcr_ISignal_init ( & mcr_IMod, "Mod", mcr_Mod_send,
+	mcr_ISignal_init ( & mcr_iMod, "Mod", mcr_Mod_send,
 			sizeof ( mcr_Mod ) ) ;
-	mcr_IMod.dispatch = NULL ;
-	if ( mcr_ISignal_register ( & mcr_IMod ) == ( size_t ) -1 )
+	mcr_iMod.dispatch = NULL ;
+	if ( mcr_ISignal_register ( & mcr_iMod ) == ( size_t ) -1 )
 	{
-		dmsg ( "%s", "Mods unable to register signal type." ) ;
+		dmsg ( "Mods unable to register signal type.\n" ) ;
 	}
-	if ( ! mcr_ISignal_add_name ( & mcr_IMod, "Mods" ) )
+	if ( ! mcr_ISignal_add_name ( & mcr_iMod, "Mods" ) )
 	{
-		dmsg ( "%s", "Mods unable to add signal name." ) ;
+		dmsg ( "Mods unable to add signal name.\n" ) ;
 	}
-	mcr_ISignal_add_name ( & mcr_IMod, "Mods" ) ;
+	mcr_ISignal_add_name ( & mcr_iMod, "Mods" ) ;
 	names_init ( ) ;
 	echo_init ( ) ;
 	key_init ( ) ;

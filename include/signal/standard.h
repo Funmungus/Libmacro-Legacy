@@ -1,9 +1,16 @@
+/* include/signal/standard.h - Standard, predefined signal types.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file signal/standard.h
  * \brief mcr_Signal data types : mcr_Alarm, mcr_HIDEcho, mcr_Key,
  * mcr_MoveCursor, mcr_NoOp, and mcr_Scroll. <br>
  * mcr_ISignals : mcr_IAlarm, mcr_IHIDEcho, mcr_IKey,
  * mcr_IMoveCursor, mcr_INoOp, and mcr_IScroll.
- *
  * */
 
 # ifndef MCR_STANDARD_H
@@ -59,17 +66,17 @@ typedef struct mcr_Scroll mcr_Scroll ;
 // Standard signal ISignals, i.e. type definition, or vtable.
 //
 /*! \brief Signal interface for \ref mcr_Alarm. */
-extern mcr_ISignal mcr_IAlarm ;
+extern mcr_ISignal mcr_iAlarm ;
 /*! \brief Signal interface for \ref mcr_HIDEcho. */
-extern mcr_ISignal mcr_IHIDEcho ;
+extern mcr_ISignal mcr_iHIDEcho ;
 /*! \brief Signal interface for \ref mcr_Key. */
-extern mcr_ISignal mcr_IKey ;
+extern mcr_ISignal mcr_iKey ;
 /*! \brief Signal interface for \ref mcr_MoveCursor. */
-extern mcr_ISignal mcr_IMoveCursor ;
+extern mcr_ISignal mcr_iMoveCursor ;
 /*! \brief Signal interface for \ref mcr_NoOp. */
-extern mcr_ISignal mcr_INoOp ;
+extern mcr_ISignal mcr_iNoOp ;
 /*! \brief Signal interface for \ref mcr_Scroll. */
-extern mcr_ISignal mcr_IScroll ;
+extern mcr_ISignal mcr_iScroll ;
 
 
 //
@@ -296,6 +303,7 @@ MCR_API int mcr_Scroll_send ( mcr_Signal * signalData ) ;
 //
 // Some extra, possibly useful, utilities.
 //
+MCR_API void mcr_cursor_position ( mcr_SpacePosition buffer ) ;
 /*! mcr_resembles_justified
  * \brief For both positions, either may be 0, or the same coordinate
  * array member must either be both negative, or both positive.

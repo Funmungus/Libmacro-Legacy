@@ -1,3 +1,10 @@
+/* signal/win/winstandard.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "signal/standard.h"
 # include "signal/win/standard.h"
@@ -28,6 +35,27 @@ void mcr_Scroll_init ( mcr_Scroll * scrollPt )
 	memset ( scrollPt, 0, sizeof ( mcr_Scroll ) ) ;
 }
 
+# define CALC_ABS_X( x ) \
+	( ( x * 65535 ) / GetSystemMetrics ( SM_CXSCREEN ) )
+
+# define CALC_ABS_Y( y ) \
+	( ( y * 65535 ) / GetSystemMetrics ( SM_CYSCREEN ) )
+
+void mcr_cursor_position ( mcr_SpacePosition buffer )
+{
+	POINT p ;
+	if ( GetCursorPos ( & p ) )
+	{
+		buffer [ MCR_X ] = p.x ;
+		buffer [ MCR_Y ] = p.y ;
+		buffer [ MCR_Z ] = 0 ;
+	}
+	else
+	{
+		dmsg ( "Unable to get cursor position, error #%d\n",
+				( int ) GetLastError ( ) ) ;
+	}
+}
 
 void mcr_standard_native_cleanup ( void )
 {
@@ -62,8 +90,8 @@ void mcr_standard_native_initialize ( )
 	size_t count = sizeof ( echoEvents ) / sizeof ( int ) ;
 	if ( ! mcr_Array_resize ( & mcr_EchoEvents, count ) )
 	{
-		dmsg ( "%s\n", "mcr_standard_native_initialize unable to "
-				"size native events." ) ;
+		dmsg ( "mcr_standard_native_initialize unable to "
+				"size native events.\n" ) ;
 		return ;
 	}
 	for ( size_t i = 0 ; i < count ; i++ )
@@ -76,14 +104,14 @@ void mcr_standard_native_initialize ( )
 		}
 		else
 		{
-			dmsg ( "%s%s\n", "Unable to register echo: ", names [ i ] ) ;
+			dmsg ( "Unable to register echo: %s.\n", names [ i ] ) ;
 		}
 		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
 		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
 			success = 0 ;
 		if ( ! success )
 		{
-			dmsg ( "%s%s", "Unable to add extra name: ",
+			dmsg ( "Unable to add extra name: %s.\n",
 					extraNames [ i ] ) ;
 		}
 	}

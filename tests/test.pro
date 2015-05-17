@@ -13,8 +13,8 @@ DEFINES += MCR_NO_SDK
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
 INCLUDEPATH += ../include
-unix:LIBS += -L../project -lmacro
-win32:LIBS += ../project/macro.lib
+unix:LIBS += -L../project -lmacrolibrary
+win32:LIBS += ../project/macrolibrary.lib
 
 win32:DEFINES += MCR_NATIVE_DIR=win
 else:unix:DEFINES += MCR_NATIVE_DIR=lnx
@@ -74,4 +74,9 @@ SOURCES = stagetest.c
 hotstagedtest {
 TARGET = hotstagedtest
 SOURCES = hotstagedtest.c
+}
+
+grabtest {
+TARGET = grabtest
+SOURCES = grabtest.c
 }

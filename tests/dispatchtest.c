@@ -1,3 +1,11 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "hotkey/hotkey.h"
 # include <assert.h>
@@ -31,7 +39,7 @@ void test_Dispatch_get ( )
 
 	mcr_Dispatch * pt ;
 	mcr_DispatchAlarm_init ( & disp ) ;
-	pt = mcr_Dispatch_get ( mcr_IAlarm.id ) ;
+	pt = mcr_Dispatch_get ( mcr_iAlarm.id ) ;
 	assert ( pt ) ;
 	assert ( ! memcmp ( & disp, pt, sizeof ( mcr_Dispatch ) ) ) ;
 
@@ -285,14 +293,14 @@ void test_Dispatch_clear ( )
 void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int c )
 {
 	UNUSED ( a ) ; UNUSED ( b ) ;
-	assert ( c == mcr_InternalMods ) ;
+	assert ( c == mcr_internalMods ) ;
 	++ specCalled ;
 }
 
 int disp_spec ( mcr_Dispatch * a, mcr_Signal * b, unsigned int c )
 {
 	UNUSED ( a ) ; UNUSED ( b ) ;
-	assert ( c == mcr_InternalMods ) ;
+	assert ( c == mcr_internalMods ) ;
 	specCalled = 1 ;
 	return 0 ;
 }
@@ -300,7 +308,7 @@ int disp_spec ( mcr_Dispatch * a, mcr_Signal * b, unsigned int c )
 unsigned int modify ( mcr_Signal * a, unsigned int c )
 {
 	assert ( a ) ;
-	assert ( c == mcr_InternalMods ) ;
+	assert ( c == mcr_internalMods ) ;
 	specCalled = 1 ;
 	return c ;
 }
@@ -309,8 +317,8 @@ void test_dispatch ( )
 {
 	mcr_Hot hots [ SIZE ] ;
 	mcr_Signal sig ;
-	sig.type = & mcr_IAlarm ;
-	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_IAlarm.id ) ;
+	sig.type = & mcr_iAlarm ;
+	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_iAlarm.id ) ;
 	mcr_Dispatch_clear ( pt ) ;
 	pt->dispatch_specific = NULL ;
 	pt->modifier = NULL ;
@@ -404,45 +412,45 @@ void test_DispatchGeneric_add_specific_dispatch_specific ( )
 			== & obj ) ;
 	mcr_Dispatch_clear ( pt ) ;
 
-	mcr_InternalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, mcr_InternalMods ) ;
+	mcr_internalMods = MCR_ANY_MOD ;
+	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, mcr_internalMods ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_InternalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_InternalMods = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_InternalMods ) ;
+	mcr_internalMods = 0 ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_InternalMods = 42 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_InternalMods ) ;
+	mcr_internalMods = 42 ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_InternalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_InternalMods ) ;
+	mcr_internalMods = MCR_ANY_MOD ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & otherSig, mcr_InternalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & otherSig, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
 	// Make sure hotkey removed for next test.
 	mcr_Dispatch_clear ( pt ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_InternalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
-	mcr_InternalMods = 42 ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, mcr_InternalMods ) ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_InternalMods ) ;
+	mcr_internalMods = 42 ;
+	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_InternalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_InternalMods = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_InternalMods ) ;
+	mcr_internalMods = 0 ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
-	mcr_InternalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_InternalMods ) ;
+	mcr_internalMods = MCR_ANY_MOD ;
+	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
 	mcr_Dispatch_clear ( pt ) ;
@@ -460,19 +468,19 @@ void test_DispatchGeneric_remove_specific ( )
 
 	mcr_Dispatch_clear ( pt ) ;
 
-	mcr_InternalMods = 42 ;
+	mcr_internalMods = 42 ;
 	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, 42 ) ;
 	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, 42 ) ;
 	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, MCR_ANY_MOD ) ;
 
 	specCalled = 0 ;
 	mcr_DispatchGeneric_dispatch_specific ( pt, & sig,
-			mcr_InternalMods ) ;
+			mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	mcr_DispatchGeneric_remove_specific ( pt, & obj ) ;
 	specCalled = 0 ;
 	mcr_DispatchGeneric_dispatch_specific ( pt, & sig,
-			mcr_InternalMods ) ;
+			mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
 	printf ( "mcr_Dispatch_remove_specific - OK\n" ) ;

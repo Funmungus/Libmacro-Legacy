@@ -1,6 +1,14 @@
+/* include/util/mcrstrings.h - Define missing string functions.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file util/mcrstrings.h
- * \brief String functions for macro.
- */
+ * \brief String functions for macrolibrary.
+ * */
 
 # ifndef MCR_STRINGS_H
 # define MCR_STRINGS_H

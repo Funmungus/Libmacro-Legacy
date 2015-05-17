@@ -1,14 +1,22 @@
+/* signal/lnx/lnxdevice.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "signal/lnx/device.h"
 # include "signal/isignal.h"
 
 static mtx_t _deviceLock ;
 
-MCR_API mcr_Device mcr_KeyDev ;
-MCR_API mcr_Device mcr_AbsDev ;
-MCR_API mcr_Device mcr_RelDev ;
+MCR_API mcr_Device mcr_keyDev ;
+MCR_API mcr_Device mcr_absDev ;
+MCR_API mcr_Device mcr_relDev ;
+MCR_API mcr_SpacePosition mcr_cursor = { 0, 0, 0 } ;
 
-const MCR_API struct input_event mcr_Syncer = { { 0, 0 }, EV_SYN, \
+const MCR_API struct input_event mcr_syncer = { { 0, 0 }, EV_SYN, \
 		SYN_REPORT, 0 } ;
 
 // Open uinput ( devPt->fd ) and write device to it.
@@ -71,7 +79,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	// If already enabled, need to close and restart.
 	if ( ! device_close ( devPt ) )
 	{
-		dmsg ( "%s\n", "Could not disable old device." ) ;
+		dmsg ( "Could not disable old device.\n" ) ;
 		return 0 ;
 	}
 	devPt->enabled = 0 ;
@@ -82,7 +90,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	// Must have at least 1 UI_SET_EVBIT.
 	if ( ! mcr_Device_has_evbit ( devPt ) )
 	{
-		dmsg ( "%s\n", "No UI_SET_EVBIT available." ) ;
+		dmsg ( "No UI_SET_EVBIT available.\n" ) ;
 		return 0 ;
 	}
 
@@ -90,7 +98,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	mtx_lock ( & _deviceLock ) ;
 	if ( ! device_open ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot open." ) ;
+		dmsg ( "Cannot open.\n" ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -98,7 +106,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	// Force evbit satisfaction.
 	if ( ! device_write_evbit ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot write evbit." ) ;
+		dmsg ( "Cannot write evbit.\n" ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -108,7 +116,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 
 	if ( ! device_create ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot create device." ) ;
+		dmsg ( "Cannot create device.\n" ) ;
 		mtx_unlock ( & _deviceLock ) ;
 		return 0 ;
 	}
@@ -118,7 +126,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	devPt->enabled = 1 ;
 	if ( ! device_open_event ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot find device event file." ) ;
+		dmsg ( "Cannot find device event file.\n" ) ;
 		valid = 0 ;
 	}
 	mtx_unlock ( & _deviceLock ) ;
@@ -141,14 +149,14 @@ int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 	// Unable to append array, free and exit.
 	if ( ! mcr_Array_from_array ( & value, bits, bitLen ) )
 	{
-		dmsg ( "%s\n", "set_bits." ) ;
+		dmsg ( "set_bits.\n" ) ;
 		mcr_Array_free ( & value ) ;
 		return 0 ;
 	}
 	// Unable to insert into map, free and exit.
 	if ( ! mcr_Map_map ( & devPt->type_value_map, & bitType, & value ) )
 	{
-		dmsg ( "%s\n", "set_bits." ) ;
+		dmsg ( "set_bits.\n" ) ;
 		mcr_Array_free ( & value ) ;
 		return 0 ;
 	}
@@ -178,21 +186,21 @@ static int device_open ( mcr_Device * devPt )
 	// Close in case previously opened.
 	if ( ! device_close ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot close previous udev file." ) ;
+		dmsg ( "Cannot close previous udev file.\n" ) ;
 		return 0 ;
 	}
 	devPt->fd = open ( STRINGIFY ( MCR_UINPUT_PATH ), O_RDWR | O_SYNC ) ;
 
 	if ( devPt->fd == -1 )
 	{
-		dmsg ( "%s\n, ", "Error opening uinput." ) ;
+		dmsg ( "Error opening uinput.\n" ) ;
 		return 0 ;
 	}
 
 	if ( write ( devPt->fd, & devPt->device, sizeof ( devPt->device ) ) !=
 			sizeof ( devPt->device ) )
 	{
-		dmsg ( "%s\n, ", "Error writing user device" ) ;
+		dmsg ( "Error writing user device\n" ) ;
 		device_close ( devPt ) ;
 		return 0 ;
 	}
@@ -205,21 +213,21 @@ static int device_open_event ( mcr_Device * devPt )
 	dassert ( devPt ) ;
 	if ( ! device_close_event ( devPt ) )
 	{
-		dmsg ( "%s\n", "Cannot close previous event file." ) ;
+		dmsg ( "Cannot close previous event file.\n" ) ;
 		return 0 ;
 	}
 	long int size ;
 	size = pathconf ( ".", _PC_PATH_MAX ) ;
 	if ( size == -1 )
 	{
-		dmsg ( "%s\n", "Cannot determine current dir length." ) ;
+		dmsg ( "Cannot determine current dir length.\n" ) ;
 		return 0 ;
 	}
 	char * wd = malloc ( size ) ;
 	char * ptr ;
 	if ( ! wd )
 	{
-		dmsg ( "%s\n", "open_event" ) ;
+		dmsg ( "open_event.\n" ) ;
 		return 0 ;
 	}
 	// Get the current working directory to return to later.
@@ -227,7 +235,7 @@ static int device_open_event ( mcr_Device * devPt )
 	UNUSED ( ptr ) ;
 	if ( ! wd || chdir ( STRINGIFY ( MCR_EVENT_PATH ) ) == -1 )
 	{
-		dmsg ( "%s\n", "open_event cd" ) ;
+		dmsg ( "open_event cd.\n" ) ;
 		free ( wd ) ;
 		return 0 ;
 	}
@@ -235,7 +243,7 @@ static int device_open_event ( mcr_Device * devPt )
 	if ( ! device_open_event_wd ( devPt ) ||
 		chdir ( wd ) == -1 )
 	{
-		dmsg ( "%s\n", "open_event" ) ;
+		dmsg ( "open_event\n" ) ;
 		free ( wd ) ;
 		return 0 ;
 	}
@@ -251,7 +259,7 @@ static int device_close ( mcr_Device * devPt )
 		if ( ioctl ( devPt->fd, UI_DEV_DESTROY ) == -1
 				|| close ( devPt->fd ) == -1 )
 		{
-			dmsg ( "%s\n", "close" ) ;
+			dmsg ( "close.\n" ) ;
 			return 0 ;
 		}
 		else
@@ -267,7 +275,7 @@ static int device_close_event ( mcr_Device * devPt )
 	{
 		if ( close ( devPt->event_fd ) == -1 )
 		{
-			dmsg ( "%s\n", "close" ) ;
+			dmsg ( "close.\n" ) ;
 			return 0 ;
 		}
 		else
@@ -282,12 +290,12 @@ static int device_open_event_wd ( mcr_Device * devPt )
 	DIR * dirp = opendir ( "." ) ;
 	if ( dirp == NULL )
 	{
-		dmsg ( "%s\n", "Error open_event_wd" ) ;
+		dmsg ( "Error open_event_wd.\n" ) ;
 		return 0 ;
 	}
 
 	char dev_name [ UINPUT_MAX_NAME_SIZE ] ;
-	dev_name [ 0 ] = '\0' ;
+	memset ( dev_name, 0, sizeof ( dev_name ) ) ;
 	struct stat s ;
 	int ret = 0 ;
 	for ( struct dirent * entry = readdir ( dirp ) ;
@@ -295,7 +303,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 	{	// if ! entry then end of directory
 		if ( stat ( entry->d_name, & s ) == -1 )
 		{
-			dmsg ( "%s\n", "Cannot stat." ) ;
+			dmsg ( "Cannot stat.\n" ) ;
 			continue ;
 		}
 		// Our uinput devices are always char devices.
@@ -313,7 +321,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 				break ;
 			if ( ! device_close_event ( devPt ) )
 			{
-				dmsg ( "%s\n", "Error closing incorrect device." ) ;
+				dmsg ( "Error closing incorrect device.\n" ) ;
 				break ;
 			}
 		}
@@ -341,11 +349,11 @@ static int device_verify_event_device ( mcr_Device * devPt,
 	// Could not retrieve name, unknown error.
 	if ( comp == -1 )
 	{
-		dmsg ( "%s\n", "Read name unknown error." ) ;
+		dmsg ( "Read name unknown error.\n" ) ;
 		// panic
 		if ( ! device_close_event ( devPt ) )
 		{
-			dmsg ( "%s\n", "Error closing incorrect device." ) ;
+			dmsg ( "Error closing incorrect device.\n" ) ;
 		}
 		return 0 ;
 	}
@@ -359,9 +367,10 @@ static void write_bit_redirect ( int * bitPt, int fd,
 {
 	dassert ( bitPt ) ;
 	dassert ( success ) ;
+	dassert ( fd != -1 ) ;
 	if ( ioctl ( fd, setBit, * bitPt ) == -1 )
 	{
-		dmsg ( "%s%d\n", "error set bit, type ", setBit ) ;
+		dmsg ( "error set bit, type %d.\n", setBit ) ;
 		 * success = 0 ;
 	}
 }
@@ -419,7 +428,7 @@ static int device_create ( mcr_Device * devPt )
 	dassert ( devPt ) ;
 	if ( ioctl ( devPt->fd, UI_DEV_CREATE ) < 0 )
 	{
-		dmsg ( "%s%d\n", "error UI_DEV_CREATE, fd ", devPt->fd ) ;
+		dmsg ( "error UI_DEV_CREATE, fd %d.\n", devPt->fd ) ;
 		return 0 ;
 	}
 
@@ -428,70 +437,70 @@ static int device_create ( mcr_Device * devPt )
 
 static int keyDevice_init ( )
 {
-	mcr_Device_init ( & mcr_KeyDev ) ;
+	mcr_Device_init ( & mcr_keyDev ) ;
 
-	snprintf ( mcr_KeyDev.device.name, UINPUT_MAX_NAME_SIZE,
+	snprintf ( mcr_keyDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macro-key" ) ;
 
-	mcr_KeyDev.device.id.bustype = BUS_USB ;
-	mcr_KeyDev.device.id.vendor = 1 ;
-	mcr_KeyDev.device.id.product = 1 ;
-	mcr_KeyDev.device.id.version = 1 ;
+	mcr_keyDev.device.id.bustype = BUS_USB ;
+	mcr_keyDev.device.id.vendor = 1 ;
+	mcr_keyDev.device.id.product = 1 ;
+	mcr_keyDev.device.id.version = 1 ;
 
 	int evbits [ ] = { EV_KEY, EV_MSC, EV_SYN } ;
-	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_EVBIT, evbits, 3 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		dmsg ( "%s\n", "key init" ) ;
+		dmsg ( "key init.\n" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = MSC_SCAN ;
-	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_MSCBIT, evbits, 1 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_MSCBIT, evbits, 1 ) )
 	{
-		dmsg ( "%s\n", "key init" ) ;
+		dmsg ( "key init.\n" ) ;
 		return 0 ;
 	}
 	int keybits [ KEY_CNT ] ;
-	for ( int i = 0 ; i < KEY_CNT ; i++ )
+	for ( int i = 1 ; i < KEY_CNT ; i++ )
 	{
 		keybits [ i ] = i ;
 	}
 
-	if ( ! mcr_Device_set_bits ( & mcr_KeyDev, UI_SET_KEYBIT, keybits,
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_KEYBIT, keybits,
 			KEY_CNT ) )
 	{
-		dmsg ( "%s\n", "key init" ) ;
+		dmsg ( "key init.\n" ) ;
 		return 0 ;
 	}
-	return mcr_Device_enable ( & mcr_KeyDev, 1 ) ;
+	return mcr_Device_enable ( & mcr_keyDev, 1 ) ;
 }
 
 static int absDevice_init ( )
 {
-	mcr_Device_init ( & mcr_AbsDev ) ;
+	mcr_Device_init ( & mcr_absDev ) ;
 
-	snprintf ( mcr_AbsDev.device.name, UINPUT_MAX_NAME_SIZE,
+	snprintf ( mcr_absDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macro-abs" ) ;
 
-	mcr_AbsDev.device.id.bustype = BUS_USB ;
-	mcr_AbsDev.device.id.vendor = 1 ;
-	mcr_AbsDev.device.id.product = 1 ;
-	mcr_AbsDev.device.id.version = 1 ;
+	mcr_absDev.device.id.bustype = BUS_USB ;
+	mcr_absDev.device.id.vendor = 1 ;
+	mcr_absDev.device.id.product = 1 ;
+	mcr_absDev.device.id.version = 1 ;
 
 	for ( int i = 0 ; i < ABS_MISC ; i++ )
 	{
-		mcr_AbsDev.device.absmax [ i ] = MCR_ABS_RESOLUTION ;
+		mcr_absDev.device.absmax [ i ] = MCR_ABS_RESOLUTION ;
 	}
 
 	int evbits [ ] = { EV_ABS, EV_KEY, EV_SYN } ;
-	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_EVBIT, evbits, 3 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = BTN_LEFT ;
-	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_KEYBIT, evbits, 1 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_KEYBIT, evbits, 1 ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
 	int absbits [ ABS_MISC ] ;
@@ -500,42 +509,42 @@ static int absDevice_init ( )
 		absbits [ i ] = i ;
 	}
 
-	if ( ! mcr_Device_set_bits ( & mcr_AbsDev, UI_SET_ABSBIT, absbits,
+	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_ABSBIT, absbits,
 			ABS_MISC ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
-	return mcr_Device_enable ( & mcr_AbsDev, 1 ) ;
+	return mcr_Device_enable ( & mcr_absDev, 1 ) ;
 }
 
 static int relDevice_init ( )
 {
-	mcr_Device_init ( & mcr_RelDev ) ;
+	mcr_Device_init ( & mcr_relDev ) ;
 
-	snprintf ( mcr_RelDev.device.name, UINPUT_MAX_NAME_SIZE,
+	snprintf ( mcr_relDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macro-rel" ) ;
 
-	mcr_RelDev.device.id.bustype = BUS_USB ;
-	mcr_RelDev.device.id.vendor = 1 ;
-	mcr_RelDev.device.id.product = 1 ;
-	mcr_RelDev.device.id.version = 1 ;
+	mcr_relDev.device.id.bustype = BUS_USB ;
+	mcr_relDev.device.id.vendor = 1 ;
+	mcr_relDev.device.id.product = 1 ;
+	mcr_relDev.device.id.version = 1 ;
 
 	for ( int i = 0 ; i < REL_MISC ; i++ )
 	{
-		mcr_RelDev.device.absmax [ i ] = MCR_ABS_RESOLUTION ;
+		mcr_relDev.device.absmax [ i ] = MCR_ABS_RESOLUTION ;
 	}
 
 	int evbits [ ] = { EV_REL, EV_KEY, EV_SYN } ;
-	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_EVBIT, evbits, 3 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
 	evbits [ 0 ] = BTN_LEFT ;
-	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_KEYBIT, evbits, 1 ) )
+	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_KEYBIT, evbits, 1 ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
 	int relbits [ REL_MISC ] ;
@@ -544,18 +553,20 @@ static int relDevice_init ( )
 		relbits [ i ] = i ;
 	}
 
-	if ( ! mcr_Device_set_bits ( & mcr_RelDev, UI_SET_RELBIT, relbits,
+	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_RELBIT, relbits,
 			REL_MISC ) )
 	{
-		dmsg ( "%s\n", "abs init" ) ;
+		dmsg ( "abs init.\n" ) ;
 		return 0 ;
 	}
-	return mcr_Device_enable ( & mcr_RelDev, 1 ) ;
+	return mcr_Device_enable ( & mcr_relDev, 1 ) ;
 }
 
 void mcr_Device_initialize ( )
 {
 	mtx_init ( & _deviceLock, mtx_plain ) ;
+	/* ioctl is unpredictable for valgrind. The first ioctl will
+	 * be uninitialized, and others should not cause errors. */
 	keyDevice_init ( ) ;
 	absDevice_init ( ) ;
 	relDevice_init ( ) ;
@@ -563,8 +574,8 @@ void mcr_Device_initialize ( )
 
 void mcr_Device_cleanup ( )
 {
-	mcr_Device_free ( & mcr_KeyDev ) ;
-	mcr_Device_free ( & mcr_AbsDev ) ;
-	mcr_Device_free ( & mcr_RelDev ) ;
+	mcr_Device_free ( & mcr_keyDev ) ;
+	mcr_Device_free ( & mcr_absDev ) ;
+	mcr_Device_free ( & mcr_relDev ) ;
 	mtx_destroy ( & _deviceLock ) ;
 }

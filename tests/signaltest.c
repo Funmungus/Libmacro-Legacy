@@ -1,3 +1,11 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "signal/signal.h"
 # include <assert.h>
@@ -125,13 +133,13 @@ void test_AllDispatch ( )
 	// Case 1 With blocking
 	dispatchBlocking = 1 ;
 	// Case 1.1 Both exist with blocking, all disp not called.
-	mcr_AllDispatch = s1alldisp ;
+	mcr_allDispatch = s1alldisp ;
 	// Blocked, send always true.
 	assert ( mcr_send ( sigs ) ) ;
 	verifyDispatched ( ) ;
 	assert ( ! alldispatchCalled ) ;
 	// Case 1.2 AllDisp null, regular exists, all disp not called.
-	mcr_AllDispatch = NULL ;
+	mcr_allDispatch = NULL ;
 	// Blocked, send always true.
 	assert ( mcr_send ( sigs ) ) ;
 	verifyDispatched ( ) ;
@@ -139,13 +147,13 @@ void test_AllDispatch ( )
 	// Case 1.3 Specific does not exist, but alldispatch does.
 	// specific not called.
 	isigs [ 0 ].dispatch = NULL ;
-	mcr_AllDispatch = s1alldisp ;
+	mcr_allDispatch = s1alldisp ;
 	// Blocked, send always true.
 	assert ( mcr_send ( sigs ) ) ;
 	assert ( ! dispatchCalled ) ;
 	verifyAllDispatched ( ) ;
 	// Case 1.4 neither exist, not blocked
-	mcr_AllDispatch = NULL ;
+	mcr_allDispatch = NULL ;
 	verifysend ( sigs ) ;
 	assert ( ! dispatchCalled ) ;
 	assert ( ! alldispatchCalled ) ;
@@ -153,33 +161,33 @@ void test_AllDispatch ( )
 	// Case 2 Not blocking
 	dispatchBlocking = 0 ;
 	// Case 2.1 Both exist, both dispatched
-	mcr_AllDispatch = s1alldisp ;
+	mcr_allDispatch = s1alldisp ;
 	isigs [ 0 ].dispatch = s1disp ;
 	verifysend ( sigs ) ;
 	verifyDispatched ( ) ;
 	verifyAllDispatched ( ) ;
 	// Case 2.2 AllDisp null, all disp not called
-	mcr_AllDispatch = NULL ;
+	mcr_allDispatch = NULL ;
 	verifysend ( sigs ) ;
 	verifyDispatched ( ) ;
 	assert ( ! alldispatchCalled ) ;
 	// Case 2.3 Spec null, spec not called
 	isigs [ 0 ].dispatch = NULL ;
-	mcr_AllDispatch = s1alldisp ;
+	mcr_allDispatch = s1alldisp ;
 	verifysend ( sigs ) ;
 	assert ( ! dispatchCalled ) ;
 	verifyAllDispatched ( ) ;
 	// Case 2.4 both null
-	mcr_AllDispatch = NULL ;
+	mcr_allDispatch = NULL ;
 	verifysend ( sigs ) ;
 	assert ( ! dispatchCalled ) ;
 	assert ( ! alldispatchCalled ) ;
 
 	// Reset
-	mcr_AllDispatch = s1alldisp ;
+	mcr_allDispatch = s1alldisp ;
 	isigs [ 0 ].dispatch = s1disp ;
 
-	printf ( "mcr_AllDispatch - OK\n" ) ;
+	printf ( "mcr_allDispatch - OK\n" ) ;
 }
 
 void test_Signal_init ( )
@@ -302,6 +310,7 @@ void test_ISignal_get_all ( )
 		mcr_ISignal * found = mcr_ISignal_get ( i ) ;
 		assert ( set [ i ] == found ) ;
 	}
+	free ( set ) ;
 
 	printf ( "mcr_ISignal_get_all - OK\n" ) ;
 }

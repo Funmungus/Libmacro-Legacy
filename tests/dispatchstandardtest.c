@@ -1,3 +1,11 @@
+/*
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 
 # include "hotkey/hotkey.h"
 # include <assert.h>
@@ -23,7 +31,7 @@ int specCalled = 0 ;
 void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int c )
 {
 	UNUSED ( a ) ; UNUSED ( b ) ;
-	assert ( c == mcr_InternalMods ) ;
+	assert ( c == mcr_internalMods ) ;
 	++ specCalled ;
 }
 
@@ -51,7 +59,7 @@ void setup ( )
 	sig.type = ( isigPt ) ; \
 	sig.data = ( dataPt ) ; \
 	pt = mcr_Dispatch_get ( id ) ; \
-	mcr_InternalMods = 0 ; \
+	mcr_internalMods = 0 ; \
 	mcr_Dispatch_clear ( pt ) ; \
 	assert ( ! pt->generics.used ) ;
 
@@ -63,7 +71,7 @@ void setup ( )
 # define TESTN( calledNumber ) \
 	specCalled = 0 ; \
 	pt->dispatch_specific ( pt, NULL, \
-			mcr_InternalMods ) ; \
+			mcr_internalMods ) ; \
 	assert ( specCalled == ( calledNumber ) ) ;
 
 # define TEST_ADDGENERIC( dispPt, addSpecFnc ) \
@@ -81,7 +89,7 @@ void setup ( )
 // Alarm is mapped from modifier only.
 void alarmTest ( )
 {
-	MSET ( & mcr_IAlarm, & alm, mcr_IAlarm.id ) ;
+	MSET ( & mcr_iAlarm, & alm, mcr_iAlarm.id ) ;
 
 	memset ( & alm, 0, sizeof ( mcr_Alarm ) ) ;
 
@@ -116,7 +124,7 @@ void alarmTest ( )
 // Echo maps modifier to echo code to hotkey.
 void echoTest ( )
 {
-	MSET ( & mcr_IHIDEcho, & echo, mcr_IHIDEcho.id ) ;
+	MSET ( & mcr_iHIDEcho, & echo, mcr_iHIDEcho.id ) ;
 
 	mcr_Echo_init_with ( & echo, MCR_ANY_MOD ) ;
 
@@ -151,7 +159,7 @@ void echoTest ( )
 // Key maps key down/up to modifier to either key or scan code to hotkey.
 void keyTest ( )
 {
-	MSET ( & mcr_IKey, & key, mcr_IKey.id ) ;
+	MSET ( & mcr_iKey, & key, mcr_iKey.id ) ;
 
 	mcr_Key_init_with ( & key, MCR_ANY_KEY, MCR_ANY_KEY, MCR_BOTH ) ;
 
@@ -211,7 +219,7 @@ void keyTest ( )
 // Absolute or absolute mapped by modifier. Justify -1 is both.
 void cursorTest ( )
 {
-	MSET ( & mcr_IMoveCursor, & mc, mcr_IMoveCursor.id ) ;
+	MSET ( & mcr_iMoveCursor, & mc, mcr_iMoveCursor.id ) ;
 
 	mcr_SpacePosition pos = { 0 } ;
 	mcr_MoveCursor_init_with ( & mc, pos, -1 ) ;
@@ -255,7 +263,7 @@ void cursorTest ( )
 // Mapped only by modifier.
 void noopTest ( )
 {
-	MSET ( & mcr_INoOp, & noop, mcr_INoOp.id ) ;
+	MSET ( & mcr_iNoOp, & noop, mcr_iNoOp.id ) ;
 
 	memset ( & noop, 0, sizeof ( mcr_NoOp ) ) ;
 
@@ -285,7 +293,7 @@ void noopTest ( )
 // Mapped only by modifier.
 void scrollTest ( )
 {
-	MSET ( & mcr_IScroll, & scr, mcr_IScroll.id ) ;
+	MSET ( & mcr_iScroll, & scr, mcr_iScroll.id ) ;
 
 	mcr_Dimensions dm = { 0 } ;
 	mcr_Scroll_init_with ( & scr, dm ) ;

@@ -1,3 +1,10 @@
+/* signal/lnx/lnxstandard.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "signal/standard.h"
 # include "signal/lnx/standard.h"
@@ -16,7 +23,8 @@ void mcr_Key_init ( mcr_Key * keyPt )
 	keyPt->events [ 0 ].type = EV_MSC ;
 	keyPt->events [ 0 ].code = MSC_SCAN ;
 	keyPt->events [ 1 ].type = EV_KEY ;
-	keyPt->events [ 2 ] = mcr_Syncer ;
+	memcpy ( keyPt->events + 2, & mcr_syncer,
+			sizeof ( struct input_event ) ) ;
 	keyPt->key_up = MCR_BOTH ;
 }
 void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
@@ -34,7 +42,7 @@ void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
 	mcPt->relvent [ MCR_Y ].code = REL_Y ;
 	mcPt->relvent [ MCR_Z ].code = REL_Z ;
 	mcPt->relvent [ MCR_DIMENSION_CNT ] =
-			mcPt->absvent [ MCR_DIMENSION_CNT ] = mcr_Syncer ;
+			mcPt->absvent [ MCR_DIMENSION_CNT ] = mcr_syncer ;
 	mcPt->cursor_justify = 1 ;
 }
 void mcr_Scroll_init ( mcr_Scroll * scrollPt )
@@ -46,9 +54,16 @@ void mcr_Scroll_init ( mcr_Scroll * scrollPt )
 	scrollPt->events [ MCR_X ].code = REL_HWHEEL ;
 	scrollPt->events [ MCR_Y ].code = REL_WHEEL ;
 	scrollPt->events [ MCR_Z ].code = REL_DIAL ;
-	scrollPt->events [ MCR_DIMENSION_CNT ] = mcr_Syncer ;
+	scrollPt->events [ MCR_DIMENSION_CNT ] = mcr_syncer ;
 }
 
+void mcr_cursor_position ( mcr_SpacePosition buffer )
+{
+	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+	{
+		buffer [ i ] = mcr_cursor [ i ] ;
+	}
+}
 
 void mcr_standard_native_initialize ( )
 {
@@ -91,18 +106,18 @@ void mcr_standard_native_initialize ( )
 		if ( success )
 		{
 			// TODO Native register.
-			mcr_Array_set ( & mcr_EchoEvents, success, & key ) ;
+			mcr_Array_set ( & mcr_EchoEvents, i, & key ) ;
 		}
 		else
 		{
-			dmsg ( "%s%s", "Unable to register echo: ", names [ i ] ) ;
+			dmsg ( "Unable to register echo: %s.\n", names [ i ] ) ;
 		}
 		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
 		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
 			success = 0 ;
 		if ( ! success )
 		{
-			dmsg ( "%s%s", "Unable to add extra name: ",
+			dmsg ( "Unable to add extra name: %s.\n",
 					extraNames [ i ] ) ;
 		}
 	}

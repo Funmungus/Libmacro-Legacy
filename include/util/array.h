@@ -1,3 +1,11 @@
+/* include/util/array.h - Dynamic, resizing array.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file util/array.h
  * \brief Dynamic resizing array, with utility functions.
  * */
@@ -208,5 +216,22 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
 		_itPt_ = MCR_ARR_NEXT ( arrPt, _itPt_ ) ; \
 	}\
 }
+
+//
+// Array string helper
+//
+MCR_API int mcr_String_insert ( mcr_Array * arrPt, size_t index,
+		const char * str, size_t len ) ;
+MCR_API int mcr_String_insert_char ( mcr_Array * arrPt, size_t index,
+		const char c ) ;
+MCR_API int mcr_String_push ( mcr_Array * arrPt, const char c ) ;
+MCR_API char mcr_String_pop ( mcr_Array * arrPt ) ;
+MCR_API int mcr_String_from_string ( mcr_Array * arrPt,
+		const char * str, size_t len ) ;
+MCR_API int mcr_String_append ( mcr_Array * arrPt,
+		const char * str, size_t len ) ;
+
+# define MCR_STR_ISEMPTY( arrPt ) \
+	( ! ( arrPt )->used || ( arrPt )->array [ 0 ] == '\0' )
 
 # endif

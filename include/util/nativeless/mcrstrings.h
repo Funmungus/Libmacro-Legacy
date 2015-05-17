@@ -1,3 +1,10 @@
+/* include/util/nativeless/mcrstrings.h
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 // case functions implemented in util/nativeless/mcrstrings.c
 MCR_API int strcasecmp ( const char * s1, const char * s2 ) ;

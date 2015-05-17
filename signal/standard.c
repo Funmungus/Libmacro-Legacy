@@ -1,12 +1,19 @@
+/* signal/standard.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "signal/standard.h"
 
-MCR_API mcr_ISignal mcr_IAlarm ;
-MCR_API mcr_ISignal mcr_IHIDEcho ;
-MCR_API mcr_ISignal mcr_IKey ;
-MCR_API mcr_ISignal mcr_IMoveCursor ;
-MCR_API mcr_ISignal mcr_INoOp ;
-MCR_API mcr_ISignal mcr_IScroll ;
+MCR_API mcr_ISignal mcr_iAlarm ;
+MCR_API mcr_ISignal mcr_iHIDEcho ;
+MCR_API mcr_ISignal mcr_iKey ;
+MCR_API mcr_ISignal mcr_iMoveCursor ;
+MCR_API mcr_ISignal mcr_iNoOp ;
+MCR_API mcr_ISignal mcr_iScroll ;
 
 //
 // Code memory
@@ -491,22 +498,22 @@ void mcr_standard_initialize ( )
 	mcr_Map_init ( & _keyMap, sizeof ( const char * ), sizeof ( int ) ) ;
 	_keyMap.compare = mcr_name_compare ;
 
-	mcr_ISignal_init ( & mcr_IAlarm, "Alarm", mcr_Alarm_send,
+	mcr_ISignal_init ( & mcr_iAlarm, "Alarm", mcr_Alarm_send,
 			sizeof ( mcr_Alarm ) ) ;
-	mcr_ISignal_init ( & mcr_IHIDEcho, "HIDEcho", mcr_Echo_send,
+	mcr_ISignal_init ( & mcr_iHIDEcho, "HIDEcho", mcr_Echo_send,
 			sizeof ( mcr_HIDEcho ) ) ;
-	mcr_ISignal_init ( & mcr_IKey, "Key", mcr_Key_send,
+	mcr_ISignal_init ( & mcr_iKey, "Key", mcr_Key_send,
 			sizeof ( mcr_Key ) ) ;
-	mcr_ISignal_init ( & mcr_IMoveCursor, "MoveCursor",
+	mcr_ISignal_init ( & mcr_iMoveCursor, "MoveCursor",
 			mcr_MoveCursor_send, sizeof ( mcr_MoveCursor ) ) ;
-	mcr_ISignal_init ( & mcr_INoOp, "NoOp", mcr_NoOp_send,
+	mcr_ISignal_init ( & mcr_iNoOp, "NoOp", mcr_NoOp_send,
 			sizeof ( mcr_NoOp ) ) ;
-	mcr_ISignal_init ( & mcr_IScroll, "Scroll", mcr_Scroll_send,
+	mcr_ISignal_init ( & mcr_iScroll, "Scroll", mcr_Scroll_send,
 			sizeof ( mcr_Scroll ) ) ;
 	mcr_ISignal * sigs [ ] =
 	{
-		& mcr_IAlarm, & mcr_IHIDEcho, & mcr_IKey,
-		& mcr_IMoveCursor, & mcr_INoOp, & mcr_IScroll
+		& mcr_iAlarm, & mcr_iHIDEcho, & mcr_iKey,
+		& mcr_iMoveCursor, & mcr_iNoOp, & mcr_iScroll
 	} ;
 	unsigned int count = sizeof ( sigs ) / sizeof ( mcr_ISignal * ) ;
 	for ( unsigned int i = 0 ; i < count ; i++ )
@@ -514,17 +521,17 @@ void mcr_standard_initialize ( )
 		sigs [ i ]->dispatch = NULL ;
 		if ( mcr_ISignal_register ( sigs [ i ] ) == ( size_t ) -1 )
 		{
-			dmsg ( "%s%s", "Unable to register signal type ",
+			dmsg ( "Unable to register signal type %s.\n",
 					sigs [ i ] [ 0 ].name ) ;
 		}
 	}
-	mcr_ISignal_add_name ( & mcr_IHIDEcho, "hid echo" ) ;
-	mcr_ISignal_add_name ( & mcr_IHIDEcho, "hid_echo" ) ;
-	mcr_ISignal_add_name ( & mcr_IHIDEcho, "echo" ) ;
-	mcr_ISignal_add_name ( & mcr_IMoveCursor, "move cursor" ) ;
-	mcr_ISignal_add_name ( & mcr_IMoveCursor, "move_cursor" ) ;
-	mcr_ISignal_add_name ( & mcr_INoOp, "no op" ) ;
-	mcr_ISignal_add_name ( & mcr_INoOp, "no_op" ) ;
+	mcr_ISignal_add_name ( & mcr_iHIDEcho, "hid echo" ) ;
+	mcr_ISignal_add_name ( & mcr_iHIDEcho, "hid_echo" ) ;
+	mcr_ISignal_add_name ( & mcr_iHIDEcho, "echo" ) ;
+	mcr_ISignal_add_name ( & mcr_iMoveCursor, "move cursor" ) ;
+	mcr_ISignal_add_name ( & mcr_iMoveCursor, "move_cursor" ) ;
+	mcr_ISignal_add_name ( & mcr_iNoOp, "no op" ) ;
+	mcr_ISignal_add_name ( & mcr_iNoOp, "no_op" ) ;
 }
 
 void mcr_standard_cleanup ( )

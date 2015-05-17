@@ -1,7 +1,14 @@
+/* signal/signal.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "signal/signal.h"
 
-MCR_API mcr_signal_fnc mcr_AllDispatch = NULL ;
+MCR_API mcr_signal_fnc mcr_allDispatch = NULL ;
 static mcr_Array _iSignalSet ;
 static mcr_Map _nameMap ;
 
@@ -43,7 +50,7 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 	size_t id = _iSignalSet.used ;
 	if ( ! mcr_Array_push ( & _iSignalSet, & newType ) )
 	{
-		dmsg ( "%s\n", "register" ) ;
+		dmsg ( "register.\n" ) ;
 		return -1 ;
 	}
 	// If successful, we can set the id.
@@ -52,7 +59,7 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 			& newType ) )
 	{
 		mcr_Array_pop ( & _iSignalSet ) ; // Remove unmapped signal.
-		dmsg ( "%s\n", "register" ) ;
+		dmsg ( "register.\n" ) ;
 		return -1 ;
 	}
 	return id ;
@@ -136,6 +143,16 @@ int mcr_name_compare ( const void * lhs, const void * rhs )
 		return lhs < rhs ? -1 : lhs > rhs ;
 	}
 	return strcasecmp ( * ( const char * const * ) lhs,
+						 * ( const char * const * ) rhs ) ;
+}
+
+int mcr_str_compare ( const void * lhs, const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+	{
+		return lhs < rhs ? -1 : lhs > rhs ;
+	}
+	return strcmp ( * ( const char * const * ) lhs,
 						 * ( const char * const * ) rhs ) ;
 }
 

@@ -1,3 +1,11 @@
+/* include/util/map.h - Use resizing arrays to map one type to another.
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file util/map.h
  * \brief Map one type to another.
  *

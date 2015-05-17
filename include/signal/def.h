@@ -1,6 +1,13 @@
+/* include/signal/def.h
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
+
 /*! \file signal/def.h
- * \brief Definitions for signals.
- */
+ * */
 
 # ifndef MCR_SIGNAL_DEFINES_H
 # define MCR_SIGNAL_DEFINES_H
@@ -52,8 +59,8 @@ typedef mcr_SpacePosition mcr_Dimensions ;
 	if ( ! ( signalPt )->type->dispatch || \
 			! ( signalPt )->type->dispatch ( ( signalPt ) ) ) \
 	{ \
-		if ( ! mcr_AllDispatch || \
-			! mcr_AllDispatch ( ( signalPt ) ) ) \
+		if ( ! mcr_allDispatch || \
+			! mcr_allDispatch ( ( signalPt ) ) ) \
 		{ \
 			if ( ! ( signalPt )->type->send ( ( signalPt ) ) ) \
 				success = 0 ; \

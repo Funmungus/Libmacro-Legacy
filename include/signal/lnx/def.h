@@ -1,18 +1,25 @@
+/* include/signal/lnx/def.h
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 /*! \def MCR_UINPUT_PATH
- * Default value for \ref Device::uinputPath when library is built.
+ * Default value for uinput node when library is built.
  * */
 # ifndef MCR_UINPUT_PATH
 # define MCR_UINPUT_PATH /dev/uinput
 # endif
 /*! \def MCR_EVENT_PATH
- * Default value for \ref Device::eventPath when library is built.
+ * Default value for device input event path when library is built.
  * */
 # ifndef MCR_EVENT_PATH
 # define MCR_EVENT_PATH /dev/input
 # endif
 /*! \def MCR_ABS_RESOLUTION
- * Default value for \ref AbsDevice::resolution when library is built.
+ * Default value for \ref mcr_AbsDev resolution when library is built.
  * Default is 65535, or 0xFFFF
  * */
 # ifndef MCR_ABS_RESOLUTION

@@ -1,3 +1,10 @@
+/* util/array.c
+ * Copyright ( C ) Jonathan Pelletier 2013
+ *
+ * This work is licensed under the Creative Commons Attribution 4.0
+ * International License. To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by/4.0/.
+ * */
 
 # include "util/array.h"
 
@@ -11,7 +18,7 @@ void mcr_Array_init ( mcr_Array * arrPt, size_t elementSize )
 void mcr_Array_free ( mcr_Array * arrPt )
 {
 	if ( ! arrPt ) return ;
-	if ( arrPt->array ) free ( arrPt->array ) ;
+	free ( arrPt->array ) ;
 	mcr_Array_init ( arrPt, arrPt->element_size ) ;
 }
 
@@ -24,7 +31,7 @@ int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
 		if ( ! mcr_Array_resize ( arrPt, arrPt->size ?
 				arrPt->size << 1 : 2 ) )
 		{
-			dmsg ( "%s", "push." ) ;
+			dmsg ( "push.\n" ) ;
 			return 0 ;
 		}
 	}
@@ -87,7 +94,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		// allocation failure
 		if ( ! mcr_Array_resize ( arrPt, pos + 1 ) )
 		{
-			dmsg ( "%s", "insert." ) ;
+			dmsg ( "insert.\n" ) ;
 			return 0 ;
 		}
 	}
@@ -97,7 +104,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		if ( ! mcr_Array_resize ( arrPt, arrPt->size ?
 				arrPt->size << 1 : 2 ) )
 		{
-			dmsg ( "%s", "insert." ) ;
+			dmsg ( "insert.\n" ) ;
 			return 0 ;
 		}
 	}
@@ -125,7 +132,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		}
 		else
 		{
-			dmsg ( "%s", "Trouble finding memmove positions." )
+			dmsg ( "Trouble finding memmove positions.\n" )
 		}
 	}
 	/* We are now either copying into pos beyond previous end,
@@ -152,7 +159,7 @@ int mcr_Array_insert_filled ( mcr_Array * arrPt, size_t pos,
 	// Structure unchanged, do not fill.
 	if ( ! mcr_Array_insert ( arrPt, pos, elementPt ) )
 	{
-		dmsg ( "%s", "insert_filled." ) ;
+		dmsg ( "insert_filled.\n" ) ;
 		return 0 ;
 	}
 	// Fill only items from arr [ prevUsed ] to arr [ curUsed-2 ] inclusive
@@ -186,7 +193,7 @@ int mcr_Array_from_array ( mcr_Array * arrPt, const void * arraySource,
 	dassert ( arraySource ) ;
 	if ( ! mcr_Array_resize ( arrPt, count ) )
 	{
-		dmsg ( "%s\n", "from_array." ) ;
+		dmsg ( "from_array.\n" ) ;
 		return 0 ;
 	}
 	memcpy ( arrPt->array, arraySource,
@@ -205,7 +212,7 @@ int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 		// If resizing, one additional to allow additional push if needed.
 		if ( ! mcr_Array_resize ( arrPt, arrPt->used + count + 1 ) )
 		{
-			dmsg ( "%s\n", "Append." ) ;
+			dmsg ( "Append.\n" ) ;
 			return 0 ;
 		}
 	}
@@ -317,21 +324,32 @@ int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 	if ( arrPt->size == newSize )
 		return 1 ;
 
-	unsigned char * newSet = ( unsigned char * ) realloc
-			( arrPt->array, newSize * arrPt->element_size ) ;
-	// If freeing all memory, only need to assure 0 count.
-	// If freeing all, then realloc will have freed,
-	// we just set to null set {0}
 	if ( ! newSize || ! arrPt->element_size )
 	{
-		mcr_Array_init ( arrPt, arrPt->element_size ) ;
+		mcr_Array_free ( arrPt ) ;
 		return 1 ;
+	}
+	unsigned char * newSet = NULL ;
+	if ( arrPt->array )
+		newSet = ( unsigned char * ) realloc
+			( arrPt->array, newSize * arrPt->element_size ) ;
+	else
+	{
+		newSet = ( unsigned char * ) malloc (
+				newSize * arrPt->element_size ) ;
+		arrPt->array = newSet ;
+		if ( arrPt->array )
+		{
+			memset ( arrPt->array, 0, newSize * arrPt->element_size ) ;
+			arrPt->size = newSize ;
+		}
+		return arrPt->array != NULL ;
 	}
 
 	// Check for errors. If errors, do not change structure.
 	if ( ! newSet )
 	{
-		dmsg ( "%s", "resize allocation error." ) ;
+		dmsg ( "resize allocation error.\n" ) ;
 		return 0 ;
 	}
 
@@ -356,4 +374,97 @@ void mcr_Array_print ( const mcr_Array * arrPt )
 		printf ( "%x%s", * i, i + 1 == end ? "" : " " ) ;
 	}
 	printf ( "\n" ) ;
+}
+
+int mcr_String_insert ( mcr_Array * arrPt, size_t index, const char * str,
+		size_t len )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	if ( MCR_STR_ISEMPTY ( arrPt ) || index >= arrPt->used - 1 )
+	{
+		return mcr_String_append ( arrPt, str, len ) ;
+	}
+	size_t min = strlen ( str ) ;
+	if ( len < min ) min = len ;
+	if ( ! mcr_Array_resize ( arrPt, arrPt->used + min ) )
+		return 0 ;
+	memmove ( arrPt->array + index + min, arrPt->array + index,
+			arrPt->used - index ) ;
+	arrPt->used = arrPt->size ;
+	memcpy ( arrPt->array + index, str, min ) ;
+	return 0 ;
+}
+
+int mcr_String_insert_char ( mcr_Array * arrPt, size_t index,
+		const char c )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	if ( MCR_STR_ISEMPTY ( arrPt ) || index >= arrPt->used - 1 )
+	{
+		return mcr_String_push ( arrPt, c ) ;
+	}
+	char nu = '\0' ;
+	if ( ! mcr_Array_push ( arrPt, & nu ) )
+		return 0 ;
+	memmove ( arrPt + index + 1, arrPt + index,
+			arrPt->used - index - 1 ) ;
+	return 1 ;
+}
+
+int mcr_String_push ( mcr_Array * arrPt, const char c )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	char pu [ ] = { c, '\0' } ;
+	if ( arrPt->used )
+		-- arrPt->used ;
+	if ( ! mcr_Array_append ( arrPt, pu, 2 ) )
+	{
+		arrPt->array [ arrPt->used - 1 ] = '\0' ;
+		return 0 ;
+	}
+	return 1 ;
+}
+
+char mcr_String_pop ( mcr_Array * arrPt )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	if ( MCR_STR_ISEMPTY ( arrPt ) )
+		return '\0' ;
+	char mem = arrPt->array [ arrPt->used - 2 ] ;
+	-- arrPt->used ;
+	arrPt->array [ arrPt->used - 1 ] = '\0' ;
+	return mem ;
+}
+
+int mcr_String_from_string ( mcr_Array * arrPt,
+		const char * str, size_t len )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	size_t min = strlen ( str ) ;
+	if ( len < min ) min = len ;
+	return mcr_Array_from_array ( arrPt, str, min ) ;
+}
+
+int mcr_String_append ( mcr_Array * arrPt,
+		const char * str, size_t len )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	if ( arrPt->used )
+		-- arrPt->used ;
+	size_t min = strlen ( str ) ;
+	if ( len < min ) min = len ;
+	char nu = '\0' ;
+	if ( ! mcr_Array_append ( arrPt, str, min ) ||
+			! mcr_Array_push ( arrPt, & nu ) )
+	{
+		arrPt->array [ arrPt->used - 1 ] = '\0' ;
+		return 0 ;
+	}
+	return 1 ;
 }
