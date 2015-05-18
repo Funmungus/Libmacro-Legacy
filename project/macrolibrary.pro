@@ -172,7 +172,7 @@ HEADERS += \
     ../include/macro.h
 
 SOURCES += \
-    ../macro.c
+    ../macrolibrary.c
 
 lnx {
     documentation.path = /usr/local/macrolibrary/doc
