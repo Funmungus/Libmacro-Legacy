@@ -21,9 +21,6 @@ typedef struct mcr_Grabber
 {
 	//! \brief File of the created input event.
 	int fd ;
-	/*! \brief Quick access to enabled state. Do not edit this value.
-	 **/
-	int is_enabled ;
 	//! \brief File path of input event.
 	mcr_Array path ;
 } mcr_Grabber ;
@@ -57,5 +54,8 @@ MCR_API void mcr_Grabber_state ( mcr_Grabber * grabPt,
 
 # define MCR_EVENTBIT( keyCode ) \
 	( 1 << ( ( keyCode ) % 8 ) )
+
+# define MCR_GRABBER_ENABLED( grabPt ) \
+	( ( grabPt )->fd != -1 )
 
 # endif

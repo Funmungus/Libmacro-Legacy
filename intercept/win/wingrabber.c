@@ -20,7 +20,6 @@ void mcr_Grabber_init ( mcr_Grabber * grabPt )
 		return ;
 	memset ( grabPt, 0, sizeof ( mcr_Grabber ) ) ;
 	mtx_init ( & grabPt->lock, mtx_plain ) ;
-	grabPt->can_enable = 1 ;
 }
 
 void mcr_Grabber_init_with ( mcr_Grabber * grabPt, int type,
@@ -38,7 +37,6 @@ void mcr_Grabber_free ( mcr_Grabber * grabPt )
 	if ( ! grabPt )
 		return ;
 	mtx_lock ( & grabPt->lock ) ;
-	grabPt->can_enable = 0 ;
 	grab_unhook ( grabPt ) ;
 	mtx_unlock ( & grabPt->lock ) ;
 	if ( grabPt->hThread )
@@ -94,7 +92,7 @@ static void enable_impl ( mcr_Grabber * grabPt, int enable )
 	{
 		/* Not already enabled, can enable, and does not have
 		 * an intercepting thread. */
-		if ( ! isEnabled && grabPt->can_enable && ! grabPt->hThread )
+		if ( ! isEnabled && ! grabPt->hThread )
 		{
 			grabPt->hThread = CreateThread ( NULL, NULL,
 					( LPTHREAD_START_ROUTINE ) thrd_receive_hooking,
@@ -103,18 +101,14 @@ static void enable_impl ( mcr_Grabber * grabPt, int enable )
 	}
 	else if ( isEnabled )
 	{
-		// If freeing we do not want to interfere.
-		if ( grabPt->can_enable )
-		{
-			/* Disabling an enabled thread. In order to disable from
-			 * a currently intercepting thread, we disable from another
-			 * thread. */
-			DWORD dwThread = 0 ;
-			HANDLE hThread = CreateThread ( NULL, NULL,
-					( LPTHREAD_START_ROUTINE ) thrd_disable,
-					( LPVOID ) grabPt, NULL, & grabPt->dwThread ) ;
-			CloseHandle ( hThread ) ;
-		}
+		/* Disabling an enabled thread. In order to disable from
+		 * a currently intercepting thread, we disable from another
+		 * thread. */
+		DWORD dwThread = 0 ;
+		HANDLE hThread = CreateThread ( NULL, NULL,
+				( LPTHREAD_START_ROUTINE ) thrd_disable,
+				( LPVOID ) grabPt, NULL, & grabPt->dwThread ) ;
+		CloseHandle ( hThread ) ;
 	}
 }
 
@@ -149,7 +143,9 @@ static DWORD WINAPI thrd_receive_hooking ( LPVOID lpParam )
 	mtx_unlock ( & me->lock ) ;
 
 	MSG message ;
-	while ( MCR_GRABBER_ENABLED ( me ) && GetMessage ( & message, NULL, 0, 0 ) ) {
+	while ( MCR_GRABBER_ENABLED ( me ) &&
+			GetMessage ( & message, NULL, 0, 0 ) )
+	{
 		TranslateMessage ( & message ) ;
 		DispatchMessage ( & message ) ;
 	}

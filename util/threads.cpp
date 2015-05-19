@@ -50,10 +50,10 @@ int thrd_create ( thrd_t * thr, thrd_start_t func, void * arg )
 
 int thrd_equal ( thrd_t lhs, thrd_t rhs )
 {
-	dassert ( lhs ) ;
-	dassert ( rhs ) ;
-	return ( ( std::thread * ) lhs )->get_id ( ) ==
-			( ( std::thread * ) rhs )->get_id ( ) ;
+	if ( lhs && rhs )
+		return ( ( std::thread * ) lhs )->get_id ( ) ==
+				( ( std::thread * ) rhs )->get_id ( ) ;
+	return ! ( lhs || rhs ) ;
 }
 
 
@@ -109,19 +109,19 @@ int mtx_init ( mtx_t * mutex, int type )
 	{
 	case mtx_recursive | mtx_timed :
 		mutex->mtx = new std::recursive_timed_mutex ;
-		mutex->type = mtx_recursive | mtx_timed ;
+		mutex->type = type ;
 		return thrd_success ;
 	case mtx_recursive :
 		mutex->mtx = new std::recursive_mutex ;
-		mutex->type = mtx_recursive ;
+		mutex->type = type ;
 		return thrd_success ;
 	case mtx_timed :
 		mutex->mtx = new std::timed_mutex ;
-		mutex->type = mtx_timed ;
+		mutex->type = type ;
 		return thrd_success ;
 	case mtx_plain :
 		mutex->mtx = new std::mutex ;
-		mutex->type = mtx_plain ;
+		mutex->type = type ;
 		return thrd_success ;
 	}
 	dmsg ( "mtx_init, incorrect type.\n" ) ;
@@ -166,7 +166,7 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 				( std::recursive_timed_mutex * ) mutex->mtx ;
 		locked = caster->try_lock_for ( sec ) ;
 		if ( ! locked )
-			return caster->try_lock_for ( nsec ) ;
+			locked = caster->try_lock_for ( nsec ) ;
 	}
 		break ;
 	case mtx_timed :
@@ -174,33 +174,40 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 		std::timed_mutex * caster = ( std::timed_mutex * ) mutex->mtx ;
 		locked = caster->try_lock_for ( sec ) ;
 		if ( ! locked )
-			return caster->try_lock_for ( nsec ) ;
+			locked = caster->try_lock_for ( nsec ) ;
 	}
 		break ;
 	default :
 		dmsg ( "mtx_timedlock, incorrect type.\n" ) ;
 		break ;
 	}
-	return locked ;
+	return locked ? thrd_success : thrd_timeout ;
 }
 
 int mtx_trylock ( mtx_t * mutex )
 {
 	dassert ( mutex ) ;
+	bool locked = false ;
 	switch ( mutex->type )
 	{
 	case mtx_recursive | mtx_timed :
-		return ( ( std::recursive_timed_mutex * ) mutex->mtx )->
+		locked = ( ( std::recursive_timed_mutex * ) mutex->mtx )->
 				try_lock ( ) ;
+		break ;
 	case mtx_recursive :
-		return ( ( std::recursive_mutex * ) mutex->mtx )->try_lock ( ) ;
+		locked = ( ( std::recursive_mutex * ) mutex->mtx )->try_lock ( ) ;
+		break ;
 	case mtx_timed :
-		return ( ( std::timed_mutex * ) mutex->mtx )->try_lock ( ) ;
+		locked = ( ( std::timed_mutex * ) mutex->mtx )->try_lock ( ) ;
+		break ;
 	case mtx_plain :
-		return ( ( std::mutex * ) mutex->mtx )->try_lock ( ) ;
+		locked = ( ( std::mutex * ) mutex->mtx )->try_lock ( ) ;
+		break ;
+	default :
+		dmsg ( "mtx_trylock, incorrect type.\n" ) ;
+		break ;
 	}
-	dmsg ( "mtx_trylock, incorrect type.\n" )
-	return false ;
+	return locked ? thrd_success : thrd_timeout ;
 }
 
 int mtx_unlock ( mtx_t * mutex )
@@ -244,7 +251,7 @@ void mtx_destroy ( mtx_t * mutex )
 		break ;
 	default :
 		dmsg ( "mtx_destroy, incorrect type.\n" ) ;
-		break ;
+		return ;
 	}
 	mutex->mtx = NULL ;
 }
@@ -277,17 +284,19 @@ int cnd_wait ( cnd_t * cond, mtx_t * mutex )
 {
 	dassert ( cond ) ;
 	dassert ( mutex ) ;
-	if ( mutex->type == mtx_plain )
+	if ( mutex->type != mtx_plain )
 	{
-		std::condition_variable * caster =
-				 * ( std::condition_variable ** ) cond ;
-		std::unique_lock<std::mutex> lock
-				( * ( ( std::mutex * ) mutex->mtx ) ) ;
-		caster->wait ( lock ) ;
-		return thrd_success ;
+		dmsg ( "cnd_wait, incorrect mutex type.\n" ) ;
+		return thrd_error ;
 	}
-	dmsg ( "cnd_wait, incorrect mutex type.\n" ) ;
-	return thrd_error ;
+
+	std::condition_variable * caster =
+			 * ( std::condition_variable ** ) cond ;
+	std::unique_lock < std::mutex > lock
+			( * ( ( std::mutex * ) mutex->mtx ),
+			std::adopt_lock_t ( ) ) ;
+	caster->wait ( lock ) ;
+	return thrd_success ;
 }
 
 int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
@@ -302,18 +311,18 @@ int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
 		return thrd_error ;
 	}
 
-	std::unique_lock < std::mutex > lock
-			( * ( ( std::mutex * ) mutex->mtx ) ) ;
+	std::condition_variable * caster =
+			 * ( ( std::condition_variable ** ) cond ) ;
 	std::chrono::seconds sec = std::chrono::seconds
 			( time_point->tv_sec ) ;
 	std::chrono::nanoseconds nsec = std::chrono::nanoseconds
 			( time_point->tv_nsec ) ;
-	std::cv_status ret = ( * ( std::condition_variable ** ) cond )->
-			wait_for ( lock, sec ) ;
-	if ( ret == std::cv_status::no_timeout )
-		return thrd_success ;
-	ret = ( * ( std::condition_variable ** ) cond )->wait_for
-			( lock, nsec ) ;
+	std::cv_status ret = std::cv_status::no_timeout ;
+	std::unique_lock < std::mutex > lock
+			( * ( ( std::mutex * ) mutex->mtx ), std::adopt_lock_t ( ) ) ;
+	ret = caster->wait_for ( lock, sec ) ;
+	if ( ret != std::cv_status::no_timeout )
+		ret = caster->wait_for ( lock, nsec ) ;
 	if ( ret == std::cv_status::no_timeout )
 		return thrd_success ;
 	return thrd_timeout ;

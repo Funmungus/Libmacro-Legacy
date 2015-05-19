@@ -162,7 +162,7 @@ int mcr_dispatch ( mcr_Signal * signalData )
 	}
 	MCR_DISPATCH_MODIFY ( & _dispatcherGeneric, signalData,
 			mcr_internalMods, block ) ;
-	if ( locked )
+	if ( locked == thrd_success )
 		mtx_unlock ( & mcr_modLock ) ;
 	return block ;
 }

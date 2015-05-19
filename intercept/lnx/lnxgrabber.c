@@ -69,15 +69,13 @@ void mcr_Grabber_set_path ( mcr_Grabber * grabPt,
 
 int mcr_Grabber_is_enabled ( mcr_Grabber * grabPt )
 {
-	grabPt->is_enabled = grabPt->fd != -1 &&
+	return MCR_GRABBER_ENABLED ( grabPt ) &&
 			! MCR_STR_ISEMPTY ( & grabPt->path ) ;
-	return grabPt->is_enabled ;
 }
 
 int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 {
 	int result ;
-	grabPt->is_enabled = 0 ;
 	if ( grabPt->fd != -1 )
 	{
 		// Valgrind false positive error.
@@ -107,6 +105,7 @@ int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 				grabPt->path.array, grabPt->fd,
 				strerror ( errno ) ) ;
 		close ( grabPt->fd ) ;
+		grabPt->fd = -1 ;
 		return 0 ;
 	}
 
@@ -116,7 +115,6 @@ int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 			* 10 /* 10 milli */ ;
 	MCR_NOOP_SEND ( & separator, result ) ;
 
-	grabPt->is_enabled = 1 ;
 	// We are now grabbing exclusively.
 	return 1 ;
 }

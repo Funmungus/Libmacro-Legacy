@@ -17,7 +17,6 @@
 
 typedef struct mcr_Grabber
 {
-	int can_enable ;
 	mtx_t lock ;
 	HMODULE hModule ;
 	HHOOK id ;
