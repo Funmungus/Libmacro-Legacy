@@ -478,22 +478,30 @@ MCR_API void mcr_standard_native_cleanup ( ) ;
 //
 // Inline send macros.
 //
+# define MCR_ALARM_QUICKSEND( alarmPt ) \
+	( thrd_sleep_until ( alarmPt ) )
 //! \brief \ref mcr_Alarm_send
 # define MCR_ALARM_SEND( alarmPt, success ) \
 	if ( thrd_sleep_until ( alarmPt ) != thrd_success ) \
 		success = 0 ;
 //! \brief \ref mcr_Echo_send
 # define MCR_ECHO_SEND( echoPt, success )
+# define MCR_ECHO_QUICKSEND( echoPt )
 //! \brief \ref mcr_Key_send
 # define MCR_KEY_SEND( keyPt, success )
+# define MCR_KEY_QUICKSEND( keyPt )
 //! \brief \ref mcr_MoveCursor_send
 # define MCR_MOVECURSOR_SEND( movePt, success )
+# define MCR_MOVECURSOR_QUICKSEND( movePt )
+# define MCR_NOOP_QUICKSEND( noopPt ) \
+	( thrd_sleep ( noopPt, NULL ) )
 //! \brief \ref mcr_NoOp_send
 # define MCR_NOOP_SEND( noopPt, success ) \
 	if ( thrd_sleep ( noopPt, NULL ) != thrd_success ) \
 		success = 0 ;
 //! \brief \ref mcr_Scroll_send
 # define MCR_SCROLL_SEND( scrollPt, success )
+# define MCR_SCROLL_QUICKSEND( scrollPt )
 
 # include STRINGIFY(signal/MCR_NATIVE_DIR/standard.h)
 

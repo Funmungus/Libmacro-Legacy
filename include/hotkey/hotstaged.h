@@ -27,9 +27,10 @@ typedef enum mcr_BlockStyle
 
 typedef struct mcr_HotStaged
 {
+	/*! \brief Inherit mcr_Hot */
 	mcr_Hot hot ;
-	mcr_Array stages ;
 	mcr_trigger_fnc on_complete ;
+	mcr_Array stages ;
 	mcr_BlockStyle style ;
 } mcr_HotStaged ;
 
@@ -39,6 +40,9 @@ MCR_API void mcr_HotStaged_init ( mcr_HotStaged * hotPt ) ;
 MCR_API void mcr_HotStaged_init_with ( mcr_HotStaged * hotPt,
 		void * data, mcr_trigger_fnc onComplete, mcr_BlockStyle style ) ;
 MCR_API void mcr_HotStaged_free ( mcr_HotStaged * hotPt ) ;
+//! \brief Staged hotkey triggers are added into \ref mcr_HotStaged#on_complete.
+MCR_API void mcr_HotStaged_set_trigger ( mcr_Hot * hotPt,
+		mcr_trigger_fnc trigger ) ;
 //
 // Stage manipulation
 //

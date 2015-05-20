@@ -27,10 +27,17 @@ typedef struct mcr_Hot
 	 * block intercepted signals.
 	 **/
 	int block ;
-	//! \brief Function to call when triggered.
-	mcr_trigger_fnc trigger ;
 	//! \brief Extra data that may or may not be used by trigger function.
 	void * data ;
+	//
+	// vtable
+	//
+	void ( * set_trigger ) ( mcr_Hot *, mcr_trigger_fnc ) ;
+	//
+	// Internal
+	//
+	//! \brief Function to call when triggered.
+	mcr_trigger_fnc trigger ;
 } mcr_Hot, mcr_Hotkey ;
 
 //! \brief mcr_Hot_init All values nullified.
@@ -38,6 +45,10 @@ MCR_API void mcr_Hot_init ( mcr_Hot * hotPt ) ;
 //! \brief mcr_Hot_init_with Initialize hotkey with values.
 MCR_API void mcr_Hot_init_with ( mcr_Hot * hotPt, int block,
 		mcr_trigger_fnc trigger, void * data ) ;
+/*! \brief Default \ref mcr_Hot#set_trigger which sets directly into
+ * \ref mcr_Hot#trigger.
+ * */
+MCR_API void mcr_Hot_set_trigger ( mcr_Hot * hotPt, mcr_trigger_fnc trigger ) ;
 /*!
  * \brief mcr_Hot_trigger Call the hotkey trigger, and get the
  * blocking status.

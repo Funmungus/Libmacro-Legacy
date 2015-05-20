@@ -114,6 +114,12 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
 	else if ( write ( ( dev ).fd, eventObjects, size ) == -1 ) \
 		success = 0 ;
 
+# define MCR_DEV_QUICKSEND( dev, eventObjects, size ) \
+	if ( ( dev ).fd != -1 ) \
+	{ \
+		write ( ( dev ).fd, eventObjects, size ) ; \
+	}
+
 /*!
  * \brief \ref MCR_DEV_SEND for single input_event.
  *

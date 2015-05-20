@@ -67,6 +67,17 @@ typedef mcr_SpacePosition mcr_Dimensions ;
 		} \
 	}
 
+# define MCR_QUICKSEND( signalPt ) \
+	if ( ! ( signalPt )->type->dispatch || \
+			! ( signalPt )->type->dispatch ( ( signalPt ) ) ) \
+	{ \
+		if ( ! mcr_allDispatch || \
+			! mcr_allDispatch ( ( signalPt ) ) ) \
+		{ \
+			( signalPt )->type->send ( ( signalPt ) ) ; \
+		} \
+	}
+
 /*!
  * \brief MCR_SEND with array of pointers to mcr_Signal
  *

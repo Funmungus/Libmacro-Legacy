@@ -19,13 +19,17 @@
  *
  * Byte size of the whole array = elementSize * size.
  * */
-typedef struct mcr_Array {
+typedef struct mcr_Array
+{
 	//! \brief Resizing array pointer.
 	unsigned char * array ;
-	//! \brief Number of elements assigned.
-	size_t used ;
 	//! \brief Number of elements assignable ( allocated zone ).
 	size_t size ;
+	//! \brief Number of elements assigned.
+	size_t used ;
+	//
+	// Internal
+	//
 	//! \brief Size of one element, in bytes.
 	size_t element_size ;
 } mcr_Array ;

@@ -26,15 +26,18 @@ typedef struct mcr_Map
 {
 	//! \brief Resizing set of all items.
 	mcr_Array set ;
-	//! \brief Size of mapping key elements.
-	size_t sizeof_first ;
-	//! \brief Size of mapped value elements.
-	size_t sizeof_second ;
+	//
+	// Internal
+	//
 	/*! \brief Comparison function
 	 * for binary search and sorting, based on key elements.
 	 * If compare is NULL, sort and search cannot be performed.
 	 **/
 	int ( * compare ) ( const void * lh_first, const void * rh_first ) ;
+	//! \brief Size of mapping key elements.
+	size_t sizeof_first ;
+	//! \brief Size of mapped value elements.
+	size_t sizeof_second ;
 } mcr_Map ;
 
 /*! \brief ctor, Size of key and size of value are both required.

@@ -17,9 +17,9 @@
 # include "hotkey/mods.h"
 
 typedef struct mcr_Dispatch mcr_Dispatch ;
-typedef void ( * mcr_dispatch_fnc ) ( mcr_Dispatch * ) ;
 typedef void ( * mcr_add_specific_fnc ) ( mcr_Dispatch *, mcr_Hot *,
 		mcr_Signal *, unsigned int ) ;
+typedef void ( * mcr_dispatch_fnc ) ( mcr_Dispatch * ) ;
 typedef int ( * mcr_dispatch_specific_fnc ) ( mcr_Dispatch *,
 		mcr_Signal *, unsigned int ) ;
 typedef void ( * mcr_remove_specific_fnc ) ( mcr_Dispatch *, mcr_Hot * ) ;
@@ -31,31 +31,34 @@ typedef unsigned int ( * mcr_modifier_provider ) ( mcr_Signal *,
  * */
 typedef struct mcr_Dispatch
 {
-	//! \brief Set of pointers to \ref mcr_Hot for generic dispatch.
-	mcr_Array generics ;
-	//! \brief Enabler for unspecific intercept.
-	int enable_unspecific ;
-	//! \brief Enabler for specific intercept.
-	int enable_specific ;
 	/*! \brief Pointer to variable which enables or disables signal
 	 * dispatch to a function. \ref mcr_ISignal#dispatch is set to
 	 * \ref mcr_dispatch by default. */
 	mcr_signal_fnc * dispatcher_pt ;
+	//! \brief Enabler for unspecific intercept.
+	int enable_unspecific ;
+	//! \brief Enabler for specific intercept.
+	int enable_specific ;
 	//
-	// Dispatch interface vtable
+	// Internal
+	//
+	//! \brief Set of pointers to \ref mcr_Hot for generic dispatch.
+	mcr_Array generics ;
+	//
+	// vtable
 	//
 	/*! \brief Add to specific hotkeys, dependant on given signal
 	 * and mods. */
 	mcr_add_specific_fnc add_specific ;
+	//! \brief Clear all specific hotkeys.
+	mcr_dispatch_fnc clear_specific ;
 	/*! \brief Dispatching function for specifics. Modifier is assumed
 	 * to already be found. */
 	mcr_dispatch_specific_fnc dispatch_specific ;
-	//! \brief Remove given hotkey from specific hotkeys.
-	mcr_remove_specific_fnc remove_specific ;
-	//! \brief Clear all specific hotkeys.
-	mcr_dispatch_fnc clear_specific ;
 	//! \brief Change modifiers by signal type.
 	mcr_modifier_provider modifier ;
+	//! \brief Remove given hotkey from specific hotkeys.
+	mcr_remove_specific_fnc remove_specific ;
 } mcr_Dispatch ;
 
 /*!
@@ -205,13 +208,13 @@ MCR_API int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
 
 /*! \brief Set the dispatch reference, and the specific add, dispatch,
  * remove, and clear functions */
-# define MCR_DISPATCH_SET( dispatchPt, dispatcherFncPt, addFnc, dispFnc, \
-		remFnc, clearFnc ) \
+# define MCR_DISPATCH_SET( dispatchPt, dispatcherFncPt, addFnc, clearFnc, dispFnc, \
+		remFnc ) \
 	( dispatchPt )->dispatcher_pt = ( dispatcherFncPt ) ; \
 	( dispatchPt )->add_specific = ( addFnc ) ; \
+	( dispatchPt )->clear_specific = ( clearFnc ) ; \
 	( dispatchPt )->dispatch_specific = ( dispFnc ) ; \
-	( dispatchPt )->remove_specific = ( remFnc ) ; \
-	( dispatchPt )->clear_specific = ( clearFnc ) ;
+	( dispatchPt )->remove_specific = ( remFnc ) ;
 
 
 # define MCR_DISPATCH( dispatchPt, interceptedPt, mods, block ) \

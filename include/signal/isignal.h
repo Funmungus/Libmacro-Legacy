@@ -38,16 +38,19 @@ typedef struct mcr_ISignal
 {
 	//! \brief Unique identifier for this signal type.
 	size_t id ;
-	//! \brief Case insensitive signal name.
-	const char * name ;
-	//! \brief Function to send, when not interrupted.
-	mcr_signal_fnc send ;
+	//
+	// Internal
+	//
+	//! \brief Byte size of a data element.
+	size_t data_size ;
 	/*! \brief Function to intercept before sending. Returns 0
 	 * it not block signals from sending, otherwise do block the signal.
 	 **/
 	mcr_signal_fnc dispatch ;
-	//! \brief Byte size of a data element.
-	size_t data_size ;
+	//! \brief Case insensitive signal name.
+	const char * name ;
+	//! \brief Function to send, when not interrupted.
+	mcr_signal_fnc send ;
 } mcr_ISignal ;
 
 /*!

@@ -37,6 +37,13 @@ void mcr_HotStaged_free ( mcr_HotStaged * hotPt )
 	mcr_Array_free ( & hotPt->stages ) ;
 }
 
+void mcr_HotStaged_set_trigger ( mcr_Hot * hotPt,
+		mcr_trigger_fnc trigger )
+{
+	dassert ( hotPt ) ;
+	( ( mcr_HotStaged * ) hotPt )->on_complete = trigger ;
+}
+
 void mcr_HotStaged_set_style ( mcr_HotStaged * hotPt,
 		mcr_BlockStyle style )
 {

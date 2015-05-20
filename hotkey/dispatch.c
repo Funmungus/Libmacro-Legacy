@@ -237,9 +237,9 @@ void mcr_DispatchGeneric_init ( )
 	mcr_Dispatch_init ( & _dispatcherGeneric ) ;
 	MCR_DISPATCH_SET ( & _dispatcherGeneric, & mcr_allDispatch,
 			mcr_DispatchGeneric_add_specific,
+			mcr_DispatchGeneric_clear,
 			mcr_DispatchGeneric_dispatch_specific,
-			mcr_DispatchGeneric_remove_specific,
-			mcr_DispatchGeneric_clear ) ;
+			mcr_DispatchGeneric_remove_specific ) ;
 	// Map modifier to address to hotkeys.
 	mcr_Map_init ( & _modAddress, sizeof ( unsigned int ),
 			sizeof ( mcr_Map ) ) ;

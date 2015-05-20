@@ -48,6 +48,21 @@ typedef struct mcr_Scroll
 
 // Key sending is needed in other macros.
 # undef MCR_KEY_SEND
+# undef MCR_KEY_QUICKSEND
+# define MCR_KEY_QUICKSEND( keyPt ) \
+	if ( ( keyPt )->key_up != MCR_UP ) \
+	{ \
+		( keyPt )->events [ 1 ].value = 1 ; \
+		MCR_DEV_QUICKSEND ( mcr_keyDev, ( keyPt )->events, \
+				sizeof ( ( keyPt )->events ) ) ; \
+	} \
+	if ( ( keyPt )->key_up != MCR_DOWN ) \
+	{ \
+		( keyPt )->events [ 1 ].value = 0 ; \
+		MCR_DEV_QUICKSEND ( mcr_keyDev, ( keyPt )->events, \
+				sizeof ( ( keyPt )->events ) ) ; \
+	}
+
 # define MCR_KEY_SEND( keyPt, success ) \
 	if ( ( keyPt )->key_up != MCR_UP ) \
 	{ \
@@ -66,6 +81,7 @@ typedef struct mcr_Scroll
 # undef MCR_ECHO_GET
 # undef MCR_ECHO_SET
 # undef MCR_ECHO_SEND
+# undef MCR_ECHO_QUICKSEND
 # define MCR_ECHO_GET( echoPt ) \
 	( echoPt )->event
 # define MCR_ECHO_SET( echoPt, code ) \
@@ -75,6 +91,17 @@ typedef struct mcr_Scroll
 	{ \
 		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
 				( unsigned int ) ( echoPt )->event ), success ) \
+	} \
+	else \
+	{ \
+		dmsg ( "Event out of range.\n" ) ; \
+	}
+
+# define MCR_ECHO_QUICKSEND( echoPt ) \
+	if ( ( size_t ) ( ( echoPt )->event ) < mcr_EchoEvents.used ) \
+	{ \
+		MCR_KEY_QUICKSEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
+				( unsigned int ) ( echoPt )->event ) ) \
 	} \
 	else \
 	{ \
@@ -109,6 +136,7 @@ typedef struct mcr_Scroll
 # undef MCR_MOVECURSOR_IS_JUSTIFY
 # undef MCR_MOVECURSOR_ENABLE_JUSTIFY
 # undef MCR_MOVECURSOR_SEND
+# undef MCR_MOVECURSOR_QUICKSEND
 # define MCR_MOVECURSOR_GET( mcPt, buffer ) \
 	( buffer ) [ MCR_X ] = ( mcPt )->relvent [ MCR_X ].value ; \
 	( buffer ) [ MCR_Y ] = ( mcPt )->relvent [ MCR_Y ].value ; \
@@ -129,11 +157,9 @@ typedef struct mcr_Scroll
 	( mcPt )->cursor_justify
 # define MCR_MOVECURSOR_ENABLE_JUSTIFY( mcPt, enable ) \
 	( mcPt )->cursor_justify = enable
-# define MCR_MOVECURSOR_SEND( mcPt, success ) \
+# define MCR_MOVECURSOR_JUSTIFY_IMPL( mcPt ) \
 	if ( ( mcPt )->cursor_justify ) \
 	{ \
-		MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
-				sizeof ( ( mcPt )->relvent ), success ) ; \
 		mcr_cursor [ MCR_X ] += ( mcPt )->relvent [ MCR_X ].value ; \
 		mcr_cursor [ MCR_Y ] += ( mcPt )->relvent [ MCR_Y ].value ; \
 		mcr_cursor [ MCR_Z ] += ( mcPt )->relvent [ MCR_Z ].value ; \
@@ -149,14 +175,38 @@ typedef struct mcr_Scroll
 			mcr_cursor [ MCR_Z ] = MCR_ABS_RESOLUTION ; \
 		else if ( mcr_cursor [ MCR_Z ] < 0 ) \
 			mcr_cursor [ MCR_Z ] = 0 ; \
+	}
+
+# define MCR_MOVECURSOR_SEND( mcPt, success ) \
+	if ( ( mcPt )->cursor_justify ) \
+	{ \
+		MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
+				sizeof ( ( mcPt )->relvent ), success ) ; \
+		MCR_MOVECURSOR_JUSTIFY_IMPL ( mcPt ) ; \
 	} \
 	else \
 	{ \
 		MCR_DEV_SEND ( mcr_absDev, ( mcPt )->absvent, \
 				sizeof ( ( mcPt )->absvent ), success ) ; \
-		mcr_cursor [ MCR_X ] += ( mcPt )->absvent [ MCR_X ].value ; \
-		mcr_cursor [ MCR_Y ] += ( mcPt )->absvent [ MCR_Y ].value ; \
-		mcr_cursor [ MCR_Z ] += ( mcPt )->absvent [ MCR_Z ].value ; \
+		mcr_cursor [ MCR_X ] = ( mcPt )->absvent [ MCR_X ].value ; \
+		mcr_cursor [ MCR_Y ] = ( mcPt )->absvent [ MCR_Y ].value ; \
+		mcr_cursor [ MCR_Z ] = ( mcPt )->absvent [ MCR_Z ].value ; \
+	}
+
+# define MCR_MOVECURSOR_QUICKSEND( mcPt ) \
+	if ( ( mcPt )->cursor_justify ) \
+	{ \
+		MCR_DEV_QUICKSEND ( mcr_relDev, ( mcPt )->relvent, \
+				sizeof ( ( mcPt )->relvent ) ) ; \
+		MCR_MOVECURSOR_JUSTIFY_IMPL ( mcPt ) ; \
+	} \
+	else \
+	{ \
+		MCR_DEV_QUICKSEND ( mcr_absDev, ( mcPt )->absvent, \
+				sizeof ( ( mcPt )->absvent ) ) ; \
+		mcr_cursor [ MCR_X ] = ( mcPt )->absvent [ MCR_X ].value ; \
+		mcr_cursor [ MCR_Y ] = ( mcPt )->absvent [ MCR_Y ].value ; \
+		mcr_cursor [ MCR_Z ] = ( mcPt )->absvent [ MCR_Z ].value ; \
 	}
 
 // mcr_Scroll
@@ -165,6 +215,7 @@ typedef struct mcr_Scroll
 # undef MCR_SCROLL_GET_DIMENSION
 # undef MCR_SCROLL_SET_DIMENSION
 # undef MCR_SCROLL_SEND
+# undef MCR_SCROLL_QUICKSEND
 # define MCR_SCROLL_GET( scrollPt, buffer ) \
 	( buffer ) [ MCR_X ] = ( scrollPt )->events [ MCR_X ].value ; \
 	( buffer ) [ MCR_Y ] = ( scrollPt )->events [ MCR_Y ].value ; \
@@ -180,5 +231,8 @@ typedef struct mcr_Scroll
 # define MCR_SCROLL_SEND( scrollPt, success ) \
 	MCR_DEV_SEND ( mcr_relDev, ( scrollPt )->events, \
 			sizeof ( ( scrollPt )->events ), success ) ;
+# define MCR_SCROLL_QUICKSEND( scrollPt ) \
+	MCR_DEV_QUICKSEND ( mcr_relDev, ( scrollPt )->events, \
+			sizeof ( ( scrollPt )->events ) ) ;
 
 # endif // MCR_LNX_STANDARD_H

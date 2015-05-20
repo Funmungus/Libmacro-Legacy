@@ -41,16 +41,18 @@ typedef struct mcr_Scroll
 # undef MCR_ECHO_GET
 # undef MCR_ECHO_SET
 # undef MCR_ECHO_SEND
+# undef MCR_ECHO_QUICKSEND
 # define MCR_ECHO_GET( echoPt ) \
 	( echoPt )->event
 # define MCR_ECHO_SET( echoPt, code ) \
 	( echoPt )->event = ( code )
-# define MCR_ECHO_SEND( echoPt, success ) \
+# define MCR_ECHO_QUICKSEND( echoPt ) \
 	if ( ( ( size_t ) ( ( echoPt )->event ) ) < mcr_EchoEvents.used ) \
 	{ \
 		mouse_event ( * ( int * ) MCR_ARR_AT ( & mcr_EchoEvents, \
 				( echoPt )->event ), 0, 0, 0, 0 ) ; \
 	}
+# define MCR_ECHO_SEND( echoPt, success ) MCR_ECHO_QUICKSEND(echoPt)
 
 # undef MCR_KEY_GET
 # undef MCR_KEY_SET
@@ -58,6 +60,7 @@ typedef struct mcr_Scroll
 # undef MCR_KEY_SET_SCAN
 # undef MCR_KEY_GET_UP_TYPE
 # undef MCR_KEY_SET_UP_TYPE
+# undef MCR_KEY_QUICKSEND
 # undef MCR_KEY_SEND
 # define MCR_KEY_GET( keyPt ) \
 	( keyPt )->key
@@ -71,7 +74,7 @@ typedef struct mcr_Scroll
 	( keyPt )->key_up
 # define MCR_KEY_SET_UP_TYPE( keyPt, _key_up_ ) \
 	( keyPt )->key_up = ( _key_up_ )
-# define MCR_KEY_SEND( keyPt, success ) \
+# define MCR_KEY_QUICKSEND( keyPt ) \
 	if ( ( keyPt )->key_up != MCR_UP ) \
 	{ \
 		keybd_event ( ( BYTE ) ( keyPt )->key, ( BYTE ) ( keyPt )->scan, \
@@ -82,6 +85,7 @@ typedef struct mcr_Scroll
 		keybd_event ( ( BYTE ) ( keyPt )->key, ( BYTE ) ( keyPt )->scan, \
 				KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0 ) ; \
 	}
+# define MCR_KEY_SEND( keyPt, success ) MCR_KEY_QUICKSEND(keyPt)
 
 # undef MCR_MOVECURSOR_GET
 # undef MCR_MOVECURSOR_SET
@@ -90,6 +94,7 @@ typedef struct mcr_Scroll
 # undef MCR_MOVECURSOR_IS_JUSTIFY
 # undef MCR_MOVECURSOR_ENABLE_JUSTIFY
 # undef MCR_MOVECURSOR_SEND
+# undef MCR_MOVECURSOR_QUICKSEND
 # define MCR_MOVECURSOR_GET( mcPt, buffer ) \
 	( buffer ) [ MCR_X ] = ( mcPt )->pos [ MCR_X ] ; \
 	( buffer ) [ MCR_Y ] = ( mcPt )->pos [ MCR_Y ] ; \
@@ -106,17 +111,20 @@ typedef struct mcr_Scroll
 	( mcPt )->cursor_justify
 # define MCR_MOVECURSOR_ENABLE_JUSTIFY( mcPt, enable ) \
 	( mcPt )->cursor_justify = enable
-# define MCR_MOVECURSOR_SEND( mcPt, success ) \
+# define MCR_MOVECURSOR_QUICKSEND( mcPt ) \
 	mouse_event ( ( mcPt )->cursor_justify ? \
 			MOUSEEVENTF_MOVE : MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, \
 			( DWORD ) ( mcPt )->pos [ MCR_X ], \
 			( DWORD ) ( mcPt )->pos [ MCR_Y ], 0, 0 ) ;
+# define MCR_MOVECURSOR_SEND( mcPt, success ) \
+	MCR_MOVECURSOR_QUICKSEND ( mcPt )
 
 # undef MCR_SCROLL_GET
 # undef MCR_SCROLL_SET
 # undef MCR_SCROLL_GET_DIMENSION
 # undef MCR_SCROLL_SET_DIMENSION
 # undef MCR_SCROLL_SEND
+# undef MCR_SCROLL_QUICKSEND
 # define MCR_SCROLL_GET( scrollPt, buffer ) \
 	( buffer ) [ MCR_X ] = ( scrollPt )->dm [ MCR_X ] ; \
 	( buffer ) [ MCR_Y ] = ( scrollPt )->dm [ MCR_Y ] ; \
@@ -129,10 +137,12 @@ typedef struct mcr_Scroll
 	( scrollPt )->dm [ pos ]
 # define MCR_SCROLL_SET_DIMENSION( scrollPt, pos, val ) \
 	( scrollPt )->dm [ pos ] = val
-# define MCR_SCROLL_SEND( scrollPt, success ) \
+# define MCR_SCROLL_QUICKSEND( scrollPt ) \
 	mouse_event ( MOUSEEVENTF_WHEEL, \
 		0, 0, ( DWORD ) ( scrollPt )->dm [ MCR_Y ], 0 ) ; \
 	mouse_event ( MOUSEEVENTF_HWHEEL, \
 		0, 0, ( DWORD ) ( scrollPt )->dm [ MCR_X ], 0 ) ;
+# define MCR_SCROLL_SEND( scrollPt, success ) \
+	MCR_SCROLL_QUICKSEND ( scrollPt )
 
 # endif // MCR_WIN_STANDARD_H

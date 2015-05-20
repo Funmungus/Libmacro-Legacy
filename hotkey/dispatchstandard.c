@@ -29,9 +29,9 @@ void mcr_DispatchAlarm_init ( mcr_Dispatch * dispPt )
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iAlarm.dispatch,
 			mcr_DispatchAlarm_add_specific,
+			mcr_DispatchAlarm_clear,
 			mcr_DispatchAlarm_dispatch_specific,
-			mcr_DispatchAlarm_remove_specific,
-			mcr_DispatchAlarm_clear ) ;
+			mcr_DispatchAlarm_remove_specific ) ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
@@ -52,9 +52,9 @@ void mcr_DispatchHIDEcho_init ( mcr_Dispatch * dispPt )
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iHIDEcho.dispatch,
 			mcr_DispatchHIDEcho_add_specific,
+			mcr_DispatchHIDEcho_clear,
 			mcr_DispatchHIDEcho_dispatch_specific,
-			mcr_DispatchHIDEcho_remove_specific,
-			mcr_DispatchHIDEcho_clear ) ;
+			mcr_DispatchHIDEcho_remove_specific ) ;
 	dispPt->modifier = mcr_HIDEcho_modify ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
@@ -84,9 +84,9 @@ void mcr_DispatchKey_init ( mcr_Dispatch * dispPt )
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iKey.dispatch,
 			mcr_DispatchKey_add_specific,
+			mcr_DispatchKey_clear,
 			mcr_DispatchKey_dispatch_specific,
-			mcr_DispatchKey_remove_specific,
-			mcr_DispatchKey_clear ) ;
+			mcr_DispatchKey_remove_specific ) ;
 	dispPt->modifier = mcr_Key_modify ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
@@ -114,9 +114,9 @@ void mcr_DispatchMoveCursor_init ( mcr_Dispatch * dispPt )
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iMoveCursor.dispatch,
 			mcr_DispatchMoveCursor_add_specific,
+			mcr_DispatchMoveCursor_clear,
 			mcr_DispatchMoveCursor_dispatch_specific,
-			mcr_DispatchMoveCursor_remove_specific,
-			mcr_DispatchMoveCursor_clear ) ;
+			mcr_DispatchMoveCursor_remove_specific ) ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
@@ -137,9 +137,9 @@ void mcr_DispatchNoOp_init ( mcr_Dispatch * dispPt )
 	if ( ! dispPt ) return ;
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iNoOp.dispatch,
-			mcr_DispatchNoOp_add_specific,
+			mcr_DispatchNoOp_add_specific, mcr_DispatchNoOp_clear,
 			mcr_DispatchNoOp_dispatch_specific,
-			mcr_DispatchNoOp_remove_specific, mcr_DispatchNoOp_clear ) ;
+			mcr_DispatchNoOp_remove_specific ) ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
@@ -160,9 +160,9 @@ void mcr_DispatchScroll_init ( mcr_Dispatch * dispPt )
 	mcr_Dispatch_init ( dispPt ) ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iScroll.dispatch,
 			mcr_DispatchScroll_add_specific,
+			mcr_DispatchScroll_clear,
 			mcr_DispatchScroll_dispatch_specific,
-			mcr_DispatchScroll_remove_specific,
-			mcr_DispatchScroll_clear ) ;
+			mcr_DispatchScroll_remove_specific ) ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
@@ -182,9 +182,9 @@ void mcr_DispatchMod_init ( mcr_Dispatch * dispPt )
 	if ( ! dispPt ) return ;
 	MCR_DISPATCH_SET ( dispPt, & mcr_iMod.dispatch,
 			mcr_DispatchMod_add_specific,
+			mcr_DispatchMod_clear,
 			mcr_DispatchMod_dispatch_specific,
-			mcr_DispatchMod_remove_specific,
-			mcr_DispatchMod_clear ) ;
+			mcr_DispatchMod_remove_specific ) ;
 	mcr_Dispatch_enable_auto ( dispPt ) ;
 }
 
