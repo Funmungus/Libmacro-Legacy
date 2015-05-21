@@ -167,6 +167,14 @@ HEADERS += \
     ../include/intercept/nativeless/def.h
 }
 
+# agnostic macro
+HEADERS += \
+    ../include/macro/def.h \
+    ../include/macro/macro.h
+
+SOURCES += \
+    ../macro/macro.c
+
 # wrapper header and init/cleanup
 HEADERS += \
     ../include/macro.h

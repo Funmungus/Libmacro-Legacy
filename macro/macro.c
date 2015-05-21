@@ -1,4 +1,4 @@
-/*
+/* macro/macro.c - Trigger a set of signals from a hotkey.
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -6,242 +6,256 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-
 # include "macro/macro.h"
 
-namespace macro
+static int thread_macro ( void * ) ;
+static int thread_wait_reset ( void * ) ;
+
+# define set_macro_trigger( hotPt, trig, mcrPt ) \
+	if ( ( hotPt )->set_trigger ) \
+		( hotPt )->set_trigger ( hotPt, trig ) ; \
+	else \
+		( hotPt )->trigger = trig ; \
+	( hotPt )->data = mcrPt ;
+
+# define resetthread( mcrPt ) \
+{ \
+	thrd_t trd ; \
+	if ( thrd_create ( & trd, thread_wait_reset, mcrPt ) == \
+			thrd_success ) \
+	{ \
+		if ( thrd_detach ( trd ) != thrd_success ) \
+		{ \
+			dmsg ( "Error detaching macro reset thread.\n" ) ; \
+		} \
+		( mcrPt )->queued = 0 ; \
+	} \
+}
+
+void mcr_Macro_init ( mcr_Macro * mcrPt )
 {
-	const std::string Macro::name = "macro" ;
+	if ( ! mcrPt )
+		return ;
+	memset ( mcrPt, 0, sizeof ( mcr_Macro ) ) ;
+	mtx_init ( & mcrPt->lock, mtx_plain ) ;
+	cnd_init ( & mcrPt->cnd ) ;
+	mcr_Array_init ( & mcrPt->signal_set, sizeof ( mcr_Signal ) ) ;
+	mcrPt->thread_max = 1 ;
+}
 
-	Macro::Macro ( std::string name, IHotkey * hotkey,
-				std::vector < std::unique_ptr < ISignal > > * signalSet,
-				const bool enable, const bool sticky )
-		: _name ( name ), _hotkey ( nullptr ), _signalSet ( ), _enable ( false ),
-		_sticky ( sticky )
-	{
-		setHotkey ( hotkey ) ;
-		setSignals ( signalSet ) ;
-		this->enable ( enable ) ;
-	}
-	Macro::Macro ( const Macro & copytron )
-		: _name ( copytron._name ), _hotkey ( nullptr ), _signalSet ( ),
-		_enable ( false ), _sticky ( copytron._sticky )
-	{
-		setHotkey ( copytron._hotkey.get ( ) ) ;
-		setSignals ( & copytron._signalSet ) ;
-		enable ( copytron._enable ) ;
-	}
+void mcr_Macro_init_with ( mcr_Macro * mcrPt,
+		int sticky, unsigned int threadMax, mcr_Hot * hotPt,
+		mcr_Signal * signalSet, size_t signalCount, int enable )
+{
+	if ( ! mcrPt )
+		return ;
+	mcr_Macro_init ( mcrPt ) ;
+	mcrPt->sticky = sticky ;
+	mcrPt->thread_max = threadMax ;
+	mcr_Macro_set_hotkey ( mcrPt, hotPt ) ;
+	mcr_Macro_set_signals ( mcrPt, signalSet, signalCount ) ;
+	mcr_Macro_enable ( mcrPt, enable ) ;
+}
 
-	Macro & Macro::operator= ( const Macro & copytron )
+void mcr_Macro_free ( mcr_Macro * mcrPt )
+{
+	if ( ! mcrPt )
+		return ;
+	mtx_lock ( & mcrPt->lock ) ;
+	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
+	while ( mcrPt->threads )
 	{
-		if ( & copytron != this )
-		{
-			_name = copytron._name ;
-			_sticky = copytron._sticky ;
-			setHotkey ( copytron._hotkey.get ( ) ) ;
-			setSignals ( & copytron._signalSet ) ;
-			enable ( copytron._enable ) ;
-		}
-		return * this ;
+		cnd_wait ( & mcrPt->cnd, & mcrPt->lock ) ;
+		mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
 	}
+	mtx_unlock ( & mcrPt->lock ) ;
+	cnd_destroy ( & mcrPt->cnd ) ;
+	mtx_destroy ( & mcrPt->lock ) ;
+	mcr_Array_free ( & mcrPt->signal_set ) ;
+}
 
-	Macro::~Macro ( )
+void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt, mcr_Hot * hotPt )
+{
+	dassert ( mcrPt ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	int enableRet = mcrPt->interruptor != MCR_INTERRUPT_DISABLE ;
+	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
+	if ( mcrPt->hot_pt )
 	{
-		interrupt ( ) ;
+		set_macro_trigger ( mcrPt->hot_pt, NULL, NULL ) ;
 	}
+	if ( hotPt )
+	{
+		set_macro_trigger ( hotPt, mcr_Macro_trigger, mcrPt ) ;
+	}
+	mcrPt->hot_pt = hotPt ;
+	if ( enableRet )
+	{
+		mcrPt->interruptor = MCR_INTERRUPT_ALL ;
+		resetthread ( mcrPt ) ;
+	}
+	mtx_unlock ( & mcrPt->lock ) ;
+}
 
-	std::string Macro::getName ( ) const
+void mcr_Macro_interrupt ( mcr_Macro * mcrPt,
+		mcr_Interrupt interruptType )
+{
+	dassert ( mcrPt ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	// Enable or disable, just make it happen.
+	// Interrupt one or all, do not change from disabled.
+	mcr_Interrupt prev = mcrPt->interruptor ;
+	if ( ! interruptType || interruptType == MCR_INTERRUPT_DISABLE ||
+			prev != MCR_INTERRUPT_DISABLE )
 	{
-		return _name ;
-	}
-	void Macro::setName ( const std::string & name )
-	{
-		_name = name ;
-	}
-
-	void Macro::getHotkey
-		( std::unique_ptr < IHotkey > * outVal ) const
-	{
-		if ( outVal != NULL )
+		mcrPt->interruptor = interruptType ;
+		/* Only start up a reset thread if not previously
+		 * waiting for all signals to be interrupted, and
+		 * we need now to wait for all to be interrupted.
+		 **/
+		if ( interruptType == MCR_INTERRUPT_ALL &&
+				prev != MCR_INTERRUPT_ALL )
 		{
-			ISignal * tmp = SignalFactory::copy
-					( dynamic_cast < ISignal * > ( _hotkey.get ( ) ) ) ;
-			outVal->reset ( reinterpret_cast < IHotkey * > ( tmp ) ) ;
-		}
-	}
-	void Macro::setHotkey ( const IHotkey * inVal )
-	{
-		ISignal * tmp = SignalFactory::copy
-				( dynamic_cast < const ISignal * > ( inVal ) ) ;
-		IHotkey * obj = reinterpret_cast < IHotkey * > ( tmp ) ;
-		if ( obj != NULL )
-		{
-			obj->setCallbackObject ( this ) ;
-			obj->enable ( _enable ) ;
-			_hotkey.reset ( obj ) ;
-		}
-	}
-	bool Macro::isEnabled ( ) const
-	{
-		if ( _hotkey.get ( ) == NULL )
-		{
-			return false ;
-		}
-		else
-		{
-			return _enable && _hotkey->isEnabled ( ) ;
-		}
-	}
-	void Macro::enable ( const bool enable )
-	{
-		_enable = enable ;
-		if ( _hotkey.get ( ) != NULL )
-		{
-			_hotkey->enable ( enable ) ;
+			resetthread ( mcrPt ) ;
 		}
 	}
-	bool Macro::isSticky ( ) const
-	{
-		return _sticky ;
-	}
-	void Macro::setSticky ( const bool sticky )
-	{
-		_sticky = sticky ;
-	}
-	bool Macro::isRunning ( ) const
-	{
-		return _continuing ;
-	}
-	void Macro::interrupt ( )
-	{
-		_continuing = false ;
-		_triggerLock.lock ( ) ;
-		_continuing = false ;
-		_triggerLock.unlock ( ) ;
-	}
+	mtx_unlock ( & mcrPt->lock ) ;
+}
 
-	void Macro::getSignals ( std::vector < std::unique_ptr < ISignal > > * outVal ) const
+void mcr_Macro_get_signals ( mcr_Macro * mcrPt,
+		mcr_Signal * signalbuffer, size_t bufferCount )
+{
+	dassert ( mcrPt ) ;
+	dassert ( signalbuffer ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	mcr_Signal * arr = ( mcr_Signal * ) mcrPt->signal_set.array ;
+	for ( size_t i = 0 ; i < mcrPt->signal_set.used &&
+			i < bufferCount ; i ++ )
 	{
-		if ( outVal == NULL ) return ;
+		signalbuffer [ i ] = arr [ i ] ;
+	}
+	mtx_unlock ( & mcrPt->lock ) ;
+}
 
-		outVal->clear ( ) ;
-		for ( auto it = _signalSet.begin ( ) ; it != _signalSet.end ( ) ; it++ )
+void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
+		mcr_Signal * signalSet, size_t signalCount )
+{
+	dassert ( mcrPt ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	int enableRet = mcrPt->interruptor != MCR_INTERRUPT_DISABLE ;
+	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
+	mcr_Array_from_array ( & mcrPt->signal_set, signalSet, signalCount ) ;
+	if ( enableRet )
+	{
+		mcrPt->interruptor = MCR_INTERRUPT_ALL ;
+		resetthread ( mcrPt ) ;
+	}
+	mtx_unlock ( & mcrPt->lock ) ;
+}
+
+void mcr_Macro_enable ( mcr_Macro * mcrPt, int enable )
+{
+	dassert ( mcrPt ) ;
+	mcr_Macro_interrupt ( mcrPt, enable ? MCR_CONTINUE :
+			MCR_INTERRUPT_DISABLE ) ;
+}
+
+void mcr_Macro_trigger ( mcr_Hot * hotPt, mcr_Signal * sigPt,
+		unsigned int mods )
+{
+	dassert ( hotPt ) ;
+	UNUSED ( sigPt ) ;
+	UNUSED ( mods ) ;
+	mcr_Macro * mcrPt = hotPt->data ;
+	mtx_lock ( & mcrPt->lock ) ;
+	/* If intercepting one, then having at least one thread will
+	 * deal with decrementing queued count.
+	 **/
+	if ( ! mcrPt->interruptor || mcrPt->interruptor == MCR_INTERRUPT )
+	{
+		++ mcrPt->queued ;
+		if ( ! mcrPt->thread_max || mcrPt->thread_max == -1 )
+			mcrPt->thread_max = 1 ;
+		// Intercept one - start thread if none currently.
+		// No intercept - start thread if max not reached.
+		if ( mcrPt->interruptor ? ! mcrPt->threads :
+				mcrPt->threads < mcrPt->thread_max )
 		{
-			ISignal * obj = SignalFactory::copy ( it->get ( ) ) ;
-			if ( obj != NULL )
+			// TODO: Possible unused threads if only one queued item.
+			thrd_t trd ;
+			if ( thrd_create ( & trd, thread_macro, mcrPt ) ==
+					thrd_success )
 			{
-				outVal->push_back ( std::unique_ptr<ISignal> ( obj ) ) ;
+				++ mcrPt->threads ;
+				if ( thrd_detach ( trd ) != thrd_success )
+				{
+					dmsg ( "Error detaching macro thread.\n" ) ;
+				}
 			}
 		}
 	}
-	void Macro::setSignals
-		( const std::vector < std::unique_ptr < ISignal > > * inVal )
+	mtx_unlock ( & mcrPt->lock ) ;
+}
+
+# define ceptloop( mcrPt ) \
+	( ! ( mcrPt )->interruptor || ( mcrPt )->interruptor == \
+			MCR_INTERRUPT )
+
+static int thread_macro ( void * data )
+{
+	mcr_Macro * mcrPt = data ;
+	mcr_Signal * it, * end ;
+	dassert ( mcrPt ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	// Loop only while interceptor states continue, or only one.
+	// Loop only while triggers queued, or last thread is sticky.
+	while ( ceptloop ( mcrPt ) && ( mcrPt->queued ||
+			( mcrPt->sticky && mcrPt->threads == 1 ) ) )
 	{
-		_signalSet.clear ( ) ;
-
-		if ( inVal == NULL ) return ;
-
-		for ( auto it = inVal->begin ( ) ; it != inVal->end ( ) ; it++ )
+		if ( mcrPt->queued )
+			-- mcrPt->queued ;
+		mtx_unlock ( & mcrPt->lock ) ;
+		// If sig set is changed, all threads should end.
+		it = MCR_ARR_AT ( & mcrPt->signal_set, 0 ) ;
+		end = MCR_ARR_END ( & mcrPt->signal_set ) ;
+		while ( ceptloop ( mcrPt ) && it < end )
 		{
-			ISignal * obj = SignalFactory::copy ( it->get ( ) ) ;
-			if ( obj != NULL )
+			if ( mcrPt->interruptor == MCR_INTERRUPT &&
+					mtx_trylock ( & mcrPt->lock ) )
 			{
-				_signalSet.push_back ( std::unique_ptr<ISignal> ( obj ) ) ;
+				/* Interrupt may change before locking. */
+				if ( mcrPt->interruptor == MCR_INTERRUPT )
+				{
+					mcrPt->interruptor = MCR_CONTINUE ;
+					mtx_unlock ( & mcrPt->lock ) ;
+					break ;
+				}
 			}
+			MCR_QUICKSEND ( it ) ;
 		}
+		mtx_lock ( & mcrPt->lock ) ;
 	}
-	void Macro::setSignals ( const ISignal * vals, const size_t len )
-	{
-		_signalSet.clear ( ) ;
+	// Is locked.
+	-- mcrPt->threads ;
+	cnd_broadcast ( & mcrPt->cnd ) ;
+	mtx_unlock ( & mcrPt->lock ) ;
+	return thrd_success ;
+}
 
-		if ( vals == NULL ) return ;
-
-		for ( size_t i = 0 ; i < len ; i++ )
-		{
-			ISignal * obj = SignalFactory::copy ( & vals [ i ] ) ;
-			if ( obj != NULL )
-			{
-				_signalSet.push_back ( std::unique_ptr<ISignal> ( obj ) ) ;
-			}
-		}
-	}
-	void Macro::removeSignal ( const size_t pos )
+static int thread_wait_reset ( void * data )
+{
+	mcr_Macro * mcrPt = data ;
+	dassert ( mcrPt ) ;
+	mtx_lock ( & mcrPt->lock ) ;
+	while ( mcrPt->threads && mcrPt->interruptor == MCR_INTERRUPT_ALL )
 	{
-		if ( pos < _signalSet.size ( ) )
-		{
-			_signalSet.erase ( _signalSet.begin ( ) +pos ) ;
-		}
+		cnd_wait ( & mcrPt->cnd, & mcrPt->lock ) ;
 	}
-	void Macro::push_back ( const ISignal * val )
+	// Either no threads or interrupt has changed.
+	if ( mcrPt->interruptor == MCR_INTERRUPT_ALL )
 	{
-		if ( val != NULL )
-		{
-			ISignal * obj = SignalFactory::copy ( val ) ;
-			_signalSet.push_back ( std::unique_ptr<ISignal> ( obj ) ) ;
-		}
+		mcrPt->interruptor = MCR_CONTINUE ;
 	}
-	std::unique_ptr < ISignal > Macro::pop_back ( )
-	{
-		std::unique_ptr < ISignal > pt ;
-		pt.swap ( * ( _signalSet.rbegin ( ) ) ) ;
-		_signalSet.pop_back ( ) ;
-		return std::move ( pt ) ;
-	}
-
-	std::string Macro::type ( ) const
-	{
-		return name ;
-	}
-	std::string Macro::xml ( const std::string & extraAttributes ) const
-	{
-		std::string modori = "<" ;
-
-		modori.append ( name ) ;
-		if ( ! extraAttributes.empty ( ) )
-			modori.append ( " " ).append ( extraAttributes ) ;
-
-		modori.append ( ">\n" )
-			.append ( "<name>" ).append ( _name ).append ( "</name>\n" )
-			.append ( "<enable>" ).append ( std::to_string ( _enable ) ).append ( "</enable>\n" )
-			.append ( "<sticky>" ).append ( std::to_string ( _sticky ) ).append ( "</sticky>\n" ) ;
-		ISignal * tmp = dynamic_cast < ISignal * > ( _hotkey.get ( ) ) ;
-		if ( tmp != NULL )
-		{
-			modori.append ( tmp->xml ( "name=\"hotkey\"" ) ).append ( "\n" ) ;
-		}
-		if ( ! _signalSet.empty ( ) )
-		{
-			modori.append ( "<set>" ) ;
-			for ( auto it = _signalSet.begin ( ) ; it != _signalSet.end ( ) ; it ++ )
-			{
-				modori.append ( ( * it )->xml ( ) ).append ( "\n" ) ;
-			}
-			modori.append ( "</set>\n" ) ;
-		}
-		modori.append ( "</" ).append ( name ).append ( ">\n" ) ;
-
-		return modori ;
-	}
-	void Macro::receive ( const std::string & name, const std::string & value )
-	{
-		bool bVal ;
-		if ( containsAt ( name.c_str ( ), 0, "name", true ) )
-		{
-			_name = value ;
-		}
-		else if ( containsAt ( name.c_str ( ), 0, "enable", true ) )
-		{
-			if ( convertBool ( value, & bVal ) )
-			{
-				enable ( bVal ) ;
-			}
-		}
-		else if ( containsAt ( name.c_str ( ), 0, "sticky", true ) )
-		{
-			if ( convertBool ( value, & bVal ) )
-			{
-				setSticky ( bVal ) ;
-			}
-		}
-	}
+	mtx_unlock ( & mcrPt->lock ) ;
+	return thrd_success ;
 }

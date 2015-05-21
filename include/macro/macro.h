@@ -1,4 +1,4 @@
-/*
+/* include/macro/macro.h - Trigger a set of signals from a hotkey.
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -16,144 +16,70 @@
 
 # include "macro/def.h"
 
-namespace macro
+typedef enum mcr_Interrupt
 {
-	// ! \brief When the hotkey is triggered its set of signals is sent
-	// ! \brief one after another.
-	class Macro : public ISignal
-	{
-	public :
-		// ! \brief \ref ISignal::name
-		static const std::string name ;
+	//! \brief Able to trigger.
+	MCR_CONTINUE = 0,
+	/*! \brief One queued macro from one thread will cancel.
+	 * After one is cancelled, MCR_CONTINUE is set.
+	 **/
+	MCR_INTERRUPT,
+	/*! \brief All threads will cancel all queued items.
+	 * After all are cancelled, MCR_CONTINUE is set.
+	 **/
+	MCR_INTERRUPT_ALL,
+	//! \brief Not able to trigger.
+	MCR_INTERRUPT_DISABLE
+} mcr_Interrupt ;
 
-		// ! \brief ctor
-		Macro ( std::string name = "", IHotkey * hotkey = NULL,
-				std::vector < std::unique_ptr < ISignal > > * signalSet = NULL,
-				const bool enable = false, const bool sticky = false ) ;
-		// ! \brief ctor
-		Macro ( const Macro & copytron ) ;
-		Macro & operator= ( const Macro & copytron ) ;
-		// ! \brief dtor
-		~Macro ( ) ;
+typedef struct mcr_Macro
+{
+	int sticky ;
+	unsigned int thread_max ;
+	//
+	// Internal
+	//
+	cnd_t cnd ;
+	mcr_Hot * hot_pt ;
+	mcr_Interrupt interruptor ;
+	mtx_t lock ;
+	mcr_Array signal_set ;
+	unsigned int threads ;
+	unsigned int queued ;
+} mcr_Macro ;
 
-		// ! \brief Get the user-defined name of this macro.
-		std::string getName ( ) const ;
-		// ! \brief Set the user-defined name of this macro.
-		void setName ( const std::string & name ) ;
-		// ! \brief Get the hotkey used to trigger this macro.
-		void getHotkey
-			( std::unique_ptr < IHotkey > * outVal ) const ;
-		// ! \brief Set the hotkey used to trigger this macro.
-		void setHotkey ( const IHotkey * inVal ) ;
-		// ! \brief True for being able to trigger the signal set.
-		bool isEnabled ( ) const ;
-		// ! \brief True for being able to trigger the signal set.
-		void enable ( const bool enable ) ;
-		// ! \brief True if sending is repeated until interrupt is called.
-		bool isSticky ( ) const ;
-		// ! \brief Set with true to repeat sending until interrupt is called.
-		void setSticky ( const bool sticky ) ;
-		// ! \brief True if currently sending contained signal set.
-		bool isRunning ( ) const ;
-		// ! \brief If currently runnint, this will interrupt execution after
-		// ! \brief the current signal is sent.
-		void interrupt ( ) ;
+MCR_API void mcr_Macro_init ( mcr_Macro * mcrPt ) ;
+MCR_API void mcr_Macro_init_with ( mcr_Macro * mcrPt,
+		int sticky, unsigned int threadMax, mcr_Hot * hotPt,
+		mcr_Signal * signalSet, size_t signalCount, int enable ) ;
+MCR_API void mcr_Macro_free ( mcr_Macro * mcrPt ) ;
+/*! \brief Set the macro hotkey.
+ *
+ * This will also install this macro into the hotkey. That means
+ * \ref mcr_Macro_trigger will be set with \ref mcr_Hot#set_trigger.
+ * This macro will also be removed from the previous hotkey.
+ * \param mcrPt This will be set into \ref mcr_Hot#data.
+ * */
+MCR_API void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt, mcr_Hot * hotPt ) ;
+/*! \brief Stop macro execution according to \ref mcr_Interrupt.
+ * */
+MCR_API void mcr_Macro_interrupt ( mcr_Macro * mcrPt,
+		mcr_Interrupt interruptType ) ;
+//! \brief Copy all macro signals into a buffer.
+MCR_API void mcr_Macro_get_signals ( mcr_Macro * mcrPt,
+		mcr_Signal * signalbuffer, size_t bufferCount ) ;
+/*! \brief Set all signals for this macro. To avoid buffer overflow,
+ * the macro will be completely disabled while modifying the set
+ * of signals.
+ * */
+MCR_API void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
+		mcr_Signal * signalSet, size_t signalCount ) ;
+MCR_API void mcr_Macro_enable ( mcr_Macro * mcrPt, int enable ) ;
+//! \brief Macro function called for hotkey trigger.
+MCR_API void mcr_Macro_trigger ( mcr_Hot * hotPt, mcr_Signal * sigPt,
+		unsigned int mods ) ;
 
-
-		//
-		// Signal Set
-		//
-
-		// ! \brief outVal is populated with copies of this macro's signal set.
-		void getSignals ( std::vector < std::unique_ptr < ISignal > > * outVal ) const ;
-		// ! \brief Set this macro's signal set as the same values from inVal.
-		void setSignals ( const std::vector < std::unique_ptr < ISignal > > * inVal ) ;
-		// ! \brief Add one signal at index of pos.
-		void setSignals ( const ISignal * vals, const size_t len ) ;
-		// ! \brief Remove the signal at pos.
-		void removeSignal ( const size_t pos ) ;
-		// ! \brief Add a signal to the end of current set.
-		void push_back ( const ISignal * val ) ;
-		// ! \brief Remove the signal at the end of current set.
-		std::unique_ptr < ISignal > pop_back ( ) ;
-
-		/* ISignal impl */
-		/*! \brief \ref Macro::name */
-		std::string type ( ) const ;
-		/*! \brief Tag : \ref Macro::name
-		 *
-		 * \ref ISignal#xml ( ) const
-		 * Other tags : name, \ref ISignal#type ( ) const, set, enable, sticky
-		 * set child tags : \ref ISignal#type ( )
-		 */
-		std::string xml ( const std::string & extraAttributes = "" ) const ;
-		// ! \brief \ref ISignal#receive ( const std::string &, const std::string )
-		void receive ( const std::string & name, const std::string & value ) ;
-
-		/*!
-		 * \brief send Send all signals in a set.
-		 *
-		 * Sends \ref Macro#sendCurrentThread ( ) in separate thread.
-		 **/
-		inline bool send ( )
-		{
-			std::thread trd ( & Macro::sendCurrentThread, this ) ;
-			trd.detach ( ) ;
-			return true ;
-		}
-		/*!
-		 * \brief sendCurrentThread Send all signals in a set.
-		 * If this macro is sticky, this will be repeated until
-		 * \ref Macro#interrupt ( )
-		 */
-		inline void sendCurrentThread ( )
-		{
-			_continuing = true ;
-			while ( ! _triggerLock.try_lock ( ) )
-			{
-				if ( ! _continuing )
-				{
-					return ;
-				}
-			}
-			// Now locked and continuing.
-			if ( _sticky )
-			{
-				while ( _continuing )
-				{
-					trigger ( ) ;
-					if ( ! _continuing )
-					{
-						_triggerLock.unlock ( ) ;
-						return ;
-					}
-				}
-			}
-			else
-				trigger ( ) ;
-
-			_continuing = false ;
-			_triggerLock.unlock ( ) ;
-		}
-	private :
-		std::string _name ;
-		std::unique_ptr < IHotkey > _hotkey ;
-		std::vector < std::unique_ptr < ISignal > > _signalSet ;
-		bool _enable ;
-		bool _sticky ;
-
-		bool _continuing ;
-		std::mutex _triggerLock ;
-		inline void trigger ( )
-		{
-			for ( auto it = _signalSet.begin ( ) ;
-				it != _signalSet.end ( ) ; it++ )
-			{
-				if ( ! _continuing ) return ;
-				( * it )->send ( ) ;
-			}
-		}
-	} ;
-}
+# define MCR_MACRO_ENABLED( mcrPt ) \
+	( ! ( mcrPt )->interruptor )
 
 # endif

@@ -1,4 +1,4 @@
-/*
+/* include/macro/def.h
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -12,12 +12,6 @@
 
 # ifndef MCR_MACRO_DEFINES_H
 # define MCR_MACRO_DEFINES_H
-
-# ifdef WIN
-# ifdef _MSC_VER
-# define _CRT_SECURE_NO_WARNINGS
-# endif
-# endif
 
 # include "hotkey/hotkey.h"
 
