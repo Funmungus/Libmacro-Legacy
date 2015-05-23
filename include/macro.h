@@ -1,4 +1,4 @@
-/* macro.h - Include all macrolibrary modules.
+/* include/macro.h - Include all macrolibrary modules.
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -15,7 +15,19 @@
  * as a public, open source project when it is ready.
  * */
 
-# include "intercept/intercept.h"
+# ifdef __cplusplus
+extern "C" {
+# endif
 
-MCR_API void mcr_macro_initialize ( ) ;
-MCR_API void mcr_macro_cleanup ( void ) ;
+# include "intercept/intercept.h"
+# include "macro/macro.h"
+# ifdef MCR_EXTRAS
+# include "extras/extras.h"
+# endif
+
+MCR_API void mcr_library_initialize ( int loadContracts ) ;
+MCR_API void mcr_library_cleanup ( void ) ;
+
+# ifdef __cplusplus
+}
+# endif
