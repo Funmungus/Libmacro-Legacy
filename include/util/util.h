@@ -14,22 +14,16 @@
 # define MCR_UTIL_H
 
 # include "util/mcrstrings.h"
-# include "util/map.h"
+# include "util/interface.h"
 # include "util/threads.h"
 
+MCR_API void mcr_set_stdio ( ) ;
 /*! \brief If cleaner cannot be registered in at_exit
  * program will be exited immediately.
  *
  * \param cleaner Will be called before program ends.
  * */
 MCR_API void mcr_reg_cleanup ( void ( * cleaner ) ( void ) ) ;
-/*! \brief \ref mcr_reg_cleanup With debug message for
- * offending file name on failure.
- *
- * \param cleaner Will be called before program ends.
- * */
-MCR_API void mcr_reg_cleanup_filed ( void ( * cleaner ) ( void ),
-		const char * fileName ) ;
 
 /*! \brief For given bit return the corresponding array index.
  * Requires at least one "on" bit.

@@ -6,5 +6,9 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-# include <unistd.h>
+# include "util/def.h"
+
+# include <pwd.h>
 # include <strings.h>
+# include <sys/types.h>
+# include <unistd.h>

@@ -1,4 +1,4 @@
-/* include/util/nativeless/def.h
+/* include/util/lnx/util.h
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -6,4 +6,5 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-# include "util/def.h"
+# include "util/lnx/mcrstrings.h"
+# include "util/lnx/priv.h"

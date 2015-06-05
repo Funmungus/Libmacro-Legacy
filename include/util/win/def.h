@@ -12,6 +12,8 @@
 # ifndef MCR_WIN_UTIL_DEFINES_H
 # define MCR_WIN_UTIL_DEFINES_H
 
+# include "util/def.h"
+
 struct timespec
 {
 	time_t tv_sec ;

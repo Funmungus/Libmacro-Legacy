@@ -8,21 +8,22 @@
 
 # include "util/util.h"
 
+MCR_API FILE * mcr_stdout ;
+MCR_API FILE * mcr_stdin ;
+MCR_API FILE * mcr_stderr ;
+
+void mcr_set_stdio ( )
+{
+	mcr_stdout = stdout ;
+	mcr_stdin = stdin ;
+	mcr_stderr = stderr ;
+}
+
 void mcr_reg_cleanup ( void ( * cleaner ) ( void ) )
 {
 	if ( atexit ( cleaner ) )
 	{
-		dmsg ( "Unable to register cleanup.\n" ) ;
-		exit ( 2 ) ;
-	}
-}
-
-void mcr_reg_cleanup_filed ( void ( * cleaner ) ( void ),
-		const char * fileName )
-{
-	if ( atexit ( cleaner ) )
-	{
-		dmsg ( "%s: Unable to register cleanup.\n", fileName ) ;
+		dmsg ;
 		exit ( 2 ) ;
 	}
 }

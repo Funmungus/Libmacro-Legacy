@@ -12,14 +12,15 @@
 # ifndef MCR_UTIL_DEFINES_H
 # define MCR_UTIL_DEFINES_H
 
-# include <stdarg.h>
+# include <stdarg.h>	// Variadics
 # include <stdio.h>
 # include <string.h>	// c library memcpy/strncpy and concats
 # include <stdlib.h>
-# include <ctype.h>
+# include <ctype.h>		// islower/tolower
 # include <time.h>
 # ifdef DEBUG
 	# include <assert.h>
+	# include <errno.h>
 # endif
 
 /* From
@@ -35,8 +36,10 @@
 # define TOKENPASTE( x, y ) TOKENPASTE_HELPER ( x, y )
 # define SNAKEPASTE( x, y ) SNAKEPASTE_HELPER ( x, y )
 
+# ifndef WARNING
 # define WARNING( desc ) message ( "warning:" __FILE__ "(" \
 		STRINGIFY ( __LINE__ ) " ) : " #desc )
+# endif
 // usage:
 //#pragma WARNING ( FIXME: Code removed because... )
 
@@ -56,18 +59,22 @@ Native functions will be unusable. )
 # endif
 
 # ifdef DEBUG
-# define dmsg(... ) \
-	fprintf ( stderr, __FILE__ ":" STRINGIFY ( __LINE__ ) ":" \
-			__VA_ARGS__ ) ;
+# define dmsg \
+	fprintf ( mcr_stderr, "Error %d:" __FILE__ " ( " STRINGIFY ( __LINE__ ) \
+			" ) :%s.\n", errno, strerror ( errno ) )
 # define dassert( expression ) assert ( expression )
 # else
 # ifndef dmsg
-# define dmsg(...)
+# define dmsg
 # endif
 # ifndef dassert
 # define dassert( expression )
 # endif
 # endif
+
+extern FILE * mcr_stdout ;
+extern FILE * mcr_stdin ;
+extern FILE * mcr_stderr ;
 
 /*! \brief
  * Function to call for elements of iteration.

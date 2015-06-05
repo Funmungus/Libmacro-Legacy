@@ -10,16 +10,36 @@
 
 void mcr_Array_init ( mcr_Array * arrPt, size_t elementSize )
 {
-	if ( ! arrPt ) return ;
+	if ( ! arrPt )
+	{
+		dmsg ;
+		return ;
+	}
 	memset ( arrPt, 0, sizeof ( mcr_Array ) ) ;
 	arrPt->element_size = elementSize ;
 }
 
 void mcr_Array_free ( mcr_Array * arrPt )
 {
-	if ( ! arrPt ) return ;
+	if ( ! arrPt )
+	{
+		dmsg ;
+		return ;
+	}
 	free ( arrPt->array ) ;
 	mcr_Array_init ( arrPt, arrPt->element_size ) ;
+}
+
+void mcr_Array_free_foreach ( mcr_Array * arrPt, ... )
+{
+	mcr_Array_free ( arrPt ) ;
+}
+
+void mcr_Array_sort ( mcr_Array * arrPt, mcr_compare_fnc cmp )
+{
+	dassert ( arrPt ) ;
+	dassert ( cmp ) ;
+	MCR_ARR_SORT ( arrPt, cmp ) ;
 }
 
 int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
@@ -31,7 +51,7 @@ int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt )
 		if ( ! mcr_Array_resize ( arrPt, arrPt->size ?
 				arrPt->size << 1 : 2 ) )
 		{
-			dmsg ( "push.\n" ) ;
+			dmsg ;
 			return 0 ;
 		}
 	}
@@ -65,6 +85,28 @@ int mcr_Array_push_unique ( mcr_Array * arrPt, const void * elementPt )
 	return mcr_Array_push ( arrPt, elementPt ) ;
 }
 
+int mcr_Array_add_sorted ( mcr_Array * arrPt, const void * elementPt,
+		mcr_compare_fnc cmp )
+{
+	dassert ( arrPt ) ;
+	dassert ( elementPt ) ;
+	dassert ( cmp ) ;
+	if ( arrPt->used )
+	{
+		void * found = bsearch ( elementPt, arrPt->array, arrPt->used,
+				arrPt->element_size, cmp ) ;
+		if ( found )
+			return 1 ;
+	}
+	if ( ! mcr_Array_push ( arrPt, elementPt ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	mcr_Array_sort ( arrPt, cmp ) ;
+	return 1 ;
+}
+
 int mcr_Array_set ( mcr_Array * arrPt, size_t pos, const void * elementPt )
 {
 	dassert ( arrPt ) ;
@@ -94,7 +136,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		// allocation failure
 		if ( ! mcr_Array_resize ( arrPt, pos + 1 ) )
 		{
-			dmsg ( "insert.\n" ) ;
+			dmsg ;
 			return 0 ;
 		}
 	}
@@ -104,7 +146,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		if ( ! mcr_Array_resize ( arrPt, arrPt->size ?
 				arrPt->size << 1 : 2 ) )
 		{
-			dmsg ( "insert.\n" ) ;
+			dmsg ;
 			return 0 ;
 		}
 	}
@@ -132,13 +174,13 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 		}
 		else
 		{
-			dmsg ( "Trouble finding memmove positions.\n" )
+			dmsg ;
 		}
 	}
 	/* We are now either copying into pos beyond previous end,
 	 * or copying into new empty space
 	 * ensured array size > pos
-	**/
+	 **/
 	void * arrPos = MCR_ARR_AT ( arrPt, pos ) ;
 	if ( elementPt )
 	{
@@ -159,7 +201,7 @@ int mcr_Array_insert_filled ( mcr_Array * arrPt, size_t pos,
 	// Structure unchanged, do not fill.
 	if ( ! mcr_Array_insert ( arrPt, pos, elementPt ) )
 	{
-		dmsg ( "insert_filled.\n" ) ;
+		dmsg ;
 		return 0 ;
 	}
 	// Fill only items from arr [ prevUsed ] to arr [ curUsed-2 ] inclusive
@@ -193,7 +235,7 @@ int mcr_Array_from_array ( mcr_Array * arrPt, const void * arraySource,
 	dassert ( arraySource ) ;
 	if ( ! mcr_Array_resize ( arrPt, count ) )
 	{
-		dmsg ( "from_array.\n" ) ;
+		dmsg ;
 		return 0 ;
 	}
 	memcpy ( arrPt->array, arraySource,
@@ -212,7 +254,7 @@ int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 		// If resizing, one additional to allow additional push if needed.
 		if ( ! mcr_Array_resize ( arrPt, arrPt->used + count + 1 ) )
 		{
-			dmsg ( "Append.\n" ) ;
+			dmsg ;
 			return 0 ;
 		}
 	}
@@ -220,8 +262,7 @@ int mcr_Array_append ( mcr_Array * arrPt, const void * arraySource,
 	arrPt->used += count ;
 	void * it = MCR_ARR_AT ( arrPt, index ) ;
 	if ( it )
-		memcpy ( it, arraySource, count *
-				arrPt->element_size ) ;
+		memcpy ( it, arraySource, count * arrPt->element_size ) ;
 	return 1 ;
 }
 
@@ -266,10 +307,33 @@ void mcr_Array_remove_all ( mcr_Array * arrPt,
 	}
 }
 
+void mcr_Array_remove_sorted ( mcr_Array * arrPt,
+		const void * removeElementPt, mcr_compare_fnc cmp )
+{
+	dassert ( arrPt ) ;
+	dassert ( removeElementPt ) ;
+	dassert ( cmp ) ;
+	void * found = mcr_Array_find ( arrPt, removeElementPt, cmp ) ;
+	if ( found )
+	{
+		mcr_Array_remove ( arrPt, MCR_ARR_INDEXOF ( arrPt, found ) ) ;
+		MCR_ARR_SORT ( arrPt, cmp ) ;
+	}
+}
+
 void * mcr_Array_at ( mcr_Array * arrPt, size_t pos )
 {
 	dassert ( arrPt ) ;
 	return MCR_ARR_AT ( arrPt, pos ) ;
+}
+
+void * mcr_Array_find ( mcr_Array * arrPt, const void * elementPt,
+		mcr_compare_fnc cmp )
+{
+	dassert ( arrPt ) ;
+	dassert ( elementPt ) ;
+	dassert ( cmp ) ;
+	return MCR_ARR_FIND ( arrPt, elementPt, cmp ) ;
 }
 
 void * mcr_Array_next ( mcr_Array * arrPt, void * posPt )
@@ -291,7 +355,7 @@ void * mcr_Array_end ( mcr_Array * arrPt )
 }
 
 void mcr_Array_for_each ( const mcr_Array * arrPt,
-		mcr_iterate_fnc iterateFnc,... )
+		mcr_iterate_fnc iterateFnc, ... )
 {
 	dassert ( arrPt ) ;
 	if ( ! arrPt->used ) return ;
@@ -329,14 +393,12 @@ int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 		mcr_Array_free ( arrPt ) ;
 		return 1 ;
 	}
-	unsigned char * newSet = NULL ;
+	char * newSet = NULL ;
 	if ( arrPt->array )
-		newSet = ( unsigned char * ) realloc
-			( arrPt->array, newSize * arrPt->element_size ) ;
+		newSet = realloc ( arrPt->array, newSize * arrPt->element_size ) ;
 	else
 	{
-		newSet = ( unsigned char * ) malloc (
-				newSize * arrPt->element_size ) ;
+		newSet = malloc ( newSize * arrPt->element_size ) ;
 		arrPt->array = newSet ;
 		if ( arrPt->array )
 		{
@@ -349,7 +411,7 @@ int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 	// Check for errors. If errors, do not change structure.
 	if ( ! newSet )
 	{
-		dmsg ( "resize allocation error.\n" ) ;
+		dmsg ;
 		return 0 ;
 	}
 
@@ -363,21 +425,22 @@ int mcr_Array_resize ( mcr_Array * arrPt, size_t newSize )
 void mcr_Array_print ( const mcr_Array * arrPt )
 {
 	dassert ( arrPt ) ;
-	printf ( "Array %p: used %llu, size %llu, element size %llu, "
-			"array: 0x...\n", arrPt, ( long long unsigned ) arrPt->used,
+	fprintf ( mcr_stdout, "Array %p: used %llu, size %llu, "
+			"element size %llu, array: 0x...\n", arrPt,
+			( long long unsigned ) arrPt->used,
 			( long long unsigned ) arrPt->size,
 			( long long unsigned ) arrPt->element_size ) ;
 	const void * end = MCR_ARR_END ( arrPt ) ;
 	for ( const unsigned char * i = MCR_ARR_AT ( arrPt, 0 ) ;
 			( void * ) i < end ; i++ )
 	{
-		printf ( "%x%s", * i, i + 1 == end ? "" : " " ) ;
+		fprintf ( mcr_stdout, "%x%s", * i, i + 1 == end ? "" : " " ) ;
 	}
-	printf ( "\n" ) ;
+	fprintf ( mcr_stdout, "\n" ) ;
 }
 
-int mcr_String_insert ( mcr_Array * arrPt, size_t index, const char * str,
-		size_t len )
+int mcr_String_insert ( mcr_Array * arrPt, size_t index,
+		const char * str, size_t len )
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
@@ -388,12 +451,16 @@ int mcr_String_insert ( mcr_Array * arrPt, size_t index, const char * str,
 	size_t min = strlen ( str ) ;
 	if ( len < min ) min = len ;
 	if ( ! mcr_Array_resize ( arrPt, arrPt->used + min ) )
+	{
+		dmsg ;
 		return 0 ;
+	}
 	memmove ( arrPt->array + index + min, arrPt->array + index,
 			arrPt->used - index ) ;
 	arrPt->used = arrPt->size ;
 	memcpy ( arrPt->array + index, str, min ) ;
-	return 0 ;
+	/* Assume null terminated already. */
+	return 1 ;
 }
 
 int mcr_String_insert_char ( mcr_Array * arrPt, size_t index,
@@ -405,26 +472,48 @@ int mcr_String_insert_char ( mcr_Array * arrPt, size_t index,
 	{
 		return mcr_String_push ( arrPt, c ) ;
 	}
-	char nu = '\0' ;
-	if ( ! mcr_Array_push ( arrPt, & nu ) )
-		return 0 ;
-	memmove ( arrPt + index + 1, arrPt + index,
-			arrPt->used - index - 1 ) ;
-	return 1 ;
+	return mcr_Array_insert ( arrPt, index, & c ) ;
+}
+
+void mcr_String_remove ( mcr_Array * arrPt, size_t index,
+		size_t count )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	// Index out of bounds.
+	if ( index >= arrPt->used - 1 )
+	{
+		dmsg ;
+		return ;
+	}
+	// Nothing to move back, just null-terminate.
+	else if ( index + count >= arrPt->used - 1 )
+	{
+		arrPt->array [ index ] = '\0' ;
+		arrPt->used = index + 1 ;
+	}
+	// Move into index, position at index + count, size is
+	// array size - source position.
+	else if ( index < arrPt->used - 1 )
+	{
+		size_t moveCount = arrPt->used - index - count ;
+		memmove ( arrPt->array + index, arrPt->array + index + count,
+				arrPt->used - index - count ) ;
+		arrPt->used = index + moveCount ;
+	}
 }
 
 int mcr_String_push ( mcr_Array * arrPt, const char c )
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
-	char pu [ ] = { c, '\0' } ;
-	if ( arrPt->used )
-		-- arrPt->used ;
-	if ( ! mcr_Array_append ( arrPt, pu, 2 ) )
+	char nc = '\0' ;
+	if ( ! mcr_Array_push ( arrPt, & nc ) )
 	{
-		arrPt->array [ arrPt->used - 1 ] = '\0' ;
+		dmsg ;
 		return 0 ;
 	}
+	arrPt->array [ arrPt->used - 2 ] = c ;
 	return 1 ;
 }
 
@@ -441,13 +530,38 @@ char mcr_String_pop ( mcr_Array * arrPt )
 }
 
 int mcr_String_from_string ( mcr_Array * arrPt,
+		const char * str )
+{
+	dassert ( arrPt ) ;
+	dassert ( arrPt->element_size == sizeof ( char ) ) ;
+	size_t min = strlen ( str ) ;
+	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	memcpy ( arrPt->array, str, min ) ;
+	arrPt->array [ arrPt->size - 1 ] = '\0' ;
+	arrPt->used = arrPt->size ;
+	return 1 ;
+}
+
+int mcr_String_nfrom_string ( mcr_Array * arrPt,
 		const char * str, size_t len )
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
 	size_t min = strlen ( str ) ;
 	if ( len < min ) min = len ;
-	return mcr_Array_from_array ( arrPt, str, min ) ;
+	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	memcpy ( arrPt->array, str, min ) ;
+	arrPt->array [ arrPt->size - 1 ] = '\0' ;
+	arrPt->used = arrPt->size ;
+	return 1 ;
 }
 
 int mcr_String_append ( mcr_Array * arrPt,
@@ -455,16 +569,25 @@ int mcr_String_append ( mcr_Array * arrPt,
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
-	if ( arrPt->used )
-		-- arrPt->used ;
 	size_t min = strlen ( str ) ;
 	if ( len < min ) min = len ;
-	char nu = '\0' ;
-	if ( ! mcr_Array_append ( arrPt, str, min ) ||
-			! mcr_Array_push ( arrPt, & nu ) )
+	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
 	{
-		arrPt->array [ arrPt->used - 1 ] = '\0' ;
+		dmsg ;
 		return 0 ;
 	}
+	memcpy ( arrPt->array + arrPt->used - 1, str, min ) ;
+	arrPt->array [ arrPt->size - 1 ] = '\0' ;
+	arrPt->used = arrPt->size ;
 	return 1 ;
+}
+
+int mcr_String_compare ( const void * lhs, const void * rhs )
+{
+	dassert ( lhs ) ;
+	dassert ( rhs ) ;
+	const mcr_Array * lPt = lhs, * rPt = rhs ;
+	if ( ! lPt->used || ! rPt->used )
+		return lPt->used < rPt->used ? -1 : lPt->used > rPt->used ;
+	return strcasecmp ( lPt->array, rPt->array ) ;
 }

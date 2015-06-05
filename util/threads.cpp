@@ -19,7 +19,10 @@ extern "C" {
 int thrd_sleep_until ( struct tm * time_point )
 {
 	if ( ! time_point )
+	{
+		dmsg ;
 		return thrd_error ;
+	}
 	std::chrono::system_clock::time_point until_time =
 			std::chrono::system_clock::from_time_t
 			( std::mktime ( time_point ) ) ;
@@ -37,7 +40,7 @@ static void thrd_function ( thrd_start_t func, void * arg )
 	dassert ( func ) ;
 	if ( func ( arg ) )
 	{
-		dmsg ( "Thread function returns failure.\n" ) ;
+		dmsg ;
 	}
 }
 
@@ -124,7 +127,7 @@ int mtx_init ( mtx_t * mutex, int type )
 		mutex->type = type ;
 		return thrd_success ;
 	}
-	dmsg ( "mtx_init, incorrect type.\n" ) ;
+	dmsg ;
 	return thrd_error ;
 }
 
@@ -146,7 +149,7 @@ int mtx_lock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->lock ( ) ;
 		return thrd_success ;
 	}
-	dmsg ( "mtx_lock, incorrect type.\n" ) ;
+	dmsg ;
 	return thrd_error ;
 }
 
@@ -178,7 +181,7 @@ int mtx_timedlock ( mtx_t * restrict mutex,
 	}
 		break ;
 	default :
-		dmsg ( "mtx_timedlock, incorrect type.\n" ) ;
+		dmsg ;
 		break ;
 	}
 	return locked ? thrd_success : thrd_timeout ;
@@ -204,7 +207,7 @@ int mtx_trylock ( mtx_t * mutex )
 		locked = ( ( std::mutex * ) mutex->mtx )->try_lock ( ) ;
 		break ;
 	default :
-		dmsg ( "mtx_trylock, incorrect type.\n" ) ;
+		dmsg ;
 		break ;
 	}
 	return locked ? thrd_success : thrd_timeout ;
@@ -228,7 +231,7 @@ int mtx_unlock ( mtx_t * mutex )
 		( ( std::mutex * ) mutex->mtx )->unlock ( ) ;
 		return thrd_success ;
 	}
-	dmsg ( "mtx_unlock, incorrect type.\n" )
+	dmsg ;
 	return thrd_error ;
 }
 
@@ -250,7 +253,7 @@ void mtx_destroy ( mtx_t * mutex )
 		delete ( std::mutex * ) mutex->mtx ;
 		break ;
 	default :
-		dmsg ( "mtx_destroy, incorrect type.\n" ) ;
+		dmsg ;
 		return ;
 	}
 	mutex->mtx = NULL ;
@@ -286,7 +289,7 @@ int cnd_wait ( cnd_t * cond, mtx_t * mutex )
 	dassert ( mutex ) ;
 	if ( mutex->type != mtx_plain )
 	{
-		dmsg ( "cnd_wait, incorrect mutex type.\n" ) ;
+		dmsg ;
 		return thrd_error ;
 	}
 
@@ -307,7 +310,7 @@ int cnd_timedwait ( cnd_t * restrict cond, mtx_t * restrict mutex,
 	dassert ( time_point ) ;
 	if ( mutex->type != mtx_plain )
 	{
-		dmsg ( "cnd_timedwait, incorrect mutex type.\n" ) ;
+		dmsg ;
 		return thrd_error ;
 	}
 

@@ -33,7 +33,7 @@ typedef struct mcr_Map
 	 * for binary search and sorting, based on key elements.
 	 * If compare is NULL, sort and search cannot be performed.
 	 **/
-	int ( * compare ) ( const void * lh_first, const void * rh_first ) ;
+	mcr_compare_fnc compare ;
 	//! \brief Size of mapping key elements.
 	size_t sizeof_first ;
 	//! \brief Size of mapped value elements.
@@ -49,6 +49,9 @@ typedef struct mcr_Map
  * */
 MCR_API void mcr_Map_init ( mcr_Map * mapPt, size_t sizeofFirst,
 		size_t sizeofSecond ) ;
+# define mcr_StringMap_init( mapPt, sizeofSecond ) \
+	mcr_Map_init ( mapPt, sizeof ( mcr_Array ), sizeofSecond ) ; \
+	( mapPt )->compare = mcr_name_compare ;
 /*! \brief dtor, Element sizes are retained.
  * */
 MCR_API void mcr_Map_free ( mcr_Map * mapPt ) ;
@@ -125,7 +128,7 @@ MCR_API size_t mcr_Map_index_of ( const mcr_Map * mapPt,
  * in the array, also with all variadic parameters.
  * */
 MCR_API void mcr_Map_for_each ( const mcr_Map * mapPt,
-		mcr_iterate_fnc iterateFnc,... ) ;
+		mcr_iterate_fnc iterateFnc, ... ) ;
 /*! \brief For every member of the map, call the iteration
  * function with the value of that member,
  * and the va_list from variadic args.
@@ -134,7 +137,7 @@ MCR_API void mcr_Map_for_each ( const mcr_Map * mapPt,
  * in all key-value pairs, also with all variadic parameters.
  * */
 MCR_API void mcr_Map_for_each_value ( const mcr_Map * mapPt,
-		mcr_iterate_fnc iterateFnc,... ) ;
+		mcr_iterate_fnc iterateFnc, ... ) ;
 /*! \brief Remove mapping for given key.
  *
  * \param key Pointer to key to find from.
@@ -156,6 +159,65 @@ MCR_API void mcr_Map_trim ( mcr_Map * mapPt ) ;
  * */
 MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
 
+
+MCR_API int mcr_StringMap_map ( mcr_Map * mapPt, const char * key,
+		const void * valuePt ) ;
+MCR_API int mcr_StringMap_nmap ( mcr_Map * mapPt, const char * key,
+		size_t count, const void * valuePt ) ;
+MCR_API void * mcr_StringMap_get ( const mcr_Map * mapPt, const char * key ) ;
+MCR_API void * mcr_StringMap_get_value ( const mcr_Map * mapPt,
+		const char * key ) ;
+MCR_API int mcr_StringMap_remap ( mcr_Map * mapPt, const char * key,
+		const char * newKey ) ;
+MCR_API void mcr_StringMap_unmap ( mcr_Map * mapPt, const char * key ) ;
+
+//
+// Comparisons
+//
+/*! \brief Compare const c-strings referenced by each pointer,
+ * case insensitive.
+ *
+ * \param lhs Pointer to const char *
+ * \param rhs Pointer to const char *
+ * \return < 0 if lhs < rhs, 0 if lhs == rhs,
+ * > 0 if lhs > rhs.
+ * */
+MCR_API int mcr_name_compare ( const void * lhs, const void * rhs ) ;
+MCR_API int mcr_str_compare ( const void * lhs, const void * rhs ) ;
+/*! \brief Compare integers referenced by each pointer.
+ *
+ * \param lhs Pointer to int.
+ * \param rhs Pointer to int.
+ * \return < 0 if lhs < rhs, 0 if lhs == rhs,
+ * > 0 if lhs > rhs.
+ * */
+MCR_API int mcr_int_compare ( const void * lhs, const void * rhs ) ;
+/*! \brief Compare unsigned integers referenced by each pointer.
+ *
+ * \param lhs Pointer to unsigned int.
+ * \param rhs Pointer to unsigned int.
+ * \return < 0 if lhs < rhs, 0 if lhs == rhs,
+ * > 0 if lhs > rhs.
+ * */
+MCR_API int mcr_unsigned_compare ( const void * lhs, const void * rhs ) ;
+/*! \brief Compare size_t referenced by each pointer.
+ *
+ * \param lhs Pointer to size_t.
+ * \param rhs Pointer to size_t.
+ * \return < 0 if lhs < rhs, 0 if lhs == rhs,
+ * > 0 if lhs > rhs.
+ * */
+MCR_API int mcr_size_t_compare ( const void * lhs, const void * rhs ) ;
+/*! \brief Compare void * referenced by each pointer.
+ *
+ * \param lhs Pointer to void *.
+ * \param rhs Pointer to void *.
+ * \return < 0 if lhs < rhs, 0 if lhs == rhs,
+ * > 0 if lhs > rhs.
+ * */
+MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
+
+
 /*!
  * \brief Get a pointer to found key, or NULL.
  *
@@ -164,9 +226,9 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
  * \return void *
  * */
 # define MCR_MAP_GET( mapPt, keyPt ) \
-	( mapPt )->set.used ? bsearch ( keyPt, ( mapPt )->set.array, \
-			( mapPt )->set.used, ( mapPt )->set.element_size, \
-			( mapPt )->compare ) : NULL
+	MCR_ARR_FIND ( & ( mapPt )->set, keyPt, ( mapPt )->compare )
+# define MCR_STRINGMAP_GET( mapPt, key ) \
+	MCR_MAP_GET ( mapPt, & key )
 /*!
  * \brief \return Change address from key to value.
  *
@@ -174,8 +236,8 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
  * \param pairPt Address to change from key to value.
  * */
 # define MCR_MAP_VALUE( mapPt, pairPt ) \
-	( void * ) ( pairPt ? ( unsigned char * ) ( pairPt ) \
-			+ ( mapPt )->sizeof_first : NULL )
+	( ( void * ) ( pairPt ? ( char * ) ( pairPt ) \
+			+ ( mapPt )->sizeof_first : NULL ) )
 
 /*!
  * \brief Get a pointer to found value, or NULL.
@@ -186,7 +248,8 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
  * */
 # define MCR_MAP_GET_VALUE( mapPt, keyPt ) \
 	MCR_MAP_VALUE ( mapPt, ( MCR_MAP_GET ( mapPt, keyPt ) ) )
-
+# define MCR_STRINGMAP_GET_VALUE( mapPt, key ) \
+	MCR_MAP_GET_VALUE ( mapPt, & key )
 /*!
  * \brief If compare is available, qsort given map.
  *
@@ -195,8 +258,7 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
 # define MCR_MAP_SORT( mapPt ) \
 	if ( ( mapPt )->compare ) \
 	{ \
-		qsort ( ( mapPt )->set.array, ( mapPt )->set.used, \
-				( mapPt )->set.element_size, ( mapPt )->compare ) ; \
+		MCR_ARR_SORT ( & ( mapPt )->set, ( mapPt )->compare ) ; \
 	}
 
 /*!
@@ -206,11 +268,11 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
  * This will not create va_list or do any type checking on variable
  * arguments.
  * \param mapPt \ref mcr_Map *
- * \param iterateFnc void ( * ) ( void *,... ) This function must be able
+ * \param iterateFnc void ( * ) ( void *, ... ) This function must be able
  * to accept both the key-value pair member reference, and all variadic
  * parameters given to this macro.
  * */
-# define MCR_MAP_FOR_EACH( mapPt, iterateFnc,... ) \
+# define MCR_MAP_FOR_EACH( mapPt, iterateFnc, ... ) \
 	MCR_ARR_FOR_EACH ( & ( mapPt )->set, iterateFnc, __VA_ARGS__ )
 
 /*!
@@ -221,11 +283,11 @@ MCR_API void mcr_Map_print ( mcr_Map * mapPt ) ;
  * This will not create va_list or do any type checking on variable
  * arguments.
  * \param mapPt \ref mcr_Map *
- * \param iterateFnc void ( * ) ( void *,... ) This function must be able
+ * \param iterateFnc void ( * ) ( void *, ... ) This function must be able
  * to accept both the key-value pair member reference, and all variadic
  * parameters given to this macro.
  * */
-# define MCR_MAP_FOR_EACH_VALUE( mapPt, iterateFnc,... ) \
+# define MCR_MAP_FOR_EACH_VALUE( mapPt, iterateFnc, ... ) \
 { \
 	void * _itPt_ = MCR_ARR_AT ( & ( mapPt )->set, 0 ) ; \
 	_itPt_ = MCR_MAP_VALUE ( mapPt, _itPt_ ) ; \

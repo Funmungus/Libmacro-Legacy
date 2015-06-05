@@ -15,14 +15,17 @@
 
 # include "util/def.h"
 
+typedef int ( * mcr_compare_fnc ) ( const void *, const void * ) ;
+
 /*! \brief Dynamic resizing array.
  *
  * Byte size of the whole array = elementSize * size.
+ * Important: char array is first element for string compare.
  * */
 typedef struct mcr_Array
 {
 	//! \brief Resizing array pointer.
-	unsigned char * array ;
+	char * array ;
 	//! \brief Number of elements assignable ( allocated zone ).
 	size_t size ;
 	//! \brief Number of elements assigned.
@@ -42,6 +45,8 @@ MCR_API void mcr_Array_init ( mcr_Array * arrPt, size_t elementSize ) ;
 /*! \brief Free memory and empty. Element size is preserved.
  * */
 MCR_API void mcr_Array_free ( mcr_Array * arrPt ) ;
+MCR_API void mcr_Array_free_foreach ( mcr_Array * arrPt, ... ) ;
+MCR_API void mcr_Array_sort ( mcr_Array * arrPt, mcr_compare_fnc cmp ) ;
 /*! \brief Place element at the end of the array.
  *
  * \param elementPt Pointer to element to copy from.
@@ -56,6 +61,8 @@ MCR_API int mcr_Array_push ( mcr_Array * arrPt, const void * elementPt ) ;
  * */
 MCR_API int mcr_Array_push_unique ( mcr_Array * arrPt,
 		const void * elementPt ) ;
+MCR_API int mcr_Array_add_sorted ( mcr_Array * arrPt,
+		const void * elementPt, mcr_compare_fnc cmp ) ;
 /*! \brief Set and replace element at position,
  * without changing other elements.
  *
@@ -120,6 +127,8 @@ MCR_API void mcr_Array_remove ( mcr_Array * arrPt, size_t pos ) ;
  * */
 MCR_API void mcr_Array_remove_all ( mcr_Array * arrPt,
 		const void * removeElementPt ) ;
+MCR_API void mcr_Array_remove_sorted ( mcr_Array * arrPt,
+		const void * removeElementPt, mcr_compare_fnc cmp ) ;
 /*! \brief Get a reference to a position in the array.
  *
  * \param pos Index of element to return.
@@ -127,6 +136,8 @@ MCR_API void mcr_Array_remove_all ( mcr_Array * arrPt,
  * of that position. Else this is NULL.
  * */
 MCR_API void * mcr_Array_at ( mcr_Array * arrPt, size_t pos ) ;
+MCR_API void * mcr_Array_find ( mcr_Array * arrPt, const void * elementPt,
+		mcr_compare_fnc cmp ) ;
 /*! \brief Get a position reference after the given position.
  *
  * \param posPt Base position to increase from.
@@ -151,7 +162,7 @@ MCR_API void * mcr_Array_end ( mcr_Array * arrPt ) ;
  * function with that member, and the va_list from variadic args.
  * */
 MCR_API void mcr_Array_for_each ( const mcr_Array * arrPt,
-		mcr_iterate_fnc iterateFnc,... ) ;
+		mcr_iterate_fnc iterateFnc, ... ) ;
 /*! \brief Minimize array allocation.
  * */
 MCR_API void mcr_Array_trim ( mcr_Array * arrPt ) ;
@@ -167,6 +178,13 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
 //
 // Macro utilities lack sanity checks.
 //
+# define MCR_ARR_SORT( arrPt, cmp ) \
+	if ( ( arrPt )->used ) \
+		qsort ( ( arrPt )->array, ( arrPt )->used, \
+				( arrPt )->element_size, cmp ) ;
+# define MCR_ARR_FIND( arrPt, elPt, cmp ) \
+	( ( arrPt )->used ? bsearch ( elPt, ( arrPt )->array, \
+			( arrPt )->used, ( arrPt )->element_size, cmp ) : NULL )
 /*! \brief \ref mcr_Array_at without sanity check.
  *
  * \param pos size_t
@@ -176,19 +194,26 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
 	( void * ) ( ( pos ) >= ( arrPt )->used ? NULL : ( arrPt )->array + \
 			( ( pos ) * ( arrPt )->element_size ) )
 
+# define MCR_ARR_INDEXOF( arrPt, valPt ) \
+	( ( size_t ) ( ( arrPt )->used && ( const char * ) \
+			( valPt ) >= ( arrPt )->array ? \
+			( ( ( const char * ) ( valPt ) ) - \
+			( arrPt )->array ) / ( arrPt )->element_size : \
+			( size_t ) -1 ) )
+
 /*! \brief \ref mcr_Array_next without sanity check.
  *
  * \return ( void * )
  * */
 # define MCR_ARR_NEXT( arrPt, curPt ) \
-	( void * ) ( ( unsigned char * ) ( curPt ) + ( arrPt )->element_size )
+	( void * ) ( ( char * ) ( curPt ) + ( arrPt )->element_size )
 
 /*! \brief \ref mcr_Array_prev without sanity check.
  *
  * \return ( void * )
  * */
 # define MCR_ARR_PREV( arrPt, curPt ) \
-	( void * ) ( ( unsigned char * ) ( curPt ) - ( arrPt )->element_size )
+	( void * ) ( ( char * ) ( curPt ) - ( arrPt )->element_size )
 
 /*! \brief Exactly one byte after last used element.
  * NULL if used is 0. No sanity check.
@@ -196,7 +221,7 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return ( void * ) just after last element.
  * */
 # define MCR_ARR_END( arrPt ) \
-	( void * ) ( ( arrPt )->used ? ( ( unsigned char * ) \
+	( void * ) ( ( arrPt )->used ? ( ( char * ) \
 			( arrPt )->array + \
 			( ( arrPt )->used * ( arrPt )->element_size ) ) : \
 			NULL )
@@ -206,11 +231,11 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * This will not create va_list or do any type checking on variable
  * arguments.
  *
- * \param iterateFnc void ( * ) ( void *,... ) This function must be able
+ * \param iterateFnc void ( * ) ( void *, ... ) This function must be able
  * to accept both the array member reference, and all variadic
  * parameters given to this macro.
  * */
-# define MCR_ARR_FOR_EACH( arrPt, iterateFnc,... ) \
+# define MCR_ARR_FOR_EACH( arrPt, iterateFnc, ... ) \
 {\
 	void * _itPt_ = MCR_ARR_AT ( arrPt, 0 ) ; \
 	void * _endPt_ = MCR_ARR_END ( arrPt ) ; \
@@ -224,16 +249,23 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
 //
 // Array string helper
 //
+# define mcr_String_init( arrPt ) \
+	mcr_Array_init ( arrPt, sizeof ( char ) )
 MCR_API int mcr_String_insert ( mcr_Array * arrPt, size_t index,
 		const char * str, size_t len ) ;
 MCR_API int mcr_String_insert_char ( mcr_Array * arrPt, size_t index,
 		const char c ) ;
+MCR_API void mcr_String_remove ( mcr_Array * arrPt, size_t index,
+		size_t count ) ;
 MCR_API int mcr_String_push ( mcr_Array * arrPt, const char c ) ;
 MCR_API char mcr_String_pop ( mcr_Array * arrPt ) ;
 MCR_API int mcr_String_from_string ( mcr_Array * arrPt,
+		const char * str ) ;
+MCR_API int mcr_String_nfrom_string ( mcr_Array * arrPt,
 		const char * str, size_t len ) ;
 MCR_API int mcr_String_append ( mcr_Array * arrPt,
 		const char * str, size_t len ) ;
+MCR_API int mcr_String_compare ( const void * lhs, const void * rhs ) ;
 
 # define MCR_STR_ISEMPTY( arrPt ) \
 	( ! ( arrPt )->used || ( arrPt )->array [ 0 ] == '\0' )
