@@ -16,107 +16,6 @@ MCR_API mcr_ISignal mcr_iNoOp ;
 MCR_API mcr_ISignal mcr_iScroll ;
 
 //
-// Code memory
-//
-// Echo
-// echo name-> echo index
-static mcr_Map _echoMap ;
-// echo index-> echo name
-static mcr_Array _echoNames ;
-int mcr_Echo_code ( const char * eventName )
-{
-	if ( ! eventName )
-		return -1 ;
-	int * codePt = MCR_MAP_GET_VALUE ( & _echoMap, & eventName ) ;
-	return codePt ? * codePt : -1 ;
-}
-
-const char * mcr_Echo_name ( int eventCode )
-{
-	const char ** namePt = MCR_ARR_AT ( & _echoNames,
-			( size_t ) eventCode ) ;
-	return namePt ? * namePt : NULL ;
-}
-
-size_t mcr_Echo_count ( )
-{
-	return _echoNames.used ;
-}
-
-// Key
-static mcr_Array _keyNames ;
-static mcr_Map _keyMap ;
-int mcr_Key_code ( const char * keyName )
-{
-	if ( ! keyName )
-		return 0 ;
-	int * keyPt = MCR_MAP_GET_VALUE ( & _keyMap, & keyName ) ;
-	return keyPt ? * keyPt : 0 ;
-}
-
-const char * mcr_Key_name ( int keyCode )
-{
-	const char ** namePt = MCR_ARR_AT ( & _keyNames,
-			( size_t ) keyCode ) ;
-	return namePt ? * namePt : NULL ;
-}
-
-size_t mcr_Key_count ( )
-{
-	return _keyNames.used ;
-}
-
-// Initializers
-void mcr_Echo_init_with ( mcr_HIDEcho * echoPt, const int event )
-{
-	dassert ( echoPt ) ;
-	// -1 means all echo
-	mcr_Echo_init ( echoPt ) ;
-	MCR_ECHO_SET ( echoPt, event ) ;
-}
-
-void mcr_Key_init_with ( mcr_Key * keyPt, const int key, const int scan,
-		const mcr_KeyUpType keyUp )
-{
-	dassert ( keyPt ) ;
-	mcr_Key_init ( keyPt ) ;
-	if ( key == -1 )
-	{
-		MCR_KEY_SET ( keyPt, 0 ) ;
-	}
-	else
-	{
-		MCR_KEY_SET ( keyPt, key ) ;
-	}
-	MCR_KEY_SET_SCAN ( keyPt, scan ) ;
-	if ( ( unsigned int ) keyUp > MCR_BOTH )
-	{
-		MCR_KEY_SET_UP_TYPE ( keyPt, MCR_BOTH ) ;
-	}
-	else
-	{
-		MCR_KEY_SET_UP_TYPE ( keyPt, keyUp ) ;
-	}
-}
-
-void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
-		const mcr_SpacePosition blip, const int cursorJustify )
-{
-	dassert ( mcPt ) ;
-	mcr_MoveCursor_init ( mcPt ) ;
-	MCR_MOVECURSOR_SET ( mcPt, blip ) ;
-	MCR_MOVECURSOR_ENABLE_JUSTIFY ( mcPt, cursorJustify ) ;
-}
-
-void mcr_Scroll_init_with ( mcr_Scroll * scrollPt,
-		const mcr_Dimensions dimVals )
-{
-	dassert ( scrollPt ) ;
-	mcr_Scroll_init ( scrollPt ) ;
-	MCR_SCROLL_SET ( scrollPt, dimVals ) ;
-}
-
-//
 // native Signal data manipulation
 //
 // Echo
@@ -142,14 +41,7 @@ int mcr_Key_get ( const mcr_Key * keyPt )
 void mcr_Key_set ( mcr_Key * keyPt, int key )
 {
 	dassert ( keyPt ) ;
-	if ( key == -1 )
-	{
-		MCR_KEY_SET ( keyPt, 0 ) ;
-	}
-	else
-	{
-		MCR_KEY_SET ( keyPt, key ) ;
-	}
+	MCR_KEY_SET ( keyPt, key == -1 ? 0 : key ) ;
 }
 
 int mcr_Key_get_scan ( const mcr_Key * keyPt )
@@ -173,14 +65,8 @@ mcr_KeyUpType mcr_Key_get_up_type ( const mcr_Key * keyPt )
 void mcr_Key_set_up_type ( mcr_Key * keyPt, const mcr_KeyUpType keyUp )
 {
 	dassert ( keyPt ) ;
-	if ( ( unsigned int ) keyUp > MCR_BOTH )
-	{
-		MCR_KEY_SET_UP_TYPE ( keyPt, MCR_BOTH ) ;
-	}
-	else
-	{
-		MCR_KEY_SET_UP_TYPE ( keyPt, keyUp ) ;
-	}
+	MCR_KEY_SET_UP_TYPE ( keyPt, ( unsigned int ) keyUp > MCR_BOTH ?
+			MCR_BOTH : keyUp ) ;
 }
 
 // MoveCursor
@@ -255,16 +141,25 @@ void mcr_Scroll_set_dimension ( mcr_Scroll * scrollPt, int coordinate,
 // Send functions that are placed into ISignals.
 //
 # define chkdata(sPt) \
-	if ( ! ( sPt )->data ) \
+	if ( ! ( sPt )->data.data ) \
 		return 0 ;
 
 int mcr_Alarm_send ( mcr_Signal * signalData )
 {
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
-	int success = 1 ;
-	MCR_ALARM_SEND ( ( mcr_Alarm * ) signalData->data, success ) ;
-	return success ;
+	return MCR_ALARM_SEND ( ( mcr_Alarm * ) signalData->data.data ) ;
+}
+
+int mcr_tm_compare ( const void * lhs, const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+	{
+		return rhs ? -1 : ( lhs && 1 ) ;
+	}
+	time_t lT = mktime ( ( struct tm * ) lhs ) ;
+	time_t rT = mktime ( ( struct tm * ) rhs ) ;
+	return memcmp ( & lT, & rT, sizeof ( time_t ) ) ;
 }
 
 int mcr_Echo_send ( mcr_Signal * signalData )
@@ -272,8 +167,38 @@ int mcr_Echo_send ( mcr_Signal * signalData )
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
 	int success = 1 ;
-	MCR_ECHO_SEND ( ( mcr_HIDEcho * ) signalData->data, success ) ;
+	MCR_ECHO_SEND ( ( mcr_HIDEcho * ) signalData->data.data, success ) ;
 	return success ;
+}
+
+# define diff_ret( lVal, rVal ) \
+	if ( ( lVal ) != ( rVal ) ) \
+		return ( lVal ) < ( rVal ) ? -1 : 1 ;
+
+int mcr_Echo_compare ( const void * lhs, const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+		return rhs ? -1 : ( lhs && 1 ) ;
+	const mcr_HIDEcho * lPt = lhs, * rPt = rhs ;
+	int l = MCR_ECHO_GET ( lPt ), r = MCR_ECHO_GET ( rPt ) ;
+	diff_ret ( l, r ) ;
+	return 0 ;
+}
+
+void mcr_Echo_copy ( void * dstPt, void * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	MCR_ECHO_SET ( ( ( mcr_HIDEcho * ) dstPt ),
+			MCR_ECHO_GET ( ( mcr_HIDEcho * ) srcPt ) ) ;
+}
+
+void mcr_Echo_init_with ( mcr_HIDEcho * echoPt, const int event )
+{
+	dassert ( echoPt ) ;
+	// -1 means all echo
+	mcr_Echo_init ( echoPt ) ;
+	MCR_ECHO_SET ( echoPt, event ) ;
 }
 
 int mcr_Key_send ( mcr_Signal * signalData )
@@ -281,8 +206,45 @@ int mcr_Key_send ( mcr_Signal * signalData )
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
 	int success = 1 ;
-	MCR_KEY_SEND ( ( mcr_Key * ) signalData->data, success ) ;
+	MCR_KEY_SEND ( ( mcr_Key * ) signalData->data.data, success ) ;
 	return success ;
+}
+
+int mcr_Key_compare ( const void * lhs, const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+		return rhs ? -1 : ( lhs && 1 ) ;
+	const mcr_Key * lPt = lhs, * rPt = rhs ;
+	int l = MCR_KEY_GET ( lPt ), r = MCR_KEY_GET ( rPt ) ;
+	diff_ret ( l, r ) ;
+	l = MCR_KEY_GET_SCAN ( lPt ) ;
+	r = MCR_KEY_GET_SCAN ( rPt ) ;
+	diff_ret ( l, r ) ;
+	l = MCR_KEY_GET_UP_TYPE ( lPt ) ;
+	r = MCR_KEY_GET_UP_TYPE ( rPt ) ;
+	diff_ret ( l, r ) ;
+	return 0 ;
+}
+
+void mcr_Key_copy ( void * dstPt, void * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	mcr_Key * dPt = dstPt, * sPt = srcPt ;
+	MCR_KEY_SET ( dPt, MCR_KEY_GET ( sPt ) ) ;
+	MCR_KEY_SET_SCAN ( dPt, MCR_KEY_GET_SCAN ( sPt ) ) ;
+	MCR_KEY_SET_UP_TYPE ( dPt, MCR_KEY_GET_UP_TYPE ( sPt ) ) ;
+}
+
+void mcr_Key_init_with ( mcr_Key * keyPt, const int key, const int scan,
+		const mcr_KeyUpType keyUp )
+{
+	dassert ( keyPt ) ;
+	mcr_Key_init ( keyPt ) ;
+	MCR_KEY_SET ( keyPt, key == -1 ? 0 : key ) ;
+	MCR_KEY_SET_SCAN ( keyPt, scan ) ;
+	MCR_KEY_SET_UP_TYPE ( keyPt, ( unsigned int ) keyUp > MCR_BOTH ?
+			MCR_BOTH : keyUp ) ;
 }
 
 int mcr_MoveCursor_send ( mcr_Signal * signalData )
@@ -291,17 +253,56 @@ int mcr_MoveCursor_send ( mcr_Signal * signalData )
 	chkdata ( signalData ) ;
 	int success = 1 ;
 	MCR_MOVECURSOR_SEND ( ( mcr_MoveCursor * )
-			signalData->data, success ) ;
+			signalData->data.data, success ) ;
 	return success ;
+}
+
+int mcr_MoveCursor_compare ( const void * lhs,
+		const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+		return rhs ? -1 : ( lhs && 1 ) ;
+	const mcr_MoveCursor * lPt = lhs, * rPt = rhs ;
+	long long l = MCR_MOVECURSOR_IS_JUSTIFY ( lPt ),
+			r = MCR_MOVECURSOR_IS_JUSTIFY ( rPt ) ;
+	diff_ret ( l, r ) ;
+	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+	{
+		l = MCR_MOVECURSOR_GET_POSITION ( lPt, i ) ;
+		r = MCR_MOVECURSOR_GET_POSITION ( rPt, i ) ;
+		diff_ret ( l, r ) ;
+	}
+	return 0 ;
+}
+
+void mcr_MoveCursor_copy ( void * dstPt, void * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	mcr_MoveCursor * dPt = dstPt, * sPt = srcPt ;
+	MCR_MOVECURSOR_ENABLE_JUSTIFY ( dPt,
+			MCR_MOVECURSOR_IS_JUSTIFY ( sPt ) ) ;
+	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+	{
+		MCR_MOVECURSOR_SET_POSITION ( dPt, i,
+				MCR_MOVECURSOR_GET_POSITION ( sPt, i ) ) ;
+	}
+}
+
+void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
+		const mcr_SpacePosition blip, const int cursorJustify )
+{
+	dassert ( mcPt ) ;
+	mcr_MoveCursor_init ( mcPt ) ;
+	MCR_MOVECURSOR_SET ( mcPt, blip ) ;
+	MCR_MOVECURSOR_ENABLE_JUSTIFY ( mcPt, cursorJustify ) ;
 }
 
 int mcr_NoOp_send ( mcr_Signal * signalData )
 {
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
-	int success = 1 ;
-	MCR_NOOP_SEND ( ( mcr_NoOp * ) signalData->data, success ) ;
-	return success ;
+	return MCR_NOOP_SEND ( ( mcr_NoOp * ) signalData->data.data ) ;
 }
 
 int mcr_Scroll_send ( mcr_Signal * signalData )
@@ -309,8 +310,44 @@ int mcr_Scroll_send ( mcr_Signal * signalData )
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
 	int success = 1 ;
-	MCR_SCROLL_SEND ( ( mcr_Scroll * ) signalData->data, success ) ;
+	MCR_SCROLL_SEND ( ( mcr_Scroll * ) signalData->data.data, success ) ;
 	return success ;
+}
+
+int mcr_Scroll_compare ( const void * lhs,
+		const void * rhs )
+{
+	if ( ! lhs || ! rhs )
+		return rhs ? -1 : ( lhs && 1 ) ;
+	const mcr_Scroll * lPt = lhs, * rPt = rhs ;
+	long long l, r ;
+	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+	{
+		l = MCR_SCROLL_GET_DIMENSION ( lPt, i ) ;
+		r = MCR_SCROLL_GET_DIMENSION ( rPt, i ) ;
+		diff_ret ( l, r ) ;
+	}
+	return 0 ;
+}
+
+void mcr_Scroll_copy ( void * dstPt, void * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	mcr_Scroll * dPt = dstPt, * sPt = srcPt ;
+	for ( int i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+	{
+		MCR_SCROLL_SET_DIMENSION ( dPt, i,
+				MCR_SCROLL_GET_DIMENSION ( sPt, i ) ) ;
+	}
+}
+
+void mcr_Scroll_init_with ( mcr_Scroll * scrollPt,
+		const mcr_Dimensions dimVals )
+{
+	dassert ( scrollPt ) ;
+	mcr_Scroll_init ( scrollPt ) ;
+	MCR_SCROLL_SET ( scrollPt, dimVals ) ;
 }
 
 // Position utils.
@@ -369,147 +406,25 @@ int mcr_resembles_absolute ( const mcr_Dimensions first,
 
 }
 
-//
-// Code development
-//
-// Echo
-int mcr_Echo_set_name ( int eventCode, const char * eventName )
-{
-	int ret = 0 ;
-	if ( eventCode != -1 )
-	{
-		if ( ( unsigned int ) eventCode > _echoNames.used )
-		{
-			ret = mcr_Array_insert_filled ( & _echoNames, eventCode,
-					& eventName, NULL ) ;
-		}
-		else
-		{
-			ret = mcr_Array_set ( & _echoNames, eventCode, & eventName ) ;
-		}
-	}
-	if ( ret )
-	{
-		ret = mcr_Echo_add_name ( eventCode, eventName ) ;
-	}
-	return ret ;
-}
-
-int mcr_Echo_add_name ( int eventCode, const char * addName )
-{
-	return mcr_Map_map ( & _echoMap, & addName, & eventCode ) ;
-}
-
-int mcr_Echo_rename ( int eventCode,
-		const char * newName )
-{
-	const char ** found = mcr_Array_at ( & _echoNames, eventCode ) ;
-	if ( found )
-	{
-		if ( mcr_Map_remap ( & _echoMap, found, & newName ) )
-		{
-			 * found = newName ;
-			return 1 ;
-		}
-	}
-	return 0 ;
-}
-
-int mcr_Echo_rename_from_name ( const char * oldName,
-		const char * newName )
-{
-	dassert ( oldName ) ;
-	int * found = MCR_MAP_GET_VALUE ( & _echoMap, & oldName ) ;
-	if ( found )
-		return mcr_Echo_rename ( * found, newName ) ;
-	return 0 ;
-}
-
-void mcr_Echo_clear_all ( )
-{
-	mcr_Map_free ( & _echoMap ) ;
-	mcr_Array_free ( & _echoNames ) ;
-}
-
-// Key
-int mcr_Key_set_name ( int keyCode, const char * newName )
-{
-	int ret = 0 ;
-	if ( keyCode != -1 )
-	{
-		if ( ( unsigned int ) keyCode > _keyNames.used )
-		{
-			ret = mcr_Array_insert_filled ( & _keyNames, keyCode,
-					& newName, NULL ) ;
-		}
-		else
-		{
-			ret = mcr_Array_set ( & _keyNames, keyCode, & newName ) ;
-		}
-	}
-	if ( ret )
-	{
-		ret = mcr_Key_add_name ( keyCode, newName ) ;
-	}
-	return ret ;
-}
-
-int mcr_Key_add_name ( int keyCode, const char * addName )
-{
-	return mcr_Map_map ( & _keyMap, & addName, & keyCode ) ;
-}
-
-int mcr_Key_rename ( int keyCode, const char * newName )
-{
-	const char ** found = mcr_Array_at ( & _keyNames, keyCode ) ;
-	if ( found )
-	{
-		if ( mcr_Map_remap ( & _keyMap, found, & newName ) )
-		{
-			 * found = newName ;
-			return 1 ;
-		}
-	}
-	return 0 ;
-}
-
-int mcr_Key_rename_from_name ( const char * oldName,
-		const char * newName )
-{
-	dassert ( oldName ) ;
-	int * found = MCR_MAP_GET_VALUE ( & _keyMap, & oldName ) ;
-	if ( found )
-		return mcr_Key_rename ( * found, newName ) ;
-	return 0 ;
-}
-
-void mcr_Key_clear_all ( )
-{
-	mcr_Map_free ( & _keyMap ) ;
-	mcr_Array_free ( & _keyNames ) ;
-}
-
 void mcr_standard_initialize ( )
 {
-	mcr_Array_init ( & _echoNames, sizeof ( const char * ) ) ;
-	mcr_Map_init ( & _echoMap, sizeof ( const char * ), sizeof ( int ) ) ;
-	_echoMap.compare = mcr_name_compare ;
-	mcr_Array_init ( & _keyNames, sizeof ( const char * ) ) ;
-	mcr_Map_init ( & _keyMap, sizeof ( const char * ), sizeof ( int ) ) ;
-	_keyMap.compare = mcr_name_compare ;
-
-	mcr_ISignal_init ( & mcr_iAlarm, "Alarm", mcr_Alarm_send,
+	mcr_ISignal_init ( & mcr_iAlarm, mcr_Alarm_send,
 			sizeof ( mcr_Alarm ) ) ;
-	mcr_ISignal_init ( & mcr_iHIDEcho, "HIDEcho", mcr_Echo_send,
-			sizeof ( mcr_HIDEcho ) ) ;
-	mcr_ISignal_init ( & mcr_iKey, "Key", mcr_Key_send,
-			sizeof ( mcr_Key ) ) ;
-	mcr_ISignal_init ( & mcr_iMoveCursor, "MoveCursor",
-			mcr_MoveCursor_send, sizeof ( mcr_MoveCursor ) ) ;
-	mcr_ISignal_init ( & mcr_iNoOp, "NoOp", mcr_NoOp_send,
+	mcr_iAlarm.interface.compare = mcr_tm_compare ;
+	mcr_ISignal_init_with ( & mcr_iHIDEcho, mcr_Echo_compare,
+			mcr_Echo_copy, sizeof ( mcr_HIDEcho ),
+			mcr_Echo_init, NULL, NULL, mcr_Echo_send ) ;
+	mcr_ISignal_init_with ( & mcr_iKey, mcr_Key_compare,
+			mcr_Key_copy, sizeof ( mcr_Key ),
+			mcr_Key_init, NULL, NULL, mcr_Key_send ) ;
+	mcr_ISignal_init_with ( & mcr_iMoveCursor, mcr_MoveCursor_compare,
+			mcr_MoveCursor_copy, sizeof ( mcr_MoveCursor ),
+			mcr_MoveCursor_init, NULL, NULL, mcr_MoveCursor_send ) ;
+	mcr_ISignal_init ( & mcr_iNoOp, mcr_NoOp_send,
 			sizeof ( mcr_NoOp ) ) ;
-	mcr_ISignal_init ( & mcr_iScroll, "Scroll", mcr_Scroll_send,
-			sizeof ( mcr_Scroll ) ) ;
+	mcr_ISignal_init_with ( & mcr_iScroll, mcr_Scroll_compare,
+			mcr_Scroll_copy, sizeof ( mcr_Scroll ),
+			mcr_Scroll_init, NULL, NULL, mcr_Scroll_send ) ;
 	mcr_ISignal * sigs [ ] =
 	{
 		& mcr_iAlarm, & mcr_iHIDEcho, & mcr_iKey,
@@ -521,21 +436,11 @@ void mcr_standard_initialize ( )
 		sigs [ i ]->dispatch = NULL ;
 		if ( mcr_ISignal_register ( sigs [ i ] ) == ( size_t ) -1 )
 		{
-			dmsg ( "Unable to register signal type %s.\n",
-					sigs [ i ] [ 0 ].name ) ;
+			dmsg ;
 		}
 	}
-	mcr_ISignal_add_name ( & mcr_iHIDEcho, "hid echo" ) ;
-	mcr_ISignal_add_name ( & mcr_iHIDEcho, "hid_echo" ) ;
-	mcr_ISignal_add_name ( & mcr_iHIDEcho, "echo" ) ;
-	mcr_ISignal_add_name ( & mcr_iMoveCursor, "move cursor" ) ;
-	mcr_ISignal_add_name ( & mcr_iMoveCursor, "move_cursor" ) ;
-	mcr_ISignal_add_name ( & mcr_iNoOp, "no op" ) ;
-	mcr_ISignal_add_name ( & mcr_iNoOp, "no_op" ) ;
 }
 
-void mcr_standard_cleanup ( )
+void mcr_standard_cleanup ( void )
 {
-	mcr_Echo_clear_all ( ) ;
-	mcr_Key_clear_all ( ) ;
 }

@@ -8,209 +8,124 @@
 
 # include "signal/signal.h"
 
-MCR_API mcr_signal_fnc mcr_allDispatch = NULL ;
-static mcr_Array _iSignalSet ;
-static mcr_Map _nameMap ;
-
 void mcr_Signal_init ( mcr_Signal * sigPt, mcr_ISignal * type )
 {
-	dassert ( sigPt ) ;
+	if ( ! sigPt )
+	{
+		dmsg ;
+		return ;
+	}
+	memset ( sigPt, 0, sizeof ( mcr_Signal ) ) ;
 	sigPt->type = type ;
 }
 
 void mcr_Signal_init_with ( mcr_Signal * sigPt, mcr_ISignal * type,
-		void * data )
+		void * data, int isHeap )
 {
-	dassert ( sigPt ) ;
-	sigPt->type = type ;
-	sigPt->data = data ;
+	if ( ! sigPt )
+	{
+		dmsg ;
+		return ;
+	}
+	memset ( sigPt, 0, sizeof ( mcr_Signal ) ) ;
+	MCR_SIGNAL_INIT ( sigPt, type, data, isHeap ) ;
+}
+
+void mcr_Signal_free ( mcr_Signal * sigPt )
+{
+	if ( ! sigPt )
+	{
+		dmsg ;
+		return ;
+	}
+	MCR_SIGNAL_FREE ( sigPt ) ;
+}
+
+void mcr_Signal_free_foreach ( mcr_Signal * sigPt, ... )
+{
+	if ( ! sigPt ) return ;
+	MCR_SIGNAL_FREE ( sigPt ) ;
 }
 
 int mcr_send ( mcr_Signal * sigPt )
 {
 	dassert ( sigPt ) ;
-	int success = 1 ;
-	MCR_SEND ( sigPt, success ) ;
-	return success ;
+	if ( ! MCR_SEND ( sigPt ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	return 1 ;
 }
 
-void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
+void * mcr_ISignal_mkdata_data ( mcr_ISignal * isigPt )
+{
+	dassert ( isigPt ) ;
+	mcr_Data d = { 0 } ;
+	MCR_ISIGNAL_MKDATA ( isigPt, & d ) ;
+	return d.data ;
+}
+
+mcr_Data mcr_ISignal_mkdata ( mcr_ISignal * isigPt )
+{
+	dassert ( isigPt ) ;
+	mcr_Data d = { 0 } ;
+	MCR_ISIGNAL_MKDATA ( isigPt, & d ) ;
+	return d ;
+}
+
+void mcr_Signal_copy ( mcr_Signal * dstPt, mcr_Signal * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	MCR_SIGNAL_COPY ( dstPt, srcPt ) ;
+}
+
+int mcr_Signal_compare ( const void * lhsSigPt,
+		const void * rhsSigPt )
+{
+	dassert ( lhsSigPt ) ;
+	dassert ( rhsSigPt ) ;
+	const mcr_Signal * lSigPt = lhsSigPt, * rSigPt = rhsSigPt ;
+	return MCR_SIGNAL_CMP ( lSigPt, rSigPt ) ;
+}
+
+void mcr_ISignal_init ( mcr_ISignal * newType,
 		mcr_signal_fnc sender, size_t dataSize )
 {
 	dassert ( newType ) ;
-	MCR_ISIGNAL_INIT ( newType, name, sender, dataSize ) ;
+	memset ( newType, 0, sizeof ( mcr_ISignal ) ) ;
+	newType->interface.id = -1 ;
+	newType->interface.data_size = dataSize ;
+	newType->send = sender ;
 }
 
-//
-// Signal development: Add signal type to end, replace signal type,
-//
-size_t mcr_ISignal_register ( mcr_ISignal * newType )
+void mcr_ISignal_init_with ( mcr_ISignal * newType,
+		mcr_compare_fnc compare,
+		void ( * copy ) ( void *, void * ),
+		size_t dataSize, void ( * init ) ( void * ),
+		void ( * free ) ( void * ),
+		mcr_signal_fnc dispatch, mcr_signal_fnc sender )
 {
 	dassert ( newType ) ;
-	size_t id = _iSignalSet.used ;
-	if ( ! mcr_Array_push ( & _iSignalSet, & newType ) )
-	{
-		dmsg ( "register.\n" ) ;
-		return -1 ;
-	}
-	// If successful, we can set the id.
-	newType->id = id ;
-	if ( ! mcr_Map_map ( & _nameMap, & newType->name,
-			& newType ) )
-	{
-		mcr_Array_pop ( & _iSignalSet ) ; // Remove unmapped signal.
-		dmsg ( "register.\n" ) ;
-		return -1 ;
-	}
-	return id ;
-}
-
-int mcr_ISignal_add_name ( mcr_ISignal * sigPt,
-		const char * addName )
-{
-	dassert ( sigPt ) ;
-	return mcr_Map_map ( & _nameMap, & addName, & sigPt ) ;
-}
-
-int mcr_ISignal_rename ( mcr_ISignal * isigPt,
-		const char * newName )
-{
-	dassert ( isigPt ) ;
-	return mcr_ISignal_rename_by_name ( isigPt->name, newName ) ;
-}
-
-int mcr_ISignal_rename_by_name ( const char * oldName,
-		const char * newName )
-{
-	mcr_ISignal * sigPt = mcr_ISignal_from_name ( oldName ) ;
-	if ( ! sigPt )
-		return 0 ;
-	int ret = mcr_Map_remap ( & _nameMap, & oldName, & newName ) ;
-	if ( ! ret )
-		return 0 ;
-	sigPt->name = newName ;
-	return ret ;
-}
-
-mcr_ISignal * mcr_ISignal_get ( size_t typeId )
-{
-	mcr_ISignal ** ret = MCR_ARR_AT ( & _iSignalSet, typeId ) ;
-	return ret ? * ret : NULL ;
-}
-
-mcr_ISignal * mcr_ISignal_from_name ( const char * typeName )
-{
-	if ( ! typeName )
-		return NULL ;
-	mcr_ISignal ** ret = MCR_MAP_GET_VALUE ( & _nameMap,
-			& typeName ) ;
-	return ret ? * ret : NULL ;
-}
-
-size_t mcr_ISignal_get_id ( const char * typeName )
-{
-	mcr_ISignal * sig = mcr_ISignal_from_name ( typeName ) ;
-	if ( ! sig )
-		return -1 ;
-	return sig->id ;
-}
-
-size_t mcr_ISignal_count ( )
-{
-	return _iSignalSet.used ;
-}
-
-void mcr_ISignal_get_all ( mcr_ISignal ** buffer, size_t bufferLength )
-{
-	dassert ( buffer ) ;
-	mcr_ISignal ** arr = ( mcr_ISignal ** ) _iSignalSet.array ;
-	for ( size_t i = 0 ; i < bufferLength && i < _iSignalSet.used ; i ++ )
-	{
-		buffer [ i ] = arr [ i ] ;
-	}
-}
-
-void mcr_ISignal_clear_all ( )
-{
-	mcr_Array_free ( & _iSignalSet ) ;
-	mcr_Map_free ( & _nameMap ) ;
-}
-
-int mcr_name_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return strcasecmp ( * ( const char * const * ) lhs,
-						 * ( const char * const * ) rhs ) ;
-}
-
-int mcr_str_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return strcmp ( * ( const char * const * ) lhs,
-						 * ( const char * const * ) rhs ) ;
-}
-
-int mcr_int_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return * ( const int * ) lhs < * ( const int * ) rhs ? -1 :
-			 * ( const int * ) lhs > * ( const int * ) rhs ;
-}
-
-int mcr_unsigned_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return * ( const unsigned int * ) lhs <
-			 * ( const unsigned int * ) rhs ? -1 :
-			 * ( const unsigned int * ) lhs >
-			 * ( const unsigned int * ) rhs ;
-}
-
-int mcr_size_t_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return * ( const size_t * ) lhs < * ( const size_t * ) rhs ? -1 :
-			 * ( const size_t * ) lhs > * ( const size_t * ) rhs ;
-}
-
-int mcr_ref_compare ( const void * lhs, const void * rhs )
-{
-	if ( ! lhs || ! rhs )
-	{
-		return lhs < rhs ? -1 : lhs > rhs ;
-	}
-	return * ( void * const * ) lhs < * ( void * const * ) rhs ? -1 :
-			 * ( void * const * ) lhs > * ( void * const * ) rhs ;
+	memset ( newType, 0, sizeof ( mcr_ISignal ) ) ;
+	MCR_ISIGNAL_INIT ( newType, compare, copy, dataSize,
+			init, free, sender ) ;
+	newType->dispatch = dispatch ;
 }
 
 void mcr_signal_initialize ( )
 {
-	mcr_Array_init ( & _iSignalSet, sizeof ( mcr_ISignal * ) ) ;
-	mcr_Map_init ( & _nameMap, sizeof ( const char * ),
-			sizeof ( mcr_ISignal * ) ) ;
-	_nameMap.compare = mcr_name_compare ;
+	mcr_signalreg_initialize ( ) ;
 	mcr_standard_initialize ( ) ;
+	mcr_standardnames_initialize ( ) ;
 	mcr_standard_native_initialize ( ) ;
 }
 
 void mcr_signal_cleanup ( void )
 {
 	mcr_standard_native_cleanup ( ) ;
+	mcr_standardnames_cleanup ( ) ;
 	mcr_standard_cleanup ( ) ;
-	mcr_ISignal_clear_all ( ) ;
+	mcr_signalreg_cleanup ( ) ;
 }

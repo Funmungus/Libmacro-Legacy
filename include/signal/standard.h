@@ -78,6 +78,15 @@ extern mcr_ISignal mcr_iNoOp ;
 /*! \brief Signal interface for \ref mcr_Scroll. */
 extern mcr_ISignal mcr_iScroll ;
 
+//
+// Implement in native directory.
+//
+MCR_API void mcr_standard_enable ( int enable ) ;
+/* Native key definitions. */
+MCR_API void mcr_Key_load_contract ( ) ;
+/* Native code definitions. */
+MCR_API void mcr_Echo_load_contract ( ) ;
+
 
 //
 // Codes by name.
@@ -114,48 +123,6 @@ MCR_API const char * mcr_Key_name ( int keyCode ) ;
  * \brief Get the count of registered key codes.
  * */
 MCR_API size_t mcr_Key_count ( ) ;
-
-//
-// ctors for native types
-//
-/*! \brief Echo ctor.
- * */
-MCR_API void mcr_Echo_init ( mcr_HIDEcho * echoPt ) ;
-/*! \brief Echo ctor with initial data.
- * \param event Echo event code.
- * */
-MCR_API void mcr_Echo_init_with ( mcr_HIDEcho * echoPt, const int event ) ;
-/*! \brief Key ctor.
- * */
-MCR_API void mcr_Key_init ( mcr_Key * keyPt ) ;
-/*! \brief Key ctor with initial data
- *
- * \param key Key code.
- * \param scan Scan code.
- * */
-MCR_API void mcr_Key_init_with ( mcr_Key * keyPt, const int key,
-		const int scan, const mcr_KeyUpType keyUp ) ;
-/*! \brief MoveCursor ctor.
- *
- * \param mcPt mcr_MoveCursor *
- * */
-MCR_API void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt ) ;
-/*! \brief MoveCursor ctor with initial data.
- *
- * \param blip Spatial coordinates of movement.
- * \param cursorJustify 0 absolute, else relative.
- * */
-MCR_API void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
-		const mcr_SpacePosition blip, const int cursorJustify ) ;
-/*! \brief Scroll ctor
- * */
-MCR_API void mcr_Scroll_init ( mcr_Scroll * scrollPt ) ;
-/*! \brief Scroll ctor with initial data.
- *
- * \param dimVals Spatial coordinates to scroll through.
- * */
-MCR_API void mcr_Scroll_init_with ( mcr_Scroll * scrollPt,
-		const mcr_Dimensions dimVals ) ;
 
 
 //
@@ -253,7 +220,7 @@ MCR_API void mcr_Scroll_set_dimension ( mcr_Scroll * scrollPt,
 		int coordinate, long long value ) ;
 
 //
-// Send functions that are placed into ISignals.
+// Interface functions, internal use.
 //
 /*!
  * \brief Pause execution until time point.
@@ -262,6 +229,8 @@ MCR_API void mcr_Scroll_set_dimension ( mcr_Scroll * scrollPt,
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_Alarm_send ( mcr_Signal * signalData ) ;
+MCR_API int mcr_tm_compare ( const void * lhs, const void * rhs ) ;
+/* Default copy, init, and free. */
 /*!
  * \brief Send human interface impersonation.
  *
@@ -269,6 +238,11 @@ MCR_API int mcr_Alarm_send ( mcr_Signal * signalData ) ;
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_Echo_send ( mcr_Signal * signalData ) ;
+MCR_API int mcr_Echo_compare ( const void * lhs, const void * rhs ) ;
+MCR_API void mcr_Echo_copy ( void * dstPt, void * srcPt ) ;
+MCR_API void mcr_Echo_init ( void * echoPt ) ;
+MCR_API void mcr_Echo_init_with ( mcr_HIDEcho * echoPt, const int event ) ;
+/* No free. */
 /*!
  * \brief Simulate keyboard keys.
  *
@@ -276,6 +250,12 @@ MCR_API int mcr_Echo_send ( mcr_Signal * signalData ) ;
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_Key_send ( mcr_Signal * signalData ) ;
+MCR_API int mcr_Key_compare ( const void * lhs, const void * rhs ) ;
+MCR_API void mcr_Key_copy ( void * dstPt, void * srcPt ) ;
+MCR_API void mcr_Key_init ( void * keyPt ) ;
+MCR_API void mcr_Key_init_with ( mcr_Key * keyPt, const int key,
+		const int scan, const mcr_KeyUpType keyUp ) ;
+/* No free. */
 /*!
  * \brief Move HID cursor position.
  *
@@ -283,6 +263,13 @@ MCR_API int mcr_Key_send ( mcr_Signal * signalData ) ;
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_MoveCursor_send ( mcr_Signal * signalData ) ;
+MCR_API int mcr_MoveCursor_compare ( const void * lhs,
+		const void * rhs ) ;
+MCR_API void mcr_MoveCursor_copy ( void * dstPt, void * srcPt ) ;
+MCR_API void mcr_MoveCursor_init ( void * mcPt ) ;
+MCR_API void mcr_MoveCursor_init_with ( mcr_MoveCursor * mcPt,
+		const mcr_SpacePosition blip, const int cursorJustify ) ;
+/* No free. */
 /*!
  * \brief Pause execution in seconds and nanoseconds.
  *
@@ -291,6 +278,7 @@ MCR_API int mcr_MoveCursor_send ( mcr_Signal * signalData ) ;
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_NoOp_send ( mcr_Signal * signalData ) ;
+/* Default everything. */
 /*!
  * \brief Scroll through pages/visible area.
  *
@@ -298,6 +286,13 @@ MCR_API int mcr_NoOp_send ( mcr_Signal * signalData ) ;
  * \return 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_Scroll_send ( mcr_Signal * signalData ) ;
+MCR_API int mcr_Scroll_compare ( const void * lhs,
+		const void * rhs ) ;
+MCR_API void mcr_Scroll_copy ( void * dstPt, void * srcPt ) ;
+MCR_API void mcr_Scroll_init ( void * scrollPt ) ;
+MCR_API void mcr_Scroll_init_with ( mcr_Scroll * scrollPt,
+		const mcr_Dimensions dimVals ) ;
+/* No free. */
 
 
 //
@@ -343,13 +338,20 @@ MCR_API int mcr_resembles ( const mcr_MoveCursor * lhs,
  * The name will also map to this echo code.
  * \return 0 on failure, otherwise success.
  * */
-MCR_API int mcr_Echo_set_name ( int eventCode, const char * eventName ) ;
+MCR_API int mcr_Echo_set_name ( int eventCode,
+		const char * eventName ) ;
 /*!
  * \brief Map an additional name to this echo code.
  *
  * \return 0 on failure, otherwise success.
  * */
-MCR_API int mcr_Echo_add_name ( int eventCode, const char * addName ) ;
+MCR_API int mcr_Echo_add_name ( int eventCode,
+		const char * addName ) ;
+MCR_API int mcr_Echo_add_names ( int eventCode,
+		const char ** addNames, size_t bufferLen ) ;
+MCR_API int mcr_Echo_set_names ( int eventCode,
+		const char * eventName,
+		const char ** addNames, size_t bufferLen ) ;
 /*!
  * \brief Rename an echo code.
  *
@@ -366,7 +368,7 @@ MCR_API int mcr_Echo_rename ( int eventCode,
 MCR_API int mcr_Echo_rename_from_name ( const char * oldName,
 		const char * newName ) ;
 /*! \brief Remove all mapped echo codes. */
-MCR_API void mcr_Echo_clear_all ( ) ;
+MCR_API void mcr_Echo_clear ( ) ;
 // Key
 /*!
  * \brief Set the name mapped by a key code.
@@ -374,13 +376,20 @@ MCR_API void mcr_Echo_clear_all ( ) ;
  * The name will also map to this key code.
  * \return 0 if unsuccessful, othewise successful.
  * */
-MCR_API int mcr_Key_set_name ( int keyCode, const char * newName ) ;
+MCR_API int mcr_Key_set_name ( int keyCode,
+		const char * newName ) ;
 /*!
  * \brief Map an additional name to this key code.
  *
  * \return 0 on failure, otherwise success.
  * */
-MCR_API int mcr_Key_add_name ( int keyCode, const char * addName ) ;
+MCR_API int mcr_Key_add_name ( int keyCode,
+		const char * addName ) ;
+MCR_API int mcr_Key_add_names ( int keyCode,
+		const char ** addNames, size_t bufferLen ) ;
+MCR_API int mcr_Key_set_names ( int keyCode,
+		const char * newName,
+		const char ** addNames, size_t bufferLen ) ;
 /*!
  * \brief Rename a key code.
  *
@@ -397,7 +406,7 @@ MCR_API int mcr_Key_rename ( int keyCode,
 MCR_API int mcr_Key_rename_from_name ( const char * oldName,
 		const char * newName ) ;
 /*! \brief Remove all mapped key codes. */
-MCR_API void mcr_Key_clear_all ( ) ;
+MCR_API void mcr_Key_clear ( ) ;
 
 /*!
  * \brief Initialize standard signals.
@@ -406,13 +415,15 @@ MCR_API void mcr_Key_clear_all ( ) ;
  * Calls \ref mcr_standard_native_initialize
  * */
 MCR_API void mcr_standard_initialize ( ) ;
+MCR_API void mcr_standardnames_initialize ( ) ;
 /*!
  * \brief Clean up standard signals.
  *
  * Called by \ref mcr_signal_cleanup.
  * Calls \ref mcr_standard_native_cleanup
  * */
-MCR_API void mcr_standard_cleanup ( ) ;
+MCR_API void mcr_standard_cleanup ( void ) ;
+MCR_API void mcr_standardnames_cleanup ( void ) ;
 
 //
 // Must be implemented in native directory.
@@ -428,12 +439,13 @@ MCR_API void mcr_standard_native_initialize ( ) ;
  *
  * Called by \ref mcr_standard_cleanup
  * */
-MCR_API void mcr_standard_native_cleanup ( ) ;
+MCR_API void mcr_standard_native_cleanup ( void ) ;
 
 
 //
 // Inline data manipulation macros.
 //
+# ifndef MCR_ECHO_GET
 // mcr_HIDEcho
 //! \brief \ref mcr_Echo_get
 # define MCR_ECHO_GET( echoPt )
@@ -478,12 +490,11 @@ MCR_API void mcr_standard_native_cleanup ( ) ;
 //
 // Inline send macros.
 //
+//! \brief \ref mcr_Alarm_send
+# define MCR_ALARM_SEND( alarmPt ) \
+	( thrd_sleep_until ( alarmPt ) == thrd_success )
 # define MCR_ALARM_QUICKSEND( alarmPt ) \
 	( thrd_sleep_until ( alarmPt ) )
-//! \brief \ref mcr_Alarm_send
-# define MCR_ALARM_SEND( alarmPt, success ) \
-	if ( thrd_sleep_until ( alarmPt ) != thrd_success ) \
-		success = 0 ;
 //! \brief \ref mcr_Echo_send
 # define MCR_ECHO_SEND( echoPt, success )
 # define MCR_ECHO_QUICKSEND( echoPt )
@@ -493,15 +504,15 @@ MCR_API void mcr_standard_native_cleanup ( ) ;
 //! \brief \ref mcr_MoveCursor_send
 # define MCR_MOVECURSOR_SEND( movePt, success )
 # define MCR_MOVECURSOR_QUICKSEND( movePt )
+//! \brief \ref mcr_NoOp_send
+# define MCR_NOOP_SEND( noopPt ) \
+	( thrd_sleep ( noopPt, NULL ) == thrd_success )
 # define MCR_NOOP_QUICKSEND( noopPt ) \
 	( thrd_sleep ( noopPt, NULL ) )
-//! \brief \ref mcr_NoOp_send
-# define MCR_NOOP_SEND( noopPt, success ) \
-	if ( thrd_sleep ( noopPt, NULL ) != thrd_success ) \
-		success = 0 ;
 //! \brief \ref mcr_Scroll_send
 # define MCR_SCROLL_SEND( scrollPt, success )
 # define MCR_SCROLL_QUICKSEND( scrollPt )
+# endif
 
 # include STRINGIFY(signal/MCR_NATIVE_DIR/standard.h)
 

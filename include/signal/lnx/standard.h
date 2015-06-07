@@ -13,7 +13,8 @@
 # include "signal/lnx/device.h"
 
 // In order to inline we cannot privatize this.
-extern mcr_Array mcr_EchoEvents ;
+extern mcr_Array mcr_echoEvents ;
+extern mcr_Map mcr_keyToEcho [ 2 ] ;
 
 typedef struct mcr_HIDEcho
 {
@@ -44,6 +45,8 @@ typedef struct mcr_Scroll
 		events [ MCR_DIMENSION_CNT + 1 ] ;
 } mcr_Scroll ;
 
+MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
+
 //extern mcr_Array events ;
 
 // Key sending is needed in other macros.
@@ -53,13 +56,13 @@ typedef struct mcr_Scroll
 	if ( ( keyPt )->key_up != MCR_UP ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 1 ; \
-		MCR_DEV_QUICKSEND ( mcr_keyDev, ( keyPt )->events, \
+		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
 				sizeof ( ( keyPt )->events ) ) ; \
 	} \
 	if ( ( keyPt )->key_up != MCR_DOWN ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 0 ; \
-		MCR_DEV_QUICKSEND ( mcr_keyDev, ( keyPt )->events, \
+		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
 				sizeof ( ( keyPt )->events ) ) ; \
 	}
 
@@ -67,14 +70,16 @@ typedef struct mcr_Scroll
 	if ( ( keyPt )->key_up != MCR_UP ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 1 ; \
-		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
-				sizeof ( ( keyPt )->events ), success ) ; \
+		if ( ! MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
+				sizeof ( ( keyPt )->events ) ) ) \
+			success = 0 ; \
 	} \
 	if ( success && ( keyPt )->key_up != MCR_DOWN ) \
 	{ \
 		( keyPt )->events [ 1 ].value = 0 ; \
-		MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
-				sizeof ( ( keyPt )->events ), success ) ; \
+		if ( ! MCR_DEV_SEND ( mcr_keyDev, ( keyPt )->events, \
+				sizeof ( ( keyPt )->events ) ) ) \
+			success = 0 ; \
 	}
 
 // mcr_HIDEcho
@@ -87,26 +92,22 @@ typedef struct mcr_Scroll
 # define MCR_ECHO_SET( echoPt, code ) \
 	( echoPt )->event = ( code )
 # define MCR_ECHO_SEND( echoPt, success ) \
-	if ( ( size_t ) ( ( echoPt )->event ) < mcr_EchoEvents.used ) \
+	if ( ( unsigned int ) ( ( echoPt )->event ) < mcr_echoEvents.used ) \
 	{ \
-		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
+		MCR_KEY_SEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_echoEvents, \
 				( unsigned int ) ( echoPt )->event ), success ) \
 	} \
 	else \
-	{ \
-		dmsg ( "Event out of range.\n" ) ; \
-	}
+		dmsg ; \
 
 # define MCR_ECHO_QUICKSEND( echoPt ) \
-	if ( ( size_t ) ( ( echoPt )->event ) < mcr_EchoEvents.used ) \
+	if ( ( unsigned int ) ( ( echoPt )->event ) < mcr_echoEvents.used ) \
 	{ \
-		MCR_KEY_QUICKSEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_EchoEvents, \
+		MCR_KEY_QUICKSEND ( ( mcr_Key * ) MCR_ARR_AT ( & mcr_echoEvents, \
 				( unsigned int ) ( echoPt )->event ) ) \
 	} \
 	else \
-	{ \
-		dmsg ( "Event out of range.\n" ) ; \
-	}
+		dmsg \
 
 // mcr_Key
 # undef MCR_KEY_GET
@@ -163,16 +164,16 @@ typedef struct mcr_Scroll
 		mcr_cursor [ MCR_X ] += ( mcPt )->relvent [ MCR_X ].value ; \
 		mcr_cursor [ MCR_Y ] += ( mcPt )->relvent [ MCR_Y ].value ; \
 		mcr_cursor [ MCR_Z ] += ( mcPt )->relvent [ MCR_Z ].value ; \
-		if ( mcr_cursor [ MCR_X ] > MCR_ABS_RESOLUTION ) \
-			mcr_cursor [ MCR_X ] = MCR_ABS_RESOLUTION ; \
+		if ( mcr_cursor [ MCR_X ] > ( long long ) mcr_abs_resolution ) \
+			mcr_cursor [ MCR_X ] = mcr_abs_resolution ; \
 		else if ( mcr_cursor [ MCR_X ] < 0 ) \
 			mcr_cursor [ MCR_X ] = 0 ; \
-		if ( mcr_cursor [ MCR_Y ] > MCR_ABS_RESOLUTION ) \
-			mcr_cursor [ MCR_Y ] = MCR_ABS_RESOLUTION ; \
+		if ( mcr_cursor [ MCR_Y ] > ( long long ) mcr_abs_resolution ) \
+			mcr_cursor [ MCR_Y ] = mcr_abs_resolution ; \
 		else if ( mcr_cursor [ MCR_Y ] < 0 ) \
 			mcr_cursor [ MCR_Y ] = 0 ; \
-		if ( mcr_cursor [ MCR_Z ] > MCR_ABS_RESOLUTION ) \
-			mcr_cursor [ MCR_Z ] = MCR_ABS_RESOLUTION ; \
+		if ( mcr_cursor [ MCR_Z ] > ( long long ) mcr_abs_resolution ) \
+			mcr_cursor [ MCR_Z ] = mcr_abs_resolution ; \
 		else if ( mcr_cursor [ MCR_Z ] < 0 ) \
 			mcr_cursor [ MCR_Z ] = 0 ; \
 	}
@@ -180,14 +181,16 @@ typedef struct mcr_Scroll
 # define MCR_MOVECURSOR_SEND( mcPt, success ) \
 	if ( ( mcPt )->cursor_justify ) \
 	{ \
-		MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
-				sizeof ( ( mcPt )->relvent ), success ) ; \
+		if ( ! MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
+				sizeof ( ( mcPt )->relvent ) ) ) \
+			success = 0 ; \
 		MCR_MOVECURSOR_JUSTIFY_IMPL ( mcPt ) ; \
 	} \
 	else \
 	{ \
-		MCR_DEV_SEND ( mcr_absDev, ( mcPt )->absvent, \
-				sizeof ( ( mcPt )->absvent ), success ) ; \
+		if ( ! MCR_DEV_SEND ( mcr_absDev, ( mcPt )->absvent, \
+				sizeof ( ( mcPt )->absvent ) ) ) \
+			success = 0 ; \
 		mcr_cursor [ MCR_X ] = ( mcPt )->absvent [ MCR_X ].value ; \
 		mcr_cursor [ MCR_Y ] = ( mcPt )->absvent [ MCR_Y ].value ; \
 		mcr_cursor [ MCR_Z ] = ( mcPt )->absvent [ MCR_Z ].value ; \
@@ -196,13 +199,13 @@ typedef struct mcr_Scroll
 # define MCR_MOVECURSOR_QUICKSEND( mcPt ) \
 	if ( ( mcPt )->cursor_justify ) \
 	{ \
-		MCR_DEV_QUICKSEND ( mcr_relDev, ( mcPt )->relvent, \
+		MCR_DEV_SEND ( mcr_relDev, ( mcPt )->relvent, \
 				sizeof ( ( mcPt )->relvent ) ) ; \
 		MCR_MOVECURSOR_JUSTIFY_IMPL ( mcPt ) ; \
 	} \
 	else \
 	{ \
-		MCR_DEV_QUICKSEND ( mcr_absDev, ( mcPt )->absvent, \
+		MCR_DEV_SEND ( mcr_absDev, ( mcPt )->absvent, \
 				sizeof ( ( mcPt )->absvent ) ) ; \
 		mcr_cursor [ MCR_X ] = ( mcPt )->absvent [ MCR_X ].value ; \
 		mcr_cursor [ MCR_Y ] = ( mcPt )->absvent [ MCR_Y ].value ; \
@@ -229,10 +232,11 @@ typedef struct mcr_Scroll
 # define MCR_SCROLL_SET_DIMENSION( scrollPt, pos, val ) \
 	( scrollPt )->events [ pos ].value = val
 # define MCR_SCROLL_SEND( scrollPt, success ) \
-	MCR_DEV_SEND ( mcr_relDev, ( scrollPt )->events, \
-			sizeof ( ( scrollPt )->events ), success ) ;
+	if ( ! MCR_DEV_SEND ( mcr_relDev, ( scrollPt )->events, \
+			sizeof ( ( scrollPt )->events ) ) ) \
+		success = 0 ;
 # define MCR_SCROLL_QUICKSEND( scrollPt ) \
-	MCR_DEV_QUICKSEND ( mcr_relDev, ( scrollPt )->events, \
-			sizeof ( ( scrollPt )->events ) ) ;
+	MCR_DEV_SEND ( mcr_relDev, ( scrollPt )->events, \
+			sizeof ( ( scrollPt )->events ) )
 
 # endif // MCR_LNX_STANDARD_H

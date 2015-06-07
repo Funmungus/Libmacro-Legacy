@@ -10,26 +10,51 @@
 # include "signal/win/standard.h"
 
 // index-> echo event integer
-MCR_API mcr_Array mcr_EchoEvents ;
+MCR_API mcr_Array mcr_echoEvents ;
+MCR_API mcr_Map mcr_flagToEcho ;
+MCR_API int mcr_flagMask = -1 ;
 
-void mcr_Echo_init ( mcr_HIDEcho * echoPt )
+void mcr_standard_enable ( int enable )
+{
+	UNUSED ( enable ) ;
+}
+
+int mcr_Echo_set_mouseflag ( int echoCode, int mouseEventFlags )
+{
+	if ( echoCode == -1 )
+		return -1 ;
+	int ret = 1 ;
+	if ( ( unsigned int ) echoCode < mcr_echoEvents.used )
+		ret = mcr_Array_set ( & mcr_echoEvents,
+				( unsigned int ) echoCode, & mouseEventFlags ) ;
+	else
+		ret = mcr_Array_insert_filled ( & mcr_echoEvents,
+			( unsigned int ) echoCode, & mouseEventFlags, NULL ) ;
+	if ( ret )
+	{
+		ret = mcr_Map_map ( & mcr_flagToEcho, & mouseEventFlags,
+				& echoCode ) ;
+	}
+}
+
+void mcr_Echo_init ( void * echoPt )
 {
 	dassert ( echoPt ) ;
-	echoPt->event = 0 ;
+	( ( mcr_HIDEcho * ) echoPt )->event = 0 ;
 }
-void mcr_Key_init ( mcr_Key * keyPt )
+void mcr_Key_init ( void * keyPt )
 {
 	dassert ( keyPt ) ;
 	memset ( keyPt, 0, sizeof ( mcr_Key ) ) ;
 }
-void mcr_MoveCursor_init ( mcr_MoveCursor * mcPt )
+void mcr_MoveCursor_init ( void * mcPt )
 {
 	dassert ( mcPt ) ;
 	memset ( mcPt, 0, sizeof ( mcr_MoveCursor ) ) ;
 	// Justify for default relative event.
-	mcPt->cursor_justify = 1 ;
+	( ( mcr_MoveCursor * ) mcPt )->cursor_justify = 1 ;
 }
-void mcr_Scroll_init ( mcr_Scroll * scrollPt )
+void mcr_Scroll_init ( void * scrollPt )
 {
 	dassert ( scrollPt ) ;
 	memset ( scrollPt, 0, sizeof ( mcr_Scroll ) ) ;
@@ -52,19 +77,21 @@ void mcr_cursor_position ( mcr_SpacePosition buffer )
 	}
 	else
 	{
-		dmsg ( "Unable to get cursor position, error #%d\n",
-				( int ) GetLastError ( ) ) ;
+		dmsg ;
 	}
 }
 
 void mcr_standard_native_cleanup ( void )
 {
-	mcr_Array_free ( & mcr_EchoEvents ) ;
+	mcr_Array_free ( & mcr_echoEvents ) ;
+	mcr_Map_free ( & mcr_flagToEcho ) ;
 }
 
 void mcr_standard_native_initialize ( )
 {
-	mcr_Array_init ( & mcr_EchoEvents, sizeof ( int ) ) ;
+	mcr_Array_init ( & mcr_echoEvents, sizeof ( int ) ) ;
+	mcr_Map_init ( & mcr_flagToEcho, sizeof ( int ), sizeof ( int ) ) ;
+	mcr_flagToEcho.compare = mcr_int_compare ;
 
 	int echoEvents [ ] =
 	{
@@ -72,47 +99,13 @@ void mcr_standard_native_initialize ( )
 		MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
 		MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
 	} ;
-	const char * names [ ] =
+	int count = sizeof ( echoEvents ) / sizeof ( int ) ;
+	mcr_Array_resize ( & mcr_echoEvents, count ) ;
+	for ( int i = 0 ; i < count ; i++ )
 	{
-		"LeftDown", "LeftUp", "MiddleDown", "MiddleUp",
-		"RightDown", "RightUp"
-	} ;
-	const char * extraNames [ ] =
-	{
-		"left down", "left up", "middle down", "middle up",
-		"right down", "right up"
-	} ;
-	const char * extraNames2 [ ] =
-	{
-		"left_down", "left_up", "middle_down", "middle_up",
-		"right_down", "right_up"
-	} ;
-	size_t count = sizeof ( echoEvents ) / sizeof ( int ) ;
-	if ( ! mcr_Array_resize ( & mcr_EchoEvents, count ) )
-	{
-		dmsg ( "mcr_standard_native_initialize unable to "
-				"size native events.\n" ) ;
-		return ;
-	}
-	for ( size_t i = 0 ; i < count ; i++ )
-	{
-		int success = mcr_Echo_set_name ( i, names [ i ] ) ;
-		if ( success )
+		if ( ! mcr_Echo_set_mouseflag ( code, echoEvents + i ) )
 		{
-			// TODO Native register.
-			mcr_Array_set ( & mcr_EchoEvents, code, echoEvents + i ) ;
-		}
-		else
-		{
-			dmsg ( "Unable to register echo: %s.\n", names [ i ] ) ;
-		}
-		success = mcr_Echo_add_name ( i, extraNames [ i ] ) ;
-		if ( ! mcr_Echo_add_name ( i, extraNames2 [ i ] ) )
-			success = 0 ;
-		if ( ! success )
-		{
-			dmsg ( "Unable to add extra name: %s.\n",
-					extraNames [ i ] ) ;
+			dmsg ;
 		}
 	}
 }

@@ -9,6 +9,9 @@
 # ifndef MCR_WIN_SIGNAL_DEFINES_H
 # define MCR_WIN_SIGNAL_DEFINES_H
 
+# include "util/win/def.h"
+# include "signal/def.h"
+
 // NO SECURE WARNINGS was not being properly included for windows.
 # ifdef _MSC_VER
 # define _CRT_SECURE_NO_WARNINGS

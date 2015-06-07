@@ -36,19 +36,15 @@ typedef int ( * mcr_signal_fnc ) ( mcr_Signal * signalData ) ;
  * */
 typedef struct mcr_ISignal
 {
-	//! \brief Unique identifier for this signal type.
-	size_t id ;
+	mcr_Interface interface ;
 	//
 	// Internal
 	//
-	//! \brief Byte size of a data element.
-	size_t data_size ;
 	/*! \brief Function to intercept before sending. Returns 0
-	 * it not block signals from sending, otherwise do block the signal.
+	 * to not block signals from sending, otherwise do block the signal.
 	 **/
 	mcr_signal_fnc dispatch ;
-	//! \brief Case insensitive signal name.
-	const char * name ;
+	void * dispatch_object ;
 	//! \brief Function to send, when not interrupted.
 	mcr_signal_fnc send ;
 } mcr_ISignal ;
@@ -59,18 +55,16 @@ typedef struct mcr_ISignal
  * */
 typedef struct mcr_Signal
 {
+	//
+	// Interface
+	//
 	//! \brief Signal interface, or vtable.
 	mcr_ISignal * type ;
-	//! \brief Extra information to send or dispatch.
-	void * data ;
+	//
+	// Instance
+	//
+	mcr_Data data ;
 } mcr_Signal ;
-
-/*!
- * \brief Dispatcher used for all signals, after specific is used.
- *
- * In order to inline, we cannot privatize generic dispatcher.
- * */
-extern mcr_signal_fnc mcr_allDispatch ;
 
 //
 // General use: initializer and send function.
@@ -85,9 +79,15 @@ MCR_API void mcr_Signal_init ( mcr_Signal * sigPt, mcr_ISignal * type ) ;
  *
  * \param type Signal interface.
  * \param data Extra information to set.
+ * \param isHeap 0 if data stack reference, otherwise allocated on heap.
  * */
-MCR_API void mcr_Signal_init_with ( mcr_Signal * sigPt, mcr_ISignal * type,
-		void * data ) ;
+MCR_API void mcr_Signal_init_with ( mcr_Signal * sigPt,
+		mcr_ISignal * type, void * data, int isHeap ) ;
+/*! \brief If ISignal has data free function, that is used. If data is
+ * heap allocated, then free will also be called on data.
+ * */
+MCR_API void mcr_Signal_free ( mcr_Signal * sigPt ) ;
+MCR_API void mcr_Signal_free_foreach ( mcr_Signal * sigPt, ... ) ;
 /*!
  * \brief mcr_send
  * Functions are taken from object's type, and signalData
@@ -98,19 +98,39 @@ MCR_API void mcr_Signal_init_with ( mcr_Signal * sigPt, mcr_ISignal * type,
 MCR_API int mcr_send ( mcr_Signal * sigPt ) ;
 
 //
+// Some helpful things and abstractions.
+//
+MCR_API void * mcr_ISignal_mkdata_data ( mcr_ISignal * isigPt ) ;
+MCR_API mcr_Data mcr_ISignal_mkdata ( mcr_ISignal * isigPt ) ;
+MCR_API void mcr_Signal_copy ( mcr_Signal * dstPt, mcr_Signal * srcPt ) ;
+MCR_API int mcr_Signal_compare ( const void * lhsSigPt,
+		const void * rhsSigPt ) ;
+
+//
 // Signal development: Add signal type to end, get signal type,
 //
+MCR_API void mcr_Signal_load_contract ( ) ;
 /*!
- * \brief mcr_ISignal ctor, Set all members of new type,
+ * \brief mcr_ISignal ctor, Set required members of new type,
  * except the dispatcher, which is not modified.
  *
  * \param newType New signal interface to initialize.
- * \param name Name of type.
  * \param sender Send function.
  * \param dataSize Byte size of data members.
  * */
-MCR_API void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
+MCR_API void mcr_ISignal_init ( mcr_ISignal * newType,
 		mcr_signal_fnc sender, size_t dataSize ) ;
+/*!
+ * \brief mcr_ISignal ctor, Set all members of new type.
+ *
+ * \param newType New signal interface to initialize.
+ * */
+MCR_API void mcr_ISignal_init_with ( mcr_ISignal * newType,
+		mcr_compare_fnc compare,
+		void ( * copy ) ( void *, void * ),
+		size_t dataSize, void ( * init ) ( void * ),
+		void ( * free ) ( void * ),
+		mcr_signal_fnc dispatch, mcr_signal_fnc sender ) ;
 /*!
  * \brief Id is set as a unique value.
  *
@@ -118,6 +138,39 @@ MCR_API void mcr_ISignal_init ( mcr_ISignal * newType, const char * name,
  * \return Value of id for new type. -1 if not successful.
  * */
 MCR_API size_t mcr_ISignal_register ( mcr_ISignal * newType ) ;
+MCR_API size_t mcr_ISignal_register_with ( mcr_ISignal * newType,
+		const char * name, const char ** addNames,
+		size_t bufferLen ) ;
+/*! \brief Get the \ref mcr_ISignal for given id.
+ *
+ * \param typeId Id of given \ref mcr_ISignal
+ * \return Pointer to Signal interface. NULL of id is not registered.
+ * */
+MCR_API mcr_ISignal * mcr_ISignal_get ( size_t typeId ) ;
+/*! \brief Get the ISignal from the name of signal type.
+ *
+ * \param typeName Name of given \ref mcr_ISignal.
+ * \return Pointer to signal interface. NULL if not found.
+ * */
+MCR_API mcr_ISignal * mcr_ISignal_from_name ( const char * typeName ) ;
+/*! \brief Get the id of signal interface from a signal name.
+ *
+ * \param typeName Name of given \ref mcr_ISignal.
+ * \return Id of named signal type, or -1 if not found.
+ * */
+MCR_API size_t mcr_ISignal_get_id ( const char * typeName ) ;
+/*! \brief Get the signal name from id of signal interface.
+ * */
+MCR_API const char * mcr_ISignal_get_name ( size_t id ) ;
+/*!
+ * \brief Signal to a name, and vice versa.
+ *
+ * \param id Id of signal to set name for.
+ * \param name This name will be mapped to the signal.
+ * \return 0 on failure, otherwise success.
+ * */
+MCR_API int mcr_ISignal_set_name ( mcr_ISignal * sigPt,
+		const char * name ) ;
 /*!
  * \brief Map an additional name to this signal.
  *
@@ -126,17 +179,12 @@ MCR_API size_t mcr_ISignal_register ( mcr_ISignal * newType ) ;
  * \return 0 on failure, otherwise success.
  * */
 MCR_API int mcr_ISignal_add_name ( mcr_ISignal * sigPt,
-		const char * addName ) ;
-/*!
- * \brief Reset the mapped name for a signal.
- *
- * This will also set the name member, \ref mcr_ISignal#name.
- * \param isigPt Pointer to signal to replace name for.
- * \param newName The value to put in \ref mcr_ISignal#name.
- * \return 0 on failure, otherwise success.
- * */
-MCR_API int mcr_ISignal_rename ( mcr_ISignal * isigPt,
-		const char * newName ) ;
+		const char * name ) ;
+MCR_API int mcr_ISignal_add_names ( mcr_ISignal * sigPt,
+		const char ** names, size_t bufferLen ) ;
+MCR_API int mcr_ISignal_set_names ( mcr_ISignal * sigPt,
+		const char * name,
+		const char ** extraNames, size_t bufferLen ) ;
 /*!
  * \brief Reset the mapped name for a signal. First that signal
  * will be found by the old name.
@@ -145,26 +193,8 @@ MCR_API int mcr_ISignal_rename ( mcr_ISignal * isigPt,
  * \param oldName Name to search for signal to replace name for.
  * \return 0 on failure, otherwise success.
  * */
-MCR_API int mcr_ISignal_rename_by_name ( const char * oldName,
+MCR_API int mcr_ISignal_rename ( const char * oldName,
 		const char * newName ) ;
-/*! \brief Get the \ref mcr_ISignal for given id.
- *
- * \param typeId Id of given \ref mcr_ISignal
- * \return Pointer to Signal interface. NULL of id is not registered.
- * */
-MCR_API mcr_ISignal * mcr_ISignal_get ( size_t typeId ) ;
-/*! \brief Get the id of signal interface from a signal name.
- *
- * \param typeName Name of given \ref mcr_ISignal.
- * \return Id of named signal type, or -1 if not found.
- * */
-MCR_API size_t mcr_ISignal_get_id ( const char * typeName ) ;
-/*! \brief Get the ISignal from the name of signal type.
- *
- * \param typeName Name of given \ref mcr_ISignal.
- * \return Pointer to signal interface. NULL if not found.
- * */
-MCR_API mcr_ISignal * mcr_ISignal_from_name ( const char * typeName ) ;
 //! \brief Get the number of all \ref mcr_ISignal references registered.
 MCR_API size_t mcr_ISignal_count ( ) ;
 /*! \brief Copy into buffer all registered mcr_ISignals starting
@@ -177,61 +207,103 @@ MCR_API size_t mcr_ISignal_count ( ) ;
 MCR_API void mcr_ISignal_get_all ( mcr_ISignal ** buffer,
 		size_t bufferLength ) ;
 /*! \brief Remove all registered \ref mcr_ISignal. */
-MCR_API void mcr_ISignal_clear_all ( ) ;
+MCR_API void mcr_ISignal_clear ( ) ;
 
-//
-// Comparisons
-//
-/*! \brief Compare const c-strings referenced by each pointer,
- * case insensitive.
- *
- * \param lhs Pointer to const char *
- * \param rhs Pointer to const char *
- * \return < 0 if lhs < rhs, 0 if lhs == rhs,
- * > 0 if lhs > rhs.
- * */
-MCR_API int mcr_name_compare ( const void * lhs, const void * rhs ) ;
-MCR_API int mcr_str_compare ( const void * lhs, const void * rhs ) ;
-/*! \brief Compare integers referenced by each pointer.
- *
- * \param lhs Pointer to int.
- * \param rhs Pointer to int.
- * \return < 0 if lhs < rhs, 0 if lhs == rhs,
- * > 0 if lhs > rhs.
- * */
-MCR_API int mcr_int_compare ( const void * lhs, const void * rhs ) ;
-/*! \brief Compare unsigned integers referenced by each pointer.
- *
- * \param lhs Pointer to unsigned int.
- * \param rhs Pointer to unsigned int.
- * \return < 0 if lhs < rhs, 0 if lhs == rhs,
- * > 0 if lhs > rhs.
- * */
-MCR_API int mcr_unsigned_compare ( const void * lhs, const void * rhs ) ;
-/*! \brief Compare size_t referenced by each pointer.
- *
- * \param lhs Pointer to size_t.
- * \param rhs Pointer to size_t.
- * \return < 0 if lhs < rhs, 0 if lhs == rhs,
- * > 0 if lhs > rhs.
- * */
-MCR_API int mcr_size_t_compare ( const void * lhs, const void * rhs ) ;
-/*! \brief Compare void * referenced by each pointer.
- *
- * \param lhs Pointer to void *.
- * \param rhs Pointer to void *.
- * \return < 0 if lhs < rhs, 0 if lhs == rhs,
- * > 0 if lhs > rhs.
- * */
-MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
-
-/*!
- * \brief Free used memory of registered \ref mcr_ISignal set.
- * */
-MCR_API void mcr_signal_cleanup ( ) ;
 /*!
  * \brief Initialize containers for \ref mcr_ISignal registration.
  * */
 MCR_API void mcr_signal_initialize ( ) ;
+MCR_API void mcr_signalreg_initialize ( ) ;
+/*!
+ * \brief Free used memory of registered \ref mcr_ISignal set.
+ * */
+MCR_API void mcr_signal_cleanup ( void ) ;
+MCR_API void mcr_signalreg_cleanup ( void ) ;
+
+# define MCR_SIGNAL_INIT( signalPt, typePt, dataPt, isHeap ) \
+	( signalPt )->type = ( typePt ) ; \
+	( signalPt )->data.data = ( dataPt ) ; \
+	( signalPt )->data.is_heap = ( isHeap ) ;
+
+# define MCR_SIGNAL_FREE( sigPt ) \
+	MCR_IFREE ( & ( sigPt )->type->interface, & ( sigPt )->data ) ;
+
+# define MCR_ISIGNAL_MKDATA( isigPt, dataPtOut ) \
+	MCR_IMKDATA ( & ( isigPt )->interface, dataPtOut ) ;
+
+# define MCR_SIGNAL_MKDATA( sigPt, dataPtOut ) \
+	MCR_IMKDATA ( & ( sigPt )->type->interface, dataPtOut ) ;
+
+# define MCR_SIGNAL_COPY( dstPt, srcPt ) \
+	dassert ( ( srcPt )->type ) ; \
+	if ( ( dstPt )->type && ( dstPt )->type \
+			!= ( srcPt )->type ) \
+	{ \
+		MCR_SIGNAL_FREE ( dstPt ) ; \
+	} \
+	( dstPt )->type = ( srcPt )->type ; \
+	MCR_ICPY ( & ( srcPt )->type->interface, & ( dstPt )->data, \
+			& ( srcPt )->data ) ;
+
+# define MCR_SIGNAL_CMP( lSigPt, rSigPt ) \
+	( ( lSigPt )->type != ( rSigPt )->type ? \
+		( lSigPt )->type < ( rSigPt )->type ? \
+			-1 : \
+		1 : \
+	( lSigPt )->type ? \
+		MCR_ICMP ( & ( lSigPt )->type->interface, & ( lSigPt )->data, \
+				& ( rSigPt )->data ) : \
+	memcmp ( & ( lSigPt )->data.data, \
+			& ( rSigPt )->data.data, sizeof ( void * ) ) )
+
+/*!
+ * \brief Inline: 1 ) dispatch specific, if not blocking
+ * 2 ) dispatch unspecific, if not blocking
+ * 3 ) send signal.
+ *
+ * \param signalPt mcr_Signal *
+ * */
+# define MCR_SEND( signalPt ) \
+	( ( signalPt )->type->dispatch && \
+			( signalPt )->type->dispatch ( signalPt ) ? \
+		1 : \
+	( signalPt )->type->send ( ( signalPt ) ) ) \
+
+/*!
+ * \brief MCR_SEND with array of pointers to mcr_Signal
+ *
+ * \param signalPtArray mcr_Signal * [ ]
+ * \param arrLen size_t Length of signalPtArray.
+ * \param success int Set to 0 on failure.
+ * */
+# define MCR_SEND_REF_ARRAY( signalPtArray, arrLen, success ) \
+	for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
+			_arrayIterator_ ++ ) \
+	{ \
+		if ( ! MCR_SEND ( ( signalPtArray ) [ _arrayIterator_ ] ) ) \
+			( success ) = 0 ; \
+	}
+
+# define MCR_SEND_ARRAY( signalArray, arrLen, success ) \
+	for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
+			_arrayIterator_ ++ ) \
+	{ \
+		if ( ! MCR_SEND ( ( signalPtArray ) + _arrayIterator_ ) ) \
+			( success ) = 0 ; \
+	}
+
+/*!
+ * \brief For pointer to mcr_ISignal set data size, send,
+ *
+ * Should we reset id to 0?
+ * \param isignalPt mcr_ISignal * Object to set values into.
+ * \param dataSize size_t mcr_ISignal data_size.
+ * \param sender mcr_signal_fnc mcr_ISignal send.
+ * */
+# define MCR_ISIGNAL_INIT( isignalPt, comparison, copier, \
+		dataSize, initializer, freer, sender ) \
+	MCR_IINIT ( & ( isignalPt )->interface, comparison, copier, \
+			dataSize, initializer, freer ) ; \
+	( isignalPt )->send = ( sender ) ;
 
 # endif

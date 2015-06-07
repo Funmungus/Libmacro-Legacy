@@ -25,10 +25,20 @@ void mcr_Scroll_init ( mcr_Scroll * scrollPt )
 	UNUSED ( scrollPt ) ;
 }
 
+void mcr_cursor_position ( mcr_SpacePosition buffer )
+{
+	memcpy ( buffer, mcr_cursor, sizeof ( mcr_SpacePosition ) ) ;
+}
+
+void mcr_standard_enable ( int enable )
+{
+	UNUSED ( enable ) ;
+}
+
 void mcr_standard_native_initialize ( )
 {
 }
 
-void mcr_standard_native_cleanup ( )
+void mcr_standard_native_cleanup ( void )
 {
 }

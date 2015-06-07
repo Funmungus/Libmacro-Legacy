@@ -17,7 +17,6 @@
 # ifndef MCR_LNX_DEVICE_H
 # define MCR_LNX_DEVICE_H
 
-# include "signal/def.h"
 # include "signal/lnx/def.h"
 
 /*! \brief Wrapper for uinput devices.
@@ -51,6 +50,12 @@ extern mcr_SpacePosition mcr_cursor ;
 //! \brief Append similar input_event to the end of all sending of events.
 extern const struct input_event mcr_syncer ;
 
+extern size_t mcr_abs_resolution ;
+
+MCR_API void mcr_Device_set_uinput_path ( const char * path ) ;
+MCR_API void mcr_Device_set_event_directory
+		( const char * directoryPath ) ;
+MCR_API void mcr_Device_set_absolute_resolution ( size_t resolution ) ;
 /*! \brief ctor. Initialize empty device, map, and files.
  *
  * \param devPt mcr_Device *
@@ -69,6 +74,7 @@ MCR_API void mcr_Device_free ( mcr_Device * devPt ) ;
  * \return int 0 on failure, otherwise successful.
  * */
 MCR_API int mcr_Device_enable ( mcr_Device * devPt, int enable ) ;
+MCR_API int mcr_Device_enable_all ( int enable ) ;
 
 //! \brief Call this if you do not know what's going on.
 MCR_API void mcr_Device_usage ( ) ;
@@ -108,17 +114,11 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
  * \param size size_t Byte size of all input_events in eventObjects.
  * \param success int Will be 0 on failure.
  * */
-# define MCR_DEV_SEND( dev, eventObjects, size, success ) \
-	if ( ( dev ).fd == -1 ) \
-		success = 0 ; \
-	else if ( write ( ( dev ).fd, eventObjects, size ) == -1 ) \
-		success = 0 ;
-
-# define MCR_DEV_QUICKSEND( dev, eventObjects, size ) \
-	if ( ( dev ).fd != -1 ) \
-	{ \
-		write ( ( dev ).fd, eventObjects, size ) ; \
-	}
+# define MCR_DEV_SEND( dev, eventObjects, size ) \
+	( ( dev ).fd == -1 || \
+			write ( ( dev ).fd, eventObjects, size ) == -1 ? \
+		0 : \
+	1 )
 
 /*!
  * \brief \ref MCR_DEV_SEND for single input_event.
@@ -128,13 +128,11 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
  * \param success int Will be 0 on failure.
  * */
 # define MCR_DEV_SEND_ONE( dev, eventObject, success) \
-	MCR_DEV_SEND ( dev, eventObject, sizeof ( struct input_event ), \
-			success )
+	MCR_DEV_SEND ( dev, eventObject, sizeof ( struct input_event ) )
 
 //! \brief Send a syncing event to this device.
 # define MCR_DEV_SYNC( dev, success ) \
-	MCR_DEV_SEND ( dev, & mcr_Syncer, sizeof ( struct input_event ), \
-			success )
+	MCR_DEV_SEND ( dev, & mcr_Syncer, sizeof ( struct input_event ) )
 
 /*! \brief Initialize values for known mcr_Device objects,
  * and allocate resources.

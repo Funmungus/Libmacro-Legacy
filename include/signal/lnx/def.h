@@ -6,6 +6,9 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
+# ifndef MCR_LNX_SIGNAL_DEFINES_H
+# define MCR_LNX_SIGNAL_DEFINES_H
+
 /*! \def MCR_UINPUT_PATH
  * Default value for uinput node when library is built.
  * */
@@ -26,11 +29,14 @@
 # define MCR_ABS_RESOLUTION 0xFFFF
 # endif
 
+# include "util/lnx/util.h"
+# include "signal/def.h"
 # include <dirent.h> // Find uinput dev node after creation.
 # include <linux/input.h> // Event definitions.
 # include <linux/joystick.h> // EVIO joysticks
 # include <linux/limits.h>
 # include <linux/uinput.h> // Create udev.
 # include <sys/stat.h>
-# include <unistd.h>
 # include <fcntl.h> // File control, open, create, read, write.
+
+# endif // MCR_SIGNAL_DEFINES_H
