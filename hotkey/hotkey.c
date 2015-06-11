@@ -20,16 +20,20 @@ void mcr_hotkey_initialize ( )
 {
 	mtx_init ( & mcr_modLock, mtx_timed ) ;
 	mcr_mods_initialize ( ) ;
+	mcr_hot_initialize ( ) ;
+	mcr_stage_initialize ( ) ;
+	mcr_hotstandard_initialize ( ) ;
 	mcr_dispatch_initialize ( ) ;
 	mcr_dispatchstandard_initialize ( ) ;
-	mcr_stage_initialize ( ) ;
 }
 
 void mcr_hotkey_cleanup ( )
 {
-	mcr_stage_cleanup ( ) ;
 	mcr_dispatchstandard_cleanup ( ) ;
 	mcr_dispatch_cleanup ( ) ;
+	mcr_hotstandard_cleanup ( ) ;
+	mcr_stage_cleanup ( ) ;
+	mcr_hot_cleanup ( ) ;
 	mcr_mods_cleanup ( ) ;
 	mtx_destroy ( & mcr_modLock ) ;
 }

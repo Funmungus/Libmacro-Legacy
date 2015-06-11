@@ -1,4 +1,4 @@
-/* hotkey/hotstaged.c
+/* hotkey/hotstandard.c
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -6,42 +6,36 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-# include "hotkey/hotstaged.h"
+# include "hotkey/hotstandard.h"
 
-void mcr_HotStaged_init ( mcr_HotStaged * hotPt )
-{
-	if ( ! hotPt )
-		return ;
-	mcr_Hot_init ( ( mcr_Hot * ) hotPt ) ;
-	hotPt->hot.trigger = mcr_HotStaged_trigger ;
-	mcr_Array_init ( & hotPt->stages, sizeof ( mcr_Stage ) ) ;
-	hotPt->on_complete = NULL ;
-	hotPt->style = MCR_UNMANAGED ;
-}
+MCR_API mcr_IHot mcr_iHot ;
+MCR_API mcr_IHot mcr_iHotStaged ;
 
-void mcr_HotStaged_init_with ( mcr_HotStaged * hotPt,
-		void * data, mcr_trigger_fnc onComplete,
-		mcr_BlockStyle style )
+void mcr_Hot_load_contract ( )
 {
-	if ( ! hotPt )
-		return ;
-	mcr_Hot_init_with ( ( mcr_Hot * ) hotPt, 0, mcr_HotStaged_trigger, data ) ;
-	mcr_Array_init ( & hotPt->stages, sizeof ( mcr_Stage ) ) ;
-	hotPt->on_complete = onComplete ;
-	hotPt->style = style ;
-}
-
-void mcr_HotStaged_free ( mcr_HotStaged * hotPt )
-{
-	dassert ( hotPt ) ;
-	mcr_Array_free ( & hotPt->stages ) ;
-}
-
-void mcr_HotStaged_set_trigger ( mcr_Hot * hotPt,
-		mcr_trigger_fnc trigger )
-{
-	dassert ( hotPt ) ;
-	( ( mcr_HotStaged * ) hotPt )->on_complete = trigger ;
+	mcr_IHot * hots [ ] =
+	{
+		& mcr_iHot, & mcr_iHotStaged
+	} ;
+	const char * names [ ] =
+	{
+		"Hotkey", "StagedHotkey"
+	} ;
+	const char * addNames [ ] [ 5 ] =
+	{
+		{"Hot"}, {"staged hotkey", "staged_hotkey", "HotStaged",
+				"hot staged", "hot_staged"}
+	} ;
+	const size_t addLens [ ] =
+	{
+		1, 5
+	} ;
+	int len = sizeof ( hots ) / sizeof ( mcr_ISignal * ) ;
+	for ( int i = 0 ; i < len ; i ++ )
+	{
+		mcr_IHot_set_names ( hots [ i ], names [ i ], addNames [ i ],
+				addLens [ i ] ) ;
+	}
 }
 
 void mcr_HotStaged_set_style ( mcr_HotStaged * hotPt,
@@ -132,7 +126,8 @@ int mcr_HotStaged_push_with ( mcr_HotStaged * hotPt, int blocking,
 {
 	dassert ( hotPt ) ;
 	mcr_Stage p ;
-	mcr_Stage_init_with ( & p, blocking, interceptPt, measurement_error, modifiers ) ;
+	mcr_Stage_init_with ( & p, blocking, interceptPt, measurement_error,
+			modifiers ) ;
 	return mcr_Array_push ( & hotPt->stages, & p ) ;
 }
 
@@ -145,7 +140,8 @@ int mcr_HotStaged_insert ( mcr_HotStaged * hotPt,
 	memset ( & i, 0, sizeof ( mcr_Stage ) ) ;
 	mcr_Stage_set ( & any, NULL, MCR_ANY_MOD ) ;
 	mcr_Stage_set ( & i, interceptPt, modifiers ) ;
-	return mcr_Array_insert_filled ( & hotPt->stages, index, & i, & any ) ;
+	return mcr_Array_insert_filled ( & hotPt->stages, index, & i,
+			& any ) ;
 }
 
 int mcr_HotStaged_insert_with ( mcr_HotStaged * hotPt,
@@ -155,8 +151,10 @@ int mcr_HotStaged_insert_with ( mcr_HotStaged * hotPt,
 	dassert ( hotPt ) ;
 	mcr_Stage any, i ;
 	mcr_Stage_init_with ( & any, 0, NULL, 0, MCR_ANY_MOD ) ;
-	mcr_Stage_init_with ( & i, blocking, interceptPt, measurement_error, modifiers ) ;
-	return mcr_Array_insert_filled ( & hotPt->stages, index, & i, & any ) ;
+	mcr_Stage_init_with ( & i, blocking, interceptPt, measurement_error,
+			modifiers ) ;
+	return mcr_Array_insert_filled ( & hotPt->stages, index, & i,
+			& any ) ;
 }
 
 int mcr_HotStaged_set ( mcr_HotStaged * hotPt,
@@ -175,53 +173,141 @@ int mcr_HotStaged_set_with ( mcr_HotStaged * hotPt,
 {
 	dassert ( hotPt ) ;
 	mcr_Stage s ;
-	mcr_Stage_init_with ( & s, blocking, interceptPt, measurement_error, modifiers ) ;
+	mcr_Stage_init_with ( & s, blocking, interceptPt, measurement_error,
+			modifiers ) ;
 	return mcr_Array_set ( & hotPt->stages, index, & s ) ;
+}
+
+static void deactivate_redirect ( mcr_Stage * stagePt, ... )
+{
+	stagePt->activated = 0 ;
+}
+void mcr_deactivate_stages ( mcr_Array * stagesPt )
+{
+	MCR_ARR_FOR_EACH ( stagesPt, deactivate_redirect, 0 ) ;
+}
+
+
+int mcr_HotStaged_compare ( const void * lhs, const void * rhs )
+{
+	dassert ( lhs ) ;
+	dassert ( rhs ) ;
+	const mcr_HotStaged * lPt = lhs, * rPt = rhs ;
+	if ( lPt->stages.used != rPt->stages.used )
+		return lPt->stages.used < rPt->stages.used ? -1 : 1 ;
+	if ( lPt->style != rPt->style )
+		return lPt->style < rPt->style ? -1 : 1 ;
+	int ret = 0 ;
+	mcr_Stage * lSt = MCR_ARR_AT ( & lPt->stages, 0 ),
+			 * rSt = MCR_ARR_AT ( & rPt->stages, 0 ),
+			 * end = MCR_ARR_END ( & lPt->stages ) ;
+	while ( ! ret && lSt < end )
+	{
+		ret = mcr_Stage_compare ( lSt ++, rSt ++ ) ;
+	}
+	return ret ;
+}
+
+void mcr_HotStaged_copy ( void * dstPt, void * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	mcr_HotStaged * dPt = dstPt, * sPt = srcPt ;
+	dPt->style = sPt->style ;
+	if ( dPt->stages.used )
+		mcr_HotStaged_free ( dstPt ) ;
+	if ( mcr_Array_from_array ( & dPt->stages, sPt->stages.array, sPt->stages.used ) )
+	{
+		mcr_Stage * dSt = MCR_ARR_AT ( & dPt->stages, 0 ),
+				 * sSt = MCR_ARR_AT ( & sPt->stages, 0 ),
+				 * end = MCR_ARR_END ( & dPt->stages ) ;
+		while ( dSt < end )
+		{
+			// copied reference, reset.
+			dSt->intercept.data.data = NULL ;
+			dSt->intercept.data.is_heap = 0 ;
+			mcr_Signal_copy ( & ( dSt ++ )->intercept,
+					& ( sSt ++ )->intercept ) ;
+		}
+	}
+}
+
+void mcr_HotStaged_init ( void * hotPt )
+{
+	if ( ! hotPt )
+		return ;
+	memset ( hotPt, 0, sizeof ( mcr_HotStaged ) ) ;
+	mcr_Array_init ( & ( ( mcr_HotStaged * ) hotPt )->stages,
+			sizeof ( mcr_Stage ) ) ;
+}
+
+void mcr_HotStaged_init_with ( mcr_HotStaged * hotPt,
+		mcr_Stage * stages, size_t stageCount,
+		mcr_BlockStyle style )
+{
+	if ( ! hotPt )
+		return ;
+	mcr_HotStaged_init ( hotPt ) ;
+	hotPt->style = style ;
+	if ( stages && stageCount )
+		mcr_Array_from_array ( & hotPt->stages, stages, stageCount ) ;
+}
+
+static void stage_free_foreach ( mcr_Stage * sPt, ... )
+{
+	mcr_Stage_free ( sPt ) ;
+}
+
+void mcr_HotStaged_free ( void * hotPt )
+{
+	dassert ( hotPt ) ;
+	MCR_ARR_FOR_EACH ( & ( ( mcr_HotStaged * ) hotPt )->stages,
+			stage_free_foreach, 0 ) ;
+	mcr_Array_free ( & ( ( mcr_HotStaged * ) hotPt )->stages ) ;
 }
 
 void mcr_HotStaged_trigger ( mcr_Hot * hotPt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	dassert ( hotPt ) ;
-	mcr_HotStaged * shotPt = ( mcr_HotStaged * ) hotPt ;
-	shotPt->hot.block = 0 ;
+	mcr_HotStaged * shotPt = hotPt->data.data ;
+	hotPt->block = 0 ;
 	// No elements? unblock, then trigger.
 	if ( ! shotPt->stages.used )
 	{
-		MCR_HOTSTAGED_ONCOMPLETE ( shotPt, interceptPt, mods ) ;
+		hotPt->block = 0 ;
+		MCR_HOTSTAGED_ONCOMPLETE ( hotPt, interceptPt, mods ) ;
 		return ;
 	}
 	mcr_Stage * first = MCR_ARR_AT ( & shotPt->stages, 0 ), // First.
 			 * rit = MCR_ARR_PREV ( & shotPt->stages,
-			( MCR_ARR_END ( & shotPt->stages ) ) ), 	// At last element.
+			( MCR_ARR_END ( & shotPt->stages ) ) ), // At last element.
 			 * prev = MCR_ARR_PREV ( & shotPt->stages, rit ) ;
 			// One before last.
 	// One element or previous, this may activate.
 	// Currently triggering only blocks for the trigger stage.
 	if ( shotPt->stages.used == 1 || prev->activated )
 	{
-		dassert ( rit->isme != NULL ) ;
-		if ( rit->isme ( rit, interceptPt, mods ) )
+		if ( MCR_STAGE_ISME ( rit, interceptPt, mods ) )
 		{
-			MCR_HOTSTAGED_ONCOMPLETE ( shotPt, interceptPt, mods ) ;
 			hotPt->block = rit->blocking ;
+			MCR_HOTSTAGED_ONCOMPLETE ( hotPt, interceptPt, mods ) ;
 			mcr_deactivate_stages ( & shotPt->stages ) ;
 			return ;
 		}
+		if ( shotPt->stages.used == 1 )
+			return ;
+		rit = prev ;
+		prev = MCR_ARR_PREV ( & shotPt->stages, prev ) ;
 	}
-	if ( shotPt->stages.used == 1 )
-		return ;
 
 	/* Do not check first item for conditional activation, but
 	 * always check it at the end. */
-	do
+	while ( rit != first )
 	{
-		dassert ( rit->isme != NULL ) ;
-		/* Activated signals only need to have same type to
-		 * stay activated and possibly block. */
 		if ( rit->activated )
 		{
-			if ( MCR_STAGE_ISTYPE ( rit, interceptPt ) )
+			if ( MCR_STAGE_RESEMBLES ( rit, interceptPt, mods ) )
 			{
 				if ( rit->blocking )
 					hotPt->block = 1 ;
@@ -229,11 +315,9 @@ void mcr_HotStaged_trigger ( mcr_Hot * hotPt,
 			else
 				rit->activated = 0 ;
 		}
-		/* Non-activated signals can only be activated if previous
-		 * has already been activated. */
 		else if ( prev->activated )
 		{
-			if ( rit->isme ( rit, interceptPt, mods ) )
+			if ( MCR_STAGE_ISME ( rit, interceptPt, mods ) )
 			{
 				rit->activated = 1 ;
 				if ( rit->blocking )
@@ -242,8 +326,9 @@ void mcr_HotStaged_trigger ( mcr_Hot * hotPt,
 		}
 		rit = prev ;
 		prev = MCR_ARR_PREV ( & shotPt->stages, prev ) ;
-	} while ( rit != first ) ;
-	if ( rit->isme ( rit, interceptPt, mods ) )
+	}
+	// Should be at first element, and not previously checked.
+	if ( MCR_STAGE_ISME ( rit, interceptPt, mods ) )
 	{
 		rit->activated = 1 ;
 		if ( rit->blocking )
@@ -251,12 +336,23 @@ void mcr_HotStaged_trigger ( mcr_Hot * hotPt,
 	}
 }
 
-static void deactivate_redirect ( mcr_Stage * stagePt,... )
+void mcr_hotstandard_initialize ( )
 {
-	stagePt->activated = 0 ;
+	mcr_IHot_init ( & mcr_iHot, 0 ) ;
+	mcr_IHot_init_with ( & mcr_iHotStaged, mcr_HotStaged_compare,
+			mcr_HotStaged_copy, sizeof ( mcr_HotStaged ),
+			mcr_HotStaged_init, mcr_HotStaged_free, mcr_HotStaged_trigger ) ;
+	if ( mcr_IHot_register ( & mcr_iHot ) == ( size_t ) -1 )
+	{
+		dmsg ;
+	}
+	if ( mcr_IHot_register ( & mcr_iHotStaged ) == ( size_t ) -1 )
+	{
+		dmsg ;
+	}
 }
 
-void mcr_deactivate_stages ( mcr_Array * stagesPt )
+void mcr_hotstandard_cleanup ( )
 {
-	MCR_ARR_FOR_EACH ( stagesPt, deactivate_redirect, 0 ) ;
+
 }

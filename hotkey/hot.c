@@ -8,28 +8,63 @@
 
 # include "hotkey/dispatch.h"
 
-void mcr_Hot_init ( mcr_Hot * hotPt )
+static mcr_IRegistry _ihotReg ;
+
+void mcr_Hot_init ( mcr_Hot * hotPt, mcr_IHot * ihotPt )
 {
 	if ( ! hotPt ) return ;
 	memset ( hotPt, 0, sizeof ( mcr_Hot ) ) ;
+	hotPt->type = ihotPt ;
 }
 
-void mcr_Hot_init_with ( mcr_Hot * hotPt, int block,
-		mcr_trigger_fnc trigger, void * data )
+void mcr_Hot_init_with ( mcr_Hot * hotPt, mcr_IHot * ihotPt,
+		void * data, int isHeap, int block, mcr_trigger_fnc trigger,
+		void * triggerData )
 {
 	if ( ! hotPt ) return ;
 	memset ( hotPt, 0, sizeof ( mcr_Hot ) ) ;
-	hotPt->block = block ;
-	hotPt->trigger = trigger ;
-	hotPt->set_trigger = mcr_Hot_set_trigger ;
-	hotPt->data = data ;
+	MCR_HOT_INIT ( hotPt, ihotPt, data, isHeap, block, trigger,
+			triggerData ) ;
 }
 
-void mcr_Hot_set_trigger ( mcr_Hot * hotPt, mcr_trigger_fnc trigger )
+void mcr_Hot_free ( mcr_Hot * hotPt )
 {
-	dassert ( hotPt ) ;
-	hotPt->trigger = trigger ;
+	if ( ! hotPt ) return ;
+	MCR_HOT_FREE ( hotPt ) ;
 }
+
+void * mcr_IHot_mkdata_data ( mcr_IHot * ihotPt )
+{
+	dassert ( ihotPt ) ;
+	mcr_Data d = { 0 } ;
+	MCR_IHOT_MKDATA ( ihotPt, & d ) ;
+	return d.data ;
+}
+
+mcr_Data mcr_IHot_mkdata ( mcr_IHot * ihotPt )
+{
+	dassert ( ihotPt ) ;
+	mcr_Data d = { 0 } ;
+	MCR_IHOT_MKDATA ( ihotPt, & d ) ;
+	return d ;
+}
+
+void mcr_Hot_copy ( mcr_Hot * dstPt, mcr_Hot * srcPt )
+{
+	dassert ( dstPt ) ;
+	dassert ( srcPt ) ;
+	MCR_HOT_COPY ( dstPt, srcPt ) ;
+}
+
+int mcr_Hot_compare ( const void * lhsHotPt,
+		const void * rhsHotPt )
+{
+	dassert ( lhsHotPt ) ;
+	dassert ( rhsHotPt ) ;
+	const mcr_Hot * lHotPt = lhsHotPt, * rHotPt = rhsHotPt ;
+	return MCR_HOT_CMP ( lHotPt, rHotPt ) ;
+}
+
 
 int mcr_Hot_trigger ( mcr_Hot * hotPt, mcr_Signal * signalPt,
 		unsigned int mods )
@@ -42,6 +77,130 @@ int mcr_Hot_trigger_array ( mcr_Hot ** hotArray, size_t count,
 		mcr_Signal * signalPt, unsigned int mods )
 {
 	int block = 0 ;
-	MCR_HOT_TRIGGER_ARRAY ( hotArray, count, signalPt, mods, block ) ;
+	MCR_HOT_TRIGGER_REF_ARRAY ( hotArray, count, signalPt, mods, block ) ;
 	return block ;
+}
+
+void mcr_IHot_init ( mcr_IHot * ihotPt, size_t dataSize )
+{
+	dassert ( ihotPt ) ;
+	memset ( ihotPt, 0, sizeof ( mcr_IHot ) ) ;
+	ihotPt->interface.id = -1 ;
+	ihotPt->interface.data_size = dataSize ;
+}
+
+void mcr_IHot_init_with ( mcr_IHot * ihotPt, mcr_compare_fnc compare,
+		void ( * copy ) ( void *, void * ), size_t dataSize,
+		void ( * init ) ( void * ), void ( * free ) ( void * ),
+		mcr_trigger_fnc trigger )
+{
+	dassert ( ihotPt ) ;
+	memset ( ihotPt, 0, sizeof ( mcr_IHot ) ) ;
+	MCR_IHOT_INIT ( ihotPt, compare, copy, dataSize, init,
+			free, trigger ) ;
+}
+
+size_t mcr_IHot_register ( mcr_IHot * newType )
+{
+	dassert ( newType ) ;
+	return mcr_iregister ( & _ihotReg, ( mcr_Interface * ) newType ) ;
+}
+
+mcr_IHot * mcr_IHot_get ( size_t typeId )
+{
+	return ( mcr_IHot * ) mcr_iget ( & _ihotReg, typeId ) ;
+}
+
+mcr_IHot * mcr_IHot_from_name ( const char * typeName )
+{
+	return ( mcr_IHot * ) mcr_ifrom_name ( & _ihotReg, typeName ) ;
+}
+
+size_t mcr_IHot_get_id ( const char * typeName )
+{
+	return mcr_iget_id ( & _ihotReg, typeName ) ;
+}
+
+const char * mcr_IHot_get_name ( size_t id )
+{
+	return mcr_iget_name ( & _ihotReg, id ) ;
+}
+
+int mcr_IHot_set_name ( mcr_IHot * ihotPt,
+		const char * name )
+{
+	return mcr_iset_name ( & _ihotReg, ( mcr_Interface * ) ihotPt, name ) ;
+}
+
+int mcr_IHot_add_name ( mcr_IHot * ihotPt,
+		const char * name )
+{
+	return mcr_iadd_name ( & _ihotReg, ( mcr_Interface * ) ihotPt, name ) ;
+}
+
+int mcr_IHot_add_names ( mcr_IHot * ihotPt,
+		const char ** names, size_t bufferLen )
+{
+	dassert ( ihotPt ) ;
+	dassert ( names ) ;
+	int ret = 1 ;
+	for ( size_t i = 0 ; i < bufferLen ; i ++ )
+	{
+		if ( ! mcr_IHot_add_name ( ihotPt, names [ i ] ) )
+		{
+			dmsg ;
+			ret = 0 ;
+		}
+	}
+	return ret ;
+}
+
+int mcr_IHot_set_names ( mcr_IHot * ihotPt,
+		const char * name,
+		const char ** addNames, size_t bufferLen )
+{
+	int ret = 1 ;
+	if ( ! mcr_IHot_set_name ( ihotPt, name ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	if ( ! mcr_IHot_add_names ( ihotPt, addNames, bufferLen ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	return ret ;
+}
+
+int mcr_IHot_rename ( const char * oldName,
+		const char * newName )
+{
+	return mcr_irename ( & _ihotReg, oldName, newName ) ;
+}
+
+size_t mcr_IHot_count ( )
+{
+	return _ihotReg.set.used ;
+}
+
+void mcr_IHot_get_all ( mcr_IHot ** buffer,
+		size_t bufferLength )
+{
+	mcr_iget_all ( & _ihotReg, ( mcr_Interface ** ) buffer, bufferLength ) ;
+}
+
+void mcr_IHot_clear ( )
+{
+	mcr_iclear ( & _ihotReg ) ;
+}
+
+void mcr_hot_initialize ( )
+{
+	mcr_iinit_maps ( & _ihotReg ) ;
+}
+
+void mcr_hot_cleanup ( void )
+{
+	mcr_IHot_clear ( ) ;
 }

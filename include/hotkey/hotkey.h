@@ -13,7 +13,7 @@
  * */
 
 # include "hotkey/dispatchstandard.h"
-# include "hotkey/stage.h"
+# include "hotkey/hotstandard.h"
 
 MCR_API void mcr_hotkey_initialize ( ) ;
 

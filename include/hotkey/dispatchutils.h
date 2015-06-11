@@ -30,7 +30,7 @@ typedef const void * cpointer_t ;
 		if ( _arrPt_->used ) \
 		{ \
 			mcr_Hot ** _hotsPt_ = MCR_ARR_AT ( _arrPt_, 0 ) ; \
-			MCR_HOT_TRIGGER_ARRAY ( _hotsPt_, ( _arrPt_ )->used, \
+			MCR_HOT_TRIGGER_REF_ARRAY ( _hotsPt_, ( _arrPt_ )->used, \
 					signalPt, mods, block ) ; \
 		} \
 	} \
@@ -120,18 +120,21 @@ static void clear_map_empties ( mcr_Map * mapPt )
 
 /* mcr_Array_remove_all and mcr_Array_trim
  * */
-static void arr_remove_all ( mcr_Array * arrPt, const void * deletion )
+static void arr_remove_sorted ( mcr_Array * arrPt, const void * deletion,
+		mcr_compare_fnc cmp )
 {
-	mcr_Array_remove_all ( arrPt, deletion ) ;
-	mcr_Array_trim ( arrPt ) ;
+	mcr_Array_remove_sorted ( arrPt, deletion, cmp ) ;
+	if ( arrPt->used < ( arrPt->size >> 1 ) )
+		mcr_Array_trim ( arrPt ) ;
 }
 
 /* MCR_MAP_FOR_EACH_VALUE, arr_remove_all for all array entries.
  * clear_arr_empties.
  * */
-static void map_arr_remove_all ( mcr_Map * mapPt, const void * deletion )
+static void map_arr_remove_sorted ( mcr_Map * mapPt, const void * deletion,
+		mcr_compare_fnc cmp )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, arr_remove_all, deletion ) ;
+	MCR_MAP_FOR_EACH_VALUE ( mapPt, arr_remove_sorted, deletion, cmp ) ;
 	// Deletion is removed from all arrays. Remove empties.
 	clear_arr_empties ( mapPt ) ;
 }
@@ -139,59 +142,62 @@ static void map_arr_remove_all ( mcr_Map * mapPt, const void * deletion )
 /* MCR_MAP_FOR_EACH_VALUE map_arr_remove_all for all values.
  * clear_map_empties.
  * */
-static void map_map_remove_all ( mcr_Map * mapPt, const void * deletion )
+static void map_map_remove_sorted ( mcr_Map * mapPt, const void * deletion,
+		mcr_compare_fnc cmp )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, map_arr_remove_all, deletion ) ;
+	MCR_MAP_FOR_EACH_VALUE ( mapPt, map_arr_remove_sorted, deletion,
+			cmp ) ;
 	clear_map_empties ( mapPt ) ;
-}
-
-// mcr_Array_free mcr_Array * param
-static void arr_free_redirect ( mcr_Array * arrPt,... )
-{
-	mcr_Array_free ( arrPt ) ;
 }
 
 /* map->array. mcr_Array_free all mapped arrays.
  * mcr_Map_free the parameter after all arrays are freed.
  * */
-static void map_arr_free_redirect ( mcr_Map * mapPt,... )
+static void map_arr_free_redirect ( mcr_Map * mapPt, ... )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, arr_free_redirect, 0 ) ;
+	MCR_MAP_FOR_EACH_VALUE ( mapPt, mcr_Array_free_foreach, 0 ) ;
 	mcr_Map_free ( mapPt ) ;
 }
 
 // map->map
-static void map_map_free ( mcr_Map * mapPt,... )
+static void map_map_free ( mcr_Map * mapPt, ... )
 {
 	MCR_MAP_FOR_EACH_VALUE ( mapPt, map_arr_free_redirect, 0 ) ;
 	mcr_Map_free ( mapPt ) ;
 }
 
 // map->array. Push_unique into the mapped array.
-static void add_mapped_array ( mcr_Map * mapPt, const void * keyPt,
-		const void * pushValue, const mcr_Array * arrEnsured )
+static void add_mapped_array_sorted ( mcr_Map * mapPt, const void * keyPt,
+		const void * pushValue, const mcr_Array * arrEnsured,
+		mcr_compare_fnc cmp )
 {
 	mcr_Array * found = mcr_Map_get_ensured ( mapPt, keyPt, arrEnsured ) ;
 	if ( found )
 	{
 		found = MCR_MAP_VALUE ( mapPt, found ) ;
-		mcr_Array_push_unique ( found, pushValue ) ;
+		mcr_Array_add_sorted ( found, pushValue, cmp ) ;
 	}
 	// Else allocation error.
+	else
+		dmsg ;
 }
 
 // map->map->array. Push_unique into the mapped array.
-static void add_mapped_map ( mcr_Map * mapPt, const void * keyPt,
+static void add_mapped_map_sorted ( mcr_Map * mapPt, const void * keyPt,
 		const void * mappedKeyPt, const void * pushValue,
-		const mcr_Map * mapEnsured, const mcr_Array * arrEnsured )
+		const mcr_Map * mapEnsured, const mcr_Array * arrEnsured,
+		mcr_compare_fnc cmp )
 {
 	mcr_Map * found = mcr_Map_get_ensured ( mapPt, keyPt, mapEnsured ) ;
 	if ( found )
 	{
 		found = MCR_MAP_VALUE ( mapPt, found ) ;
-		add_mapped_array ( found, mappedKeyPt, pushValue, arrEnsured ) ;
+		add_mapped_array_sorted ( found, mappedKeyPt, pushValue,
+				arrEnsured, cmp ) ;
 	}
 	// Else allocation error.
+	else
+		dmsg ;
 }
 
 # endif // MCR_DISPATCHUTILS_H

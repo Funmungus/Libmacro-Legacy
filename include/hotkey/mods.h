@@ -51,7 +51,7 @@ MCR_API int mcr_Mod_send ( mcr_Signal * sigPt ) ;
  * */
 typedef enum mcr_ModTypes
 {
-	// Alt and option are always the same.
+	// Alt and option are always the same here.
 	MCR_ALT		= 0x000001,
 	MCR_OPTION	= 0x000001,
 	MCR_ALTGR	= 0x000002,
@@ -72,9 +72,12 @@ typedef enum mcr_ModTypes
 	MCR_WIN		= 0x100000
 } mcr_ModTypes ;
 
+MCR_API void mcr_Mods_load_contract ( ) ;
+
 // Names
 MCR_API unsigned int mcr_Mod_get ( const char * name ) ;
-MCR_API const char * mcr_Mod_get_name ( const unsigned int modifier ) ;
+MCR_API const char * mcr_Mod_get_name (
+		const unsigned int modifier ) ;
 MCR_API size_t mcr_Mod_count ( ) ;
 MCR_API void mcr_Mod_get_all ( unsigned int * modBuffer,
 		const size_t bufferLength ) ;
@@ -90,6 +93,9 @@ MCR_API int mcr_Mod_key_get_key ( const unsigned int modifier ) ;
 MCR_API size_t mcr_Mod_key_count ( ) ;
 MCR_API void mcr_Mod_key_get_all ( int * keyBuffer,
 		const size_t bufferLength ) ;
+
+MCR_API int mcr_Mod_compare ( const void * lhs, const void * rhs ) ;
+
 
 //
 // Modify modifiers
@@ -120,8 +126,6 @@ MCR_API unsigned int mcr_HIDEcho_modify ( mcr_Signal * sigPt,
 MCR_API unsigned int mcr_Key_modify ( mcr_Signal * sigPt,
 		unsigned int mods ) ;
 
-MCR_API int mcr_Mod_compare ( const void * lhs, const void * rhs ) ;
-
 //
 // Modifier development.
 //
@@ -130,6 +134,11 @@ MCR_API int mcr_Mod_set_name ( const unsigned int modifier,
 		const char * name ) ;
 MCR_API int mcr_Mod_add_name ( const unsigned int modifier,
 		const char * name ) ;
+MCR_API int mcr_Mod_add_names ( const unsigned int modifier,
+		const char ** addNames, size_t bufferLen ) ;
+MCR_API int mcr_Mod_set_names ( const unsigned int modifier,
+		const char * name, const char ** addNames,
+		size_t bufferLen ) ;
 MCR_API int mcr_Mod_rename ( const unsigned int modifier,
 		const char * newName ) ;
 MCR_API int mcr_Mod_rename_by_name ( const char * oldName,
@@ -140,6 +149,10 @@ MCR_API int mcr_Mod_set_echo ( const mcr_Mod modifiers,
 		const int echo ) ;
 MCR_API int mcr_Mod_add_echo ( const mcr_Mod modifiers,
 		const int echo ) ;
+MCR_API int mcr_Mod_add_echos ( const mcr_Mod modifiers,
+		const int * addEchos, size_t bufferLen ) ;
+MCR_API int mcr_Mod_set_echos ( const mcr_Mod modifiers,
+		const int echo, const int * addEchos, size_t bufferLen ) ;
 MCR_API int mcr_Mod_reecho ( const mcr_Mod modifiers,
 		const int echo ) ;
 MCR_API int mcr_Mod_reecho_by_echo ( const int oldEcho,
@@ -150,6 +163,10 @@ MCR_API int mcr_Mod_set_key ( const unsigned int modifiers,
 		const int key ) ;
 MCR_API int mcr_Mod_add_key ( const unsigned int modifiers,
 		const int key ) ;
+MCR_API int mcr_Mod_add_keys ( const unsigned int modifiers,
+		const int * addKeys, size_t bufferLen ) ;
+MCR_API int mcr_Mod_set_keys ( const unsigned int modifiers,
+		const int key, const int * addKeys, size_t bufferLen ) ;
 MCR_API int mcr_Mod_rekey ( const unsigned int modifiers,
 		const int key ) ;
 MCR_API int mcr_Mod_rekey_by_key ( const int oldKey,
@@ -160,6 +177,11 @@ MCR_API void mcr_Mod_clear_all ( ) ;
 
 MCR_API void mcr_mods_initialize ( ) ;
 MCR_API void mcr_mods_cleanup ( ) ;
+
+//
+// Implement in native directory.
+//
+MCR_API void mcr_Mods_load_key_contract ( ) ;
 
 # define MCR_MOD_ADD( toModify, modifiers ) \
 	( toModify ) |= ( modifiers ) ;

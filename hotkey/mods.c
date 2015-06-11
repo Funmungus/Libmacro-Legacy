@@ -12,17 +12,54 @@ MCR_API mcr_ISignal mcr_iMod ;
 
 static mcr_Mod _defaultMod ;
 
+void mcr_Mods_load_contract ( )
+{
+	const unsigned int mods [ ] =
+	{
+		MCR_ALT, MCR_ALTGR, MCR_AMIGA, MCR_CMD,
+		MCR_CODE, MCR_COMPOSE, MCR_CTRL, MCR_FN, MCR_FRONT,
+		MCR_GRAPH, MCR_HYPER, MCR_META, MCR_SHIFT, MCR_SUPER,
+		MCR_SYMBOL, MCR_TOP, MCR_WIN
+	} ;
+	const char * modNames [ ] =
+	{
+		"Alt", "AltGr", "Amiga", "Cmd",
+		"Code", "Compose", "Ctrl", "Fn", "Front",
+		"Graph", "Hyper", "Meta", "Shift", "Super",
+		"Symbol", "Top", "Win"
+	} ;
+	const char * addNames [ ] [ 2 ] =
+	{
+		{"Option"}, {"alt gr", "alt_gr"}, {}, {"Command"},
+		{}, {}, {"Control"}, {}, {},
+		{}, {}, {}, {}, {},
+		{}, {}, {}
+	} ;
+	size_t addLens [ ] =
+	{
+		1, 2, 0, 1,
+		0, 0, 1, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0
+	} ;
+	int len = sizeof ( mods ) / sizeof ( int ) ;
+	for ( int i = 0 ; i < len ; i ++ )
+	{
+		mcr_Mod_set_names ( mods [ i ], modNames [ i ], addNames [ i ],
+				addLens [ i ] ) ;
+	}
+	mcr_Mods_load_key_contract ( ) ;
+}
+
 static mcr_Map _modToName ;
 static mcr_Map _nameToMod ;
 
 static void names_init ( )
 {
 	mcr_Map_init ( & _modToName, sizeof ( unsigned int ),
-			sizeof ( const char * ) ) ;
+			sizeof ( mcr_Array ) ) ;
 	_modToName.compare = mcr_unsigned_compare ;
-	mcr_Map_init ( & _nameToMod, sizeof ( const char * ),
-			sizeof ( unsigned int ) ) ;
-	_nameToMod.compare = mcr_name_compare ;
+	mcr_StringMap_init ( & _nameToMod, sizeof ( unsigned int ) ) ;
 }
 
 static mcr_Map _echoToMod ;
@@ -53,7 +90,7 @@ static void key_init ( )
 int mcr_Mod_send ( mcr_Signal * sigPt )
 {
 //	int success = 1 ;
-	MCR_MOD_SEND ( ( mcr_Mod * ) sigPt->data, 0 ) ;
+	MCR_MOD_SEND ( ( mcr_Mod * ) sigPt->data.data, 0 ) ;
 	return 1 ;
 }
 
@@ -62,13 +99,14 @@ unsigned int mcr_Mod_get ( const char * name )
 {
 	if ( ! name )
 		return MCR_ANY_MOD ;
-	unsigned int * found = MCR_MAP_GET_VALUE ( & _nameToMod, & name ) ;
+	unsigned int * found = MCR_STRINGMAP_GET_VALUE ( & _nameToMod, name ) ;
 	return found ? * found : MCR_ANY_MOD ;
 }
 
 const char * mcr_Mod_get_name ( const unsigned int modifier )
 {
-	const char ** found = MCR_MAP_GET_VALUE ( & _modToName, & modifier ) ;
+	const char ** found = MCR_MAP_GET_VALUE ( & _modToName,
+			& modifier ) ;
 	return found ? * found : NULL ;
 }
 
@@ -152,6 +190,12 @@ void mcr_Mod_key_get_all ( int * keyBuffer,
 	}
 }
 
+int mcr_Mod_compare ( const void * lhs, const void * rhs )
+{
+	return memcmp ( lhs, rhs, sizeof ( mcr_Mod ) ) ;
+}
+
+
 //
 // Modify modifiers
 //
@@ -216,8 +260,8 @@ unsigned int mcr_Mod_remove ( const unsigned int mods,
 unsigned int mcr_HIDEcho_modify ( mcr_Signal * sigPt,
 		unsigned int mods )
 {
-	if ( ! sigPt || ! sigPt->data ) return mods ;
-	int echo = MCR_ECHO_GET ( ( mcr_HIDEcho * ) sigPt->data ) ;
+	if ( ! sigPt || ! sigPt->data.data ) return mods ;
+	int echo = MCR_ECHO_GET ( ( mcr_HIDEcho * ) sigPt->data.data ) ;
 	mcr_Mod * found = MCR_MAP_GET_VALUE ( & _echoToMod, & echo ) ;
 	if ( found )
 	{
@@ -231,12 +275,12 @@ unsigned int mcr_HIDEcho_modify ( mcr_Signal * sigPt,
 unsigned int mcr_Key_modify ( mcr_Signal * sigPt,
 		unsigned int mods )
 {
-	if ( ! sigPt || ! sigPt->data ) return mods ;
-	int key = MCR_KEY_GET ( ( mcr_Key * ) sigPt->data ) ;
+	if ( ! sigPt || ! sigPt->data.data ) return mods ;
+	int key = MCR_KEY_GET ( ( mcr_Key * ) sigPt->data.data ) ;
 	unsigned int * found = MCR_MAP_GET_VALUE ( & _keyToMod, & key ) ;
 	if ( found )
 	{
-		if ( MCR_KEY_GET_UP_TYPE ( ( mcr_Key * ) sigPt->data )
+		if ( MCR_KEY_GET_UP_TYPE ( ( mcr_Key * ) sigPt->data.data )
 				== MCR_DOWN )
 			return mods | * found ;
 		return mods & ( ~ ( * found ) ) ;
@@ -244,10 +288,6 @@ unsigned int mcr_Key_modify ( mcr_Signal * sigPt,
 	return mods ;
 }
 
-int mcr_Mod_compare ( const void * lhs, const void * rhs )
-{
-	return memcmp ( lhs, rhs, sizeof ( mcr_Mod ) ) ;
-}
 
 //
 // Modifier development.
@@ -256,27 +296,88 @@ int mcr_Mod_compare ( const void * lhs, const void * rhs )
 int mcr_Mod_set_name ( const unsigned int modifier,
 		const char * name )
 {
+	// strcpy, map mod to new arr, strcpy, map new arr to mod.
 	if ( ! name ) return 0 ;
-	int ret = mcr_Map_map ( & _modToName, & modifier, & name ) ;
-	return ret && mcr_Map_map ( & _nameToMod, & name, & modifier ) ;
+	// mod => name
+	mcr_Array * arrPt = mcr_Map_get_value ( & _modToName, & modifier ) ;
+	if ( arrPt )
+	{	/* Rename existing. */
+		if ( ! mcr_String_from_string ( arrPt, name ) )
+		{
+			dmsg ;
+			return 0 ;
+		}
+	}
+	else
+	{	/* Map new. */
+		mcr_Array arr ;
+		mcr_String_init ( & arr ) ;
+		if ( ! mcr_String_from_string ( & arr, name ) ||
+				! mcr_Map_map ( & _modToName, & modifier, & arr ) )
+		{
+			mcr_Array_free ( & arr ) ;
+			return 0 ;
+		}
+	}
+	// name => mod
+	return mcr_Mod_add_name ( modifier, name ) ;
 }
 
 int mcr_Mod_add_name ( const unsigned int modifier,
 		const char * name )
 {
-	return mcr_Map_map ( & _nameToMod, & name, & modifier ) ;
+	if ( ! name )
+		return 0 ;
+	// name => mod
+	if ( ! mcr_StringMap_map ( & _nameToMod, name, & modifier ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	return 1 ;
+}
+
+int mcr_Mod_add_names ( const unsigned int modifier,
+		const char ** addNames, size_t bufferLen )
+{
+	dassert ( addNames ) ;
+	int ret = 1 ;
+	for ( size_t i = 0 ; i < bufferLen ; i ++ )
+	{
+		if ( ! mcr_Mod_add_name ( modifier, addNames [ i ] ) )
+		{
+			dmsg ;
+			ret = 0 ;
+		}
+	}
+	return ret ;
+}
+
+int mcr_Mod_set_names ( const unsigned int modifier,
+		const char * name, const char ** addNames,
+		size_t bufferLen )
+{
+	int ret = 1 ;
+	if ( ! mcr_Mod_set_name ( modifier, name ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	if ( ! mcr_Mod_add_names ( modifier, addNames, bufferLen ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	return ret ;
 }
 
 int mcr_Mod_rename ( const unsigned int modifier,
 		const char * newName )
 {
-	const char ** oldNamePt = MCR_MAP_GET_VALUE ( & _modToName,
-			& modifier ) ;
-	if ( oldNamePt )
+	mcr_Array * found = mcr_Map_get_value ( & _modToName, & modifier ) ;
+	if ( found )
 	{
-		if ( ! mcr_Map_remap ( & _nameToMod, oldNamePt, & newName ) )
-			return 0 ;
-		return mcr_Map_map ( & _modToName, & modifier, & newName ) ;
+		mcr_StringMap_unmap ( & _nameToMod, found->array ) ;
 	}
 	return mcr_Mod_set_name ( modifier, newName ) ;
 }
@@ -285,16 +386,16 @@ int mcr_Mod_rename_by_name ( const char * oldName,
 		const char * newName )
 {
 	if ( ! oldName ) return 0 ;
-	unsigned int * modPt = MCR_MAP_GET_VALUE ( & _nameToMod, & oldName ) ;
+	unsigned int * modPt = MCR_STRINGMAP_GET_VALUE ( & _nameToMod, oldName ) ;
 	if ( modPt )
-	{
-		return mcr_Mod_rename ( * modPt, newName ) ;
-	}
+		return mcr_Mod_set_name ( * modPt, newName ) ;
 	return 0 ;
 }
 
 void mcr_Mod_clear_names ( )
 {
+	MCR_MAP_FOR_EACH_VALUE ( & _modToName, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH ( & _nameToMod, mcr_Array_free_foreach, 0 ) ;
 	mcr_Map_free ( & _modToName ) ;
 	mcr_Map_free ( & _nameToMod ) ;
 }
@@ -313,6 +414,39 @@ int mcr_Mod_add_echo ( const mcr_Mod modifiers,
 	return mcr_Map_map ( & _echoToMod, & echo, & modifiers ) ;
 }
 
+int mcr_Mod_add_echos ( const mcr_Mod modifiers,
+		const int * addEchos, size_t bufferLen )
+{
+	dassert ( addEchos ) ;
+	int ret = 1 ;
+	for ( size_t i = 0 ; i < bufferLen ; i ++ )
+	{
+		if ( ! mcr_Mod_add_echo ( modifiers, addEchos [ i ] ) )
+		{
+			dmsg ;
+			ret = 0 ;
+		}
+	}
+	return ret ;
+}
+
+int mcr_Mod_set_echos ( const mcr_Mod modifiers,
+		const int echo, const int * addEchos, size_t bufferLen )
+{
+	int ret = 1 ;
+	if ( ! mcr_Mod_set_echo ( modifiers, echo ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	if ( ! mcr_Mod_add_echos ( modifiers, addEchos, bufferLen ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	return ret ;
+}
+
 int mcr_Mod_reecho ( const mcr_Mod modifiers,
 		const int echo )
 {
@@ -321,7 +455,10 @@ int mcr_Mod_reecho ( const mcr_Mod modifiers,
 	{
 		// Map modifiers from new echo.
 		if ( ! mcr_Map_remap ( & _echoToMod, found, & echo ) )
+		{
+			dmsg ;
 			return 0 ;
+		}
 		// Map modifiers to new echo.
 		return mcr_Map_map ( & _modToEcho, & modifiers, & echo ) ;
 	}
@@ -359,6 +496,39 @@ int mcr_Mod_add_key ( const unsigned int modifiers,
 	return mcr_Map_map ( & _keyToMod, & key, & modifiers ) ;
 }
 
+int mcr_Mod_add_keys ( const unsigned int modifiers,
+		const int * addKeys, size_t bufferLen )
+{
+	dassert ( addKeys ) ;
+	int ret = 1 ;
+	for ( size_t i = 0 ; i < bufferLen ; i ++ )
+	{
+		if ( ! mcr_Mod_add_key ( modifiers, addKeys [ i ] ) )
+		{
+			dmsg ;
+			ret = 0 ;
+		}
+	}
+	return ret ;
+}
+
+int mcr_Mod_set_keys ( const unsigned int modifiers,
+		const int key, const int * addKeys, size_t bufferLen )
+{
+	int ret = 1 ;
+	if ( ! mcr_Mod_set_key ( modifiers, key ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	if ( ! mcr_Mod_add_keys ( modifiers, addKeys, bufferLen ) )
+	{
+		dmsg ;
+		ret = 0 ;
+	}
+	return ret ;
+}
+
 int mcr_Mod_rekey ( const unsigned int modifiers,
 		const int key )
 {
@@ -366,7 +536,10 @@ int mcr_Mod_rekey ( const unsigned int modifiers,
 	if ( found )
 	{
 		if ( ! mcr_Map_remap ( & _keyToMod, found, & key ) )
+		{
+			dmsg ;
 			return 0 ;
+		}
 		return mcr_Map_map ( & _modToKey, & modifiers, & key ) ;
 	}
 	return 0 ;
@@ -399,26 +572,15 @@ void mcr_Mod_clear_all ( )
 
 void mcr_mods_initialize ( )
 {
-	mcr_ISignal_init ( & mcr_iMod, "Mod", mcr_Mod_send,
+	mcr_ISignal_init ( & mcr_iMod, mcr_Mod_send,
 			sizeof ( mcr_Mod ) ) ;
-	mcr_iMod.dispatch = NULL ;
 	if ( mcr_ISignal_register ( & mcr_iMod ) == ( size_t ) -1 )
 	{
-		dmsg ( "Mods unable to register signal type.\n" ) ;
+		dmsg ;
 	}
-	if ( ! mcr_ISignal_add_name ( & mcr_iMod, "Mods" ) )
-	{
-		dmsg ( "Mods unable to add signal name.\n" ) ;
-	}
-	mcr_ISignal_add_name ( & mcr_iMod, "Mods" ) ;
 	names_init ( ) ;
 	echo_init ( ) ;
 	key_init ( ) ;
-	mcr_Mod_set_name ( -1, "Any" ) ;
-	mcr_Mod_set_name ( 0, "None" ) ;
-	mcr_Mod_add_name ( -1, "AnyMod" ) ;
-	mcr_Mod_add_name ( -1, "any mod" ) ;
-	mcr_Mod_add_name ( -1, "any_mod" ) ;
 	_defaultMod.modifiers = MCR_ANY_MOD ;
 	_defaultMod.up_type = MCR_BOTH ;
 }

@@ -16,14 +16,12 @@
 # include "hotkey/hot.h"
 # include "hotkey/mods.h"
 
-typedef struct mcr_Dispatch mcr_Dispatch ;
-typedef void ( * mcr_add_specific_fnc ) ( mcr_Dispatch *, mcr_Hot *,
-		mcr_Signal *, unsigned int ) ;
-typedef void ( * mcr_dispatch_fnc ) ( mcr_Dispatch * ) ;
-typedef int ( * mcr_dispatch_specific_fnc ) ( mcr_Dispatch *,
-		mcr_Signal *, unsigned int ) ;
-typedef void ( * mcr_remove_specific_fnc ) ( mcr_Dispatch *, mcr_Hot * ) ;
-typedef unsigned int ( * mcr_modifier_provider ) ( mcr_Signal *,
+typedef void ( * mcr_add_specific_fnc ) ( mcr_Signal *,
+		unsigned int, mcr_Hot * ) ;
+typedef int ( * mcr_dispatch_specific_fnc ) ( mcr_Signal *,
+		unsigned int ) ;
+typedef void ( * mcr_remove_specific_fnc ) ( mcr_Hot * ) ;
+typedef unsigned int ( * mcr_modify_fnc ) ( mcr_Signal *,
 		unsigned int ) ;
 
 /*! \brief Blocking Dispatcher for any signal type.
@@ -31,14 +29,6 @@ typedef unsigned int ( * mcr_modifier_provider ) ( mcr_Signal *,
  * */
 typedef struct mcr_Dispatch
 {
-	/*! \brief Pointer to variable which enables or disables signal
-	 * dispatch to a function. \ref mcr_ISignal#dispatch is set to
-	 * \ref mcr_dispatch by default. */
-	mcr_signal_fnc * dispatcher_pt ;
-	//! \brief Enabler for unspecific intercept.
-	int enable_unspecific ;
-	//! \brief Enabler for specific intercept.
-	int enable_specific ;
 	//
 	// Internal
 	//
@@ -51,115 +41,40 @@ typedef struct mcr_Dispatch
 	 * and mods. */
 	mcr_add_specific_fnc add_specific ;
 	//! \brief Clear all specific hotkeys.
-	mcr_dispatch_fnc clear_specific ;
+	void ( * clear_specific ) ( ) ;
 	/*! \brief Dispatching function for specifics. Modifier is assumed
 	 * to already be found. */
 	mcr_dispatch_specific_fnc dispatch_specific ;
 	//! \brief Change modifiers by signal type.
-	mcr_modifier_provider modifier ;
+	mcr_modify_fnc modifier ;
 	//! \brief Remove given hotkey from specific hotkeys.
 	mcr_remove_specific_fnc remove_specific ;
 } mcr_Dispatch ;
 
+MCR_API void mcr_Dispatch_add_generic ( mcr_Signal * interceptPt,
+		unsigned int mods, mcr_Hot * hotPt ) ;
 /*!
  * \brief Add hotkey to the dispatch for given signal.
  *
  * \param interceptPt If NULL, hotkey will add to generics.
  * */
-MCR_API void mcr_Dispatch_add ( mcr_Hot * hotPt,
-		mcr_Signal * interceptPt, unsigned int mods ) ;
-/*!
- * \brief Get a dispatcher from signal id.
- *
- * \return Reference to a dispatcher registered for
- * given signal type's id.
- * */
-MCR_API mcr_Dispatch * mcr_Dispatch_get ( int signalTypeId ) ;
-/*!
- * \brief Add callback for unspecific trigger.
- *
- * \param newHotkey New hotkey reference to add into dispatcher.
- * */
-MCR_API void mcr_Dispatch_add_unspecific ( mcr_Dispatch * dispPt,
-		mcr_Hot * newHotkey ) ;
-/*!
- * \brief Register hotkey to intercept specific signal and modifier.
- *
- * If no dispatcher is given, it will be found in registered dispatchers
- * from the signal id.
- *
- * \param interceptPt Signal intercept to trigger for.
- * \param interceptMods Modifiers to trigger for.
- * */
-MCR_API void mcr_Dispatch_add_specific ( mcr_Dispatch * dispPt,
-		mcr_Hot * newHotkey, mcr_Signal * interceptPt,
-		unsigned int interceptMods ) ;
-/*!
- * \brief Set \ref mcr_Dispatch#dispatcher_pt to \ref mcr_dispatch but
- * only if either enable members are true. Otherwise this will disable.
- * */
-MCR_API void mcr_Dispatch_enable_auto ( mcr_Dispatch * dispPt ) ;
-/*!
- * \brief Set \ref mcr_Dispatch#dispatcher_pt but only if either enable
- * members are true. Otherwise this will disable.
- *
- * \param dispatchTo The dispatch function to use.
- * */
-MCR_API void mcr_Dispatch_enable_auto_to ( mcr_Dispatch * dispPt,
-		mcr_signal_fnc dispatchTo ) ;
-
-/*!
- * \brief \ref mcr_Dispatch_enable_to with \ref mcr_dispatch.
- *
- * \param enable 0 to disable, otherwise enable.
- * */
-MCR_API void mcr_Dispatch_enable ( mcr_Dispatch * dispPt, int enable ) ;
-/*!
- * \brief If enabling set \ref mcr_Dispatch#dispatcher_pt, if disabling
- * nullify.
- *
- * Note that if neither of the enable members are true, then nothing will
- * happen during dispatch.
- *
- * \param enable 0 to disable, otherwise enable.
- * \param dispatchTo The dispatch function to use.
- * */
-MCR_API void mcr_Dispatch_enable_to ( mcr_Dispatch * dispPt, int enable,
-		mcr_signal_fnc dispatchTo ) ;
-/*!
- * \brief Get enabled state of dispatcher.
- *
- * \return 0 if referenced dispatcher_pt is null. 1 if
- * referenced dispatcher_pt is \ref mcr_dispatch. -1 if it is set
- * to an unknown function.
- * */
-MCR_API int mcr_Dispatch_is_enabled ( mcr_Dispatch * dispPt ) ;
-/*!
- * \brief Get enabled state of dispatcher, using a specific dispatch
- * function.
- *
- * \return 0 if referenced dispatcher_pt is null. 1 if
- * it is the dispatching function given. -1 if it is set to another
- * function.
- * */
-MCR_API int mcr_Dispatch_is_enabled_to ( mcr_Dispatch * dispPt,
-		mcr_signal_fnc dispatchTo ) ;
+MCR_API void mcr_Dispatch_add ( mcr_Signal * interceptPt,
+		unsigned int mods, mcr_Hot * hotPt ) ;
+MCR_API void mcr_Dispatch_enable ( mcr_ISignal * typePt, int enable ) ;
+MCR_API int mcr_Dispatch_is_enabled ( mcr_ISignal * typePt ) ;
 /*!
  * \brief Remove a hotkey callback for unspecific trigger.
  *
  * \param delHotkey The hotkey callback to be removed.
  * */
-MCR_API void mcr_Dispatch_remove ( mcr_Dispatch * dispPt,
+MCR_API void mcr_Dispatch_remove ( mcr_ISignal * typePt,
 		mcr_Hot * delHotkey ) ;
-/*!
- * \brief \ref mcr_Dispatch_clear and then \ref mcr_Dispatch_enable_auto
- * This includes specifics.
- * */
-MCR_API void mcr_Dispatch_reset ( mcr_Dispatch * dispPt ) ;
+MCR_API void mcr_Dispatch_remove_all ( mcr_Hot * delHotkey ) ;
 /*!
  * \brief Clear all hotkey callback objects. This includes specifics.
  * */
-MCR_API void mcr_Dispatch_clear ( mcr_Dispatch * dispPt ) ;
+MCR_API void mcr_Dispatch_clear ( mcr_ISignal * typePt ) ;
+MCR_API void mcr_Dispatch_clear_all ( ) ;
 /*!
  * \brief mcr_dispatch Blocking signal intercept.
  *
@@ -178,6 +93,10 @@ MCR_API int mcr_dispatch ( mcr_Signal * signalData ) ;
  * \brief mcr_Dispatch_init \ref mcr_Dispatch ctor
  * */
 MCR_API void mcr_Dispatch_init ( mcr_Dispatch * dispPt ) ;
+MCR_API void mcr_Dispatch_init_with ( mcr_Dispatch * dispPt,
+		mcr_add_specific_fnc add, void ( * clear ) ( ),
+		mcr_dispatch_specific_fnc dispatch, mcr_modify_fnc modifier,
+		mcr_remove_specific_fnc remove ) ;
 /*!
  * \brief mcr_Dispatch_register Register a new dispatcher for a
  * signal's type id.
@@ -186,7 +105,7 @@ MCR_API void mcr_Dispatch_init ( mcr_Dispatch * dispPt ) ;
  * \param signalTypeId Id of the associated signal.
  * */
 MCR_API void mcr_Dispatch_register ( mcr_Dispatch * dispPt,
-		int signalTypeId ) ;
+		size_t signalTypeId ) ;
 /*!
  * \brief Clean up \ref mcr_Dispatch resources.
  * */
@@ -196,6 +115,32 @@ MCR_API void mcr_Dispatch_free ( mcr_Dispatch * dispPt ) ;
 //
 // Utility
 //
+/*!
+ * \brief Get a dispatcher from signal id.
+ *
+ * \return Reference to a dispatcher registered for
+ * given signal type's id.
+ * */
+MCR_API mcr_Dispatch * mcr_Dispatch_get ( size_t signalTypeId ) ;
+/*!
+ * \brief Add callback for unspecific trigger.
+ *
+ * \param newHotkey New hotkey reference to add into dispatcher.
+ * */
+MCR_API void mcr_Dispatch_add_unspecific ( mcr_Dispatch * dispPt,
+		mcr_Hot * newHotkey ) ;
+/*!
+ * \brief Register hotkey to intercept specific signal and modifier.
+ *
+ * If no dispatcher is given, it will be found in registered dispatchers
+ * from the signal id.
+ *
+ * \param interceptPt Signal intercept to trigger for.
+ * \param interceptMods Modifiers to trigger for.
+ * */
+MCR_API void mcr_Dispatch_add_specific ( mcr_Dispatch * dispPt,
+		mcr_Signal * interceptPt,
+		unsigned int interceptMods, mcr_Hot * newHotkey ) ;
 /*!
  * \brief Blocking signal intercept, with given modifier.
  *
@@ -208,30 +153,24 @@ MCR_API int mcr_Dispatch_dispatch_modified ( mcr_Dispatch * dispPt,
 
 /*! \brief Set the dispatch reference, and the specific add, dispatch,
  * remove, and clear functions */
-# define MCR_DISPATCH_SET( dispatchPt, dispatcherFncPt, addFnc, clearFnc, dispFnc, \
-		remFnc ) \
-	( dispatchPt )->dispatcher_pt = ( dispatcherFncPt ) ; \
+# define MCR_DISPATCH_SET( dispatchPt, \
+		addFnc, clearFnc, dispFnc, modProvider, remFnc ) \
 	( dispatchPt )->add_specific = ( addFnc ) ; \
 	( dispatchPt )->clear_specific = ( clearFnc ) ; \
 	( dispatchPt )->dispatch_specific = ( dispFnc ) ; \
+	( dispatchPt )->modifier = ( modProvider ) ; \
 	( dispatchPt )->remove_specific = ( remFnc ) ;
 
 
 # define MCR_DISPATCH( dispatchPt, interceptedPt, mods, block ) \
-	if ( ( dispatchPt )->enable_specific && \
-			( dispatchPt )->dispatch_specific ) \
-	{ \
-		if ( ( dispatchPt )->dispatch_specific \
-				( dispatchPt, interceptedPt, mods ) ) \
-			block = 1 ; \
-	} \
-	if ( ( dispatchPt )->enable_unspecific ) \
-	{ \
-		MCR_HOT_TRIGGER_ARRAY ( ( ( mcr_Hot ** ) \
-				( dispatchPt )->generics.array ), \
-				( dispatchPt )->generics.used, interceptedPt, mods, \
-				block ) \
-	}
+	if ( ( dispatchPt )->dispatch_specific && \
+			( dispatchPt )->dispatch_specific \
+			( interceptedPt, mods ) ) \
+		block = 1 ; \
+	MCR_HOT_TRIGGER_REF_ARRAY ( ( ( mcr_Hot ** ) \
+			( dispatchPt )->generics.array ), \
+			( dispatchPt )->generics.used, interceptedPt, mods, \
+			block ) ;
 
 
 /*! \brief Dispatch if enabled, block if required, and modify mods
@@ -251,17 +190,17 @@ MCR_API void mcr_DispatchGeneric_free ( ) ;
 /*! \brief Specific hotkeys added based on modifiers and
  * signal address.
  * */
-MCR_API void mcr_DispatchGeneric_add_specific ( mcr_Dispatch * dispPt,
-		mcr_Hot * newHotkey, mcr_Signal * signalPt, unsigned int mods ) ;
+MCR_API void mcr_DispatchGeneric_add_specific (
+		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
 /*! \brief Specific hotkeys triggered based on modifiers and
  * signal address.
  * */
-MCR_API int mcr_DispatchGeneric_dispatch_specific ( mcr_Dispatch * dispPt,
+MCR_API int mcr_DispatchGeneric_dispatch_specific (
 		mcr_Signal * signalPt, unsigned int mods ) ;
 //! \brief \ref mcr_Array_remove_all
-MCR_API void mcr_DispatchGeneric_remove_specific ( mcr_Dispatch * dispPt,
+MCR_API void mcr_DispatchGeneric_remove_specific (
 		mcr_Hot * delHotkey ) ;
-MCR_API void mcr_DispatchGeneric_clear ( mcr_Dispatch * dispPt ) ;
+MCR_API void mcr_DispatchGeneric_clear ( ) ;
 
 MCR_API void mcr_dispatch_initialize ( ) ;
 MCR_API void mcr_dispatch_cleanup ( void ) ;
