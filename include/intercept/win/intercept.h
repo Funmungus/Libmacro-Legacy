@@ -17,7 +17,6 @@
 # include "intercept/intercept.h"
 # include "intercept/win/grabber.h"
 
-MCR_API void mcr_intercept_enable_all ( int enable ) ;
 MCR_API void mcr_intercept_enable_key ( int enable ) ;
 MCR_API void mcr_intercept_enable_move ( int enable ) ;
 MCR_API void mcr_intercept_enable_scroll ( int enable ) ;

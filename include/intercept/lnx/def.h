@@ -12,9 +12,8 @@
 # ifndef MCR_LNX_INTERCEPT_DEFINES_H
 # define MCR_LNX_INTERCEPT_DEFINES_H
 
-# include "hotkey/hotkey.h"
+# include "intercept/def.h"
 # include "signal/lnx/def.h"
-# include <errno.h>
 
 # ifndef MCR_GRAB_SET_LENGTH
 # define MCR_GRAB_SET_LENGTH 16

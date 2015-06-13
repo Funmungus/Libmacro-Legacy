@@ -16,8 +16,9 @@
 
 # include "intercept/lnx/grabber.h"
 
-MCR_API void mcr_intercept_grab ( const char * grabPath ) ;
-MCR_API void mcr_intercept_set_grabs ( const char ** allGrabPaths,
+MCR_API void mcr_intercept_add_grab ( const char * grabPath ) ;
+MCR_API void mcr_intercept_remove_grab ( const char * grabPath ) ;
+MCR_API int mcr_intercept_set_grabs ( const char ** allGrabPaths,
 		size_t pathCount ) ;
 
 # endif // MCR_LNX_INTERCEPT_H

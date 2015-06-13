@@ -13,7 +13,6 @@
 # ifndef MCR_LNX_GRABBER_H
 # define MCR_LNX_GRABBER_H
 
-# include "intercept/def.h"
 # include "intercept/lnx/def.h"
 
 //! \brief Take exclusive access to a /dev/input event.
@@ -47,7 +46,7 @@ MCR_API int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable ) ;
  * \param size bytesize of buffer.
  * */
 MCR_API void mcr_Grabber_state ( mcr_Grabber * grabPt,
-		unsigned char * buffer, const unsigned int size ) ;
+		char * buffer, const unsigned int size ) ;
 
 # define MCR_EVENTINDEX( keyCode ) \
 	( ( keyCode ) / 8 )

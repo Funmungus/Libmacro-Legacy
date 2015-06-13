@@ -24,6 +24,7 @@ MCR_API void mcr_intercept_cleanup ( void ) ;
 // Defined in native source.
 //
 MCR_API int mcr_intercept_is_enabled ( ) ;
+MCR_API void mcr_intercept_enable ( int enable ) ;
 MCR_API unsigned int mcr_intercept_get_mods ( ) ;
 MCR_API void mcr_intercept_native_initialize ( ) ;
 MCR_API void mcr_intercept_native_cleanup ( void ) ;

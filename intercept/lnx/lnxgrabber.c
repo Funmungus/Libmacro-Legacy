@@ -11,22 +11,27 @@
 void mcr_Grabber_init ( mcr_Grabber * grabPt )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	memset ( grabPt, 0, sizeof ( mcr_Grabber ) ) ;
 	grabPt->fd = -1 ;
-	mcr_Array_init ( & grabPt->path, sizeof ( char ) ) ;
+	mcr_String_init ( & grabPt->path ) ;
 }
 
 void mcr_Grabber_init_with ( mcr_Grabber * grabPt,
 		const char * path, int enable )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	mcr_Grabber_init ( grabPt ) ;
 	if ( path )
 	{
-		mcr_String_from_string ( & grabPt->path, path,
-				( size_t ) -1 ) ;
+		mcr_String_from_string ( & grabPt->path, path ) ;
 		mcr_Grabber_enable ( grabPt, enable ) ;
 	}
 }
@@ -34,7 +39,10 @@ void mcr_Grabber_init_with ( mcr_Grabber * grabPt,
 void mcr_Grabber_free ( mcr_Grabber * grabPt )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	if ( grabPt->fd != -1 )
 	{
 		ioctl ( grabPt->fd, EVIOCGRAB, 0 ) ;
@@ -48,7 +56,7 @@ const char * mcr_Grabber_get_path ( mcr_Grabber * grabPt )
 	dassert ( grabPt ) ;
 	if ( MCR_STR_ISEMPTY ( & grabPt->path ) )
 		return NULL ;
-	return ( const char * ) grabPt->path.array ;
+	return grabPt->path.array ;
 }
 
 void mcr_Grabber_set_path ( mcr_Grabber * grabPt,
@@ -59,8 +67,7 @@ void mcr_Grabber_set_path ( mcr_Grabber * grabPt,
 	{
 		mcr_Grabber_enable ( grabPt, 0 ) ;
 	}
-	mcr_String_from_string ( & grabPt->path, path,
-			( size_t ) -1 ) ;
+	mcr_String_from_string ( & grabPt->path, path ) ;
 	if ( wasEnabled )
 	{
 		mcr_Grabber_enable ( grabPt, 1 ) ;
@@ -75,37 +82,46 @@ int mcr_Grabber_is_enabled ( mcr_Grabber * grabPt )
 
 int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 {
+	if ( ! mcr_activate_root ( ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
 	int result ;
 	if ( grabPt->fd != -1 )
 	{
 		// Valgrind false positive error.
-		result = ioctl ( grabPt->fd, EVIOCGRAB, 0 ) ;
-		close ( grabPt->fd ) ;
+		if ( ioctl ( grabPt->fd, EVIOCGRAB, 0 ) == -1 )
+			dmsg ;
+		if ( close ( grabPt->fd ) == -1 )
+			dmsg ;
 		grabPt->fd = -1 ;
 		// We are now no longer grabbing
 	}
 
 	if ( ! enable )
+	{
+		mcr_activate_user ( ) ;
 		return 1 ;
+	}
 
 	dassert ( ! MCR_STR_ISEMPTY ( & grabPt->path ) ) ;
 
-	grabPt->fd = open ( ( const char * ) grabPt->path.array, O_RDONLY ) ;
+	grabPt->fd = open ( grabPt->path.array, O_RDONLY ) ;
 	if ( grabPt->fd == -1 )
 	{
-		dmsg ( "Grabber open : %s.\n", strerror ( errno ) ) ;
-		grabPt->fd = -1 ;
+		dmsg ;
+		mcr_activate_user ( ) ;
 		return 0 ;
 	}
 
 	result = ioctl ( grabPt->fd, EVIOCGRAB, 1 ) ;
 	if ( result < 0 )
 	{
-		dmsg ( "Grabber EVIOCGRAB, path '%s', fd '%d': %s.\n",
-				grabPt->path.array, grabPt->fd,
-				strerror ( errno ) ) ;
+		dmsg ;
 		close ( grabPt->fd ) ;
 		grabPt->fd = -1 ;
+		mcr_activate_user ( ) ;
 		return 0 ;
 	}
 
@@ -113,35 +129,46 @@ int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 	separator.tv_sec = 0 ;
 	separator.tv_nsec = 1000 /* 1 micro */ * 1000 /* 1 milli */
 			* 10 /* 10 milli */ ;
-	MCR_NOOP_SEND ( & separator, result ) ;
+	MCR_NOOP_QUICKSEND ( & separator ) ;
 
 	// We are now grabbing exclusively.
+	if ( ! mcr_activate_user ( ) )
+		dmsg ;
 	return 1 ;
 }
 
 void mcr_Grabber_state ( mcr_Grabber * grabPt,
-		unsigned char * buffer, const unsigned int size )
+		char * buffer, const unsigned int size )
 {
 	dassert ( grabPt ) ;
 	dassert ( buffer ) ;
 
 	int fd = grabPt->fd ;
 	if ( fd == -1 && ! MCR_STR_ISEMPTY ( & grabPt->path ) )
-		fd = open ( ( const char * ) grabPt->path.array, O_RDONLY ) ;
+	{
+		if ( ! mcr_activate_root ( ) )
+		{
+			dmsg ;
+			return ;
+		}
+		fd = open ( grabPt->path.array, O_RDONLY ) ;
+	}
 	if ( fd == -1 )
 	{
-		dmsg ( "Grabber open '%s': %s.\n", grabPt->path.array,
-				strerror ( errno ) ) ;
+		dmsg ;
+		mcr_activate_user ( ) ;
 		return ;
 	}
 
 	if ( ioctl ( fd, EVIOCGKEY ( size ), buffer ) < 0 )
 	{
-		dmsg ( "Grabber EVIOCGKEY, path %s, fd %d : %s.\n",
-				grabPt->path.array, fd, strerror ( errno ) ) ;
+		dmsg ;
 	}
 
 	// If grabber was not enabled, we need to return it back.
 	if ( grabPt->fd == -1 )
+	{
 		close ( fd ) ;
+		mcr_activate_user ( ) ;
+	}
 }

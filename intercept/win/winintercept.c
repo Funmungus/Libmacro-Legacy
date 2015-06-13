@@ -64,6 +64,14 @@ int mcr_intercept_is_enabled ( )
 	return 0 ;
 }
 
+void mcr_intercept_enable ( int enable )
+{
+	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
+	{
+		mcr_Grabber_enable ( _allGrabbers [ i ], enable ) ;
+	}
+}
+
 unsigned int mcr_intercept_get_mods ( )
 {
 	unsigned int values = 0 ;
@@ -82,14 +90,6 @@ unsigned int mcr_intercept_get_mods ( )
 		}
 	}
 	return values ;
-}
-
-void mcr_intercept_enable_all ( int enable )
-{
-	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
-	{
-		mcr_Grabber_enable ( _allGrabbers [ i ], enable ) ;
-	}
 }
 
 void mcr_intercept_enable_key ( int enable )
@@ -193,7 +193,7 @@ static int verify_key_state ( PBYTE keyState, size_t keyState_size )
 	// Get pressed keys, error if returned false
 	if ( ! GetKeyboardState ( keyState ) )
 	{
-		dmsg ( "Unable to get keyboard state: %d\n", GetLastError ( ) ) ;
+		dmsg ;
 		return 0 ;
 	}
 	return 1 ;
@@ -209,7 +209,7 @@ void mcr_intercept_native_initialize ( )
 		}
 		if ( ! _allGrabbers [ i ] )
 		{
-			dmsg ( "Unable to allocate all intercept objects.\n" ) ;
+			dmsg ;
 			for ( i = 0 ; i < GRABCOUNT ; i ++ )
 			{
 				free ( _allGrabbers [ i ] ) ;

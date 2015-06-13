@@ -1,4 +1,4 @@
-/* intercept/lnx/lnxintercept.c
+﻿/* intercept/lnx/lnxintercept.c
  * Copyright ( C ) Jonathan Pelletier 2013
  *
  * This work is licensed under the Creative Commons Attribution 4.0
@@ -6,42 +6,58 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
+# ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+# endif
+
 # include "intercept/intercept.h"
 # include "intercept/lnx/intercept.h"
-# include "signal/lnx/device.h"
+# include "signal/lnx/standard.h"
 
 static mtx_t _enableLock ;
 static cnd_t _countCnd ;
 static mcr_Map * _grabMapPt = NULL ; 	// Heap map, accessed by threads.
-// KEY_CNT / 8 is a floor value, and may have remainder of keys.
-static unsigned char _bitRetrieval [ KEY_CNT / 8 + 1 ] ;
+static mcr_Array _grabPaths ;
 
-static int thread_set_grabs ( void * threadArgs ) ;
+// KEY_CNT / 8 is a floor value, and may have remainder of keys.
+static char _bitRetrieval [ KEY_CNT / 8 + 1 ] ;
+
+static int is_enabled_impl ( ) ;
+static void enable_impl ( int enable ) ;
+static int add_impl ( const char * grabPath ) ;
+static int thread_enable ( void * threadArgs ) ;
+static void grab_impl ( const char * grabPath ) ;
 static int intercept_start ( void * threadArgs ) ;
 static int read_grabber ( mcr_Grabber * grabPt ) ;
-static unsigned int modify_eventbits ( unsigned char * keybit_values ) ;
+static unsigned int modify_eventbits ( char * keybit_values ) ;
 static unsigned int max_mod_val ( ) ;
-static void clear_grabbers ( ) ;
-static void grab_impl ( const char * grabPath ) ;
+//static void clear_grabbers ( ) ;
+static void clear_grabbers_impl ( ) ;
 
 # define MODBIT_SIZE ( ( sizeof ( char ) ) * max_mod_val ( ) / 8 + 1 )
 
-int is_enabled ( )
+int mcr_intercept_is_enabled ( )
 {
 	mtx_lock ( & _enableLock ) ;
-	mcr_Grabber ** end = MCR_ARR_END ( & _grabMapPt->set ) ;
-	for ( mcr_Grabber ** grabPtPt = MCR_MAP_VALUE ( _grabMapPt, MCR_ARR_AT
-			( & _grabMapPt->set, 0 ) ) ; grabPtPt < end ;
-			grabPtPt = MCR_ARR_NEXT ( & _grabMapPt->set, grabPtPt ) )
+	int ret = is_enabled_impl ( ) ;
+	mtx_unlock ( & _enableLock ) ;
+	return ret ;
+}
+
+void mcr_intercept_enable ( int enable )
+{
+	mtx_lock ( & _enableLock ) ;
+	// Do not disable if already disabled.
+	if ( enable || is_enabled_impl ( ) )
 	{
-		if ( MCR_GRABBER_ENABLED ( * grabPtPt ) )
+		thrd_t trd ;
+		if ( thrd_create ( & trd, thread_enable, ( void * )
+				( intptr_t ) enable ) == thrd_success )
 		{
-			mtx_unlock ( & _enableLock ) ;
-			return 1 ;
+			thrd_detach ( trd ) ;
 		}
 	}
 	mtx_unlock ( & _enableLock ) ;
-	return 0 ;
 }
 
 unsigned int mcr_intercept_get_mods ( )
@@ -50,40 +66,162 @@ unsigned int mcr_intercept_get_mods ( )
 			( MODBIT_SIZE ), _bitRetrieval ) ;
 	if ( ret < 0 )
 	{
-		dmsg ( "Dispatcher getMods fd %d : %s.\n", mcr_keyDev.fd,
-				strerror ( errno ) ) ;
+		dmsg ;
 		return mcr_internalMods ;
 	}
 	return modify_eventbits ( _bitRetrieval ) ;
 }
 
-void mcr_intercept_grab ( const char * grabPath )
+void mcr_intercept_add_grab ( const char * grabPath )
 {
+	dassert ( grabPath ) ;
 	mtx_lock ( & _enableLock ) ;
-	grab_impl ( grabPath ) ;
+	add_impl ( grabPath ) ;
 	mtx_unlock ( & _enableLock ) ;
 }
 
-void mcr_intercept_set_grabs ( const char ** allGrabPaths,
+void mcr_intercept_remove_grab ( const char * grabPath )
+{
+	dassert ( grabPath ) ;
+	mtx_lock ( & _enableLock ) ;
+	if ( ! _grabPaths.used )
+		return ;
+	mcr_Array * found = bsearch ( & grabPath, _grabPaths.array,
+			_grabPaths.used, sizeof ( mcr_Array ), mcr_str_compare ) ;
+	if ( found )
+	{
+		mcr_Array_free ( found ) ;
+		mcr_Array_remove ( & _grabPaths,
+				MCR_ARR_INDEXOF ( & _grabPaths, found ) ) ;
+	}
+	mtx_unlock ( & _enableLock ) ;
+}
+//TODO
+int mcr_intercept_set_grabs ( const char ** allGrabPaths,
 		size_t pathCount )
 {
 	mtx_lock ( & _enableLock ) ;
-	mcr_Array * paths = malloc ( sizeof ( mcr_Array ) ) ;
-	if ( paths )
+	MCR_ARR_FOR_EACH ( & _grabPaths, mcr_Array_free_foreach, 0 ) ;
+	_grabPaths.used = 0 ;
+	int ret = 1 ;
+	for ( size_t i = 0 ; i < pathCount ; i ++ )
 	{
-		mcr_Array_init ( paths, sizeof ( const char * ) ) ;
-		mcr_Array_from_array ( paths, allGrabPaths, pathCount ) ;
-		thrd_t trd ;
-		if ( thrd_create ( & trd, thread_set_grabs, paths ) == thrd_success )
+		if ( ! add_impl ( allGrabPaths [ i ] ) )
 		{
-			thrd_detach ( trd ) ;
+			dmsg ;
+			ret = 0 ;
+		}
+	}
+	mcr_Array_trim ( & _grabPaths ) ;
+	mtx_unlock ( & _enableLock ) ;
+	return ret ;
+}
+
+static int is_enabled_impl ( )
+{
+	mcr_Grabber ** end = MCR_ARR_END ( & _grabMapPt->set ) ;
+	for ( mcr_Grabber ** grabPtPt = MCR_MAP_VALUE ( _grabMapPt, MCR_ARR_AT
+			( & _grabMapPt->set, 0 ) ) ; grabPtPt < end ;
+			grabPtPt = MCR_ARR_NEXT ( & _grabMapPt->set, grabPtPt ) )
+	{
+		if ( MCR_GRABBER_ENABLED ( * grabPtPt ) )
+		{
+			return 1 ;
+		}
+	}
+	return 0 ;
+}
+
+static void enable_impl ( int enable )
+{
+	if ( enable )
+	{
+		for ( size_t i = 0 ; i < _grabPaths.used ; i ++ )
+		{
+			grab_impl ( * ( const char ** )
+					MCR_ARR_AT ( & _grabPaths, i ) ) ;
+		}
+	}
+	else
+	{
+		clear_grabbers_impl ( ) ;
+	}
+}
+
+static int add_impl ( const char * grabPath )
+{
+	void * found = NULL ;
+	if ( _grabPaths.used )
+		found = bsearch ( & grabPath, _grabPaths.array, _grabPaths.used,
+				sizeof ( mcr_Array ), mcr_str_compare ) ;
+	if ( ! found )
+	{
+		mcr_Array arr ;
+		mcr_String_init ( & arr ) ;
+		if ( mcr_String_from_string ( & arr, grabPath ) &&
+				mcr_Array_push ( & _grabPaths, & arr ) )
+		{
+			qsort ( _grabPaths.array, _grabPaths.used,
+					sizeof ( mcr_Array ), mcr_str_compare ) ;
 		}
 		else
 		{
-			free ( paths ) ;
+			dmsg ;
+			mcr_Array_free ( & arr ) ;
+			return 0 ;
 		}
 	}
+	return 1 ;
+}
+
+static int thread_enable ( void * threadArgs )
+{
+	int enable = ( int ) ( intptr_t ) threadArgs ;
+	mtx_lock ( & _enableLock ) ;
+	enable_impl ( enable ) ;
 	mtx_unlock ( & _enableLock ) ;
+	return thrd_success ;
+}
+
+static void grab_impl ( const char * grabPath )
+{
+	dassert ( grabPath ) ;
+	/* Must have
+	 * 1 ) grabber allocated
+	 * 2 ) mapped from grab path
+	 * 3 ) thread started properly
+	 **/
+	mcr_Grabber ** grabPtPt = mcr_Map_get ( _grabMapPt, & grabPath ) ;
+	if ( ! grabPtPt )
+	{
+		mcr_Grabber * grabPt = malloc ( sizeof ( mcr_Grabber ) ) ;
+		if ( grabPt )
+		{
+			thrd_t trd ;
+			mcr_Grabber_init_with ( grabPt, grabPath, 0 ) ;
+			if ( mcr_Map_map ( _grabMapPt, & grabPath, & grabPt ) &&
+					thrd_create ( & trd, intercept_start, grabPt ) ==
+					thrd_success )
+			{
+				if ( thrd_detach ( trd ) != thrd_success )
+				{
+					dmsg ;
+				}
+				cnd_broadcast ( & _countCnd ) ;
+			}
+			else
+			{
+				dmsg ;
+				mcr_Map_unmap ( _grabMapPt, & grabPath ) ;
+				mcr_Grabber_free ( grabPt ) ;
+				free ( grabPt ) ;
+			}
+		}
+		else
+		{
+			dmsg ;
+		}
+	}
 }
 
 # define key_setall( keyPt, key, scan, uptype ) \
@@ -137,59 +275,6 @@ void mcr_intercept_set_grabs ( const char ** allGrabPaths,
 				mcr_cursor [ MCR_Z ] ) ; \
 	}
 
-static void grab_impl ( const char * grabPath )
-{
-	dassert ( grabPath ) ;
-	/* Must have
-	 * 1 ) grabber allocated
-	 * 2 ) mapped from grab path
-	 * 3 ) thread started properly
-	 **/
-	mcr_Grabber ** grabPtPt = mcr_Map_get ( _grabMapPt, & grabPath ) ;
-	if ( ! grabPtPt )
-	{
-		mcr_Grabber * grabPt = malloc ( sizeof ( mcr_Grabber ) ) ;
-		if ( grabPt )
-		{
-			thrd_t trd ;
-			mcr_Grabber_init_with ( grabPt, grabPath, 0 ) ;
-			if ( mcr_Map_map ( _grabMapPt, & grabPath, & grabPt ) &&
-					thrd_create ( & trd, intercept_start, grabPt ) ==
-					thrd_success )
-			{
-				if ( thrd_detach ( trd ) != thrd_success )
-				{
-					dmsg ( "Error detaching thread.\n" ) ;
-				}
-				cnd_broadcast ( & _countCnd ) ;
-			}
-			else
-			{
-				mcr_Map_unmap ( _grabMapPt, & grabPath ) ;
-				free ( grabPt ) ;
-			}
-		}
-	}
-}
-
-static int thread_set_grabs ( void * threadArgs )
-{
-	dassert ( threadArgs ) ;
-	mcr_Array * paths = threadArgs ;
-	mtx_lock ( & _enableLock ) ;
-	clear_grabbers ( ) ;
-	if ( paths->used )
-	{
-		for ( size_t i = 0 ; i < paths->size ; i ++ )
-		{
-			grab_impl ( * ( const char ** ) MCR_ARR_AT ( paths, i ) ) ;
-		}
-	}
-	free ( paths ) ;
-	mtx_unlock ( & _enableLock ) ;
-	return thrd_success ;
-}
-
 // Note: Excess time setting up and releasing is ok. Please try to limit
 // time-consumption during grabbing and callbacks.
 /* \pre Thread args is heap-allocated mcr_Grabber. It is assumed to
@@ -205,13 +290,13 @@ static int intercept_start ( void * threadArgs )
 	delay.tv_nsec = 1000000 /* 1 milli */ * 10 /* 10 milli */ ;
 	/* 1. Create grab from path.
 	 * 2. Enable.
-	 * 3. TODO: Send back address of grabber.
-	 * 4. Use grabber.
-	 * 5. Remove grabber reference in main.
+	 * 3. Use grabber.
+	 * 4. Remove grabber reference in main before thread ends.
 	 **/
 
 	mtx_lock ( & _enableLock ) ;
-	mcr_Grabber_enable ( grabPt, 1 ) ;
+	if ( ! mcr_Grabber_enable ( grabPt, 1 ) )
+		dmsg ;
 	// Give a delay between grabs before unlocking.
 	MCR_NOOP_QUICKSEND ( & delay ) ;
 	mtx_unlock ( & _enableLock ) ;
@@ -220,7 +305,8 @@ static int intercept_start ( void * threadArgs )
 	thrdStatus = read_grabber ( grabPt ) ;
 
 	mtx_lock ( & _enableLock ) ;
-	mcr_Grabber_enable ( grabPt, 0 ) ;
+	if ( ! mcr_Grabber_enable ( grabPt, 0 ) )
+		dmsg ;
 	dassert ( _grabMapPt ) ;
 	mcr_Map_unmap ( _grabMapPt, & grabPt->path.array ) ;
 	mcr_Grabber_free ( grabPt ) ;
@@ -237,16 +323,17 @@ static int read_grabber ( mcr_Grabber * grabPt )
 	struct input_event events [ MCR_GRAB_SET_LENGTH ] ;
 	int rdb, rdn, i, pos ;
 	int bAbs [ MCR_DIMENSION_CNT ] = { 0 } ;
+	int * echoFound = NULL ;
 	mcr_SpacePosition nopos = { 0 } ;
 	mcr_Key key ;
 	mcr_HIDEcho echo ;
 	mcr_MoveCursor abs, rel ;
 	mcr_Scroll scr ;
-	mcr_Signal keysig = { & mcr_iKey, & key },
-			echosig = { & mcr_iHIDEcho, & echo },
-			abssig = { & mcr_iMoveCursor, & abs },
-			relsig = { & mcr_iMoveCursor, & rel },
-			scrsig = { & mcr_iScroll, & scr } ;
+	mcr_Signal keysig = { & mcr_iKey, { & key, 0 } },
+			echosig = { & mcr_iHIDEcho, { & echo, 0 } },
+			abssig = { & mcr_iMoveCursor, { & abs, 0 } },
+			relsig = { & mcr_iMoveCursor, { & rel, 0 } },
+			scrsig = { & mcr_iScroll, { & scr, 0 } } ;
 	mcr_Key_init_with ( & key, 0, 0, MCR_DOWN ) ;
 	mcr_Echo_init_with ( & echo, 0 ) ;
 	mcr_MoveCursor_init_with ( & abs, nopos, 0 ) ;
@@ -272,7 +359,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 					// Consume a key that already has scan code.
 					if ( MCR_KEY_GET_SCAN ( & key ) )
 					{
-						MCR_QUICKSEND ( & keysig ) ;
+						MCR_SEND ( & keysig ) ;
 						key_setall ( & key, 0, events [ i ].value,
 								MCR_BOTH ) ;
 					}
@@ -283,40 +370,31 @@ static int read_grabber ( mcr_Grabber * grabPt )
 				}
 				break ;
 			case EV_KEY :	/* Handle KEY */
-				switch ( MCR_KEY_GET ( & key ) )
+				if ( MCR_KEY_GET ( & key ) )
 				{
-				case BTN_LEFT :
-					pos = 0 ;
-					break ;
-				case BTN_MIDDLE :
-					pos = 2 ;
-					break ;
-				case BTN_RIGHT :
-					pos = 4 ;
-					break ;
+					echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho +
+							MCR_KEY_GET_UP_TYPE ( & key ),
+							& MCR_KEY_GET ( & key ) ) ;
+					if ( echoFound )
+					{
+						MCR_ECHO_SET ( & echo, * echoFound ) ;
+						if ( disp ( echosig ) )
+						{
+							key_setall ( & key, events [ i ].code, 0,
+								events [ i ].value ? MCR_DOWN : MCR_UP ) ;
+							break ;
+						}
+					}
+					MCR_SEND ( & keysig ) ;
+					key_setall ( & key, events [ i ].code, 0,
+							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 				}
-				// Consume a key that already has a code.
-				switch ( MCR_KEY_GET ( & key ) )
+				else
 				{
-				case 0 :	/* No previous to consume. */
 					MCR_KEY_SET ( & key, events [ i ].code ) ;
 					MCR_KEY_SET_UP_TYPE ( & key,
 							events [ i ].value ? MCR_DOWN :
 							MCR_UP ) ;
-					break ;
-					// Echo block will break and not send the key.
-				case BTN_LEFT :	// TODO: Native echo register.
-				case BTN_MIDDLE :
-				case BTN_RIGHT :
-					MCR_ECHO_SET ( & echo, pos + MCR_KEY_GET_UP_TYPE
-							( & key ) == MCR_DOWN ? 0 : 1 ) ;
-					if ( disp ( echosig ) )
-						break ;
-				default :
-					MCR_QUICKSEND ( & keysig ) ;
-					key_setall ( & key, events [ i ].code, 0,
-							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
-					break ;
 				}
 				break ;
 			case EV_ABS :	/* Handle ABS */
@@ -324,7 +402,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 				if ( bAbs [ pos ] )
 				{
 					abssetcurrent ( & abs, bAbs ) ;
-					MCR_QUICKSEND ( & abssig ) ;
+					MCR_SEND ( & abssig ) ;
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				}
 				MCR_MOVECURSOR_SET_POSITION ( & abs, pos,
@@ -338,7 +416,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_MOVECURSOR_GET_POSITION ( & rel, pos ) )
 					{
-						MCR_QUICKSEND ( & relsig ) ;
+						MCR_SEND ( & relsig ) ;
 						MCR_MOVECURSOR_SET ( & rel, nopos ) ;
 					}
 					MCR_MOVECURSOR_SET_POSITION ( & rel, pos,
@@ -349,7 +427,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_SCROLL_GET_DIMENSION ( & scr, pos ) )
 					{
-						MCR_QUICKSEND ( & scrsig ) ;
+						MCR_SEND ( & scrsig ) ;
 						MCR_SCROLL_SET ( & scr, nopos ) ;
 					}
 					MCR_SCROLL_SET_DIMENSION ( & scr, pos,
@@ -361,30 +439,23 @@ static int read_grabber ( mcr_Grabber * grabPt )
 		//Call final event, it was not called yet.
 		if ( MCR_KEY_GET ( & key ) || MCR_KEY_GET_SCAN ( & key ) )
 		{
-			switch ( MCR_KEY_GET ( & key ) )
+			if ( MCR_KEY_GET ( & key ) )
 			{
-			case BTN_LEFT :
-				pos = 0 ;
-				break ;
-			case BTN_MIDDLE :
-				pos = 2 ;
-				break ;
-			case BTN_RIGHT :
-				pos = 4 ;
-				break ;
-			}
-			switch ( MCR_KEY_GET ( & key ) )
-			{
-			case BTN_LEFT :
-			case BTN_MIDDLE :
-			case BTN_RIGHT :
-				MCR_ECHO_SET ( & echo, pos + MCR_KEY_GET_UP_TYPE
-						( & key ) == MCR_DOWN ? 0 : 1 ) ;
-				if ( disp ( echosig ) )
-					break ;
-			default :
-				MCR_QUICKSEND ( & keysig ) ;
-				break ;
+				echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho +
+						MCR_KEY_GET_UP_TYPE ( & key ),
+						& MCR_KEY_GET ( & key ) ) ;
+				if ( echoFound )
+				{
+					MCR_ECHO_SET ( & echo, * echoFound ) ;
+					if ( ! disp ( echosig ) )
+					{
+						MCR_SEND ( & keysig ) ;
+					}
+				}
+				else
+				{
+					MCR_SEND ( & keysig ) ;
+				}
 			}
 			key_setall ( & key, 0, 0, MCR_BOTH ) ;
 		}
@@ -393,7 +464,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 			if ( bAbs [ i ] )
 			{
 				abssetcurrent ( & abs, bAbs ) ;
-				MCR_QUICKSEND ( & abssig ) ;
+				MCR_SEND ( & abssig ) ;
 				memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				break ;
 			}
@@ -402,7 +473,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 		{
 			if ( MCR_MOVECURSOR_GET_POSITION ( & rel, i ) )
 			{
-				MCR_QUICKSEND ( & relsig ) ;
+				MCR_SEND ( & relsig ) ;
 				MCR_MOVECURSOR_SET ( & rel, nopos ) ;
 				break ;
 			}
@@ -411,7 +482,7 @@ static int read_grabber ( mcr_Grabber * grabPt )
 		{
 			if ( MCR_SCROLL_GET_DIMENSION ( & scr, i ) )
 			{
-				MCR_QUICKSEND ( & scrsig ) ;
+				MCR_SEND ( & scrsig ) ;
 				MCR_SCROLL_SET ( & scr, nopos ) ;
 				break ;
 			}
@@ -420,13 +491,14 @@ static int read_grabber ( mcr_Grabber * grabPt )
 	return thrd_success ;
 }
 
-static unsigned int modify_eventbits ( unsigned char * keybitValues )
+static unsigned int modify_eventbits ( char * keybitValues )
 {
 	unsigned int modVal = 0 ;
 	mcr_Array keyBuffer ;
 	mcr_Array_init ( & keyBuffer, sizeof ( int ) ) ;
 	if ( ! mcr_Array_resize ( & keyBuffer, mcr_Mod_key_count ( ) ) )
 	{
+		dmsg ;
 		mcr_Array_free ( & keyBuffer ) ;
 		return 0 ;
 	}
@@ -462,58 +534,39 @@ static unsigned int max_mod_val ( )
 
 void mcr_intercept_native_initialize ( )
 {
-	// Left defaults
-	const int types [ ] = {
-		MCR_ALT, MCR_ALTGR, MCR_COMPOSE,
-		MCR_CTRL, MCR_FN, MCR_FRONT,
-		MCR_SHIFT, MCR_META
-	} ;
-	const int modKeys [ ] = {
-		KEY_LEFTALT, KEY_RIGHTALT, KEY_COMPOSE,
-		KEY_LEFTCTRL, KEY_FN, KEY_FRONT,
-		KEY_LEFTSHIFT, KEY_LEFTMETA
-	} ;
-	// Right extras
-	const int extraTypes [ ] = {
-		MCR_OPTION, MCR_CTRL, MCR_SHIFT, MCR_META
-	} ;
-	const int extraModKeys [ ] = {
-		KEY_OPTION, KEY_RIGHTCTRL, KEY_RIGHTSHIFT, KEY_RIGHTMETA
-	} ;
-	int i ;
-	for ( i = 0 ; i < ( int ) ( sizeof ( types ) / sizeof ( int ) ) ; i ++ )
-	{
-		mcr_Mod_set_key ( types [ i ], modKeys [ i ] ) ;
-	}
-	for ( i = 0 ; i < ( int ) ( sizeof ( extraTypes ) / sizeof ( int ) ) ; i ++ )
-	{
-		mcr_Mod_add_key ( extraTypes [ i ], extraModKeys [ i ] ) ;
-	}
+	int i = 0 ;
 	mtx_init ( & _enableLock, mtx_plain ) ;
 	cnd_init ( & _countCnd ) ;
 	// Fatal if path to grab map cannot be allocated.
 	_grabMapPt = malloc ( sizeof ( mcr_Map ) ) ;
 	while ( ! _grabMapPt && i ++ < 10 )
 	{
-		dmsg ( "Failed to allocate grab map %d %s.\n", i, i == 1 ?
-				"time" : "times" ) ;
+		dmsg ;
 		sleep ( 1 ) ;
 		_grabMapPt = malloc ( sizeof ( mcr_Map ) ) ;
 	}
 	if ( ! _grabMapPt )
 	{
-		dmsg ( "Unable to allocate event grabbing path map.\n" ) ;
+		dmsg ;
 		exit ( thrd_nomem ) ;
 	}
 	mcr_Map_init ( _grabMapPt, sizeof ( const char * ),
 			sizeof ( mcr_Grabber * ) ) ;
 	_grabMapPt->compare = mcr_str_compare ;
+	mcr_Array_init ( & _grabPaths, sizeof ( mcr_Array ) ) ;
 }
 
-static void grabdisable_redirect ( mcr_Grabber ** grabPtPt,... )
+static void grabdisable_redirect ( mcr_Grabber ** grabPtPt, ... )
 {
 	mcr_Grabber_enable ( * grabPtPt, 0 ) ;
 }
+
+//static void clear_grabbers ( )
+//{
+//	mtx_lock ( & _enableLock ) ;
+//	clear_grabbers_impl ( ) ;
+//	mtx_unlock ( & _enableLock ) ;
+//}
 
 //! \pre _enableLock locked
 //! \post _enableLock locked
@@ -536,19 +589,13 @@ static void clear_grabbers_impl ( )
 		cnd_wait ( & _countCnd, & _enableLock ) ;
 	}
 }
-
-static void clear_grabbers ( )
-{
-	mtx_lock ( & _enableLock ) ;
-	clear_grabbers_impl ( ) ;
-	mtx_unlock ( & _enableLock ) ;
-}
-
 void mcr_intercept_native_cleanup ( void )
 {
 	dassert ( _grabMapPt ) ;
 	mtx_lock ( & _enableLock ) ;
 	clear_grabbers_impl ( ) ;
+	MCR_ARR_FOR_EACH ( & _grabPaths, mcr_Array_free_foreach, 0 ) ;
+	mcr_Array_free ( & _grabPaths ) ;
 	// Grabbers will now be empty.
 	mcr_Map_free ( _grabMapPt ) ;
 	free ( _grabMapPt ) ;

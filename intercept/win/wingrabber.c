@@ -17,7 +17,10 @@ static DWORD WINAPI thrd_disable ( LPVOID lpParam ) ;
 void mcr_Grabber_init ( mcr_Grabber * grabPt )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	memset ( grabPt, 0, sizeof ( mcr_Grabber ) ) ;
 	mtx_init ( & grabPt->lock, mtx_plain ) ;
 }
@@ -26,7 +29,10 @@ void mcr_Grabber_init_with ( mcr_Grabber * grabPt, int type,
 		HOOKPROC proc )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	mcr_Grabber_init ( grabPt ) ;
 	grabPt->type = type ;
 	grabPt->proc = proc ;
@@ -35,7 +41,10 @@ void mcr_Grabber_init_with ( mcr_Grabber * grabPt, int type,
 void mcr_Grabber_free ( mcr_Grabber * grabPt )
 {
 	if ( ! grabPt )
+	{
+		dmsg ;
 		return ;
+	}
 	mtx_lock ( & grabPt->lock ) ;
 	grab_unhook ( grabPt ) ;
 	mtx_unlock ( & grabPt->lock ) ;
@@ -71,13 +80,13 @@ LRESULT CALLBACK mouseProc ( int nCode, WPARAM wParam, LPARAM lParam )
 	if ( pMouseStruct != NULL ) {
 		if ( wParam == WM_LBUTTONDOWN )
 		{
-			printf ( "clicked" ) ;
+			fprintf ( "clicked" ) ;
 		}
-		printf ( "Mouse position X = %d Mouse Position Y = %d\n", pMouseStruct->pt.x, pMouseStruct->pt.y ) ;
+		fprintf ( "Mouse position X = %d Mouse Position Y = %d\n", pMouseStruct->pt.x, pMouseStruct->pt.y ) ;
 		if ( pMouseStruct->pt.x != 0 )
 		{
 			continuing = false ;
-			printf ( "No longer pausing.\n" ) ;
+			fprintf ( "No longer pausing.\n" ) ;
 		}
 	}
 	return CallNextHookEx ( hMouseHook, nCode, wParam, lParam ) ;
