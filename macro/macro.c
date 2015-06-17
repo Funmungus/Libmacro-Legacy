@@ -11,12 +11,9 @@
 static int thread_macro ( void * ) ;
 static int thread_wait_reset ( void * ) ;
 
-# define set_macro_trigger( hotPt, trig, mcrPt ) \
-	if ( ( hotPt )->set_trigger ) \
-		( hotPt )->set_trigger ( hotPt, trig ) ; \
-	else \
-		( hotPt )->trigger = trig ; \
-	( hotPt )->data = mcrPt ;
+# define set_macro_trigger( mcrPt ) \
+	( mcrPt )->hot.trigger = mcr_Macro_trigger ; \
+	( mcrPt )->hot.trigger_data = ( mcrPt ) ;
 
 # define resetthread( mcrPt ) \
 { \
@@ -26,7 +23,7 @@ static int thread_wait_reset ( void * ) ;
 	{ \
 		if ( thrd_detach ( trd ) != thrd_success ) \
 		{ \
-			dmsg ( "Error detaching macro reset thread.\n" ) ; \
+			dmsg ; \
 		} \
 		( mcrPt )->queued = 0 ; \
 	} \
@@ -35,10 +32,15 @@ static int thread_wait_reset ( void * ) ;
 void mcr_Macro_init ( mcr_Macro * mcrPt )
 {
 	if ( ! mcrPt )
+	{
+		dmsg ;
 		return ;
+	}
 	memset ( mcrPt, 0, sizeof ( mcr_Macro ) ) ;
 	mtx_init ( & mcrPt->lock, mtx_plain ) ;
 	cnd_init ( & mcrPt->cnd ) ;
+	mcr_Hot_init ( & mcrPt->hot, & mcr_iHot ) ;
+	set_macro_trigger ( mcrPt ) ;
 	mcr_Array_init ( & mcrPt->signal_set, sizeof ( mcr_Signal ) ) ;
 	mcrPt->thread_max = 1 ;
 }
@@ -48,7 +50,10 @@ void mcr_Macro_init_with ( mcr_Macro * mcrPt,
 		mcr_Signal * signalSet, size_t signalCount, int enable )
 {
 	if ( ! mcrPt )
+	{
+		dmsg ;
 		return ;
+	}
 	mcr_Macro_init ( mcrPt ) ;
 	mcrPt->sticky = sticky ;
 	mcrPt->thread_max = threadMax ;
@@ -60,7 +65,10 @@ void mcr_Macro_init_with ( mcr_Macro * mcrPt,
 void mcr_Macro_free ( mcr_Macro * mcrPt )
 {
 	if ( ! mcrPt )
+	{
+		dmsg ;
 		return ;
+	}
 	mtx_lock ( & mcrPt->lock ) ;
 	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
 	while ( mcrPt->threads )
@@ -68,10 +76,12 @@ void mcr_Macro_free ( mcr_Macro * mcrPt )
 		cnd_wait ( & mcrPt->cnd, & mcrPt->lock ) ;
 		mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
 	}
+	MCR_ARR_FOR_EACH ( & mcrPt->signal_set, mcr_Signal_free_foreach,
+			0 ) ;
+	mcr_Array_free ( & mcrPt->signal_set ) ;
 	mtx_unlock ( & mcrPt->lock ) ;
 	cnd_destroy ( & mcrPt->cnd ) ;
 	mtx_destroy ( & mcrPt->lock ) ;
-	mcr_Array_free ( & mcrPt->signal_set ) ;
 }
 
 void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt, mcr_Hot * hotPt )
@@ -80,15 +90,8 @@ void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt, mcr_Hot * hotPt )
 	mtx_lock ( & mcrPt->lock ) ;
 	int enableRet = mcrPt->interruptor != MCR_INTERRUPT_DISABLE ;
 	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
-	if ( mcrPt->hot_pt )
-	{
-		set_macro_trigger ( mcrPt->hot_pt, NULL, NULL ) ;
-	}
-	if ( hotPt )
-	{
-		set_macro_trigger ( hotPt, mcr_Macro_trigger, mcrPt ) ;
-	}
-	mcrPt->hot_pt = hotPt ;
+	mcr_Hot_copy ( & mcrPt->hot, hotPt ) ;
+	set_macro_trigger ( mcrPt ) ;
 	if ( enableRet )
 	{
 		mcrPt->interruptor = MCR_INTERRUPT_ALL ;
@@ -144,7 +147,26 @@ void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 	mtx_lock ( & mcrPt->lock ) ;
 	int enableRet = mcrPt->interruptor != MCR_INTERRUPT_DISABLE ;
 	mcrPt->interruptor = MCR_INTERRUPT_DISABLE ;
-	mcr_Array_from_array ( & mcrPt->signal_set, signalSet, signalCount ) ;
+	MCR_ARR_FOR_EACH ( & mcrPt->signal_set, mcr_Signal_free_foreach,
+			0 ) ;
+	mcrPt->signal_set.used = 0 ;
+	if ( mcr_Array_resize ( & mcrPt->signal_set, signalCount ) )
+	{
+		mcr_Signal newSig ;
+		for ( size_t i = 0 ; i < signalCount ; i ++ )
+		{
+			mcr_Signal_init ( & newSig, signalSet [ i ].type ) ;
+			mcr_Signal_copy ( & newSig, signalSet + i ) ;
+			if ( ! mcr_Array_push ( & mcrPt->signal_set,
+					& newSig ) )
+			{
+				dmsg ;
+				mcr_Signal_free ( & newSig ) ;
+			}
+		}
+	}
+	else
+		dmsg ;
 	if ( enableRet )
 	{
 		mcrPt->interruptor = MCR_INTERRUPT_ALL ;
@@ -166,20 +188,27 @@ void mcr_Macro_trigger ( mcr_Hot * hotPt, mcr_Signal * sigPt,
 	dassert ( hotPt ) ;
 	UNUSED ( sigPt ) ;
 	UNUSED ( mods ) ;
-	mcr_Macro * mcrPt = hotPt->data ;
+	mcr_Macro * mcrPt = hotPt->trigger_data ;
 	mtx_lock ( & mcrPt->lock ) ;
-	/* If intercepting one, then having at least one thread will
-	 * deal with decrementing queued count.
-	 **/
-	if ( ! mcrPt->interruptor || mcrPt->interruptor == MCR_INTERRUPT )
+	/* If interrupting one, then we just do not increment this
+	 * time. We are already locked for it. */
+	if ( mcrPt->interruptor == MCR_INTERRUPT )
+	{
+		mcrPt->interruptor = MCR_CONTINUE ;
+		mtx_unlock ( & mcrPt->lock ) ;
+		return ;
+	}
+	if ( ! mcrPt->interruptor )
 	{
 		++ mcrPt->queued ;
-		if ( ! mcrPt->thread_max || mcrPt->thread_max == -1 )
+		if ( ! mcrPt->thread_max ||
+				mcrPt->thread_max == ( unsigned int ) -1 )
+		{
+			dmsg ;
 			mcrPt->thread_max = 1 ;
-		// Intercept one - start thread if none currently.
-		// No intercept - start thread if max not reached.
-		if ( mcrPt->interruptor ? ! mcrPt->threads :
-				mcrPt->threads < mcrPt->thread_max )
+		}
+		// Thread max not reached.
+		if ( mcrPt->threads < mcrPt->thread_max )
 		{
 			// TODO: Possible unused threads if only one queued item.
 			thrd_t trd ;
@@ -189,9 +218,11 @@ void mcr_Macro_trigger ( mcr_Hot * hotPt, mcr_Signal * sigPt,
 				++ mcrPt->threads ;
 				if ( thrd_detach ( trd ) != thrd_success )
 				{
-					dmsg ( "Error detaching macro thread.\n" ) ;
+					dmsg ;
 				}
 			}
+			else
+				dmsg ;
 		}
 	}
 	mtx_unlock ( & mcrPt->lock ) ;
@@ -231,7 +262,7 @@ static int thread_macro ( void * data )
 					break ;
 				}
 			}
-			MCR_QUICKSEND ( it ) ;
+			MCR_SEND ( it ) ;
 		}
 		mtx_lock ( & mcrPt->lock ) ;
 	}

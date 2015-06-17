@@ -40,7 +40,7 @@ typedef struct mcr_Macro
 	// Internal
 	//
 	cnd_t cnd ;
-	mcr_Hot * hot_pt ;
+	mcr_Hot hot ;
 	mcr_Interrupt interruptor ;
 	mtx_t lock ;
 	mcr_Array signal_set ;
@@ -60,7 +60,8 @@ MCR_API void mcr_Macro_free ( mcr_Macro * mcrPt ) ;
  * This macro will also be removed from the previous hotkey.
  * \param mcrPt This will be set into \ref mcr_Hot#data.
  * */
-MCR_API void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt, mcr_Hot * hotPt ) ;
+MCR_API void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt,
+		mcr_Hot * hotPt ) ;
 /*! \brief Stop macro execution according to \ref mcr_Interrupt.
  * */
 MCR_API void mcr_Macro_interrupt ( mcr_Macro * mcrPt,
@@ -76,8 +77,8 @@ MCR_API void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 		mcr_Signal * signalSet, size_t signalCount ) ;
 MCR_API void mcr_Macro_enable ( mcr_Macro * mcrPt, int enable ) ;
 //! \brief Macro function called for hotkey trigger.
-MCR_API void mcr_Macro_trigger ( mcr_Hot * hotPt, mcr_Signal * sigPt,
-		unsigned int mods ) ;
+MCR_API void mcr_Macro_trigger ( mcr_Hot * hotPt,
+		mcr_Signal * sigPt, unsigned int mods ) ;
 
 # define MCR_MACRO_ENABLED( mcrPt ) \
 	( ! ( mcrPt )->interruptor )
