@@ -12,7 +12,7 @@
 # include "signal/lnx/standard.h"
 
 # define SIZE 64
-# define SAFESCAN(_buff_) scanf ( "%63s", _buff_ )
+# define SAFESCAN(_buff_) fscanf ( mcr_stdin, "%63s", _buff_ )
 
 # define DOUBLEDIM (MCR_DIMENSION_CNT * 2)
 
@@ -25,15 +25,17 @@ void absolute ( ) ;
 void scroll ( ) ;
 
 static mcr_NoOp delay = { 1, 0 } ;
-static mcr_Signal delaySig = { & mcr_iNoOp, & delay } ;
+static mcr_Signal delaySig = { & mcr_iNoOp, { & delay, 0 } } ;
 static char buffer [ SIZE ] ;
 
 int main ( )
 {
+	mcr_set_stdio ( ) ;
 	mcr_reg_cleanup ( mcr_signal_cleanup ) ;
 	mcr_signal_initialize ( ) ;
-	printf ( "\nBegin...\n" ) ;
-	printf ( "MCR_DIMENSION_CNT = %d, DOUBLEDIM = %d\n",
+	mcr_standard_enable ( 1 ) ;
+	fprintf ( mcr_stdout, "\nBegin...\n" ) ;
+	fprintf ( mcr_stdout, "MCR_DIMENSION_CNT = %d, DOUBLEDIM = %d\n",
 			MCR_DIMENSION_CNT, DOUBLEDIM ) ;
 	// Some platforms need to rest before being able to send some signals.
 	mcr_send ( & delaySig ) ;
@@ -59,15 +61,16 @@ int main ( )
 			break ;
 		case 6:
 			scroll ( ) ;
-break ;
+			break ;
 		}
 	}
+	mcr_standard_enable ( 0 ) ;
 }
 
 int selectTest ( )
 {
-	printf ( "\nPlease make an integer selection.\n" ) ;
-	printf ( "%7s%30s\n %7s%30s\n %7s%30s\n %7s%30s\n %7s%30s\n "
+	fprintf ( mcr_stdout, "\nPlease make an integer selection.\n" ) ;
+	fprintf ( mcr_stdout, "%7s%30s\n %7s%30s\n %7s%30s\n %7s%30s\n %7s%30s\n "
 			"%7s%30s\n %7s%30s\n %7s%30s\n ",
 		"-1 ) ", "exit",
 		"0 ) ", "nothing",
@@ -77,7 +80,7 @@ int selectTest ( )
 		"4 ) ", "justified cursor",
 		"5 ) ", "absolute cursor",
 		"6 ) ", "scroll" ) ;
-	printf ( "Your selection : " ) ;
+	fprintf ( mcr_stdout, "Your selection : " ) ;
 
 	int i = -1 ;
 	SAFESCAN ( buffer ) ;
@@ -87,54 +90,52 @@ int selectTest ( )
 
 void alarmTest ( )
 {
-	printf ( "\nTest alarm.\nEnter seconds to justify: " ) ;
+	fprintf ( mcr_stdout, "\nTest alarm.\nEnter seconds to justify: " ) ;
 	SAFESCAN ( buffer ) ;
 	int difference = atoi ( buffer ) ;
 	if ( difference == 0 )
 	{
-		printf ( "Alarm seconds found 0. Nothing done.\n" ) ;
+		fprintf ( mcr_stdout, "Alarm seconds found 0. Nothing done.\n" ) ;
 		return ;
 	}
 
 	time_t t = time ( NULL ) ;
-	printf ( "Alarm begins at %s.\n", ctime ( & t ) ) ;
+	fprintf ( mcr_stdout, "Alarm begins at %s.\n", ctime ( & t ) ) ;
 
 	t += difference ;
 	struct tm * alPt = localtime ( & t ) ;
-	mcr_Signal sig = { & mcr_iAlarm, 0 } ;
-	sig.data = alPt ;
+	mcr_Signal sig = { & mcr_iAlarm, {0} } ;
+	sig.data.data = alPt ;
 	mcr_send ( & sig ) ;
 
 	t = time ( NULL ) ;
-	printf ( "Alarm ends at %s.\n", ctime ( & t ) ) ;
+	fprintf ( mcr_stdout, "Alarm ends at %s.\n", ctime ( & t ) ) ;
 }
 
 void echo ( )
 {
-	printf ( "\nEcho test.\n" ) ;
+	fprintf ( mcr_stdout, "\nEcho test.\n" ) ;
 	mcr_HIDEcho echo ;
 	mcr_Echo_init ( & echo ) ;
-	mcr_Signal sig = { & mcr_iHIDEcho, & echo } ;
+	mcr_Signal sig = { & mcr_iHIDEcho, { & echo, 0 } } ;
 	size_t count = mcr_Echo_count ( ) ;
 
 	mcr_Key kk ;
 	mcr_Key_init_with ( & kk, BTN_LEFT, 0, MCR_DOWN ) ;
-	mcr_Signal sig2 = { & mcr_iKey, & kk } ;
+	mcr_Signal sig2 = { & mcr_iKey, { & kk, 0} } ;
 	mcr_send ( & sig2 ) ;
 	MCR_KEY_SET_UP_TYPE ( & kk, MCR_UP ) ;
 	int tmp ;
 	UNUSED ( tmp ) ;
-	MCR_NOOP_SEND ( & delay, tmp ) ;
+	tmp = MCR_NOOP_SEND ( & delay ) ;
 	mcr_send ( & sig2 ) ;
 	for ( size_t i = 0 ; i < count ; i++ )
 	{
 		// Set current.
 		mcr_Echo_set ( & echo, i ) ;
-		const char * name = mcr_Echo_name ( mcr_Echo_get ( & echo ) ) ;
 
 		// Send current.
-		printf ( "Send echo %d, named '%s.'\n",
-				mcr_Echo_get ( & echo ), name ? name : "" ) ;
+		fprintf ( mcr_stdout, "Send echo %d.\n", mcr_Echo_get ( & echo ) ) ;
 		mcr_send ( & delaySig ) ;
 		mcr_send ( & sig ) ;
 	}
@@ -142,27 +143,27 @@ void echo ( )
 
 void keyPress ( )
 {
-	printf ( "\nTesting key press and release.\nEnter integer key code: " ) ;
+	fprintf ( mcr_stdout, "\nTesting key press and release.\nEnter integer key code: " ) ;
 	SAFESCAN ( buffer ) ;
 	int key = atoi ( buffer ) ;
-	printf ( "Enter integer scan code: " ) ;
+	fprintf ( mcr_stdout, "Enter integer scan code: " ) ;
 	SAFESCAN ( buffer ) ;
 	int scan = atoi ( buffer ) ;
 
 	mcr_Key mKey ;
-	mcr_Signal sig = { & mcr_iKey, & mKey } ;
+	mcr_Signal sig = { & mcr_iKey, { & mKey, 0} } ;
 	mcr_Key_init_with ( & mKey, key, scan, MCR_DOWN ) ;
 
-	printf ( "\nPressing key...\n" ) ;
+	fprintf ( mcr_stdout, "\nPressing key...\n" ) ;
 	mcr_send ( & delaySig ) ;
 	mcr_send ( & sig ) ;
 
-	printf ( "\nKey is pressed. Releasing key...\n" ) ;
+	fprintf ( mcr_stdout, "\nKey is pressed. Releasing key...\n" ) ;
 	mcr_Key_set_up_type ( & mKey, MCR_UP ) ;
 	mcr_send ( & delaySig ) ;
 	mcr_send ( & sig ) ;
 
-	printf ( "\nNow testing both down and up together.\n" ) ;
+	fprintf ( mcr_stdout, "\nNow testing both down and up together.\n" ) ;
 	mcr_Key_set_up_type ( & mKey, MCR_BOTH ) ;
 	mcr_send ( & delaySig ) ;
 	mcr_send ( & sig ) ;
@@ -171,12 +172,12 @@ void keyPress ( )
 void justify ( )
 {
 //	char buffer [ 64 ] ;
-	printf ( "\nTest justified cursor.\nEnter amount to justify: " ) ;
+	fprintf ( mcr_stdout, "\nTest justified cursor.\nEnter amount to justify: " ) ;
 	SAFESCAN ( buffer ) ;
 	int displacement = atoi ( buffer ) ;
 
 	mcr_MoveCursor just ;
-	mcr_Signal sig = { & mcr_iMoveCursor, & just } ;
+	mcr_Signal sig = { & mcr_iMoveCursor, { & just, 0} } ;
 	mcr_MoveCursor_init ( & just ) ;
 	mcr_MoveCursor_enable_justify ( & just, 1 ) ;
 
@@ -195,7 +196,7 @@ void justify ( )
 		}
 
 		// Send current.
-		printf ( "Move cursor: x=%lld, y=%lld, z=%lld\n",
+		fprintf ( mcr_stdout, "Move cursor: x=%lld, y=%lld, z=%lld\n",
 				mcr_MoveCursor_get_position ( & just, MCR_X ),
 				mcr_MoveCursor_get_position ( & just, MCR_Y ),
 				mcr_MoveCursor_get_position ( & just, MCR_Z ) ) ;
@@ -209,29 +210,29 @@ void justify ( )
 
 void absolute ( )
 {
-	printf ( "\nTest absolute cursor.\n" ) ;
+	fprintf ( mcr_stdout, "\nTest absolute cursor.\n" ) ;
 
 	mcr_MoveCursor abs ;
 	mcr_MoveCursor_init ( & abs ) ;
-	mcr_Signal sig = { & mcr_iMoveCursor, & abs } ;
+	mcr_Signal sig = { & mcr_iMoveCursor, { & abs, 0} } ;
 	mcr_MoveCursor_enable_justify ( & abs, 0 ) ;
 
 	// Get and set x, y, z.
-	printf ( "Enter x value: " ) ;
+	fprintf ( mcr_stdout, "Enter x value: " ) ;
 	SAFESCAN ( buffer ) ;
 	long long p = atoll ( buffer ) ;
 	mcr_MoveCursor_set_position ( & abs, MCR_X, p ) ;
-	printf ( "Enter y value: " ) ;
+	fprintf ( mcr_stdout, "Enter y value: " ) ;
 	SAFESCAN ( buffer ) ;
 	p = atoll ( buffer ) ;
 	mcr_MoveCursor_set_position ( & abs, MCR_Y, p ) ;
-	printf ( "Enter z value: " ) ;
+	fprintf ( mcr_stdout, "Enter z value: " ) ;
 	SAFESCAN ( buffer ) ;
 	p = atoll ( buffer ) ;
 	mcr_MoveCursor_set_position ( & abs, MCR_Z, p ) ;
 
 	// Send current.
-	printf ( "Move cursor: x=%lld, y=%lld, z=%lld\n",
+	fprintf ( mcr_stdout, "Move cursor: x=%lld, y=%lld, z=%lld\n",
 			mcr_MoveCursor_get_position ( & abs, MCR_X ),
 			mcr_MoveCursor_get_position ( & abs, MCR_Y ),
 			mcr_MoveCursor_get_position ( & abs, MCR_Z ) ) ;
@@ -241,12 +242,12 @@ void absolute ( )
 
 void scroll ( )
 {
-	printf ( "\nTest scrolling.\nEnter amount to scroll: " ) ;
+	fprintf ( mcr_stdout, "\nTest scrolling.\nEnter amount to scroll: " ) ;
 	SAFESCAN ( buffer ) ;
 	long long scrolling = atoll ( buffer ) ;
 
 	mcr_Scroll scr ;
-	mcr_Signal sig = { & mcr_iScroll, & scr } ;
+	mcr_Signal sig = { & mcr_iScroll, { & scr, 0} } ;
 	mcr_Dimensions dim = { 0 } ;
 	mcr_Scroll_init_with ( & scr, dim ) ;
 
@@ -265,7 +266,7 @@ void scroll ( )
 		}
 
 		// Send current.
-		printf ( "Scrolling: x=%lld, y=%lld, z=%lld\n",
+		fprintf ( mcr_stdout, "Scrolling: x=%lld, y=%lld, z=%lld\n",
 				mcr_Scroll_get_dimension ( & scr, MCR_X ),
 				mcr_Scroll_get_dimension ( & scr, MCR_Y ),
 				mcr_Scroll_get_dimension ( & scr, MCR_Z ) ) ;

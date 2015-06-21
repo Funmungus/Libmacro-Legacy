@@ -25,22 +25,23 @@ void onComplete ( void )
 
 void setup ( )
 {
-	mcr_reg_cleanup_filed ( onComplete, __FILE__ ) ;
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( onComplete ) ;
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
 
-	printf ( "Setup - OK\n" ) ;
+	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
 }
 
 void test_Hot_init ( )
 {
-	mcr_Hot nullSig ;
-	memset ( & nullSig, 0, sizeof ( nullSig ) ) ;
 	memset ( & hotty, 1, sizeof ( hotty ) ) ;
-	mcr_Hot_init ( & hotty ) ;
-	assert ( ! memcmp ( & hotty, & nullSig, sizeof ( hotty ) ) ) ;
+	mcr_Hot_init ( & hotty, & mcr_iHotkey ) ;
+	assert ( hotty.type == & mcr_iHotkey ) ;
+	assert ( hotty.data.data == NULL ) ;
+	assert ( hotty.data.is_heap == 0 ) ;
 
-	printf ( "mcr_Hot_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Hot_init - OK\n" ) ;
 }
 
 int triggerCalled = 0 ;
@@ -56,16 +57,21 @@ void triggerFnc ( mcr_Hot * hotPt, mcr_Signal * sigPt,
 }
 void test_Hot_init_with ( )
 {
-	mcr_Hot_init_with ( & hotty, obj, triggerFnc, & obj ) ;
+	mcr_Hot_init_with ( & hotty, & mcr_iHotkey, & obj, 0,
+			obj, triggerFnc, & obj ) ;
+	assert ( hotty.type == & mcr_iHotkey ) ;
+	assert ( hotty.data.data == & obj ) ;
+	assert ( hotty.data.is_heap == 0 ) ;
 	assert ( hotty.block == obj ) ;
 	assert ( hotty.trigger == triggerFnc ) ;
-	assert ( hotty.data == & obj ) ;
+	assert ( hotty.trigger_data == & obj ) ;
 
-	printf ( "mcr_Hot_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Hot_init_with - OK\n" ) ;
 }
 void test_Hot_trigger ( )
 {
-	mcr_Hot_init_with ( & hotty, 0, triggerFnc, & obj ) ;
+	mcr_Hot_init_with ( & hotty, & mcr_iHotkey, & obj, 0, 0, triggerFnc,
+			& obj ) ;
 	triggerCalled = 0 ;
 	trigSignal = NULL ;
 	trigMods = 0 ;
@@ -80,7 +86,7 @@ void test_Hot_trigger ( )
 	trigMods = 0 ;
 	mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
 
-	printf ( "mcr_Hot_trigger - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Hot_trigger - OK\n" ) ;
 }
 void trigIncFnc ( mcr_Hot * hotPt, mcr_Signal * sigPt,
 		unsigned int mods )
@@ -97,14 +103,15 @@ void test_Hot_trigger_array ( )
 	mcr_Hot * hotPtSet [ SIZE ] ;
 	for ( int i = 0 ; i < SIZE ; i ++ )
 	{
-		mcr_Hot_init_with ( hotset + i, 0, trigIncFnc, NULL ) ;
+		mcr_Hot_init_with ( hotset + i, & mcr_iHotkey, NULL, 0, 0,
+				trigIncFnc, NULL ) ;
 		hotPtSet [ i ] = hotset + i ;
 	}
 	triggerCalled = 0 ;
 	mcr_Hot_trigger_array ( hotPtSet, SIZE, trigSignal, trigMods ) ;
 	assert ( triggerCalled == SIZE ) ;
 
-	printf ( "mcr_Hot_trigger_array - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Hot_trigger_array - OK\n" ) ;
 }
 
 int main ( void )
@@ -116,7 +123,7 @@ int main ( void )
 	test_Hot_trigger ( ) ;
 	test_Hot_trigger_array ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

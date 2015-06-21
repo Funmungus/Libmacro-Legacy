@@ -13,7 +13,7 @@
 # define SIZE 0xFF
 # define MID ( ( int ) SIZE / ( int ) 2 )
 # define HEXLEN 16
-# define LEN (sizeof (nameBase) + HEXLEN + 1)
+# define LEN ( sizeof ( nameBase ) + HEXLEN + 1)
 
 typedef struct
 {
@@ -22,7 +22,7 @@ typedef struct
 
 # define SIZEOF ( sizeof ( s1 ) )
 
-const char * nameBase = "ISIG0x" ;
+const char * nameBase = ( const char * ) "ISIG0x" ;
 // Each name may be nameBase plus 16 digits of a hex number
 char names [ SIZE ] [ LEN ] ;
 s1 datas [ SIZE ] ;
@@ -37,14 +37,14 @@ int sendreturn = 1 ;
 
 void verifySig ( mcr_Signal * s1sig ) ;
 int s1disp ( mcr_Signal * s1sig ) ;
-void mkname ( char * container, unsigned int id ) ;
+void mkname ( char * container, int id ) ;
 void reset ( ) ;
 
 int send_s1 ( mcr_Signal * s1sig )
 {
 	verifySig ( s1sig ) ;
 	assert ( s1sig->type == curI ) ;
-	assert ( s1sig->data == curData ) ;
+	assert ( s1sig->data.data == curData ) ;
 	return sendreturn ;
 }
 
@@ -52,11 +52,11 @@ void verifysend ( mcr_Signal * s1sig )
 {
 	verifySig ( s1sig ) ;
 	curI = s1sig->type ;
-	curData = s1sig->data ;
+	curData = s1sig->data.data ;
 	assert ( mcr_send ( s1sig ) ? sendreturn : ! sendreturn ) ;
 	verifySig ( s1sig ) ;
 	assert ( s1sig->type == curI ) ;
-	assert ( s1sig->data == curData ) ;
+	assert ( s1sig->data.data == curData ) ;
 }
 
 void verifySig ( mcr_Signal * s1sig )
@@ -64,10 +64,7 @@ void verifySig ( mcr_Signal * s1sig )
 	assert ( s1sig != NULL ) ;
 	assert ( s1sig->type->dispatch == s1disp || ! s1sig->type->dispatch ) ;
 	assert ( s1sig->type->send == send_s1 ) ;
-	assert ( s1sig->type->data_size == SIZEOF ) ;
-	char naming [ LEN ] ;
-	mkname ( naming, s1sig->type->id - isigs [ 0 ].id ) ;
-	assert ( ! strncmp ( s1sig->type->name, naming, LEN - 1 ) ) ;
+	assert ( s1sig->type->interface.data_size == SIZEOF ) ;
 }
 
 void onComplete ( void )
@@ -77,21 +74,23 @@ void onComplete ( void )
 
 void setup ( )
 {
-	mcr_reg_cleanup_filed ( onComplete, __FILE__ ) ;
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( onComplete ) ;
 	mcr_signal_initialize ( ) ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		isigs [ i ].dispatch = s1disp ;
 		mkname ( names [ i ], i ) ;
-		mcr_ISignal_init ( isigs + i, names [ i ], send_s1, SIZEOF ) ;
+		mcr_ISignal_init ( isigs + i, send_s1, SIZEOF ) ;
 		size_t retId = mcr_ISignal_register ( isigs + i ) ;
+		mcr_ISignal_set_name ( isigs + i, names [ i ] ) ;
 		assert ( retId != ( size_t ) -1 ) ;
-		assert ( retId == isigs [ i ].id ) ;
+		assert ( retId == isigs [ i ].interface.id ) ;
 		sigs [ i ].type = isigs + i ;
 		verifySig ( sigs + i ) ;
 	}
 
-	printf ( "Setup - OK\n" ) ;
+	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
 }
 
 int alldispatchCalled = 0 ;
@@ -121,73 +120,9 @@ void verifyAllDispatched ( )
 	alldispatchCalled = 0 ;
 }
 
-void mkname ( char * container, unsigned int id )
+void mkname ( char * container, int id )
 {
 	snprintf ( container, LEN, "%s%x", nameBase, id ) ;
-}
-
-void test_AllDispatch ( )
-{
-	curI = isigs ;
-	curData = datas ;
-	// Case 1 With blocking
-	dispatchBlocking = 1 ;
-	// Case 1.1 Both exist with blocking, all disp not called.
-	mcr_allDispatch = s1alldisp ;
-	// Blocked, send always true.
-	assert ( mcr_send ( sigs ) ) ;
-	verifyDispatched ( ) ;
-	assert ( ! alldispatchCalled ) ;
-	// Case 1.2 AllDisp null, regular exists, all disp not called.
-	mcr_allDispatch = NULL ;
-	// Blocked, send always true.
-	assert ( mcr_send ( sigs ) ) ;
-	verifyDispatched ( ) ;
-	assert ( ! alldispatchCalled ) ;
-	// Case 1.3 Specific does not exist, but alldispatch does.
-	// specific not called.
-	isigs [ 0 ].dispatch = NULL ;
-	mcr_allDispatch = s1alldisp ;
-	// Blocked, send always true.
-	assert ( mcr_send ( sigs ) ) ;
-	assert ( ! dispatchCalled ) ;
-	verifyAllDispatched ( ) ;
-	// Case 1.4 neither exist, not blocked
-	mcr_allDispatch = NULL ;
-	verifysend ( sigs ) ;
-	assert ( ! dispatchCalled ) ;
-	assert ( ! alldispatchCalled ) ;
-
-	// Case 2 Not blocking
-	dispatchBlocking = 0 ;
-	// Case 2.1 Both exist, both dispatched
-	mcr_allDispatch = s1alldisp ;
-	isigs [ 0 ].dispatch = s1disp ;
-	verifysend ( sigs ) ;
-	verifyDispatched ( ) ;
-	verifyAllDispatched ( ) ;
-	// Case 2.2 AllDisp null, all disp not called
-	mcr_allDispatch = NULL ;
-	verifysend ( sigs ) ;
-	verifyDispatched ( ) ;
-	assert ( ! alldispatchCalled ) ;
-	// Case 2.3 Spec null, spec not called
-	isigs [ 0 ].dispatch = NULL ;
-	mcr_allDispatch = s1alldisp ;
-	verifysend ( sigs ) ;
-	assert ( ! dispatchCalled ) ;
-	verifyAllDispatched ( ) ;
-	// Case 2.4 both null
-	mcr_allDispatch = NULL ;
-	verifysend ( sigs ) ;
-	assert ( ! dispatchCalled ) ;
-	assert ( ! alldispatchCalled ) ;
-
-	// Reset
-	mcr_allDispatch = s1alldisp ;
-	isigs [ 0 ].dispatch = s1disp ;
-
-	printf ( "mcr_allDispatch - OK\n" ) ;
 }
 
 void test_Signal_init ( )
@@ -195,106 +130,101 @@ void test_Signal_init ( )
 	mcr_Signal sig = {0} ;
 	mcr_Signal_init ( & sig, NULL ) ;
 	assert ( sig.type == NULL ) ;
-	assert ( sig.data == NULL ) ;
+	assert ( sig.data.data == NULL ) ;
 	mcr_Signal_init ( & sig, isigs ) ;
 	assert ( sig.type == isigs ) ;
-	assert ( sig.data == NULL ) ;
+	assert ( sig.data.data == NULL ) ;
 	verifySig ( & sig ) ;
 
-	printf ( "mcr_Signal_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Signal_init - OK\n" ) ;
 }
 void test_Signal_init_with ( )
 {
 	mcr_Signal sig ;
-	mcr_Signal_init_with ( & sig, NULL, NULL ) ;
-	assert ( sig.data == NULL ) ;
+	mcr_Signal_init_with ( & sig, NULL, NULL, 0 ) ;
+	assert ( sig.data.data == NULL ) ;
 	assert ( sig.type == NULL ) ;
-	mcr_Signal_init_with ( & sig, isigs, NULL ) ;
-	assert ( sig.data == NULL ) ;
+	mcr_Signal_init_with ( & sig, isigs, NULL, 0 ) ;
+	assert ( sig.data.data == NULL ) ;
 	assert ( sig.type == isigs ) ;
-	mcr_Signal_init_with ( & sig, NULL, datas ) ;
-	assert ( sig.data == datas ) ;
+	mcr_Signal_init_with ( & sig, NULL, datas, 0 ) ;
+	assert ( sig.data.data == datas ) ;
 	assert ( sig.type == NULL ) ;
-	mcr_Signal_init_with ( & sig, isigs, datas ) ;
-	assert ( sig.data == datas ) ;
+	mcr_Signal_init_with ( & sig, isigs, datas, 0 ) ;
+	assert ( sig.data.data == datas ) ;
 	assert ( sig.type == isigs ) ;
 
-	printf ( "mcr_Signal_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Signal_init_with - OK\n" ) ;
 }
 void test_send ( )
 {
 	dispatchBlocking = 0 ;
+	sendreturn = 1 ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		verifysend ( sigs + i ) ;
-		sendreturn = 0 ;
-		verifysend ( sigs + i ) ;
-		sendreturn = 1 ;
 	}
-	printf ( "mcr_send - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_send - OK\n" ) ;
 }
 
 void test_ISignal_init ( )
 {
-	mcr_ISignal isig = {0} ;
-	const char * noname = "noname" ;
-	mcr_ISignal_init ( & isig, noname, send_s1, SIZEOF ) ;
-	assert ( isig.data_size == SIZEOF ) ;
+	mcr_ISignal isig ;
+	mcr_ISignal_init ( & isig, send_s1, SIZEOF ) ;
+	assert ( isig.interface.data_size == SIZEOF ) ;
 	assert ( isig.dispatch == NULL ) ;
-	assert ( isig.id == 0 ) ;
-	assert ( ! strcmp ( isig.name, noname ) ) ;
+	assert ( isig.interface.id == ( size_t ) -1 ) ;
 	assert ( isig.send == send_s1 ) ;
 
-	printf ( "mcr_ISignal_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_init - OK\n" ) ;
 }
-mcr_ISignal reggi = {0} ;
+mcr_ISignal reggi ;
 void test_ISignal_register ( )
 {
-	const char * noname = "noname" ;
-	mcr_ISignal_init ( & reggi, noname, send_s1, SIZEOF ) ;
+	mcr_ISignal_init ( & reggi, send_s1, SIZEOF ) ;
 	size_t ret = mcr_ISignal_register ( & reggi ) ;
 	assert ( ret != ( size_t ) -1 ) ;
 	assert ( ret > 0 ) ;
-	assert ( ret == reggi.id ) ;
+	assert ( ret == reggi.interface.id ) ;
 
-	printf ( "mcr_ISignal_register - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_register - OK\n" ) ;
 }
 void test_ISignal_get ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_ISignal * got = mcr_ISignal_get ( isigs [ i ].id ) ;
+		mcr_ISignal * got = mcr_ISignal_get ( isigs [ i ].interface.id ) ;
 		assert ( got == isigs + i ) ;
 	}
 
-	printf ( "mcr_ISignal_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_get - OK\n" ) ;
 }
 void test_ISignal_get_id ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		size_t got = mcr_ISignal_get_id ( isigs [ i ].name ) ;
-		assert ( got == isigs [ i ].id ) ;
+		size_t got = mcr_ISignal_get_id ( names [ i ] ) ;
+		assert ( got == isigs [ i ].interface.id ) ;
 	}
 
-	printf ( "mcr_ISignal_get_id - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_get_id - OK\n" ) ;
 }
 void test_ISignal_from_name ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		mcr_ISignal * got = mcr_ISignal_from_name (
-				isigs [ i ].name ) ;
+				names [ i ] ) ;
 		assert ( got == isigs + i ) ;
 	}
 
-	printf ( "mcr_ISignal_from_name - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_from_name - OK\n" ) ;
 }
 void test_ISignal_count ( )
 {
-	assert ( mcr_ISignal_count ( ) == reggi.id + 1 ) ;
+	assert ( mcr_ISignal_count ( ) == reggi.interface.id + 1 ) ;
 
-	printf ( "mcr_ISignal_count - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_count - OK\n" ) ;
 }
 void test_ISignal_get_all ( )
 {
@@ -312,7 +242,7 @@ void test_ISignal_get_all ( )
 	}
 	free ( set ) ;
 
-	printf ( "mcr_ISignal_get_all - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ISignal_get_all - OK\n" ) ;
 }
 void test_name_compare ( )
 {
@@ -333,7 +263,7 @@ void test_name_compare ( )
 		assert ( ret ) ;
 	}
 
-	printf ( "mcr_name_compare - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_name_compare - OK\n" ) ;
 }
 void test_int_compare ( )
 {
@@ -356,7 +286,7 @@ void test_int_compare ( )
 		assert ( ret > 0 ) ;
 	}
 
-	printf ( "mcr_int_compare - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_int_compare - OK\n" ) ;
 }
 void test_unsigned_compare ( )
 {
@@ -390,7 +320,7 @@ void test_unsigned_compare ( )
 	rhs = ( unsigned int ) -5 ;
 	assert ( mcr_unsigned_compare ( & lhs, & rhs ) < 0 ) ;
 
-	printf ( "mcr_unsigned_compare - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_unsigned_compare - OK\n" ) ;
 }
 void test_size_t_compare ( )
 {
@@ -424,7 +354,7 @@ void test_size_t_compare ( )
 	rhs = ( size_t ) -5 ;
 	assert ( mcr_size_t_compare ( & lhs, & rhs ) < 0 ) ;
 
-	printf ( "mcr_size_t_compare - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_size_t_compare - OK\n" ) ;
 }
 void test_ref_compare ( )
 {
@@ -448,7 +378,7 @@ void test_ref_compare ( )
 		assert ( ret > 0 ) ;
 	}
 
-	printf ( "mcr_ref_compare - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_ref_compare - OK\n" ) ;
 }
 
 
@@ -457,7 +387,6 @@ void test_ref_compare ( )
 int main ( void )
 {
 	setup ( ) ;
-	test_AllDispatch ( ) ;
 	test_Signal_init ( ) ;
 	test_Signal_init_with ( ) ;
 	test_send ( ) ;
@@ -476,7 +405,7 @@ int main ( void )
 	test_size_t_compare ( ) ;
 	test_ref_compare ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

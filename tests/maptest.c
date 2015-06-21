@@ -60,8 +60,15 @@ if ( expression ) \
 	return ; \
 }
 
+void on_complete ( void )
+{
+	mcr_Map_free ( & map ) ;
+}
+
 void setup ( )
 {
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( on_complete ) ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		memset ( set1 + i, i, SIZEOF ( set1 [ 0 ] ) ) ;
@@ -99,7 +106,7 @@ void test_map_init ( )
 	assert ( map.sizeof_second == SIZE2 ) ;
 	assert ( map.set.element_size == SIZEBOTH ) ;
 	reset ( ) ;
-	printf ( "init OK\n" ) ;
+	fprintf ( mcr_stdout, "init OK\n" ) ;
 }
 
 void test_map_free ( )
@@ -113,7 +120,7 @@ void test_map_free ( )
 	assert ( map.set.size == 0 ) ;
 	assert ( map.set.used == 0 ) ;
 	reset ( ) ;
-	printf ( "free OK\n" ) ;
+	fprintf ( mcr_stdout, "free OK\n" ) ;
 }
 
 # define CHKMAP \
@@ -148,7 +155,7 @@ void test_map_map ( )
 	mcr_Map_sort ( & map ) ;
 	reset ( ) ;
 	CHKMAP ;
-	printf ( "map OK\n" ) ;
+	fprintf ( mcr_stdout, "map OK\n" ) ;
 }
 
 void test_map_remap ( )
@@ -193,7 +200,7 @@ void test_map_remap ( )
 	reset ( ) ;
 	CHKMAP ;
 
-	printf ( "remap OK\n" ) ;
+	fprintf ( mcr_stdout, "remap OK\n" ) ;
 }
 
 void test_map_map_pair ( )
@@ -230,7 +237,7 @@ void test_map_map_pair ( )
 	mcr_Map_sort ( & map ) ;
 	reset ( ) ;
 	CHKMAP ;
-	printf ( "map_pair OK\n" ) ;
+	fprintf ( mcr_stdout, "map_pair OK\n" ) ;
 }
 
 void test_map_get ( )
@@ -252,7 +259,7 @@ void test_map_get ( )
 	reset ( ) ;
 	CHKMAP ;
 
-	printf ( "get OK\n" ) ;
+	fprintf ( mcr_stdout, "get OK\n" ) ;
 }
 
 void test_map_get_slow ( )
@@ -263,7 +270,7 @@ void test_map_get_slow ( )
 				SIZEBOTH ) ) ;
 	}
 	CHKMAP ;
-	printf ( "get_slow OK\n" ) ;
+	fprintf ( mcr_stdout, "get_slow OK\n" ) ;
 }
 
 void test_map_get_ensured ( )
@@ -307,7 +314,7 @@ void test_map_get_ensured ( )
 	}
 	reset ( ) ;
 	CHKMAP ;
-	printf ( "get_ensured OK\n" ) ;
+	fprintf ( mcr_stdout, "get_ensured OK\n" ) ;
 }
 
 void test_map_index_of ( )
@@ -324,7 +331,7 @@ void test_map_index_of ( )
 	assert ( mcr_Map_index_of ( & map, set1 + 1 ) == ( size_t ) -1 ) ;
 	reset ( ) ;
 	CHKMAP ;
-	printf ( "index_of OK\n" ) ;
+	fprintf ( mcr_stdout, "index_of OK\n" ) ;
 }
 
 void test_map_unmap ( )
@@ -361,7 +368,7 @@ void test_map_unmap ( )
 	mcr_Map_unmap ( & map, set1 + 1 ) ;
 	reset ( ) ;
 	CHKMAP ;
-	printf ( "unmap OK\n" ) ;
+	fprintf ( mcr_stdout, "unmap OK\n" ) ;
 }
 
 void test_map_sort ( )
@@ -389,7 +396,7 @@ void test_map_sort ( )
 	map.compare = set1compare ;
 	mcr_Map_sort ( & map ) ;
 	CHKMAP ;
-	printf ( "sort OK\n" ) ;
+	fprintf ( mcr_stdout, "sort OK\n" ) ;
 }
 
 void test_map_clear ( )
@@ -403,7 +410,7 @@ void test_map_clear ( )
 	assert ( map.set.size != 0 ) ;
 	assert ( map.set.used == 0 ) ;
 	reset ( ) ;
-	printf ( "clear OK\n" ) ;
+	fprintf ( mcr_stdout, "clear OK\n" ) ;
 }
 
 void test_map_trim ( )
@@ -420,16 +427,16 @@ void test_map_trim ( )
 	assert ( map.set.used == map.set.size ) ;
 	assert ( map.set.size == 0 ) ;
 	reset ( ) ;
-	printf ( "trim OK\n" ) ;
+	fprintf ( mcr_stdout, "trim OK\n" ) ;
 }
 
-void test_map_print ( )
+/*void test_map_print ( )
 {
-	printf ( "Print test is manual. Please read below, and make sure "
+	fprintf ( mcr_stdout, "Print test is manual. Please read below, and make sure "
 				"this prints from 0 to 0x%x.\n", SIZE - 1 ) ;
 	mcr_Map_print ( & map ) ;
-	printf ( "print OK\n" ) ;
-}
+	fprintf ( mcr_stdout, "print OK\n" ) ;
+}*/
 
 void test_map_value ( )
 {
@@ -438,10 +445,10 @@ void test_map_value ( )
 	{
 		assert ( MCR_MAP_VALUE ( & map,
 				mcr_Map_get ( & map, set1 + i ) ) ==
-						( void * ) ( ( unsigned char * )
-							mcr_Map_get ( & map, set1 + i ) + SIZE1 ) ) ;
+						( void * ) ( ( char * )
+						mcr_Map_get ( & map, set1 + i ) + SIZE1 ) ) ;
 	}
-	printf ( "value OK\n" ) ;
+	fprintf ( mcr_stdout, "value OK\n" ) ;
 }
 
 void chk_redirect_impl ( void * itPt, va_list lst )
@@ -452,7 +459,7 @@ void chk_redirect_impl ( void * itPt, va_list lst )
 	++ i ;
 }
 
-void chk_redirect ( void * itPt,... )
+void chk_redirect ( void * itPt, ... )
 {
 	va_list lst ;
 	va_start ( lst, itPt ) ;
@@ -467,7 +474,7 @@ void test_map_for_each ( )
 	i = 0 ;
 	mcr_Map_for_each ( & map, chk_redirect_impl, & i ) ;
 
-	printf ( "for_each OK\n" ) ;
+	fprintf ( mcr_stdout, "for_each OK\n" ) ;
 }
 
 void chk_value_redirect_impl ( void * itPt, va_list lst )
@@ -479,7 +486,7 @@ void chk_value_redirect_impl ( void * itPt, va_list lst )
 	++ i ;
 }
 
-void chk_value_redirect ( void * itPt,... )
+void chk_value_redirect ( void * itPt, ... )
 {
 	va_list lst ;
 	va_start ( lst, itPt ) ;
@@ -491,7 +498,7 @@ void test_map_for_each_value ( )
 {
 	i = 0 ;
 	MCR_MAP_FOR_EACH_VALUE ( & map, chk_value_redirect, & i ) ;
-	printf ( "for_each_value OK\n" ) ;
+	fprintf ( mcr_stdout, "for_each_value OK\n" ) ;
 }
 
 // 12 total mcr_Map functions, plus three macros without functions.
@@ -512,13 +519,13 @@ int main ( void )
 	test_map_sort ( ) ;
 	test_map_clear ( ) ;
 	test_map_trim ( ) ;
-	test_map_print ( ) ;
+//	test_map_print ( ) ;
 
 	test_map_value ( ) ;
 	test_map_for_each ( ) ;
 	test_map_for_each_value ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

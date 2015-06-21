@@ -8,16 +8,29 @@ CONFIG += debug
 QMAKE_CFLAGS += -std=c11
 QMAKE_CXXFLAGS += -std=c++11
 
-DEFINES += MCR_NO_SDK
-
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
-INCLUDEPATH += ../include
-unix:LIBS += -L../project -lmacrolibrary
-win32:LIBS += ../project/macrolibrary.lib
+CONFIG(noextras) {}
+else:DEFINES += MCR_EXTRAS
 
-win32:DEFINES += MCR_NATIVE_DIR=win
-else:unix:DEFINES += MCR_NATIVE_DIR=lnx
+INCLUDEPATH += ../include
+unix:LIBS += -L../lib -lmacrolibrary
+win32:LIBS += ../lib/macrolibrary.lib
+
+win32:CONFIG += win
+else:win64:CONFIG += win
+else:unix {
+    macx:CONFIG += mac
+    else:CONFIG += lnx
+}
+else:CONFIG += nativeless
+
+win:DEFINES += MCR_NATIVE_DIR=win
+lnx:DEFINES += MCR_NATIVE_DIR=lnx
+mac:DEFINES += MCR_NATIVE_DIR=nativeless
+nativeless:DEFINES += MCR_NATIVE_DIR=nativeless
+
+lnx:LIBS += -lcrypto
 
 HEADERS = ../include/macro.h
 
@@ -79,4 +92,9 @@ SOURCES = hotstagedtest.c
 grabtest {
 TARGET = grabtest
 SOURCES = grabtest.c
+}
+
+crypttest {
+TARGET = crypttest
+SOURCES = crypttest.c
 }

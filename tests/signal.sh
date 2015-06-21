@@ -2,4 +2,5 @@
 touch *.c
 qmake test.pro CONFIG+=signaltest && make
 qmake test.pro CONFIG+=standardtest && make
-qmake test.pro CONFIG+=sendtest && make
+qmake test.pro CONFIG+=sendtest && sudo make
+sudo chmod 4755 sendtest

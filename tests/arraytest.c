@@ -42,8 +42,15 @@ if ( expression ) \
 	return ; \
 }
 
+void on_complete ( void )
+{
+	mcr_Array_free ( & arr ) ;
+}
+
 void setup ( )
 {
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( on_complete ) ;
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		memset ( structset + i, i, SIZEOF ) ;
@@ -283,7 +290,7 @@ void test_Array_prev ( )
 void test_Array_end ( )
 {
 	pt = MCR_ARR_END ( & arr ) ;
-	assert ( pt == ( STR * ) ( ( ( unsigned char * )
+	assert ( pt == ( STR * ) ( ( ( char * )
 			mcr_Array_at ( & arr, SIZE - 1 ) ) + SIZEOF ) ) ;
 	mcr_Array_free ( & arr ) ;
 	assert ( MCR_ARR_END ( & arr ) == NULL ) ;
@@ -299,7 +306,7 @@ void inc_impl ( void * arrIt, va_list lst )
 	++ reps ;
 }
 
-void inc ( void * arrIt,... )
+void inc ( void * arrIt, ... )
 {
 	va_list lst ;
 	va_start ( lst, arrIt ) ;
@@ -347,13 +354,13 @@ void test_Array_resize ( )
 	reset ( ) ;
 }
 
-void test_Array_print ( )
+/*void test_Array_print ( )
 {
-	printf ( "Two is a manual test, please read below.\n" ) ;
-	printf ( "Please verify array is printed correctly, from 0 to %d.\n",
+	fprintf ( mcr_stdout, "Two is a manual test, please read below.\n" ) ;
+	fprintf ( mcr_stdout, "Please verify array is printed correctly, from 0 to %d.\n",
 			SIZE - 1 ) ;
 	mcr_Array_print ( & arr ) ;
-}
+}*/
 
 // 18 total mcr_Array functions, plus two macros without functions.
 int main ( void )
@@ -379,9 +386,9 @@ int main ( void )
 	test_Array_for_each ( ) ;
 	test_Array_trim ( ) ;
 	test_Array_resize ( ) ;
-	test_Array_print ( ) ;
+//	test_Array_print ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

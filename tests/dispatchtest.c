@@ -12,110 +12,80 @@
 
 # define SIZE 0xFF
 
-mcr_Dispatch disp ;
+mcr_Dispatch * dispPt ;
 int specCalled = 0 ;
 
 void onComplete ( void )
 {
-	mcr_Dispatch_free ( & disp ) ;
 	mcr_hotkey_cleanup ( ) ;
 	mcr_signal_cleanup ( ) ;
 }
 
 void setup ( )
 {
-	mcr_reg_cleanup_filed ( onComplete, __FILE__ ) ;
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( onComplete ) ;
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
+	dispPt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
+	assert ( dispPt ) ;
 
-	printf ( "Setup - OK\n" ) ;
+	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
 }
 
 void test_Dispatch_get ( )
 {
-	assert ( ! mcr_Dispatch_get ( mcr_ISignal_count ( ) ) ) ;
+	assert ( mcr_Dispatch_get ( mcr_ISignal_count ( ) ) ==
+			mcr_Dispatch_get ( -1 ) ) ;
 	// generic dispatch
 	assert ( mcr_Dispatch_get ( -1 ) ) ;
 
-	mcr_Dispatch * pt ;
+	mcr_Dispatch disp ;
 	mcr_DispatchAlarm_init ( & disp ) ;
-	pt = mcr_Dispatch_get ( mcr_iAlarm.id ) ;
-	assert ( pt ) ;
-	assert ( ! memcmp ( & disp, pt, sizeof ( mcr_Dispatch ) ) ) ;
+	assert ( ! memcmp ( & disp, dispPt, sizeof ( mcr_Dispatch ) ) ) ;
 
-	printf ( "mcr_Dispatch_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_get - OK\n" ) ;
 }
 
 void test_Dispatch_add_unspecific ( )
 {
 	mcr_Hot obj ;
-	assert ( ! disp.generics.used ) ;
+	assert ( ! dispPt->generics.used ) ;
 
-	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
-	assert ( disp.generics.used == 1 ) ;
-	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
+	mcr_Dispatch_add_unspecific ( dispPt, & obj ) ;
+	assert ( dispPt->generics.used == 1 ) ;
+	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & dispPt->generics, 0 ) )
 			== & obj ) ;
 
-	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
-	assert ( disp.generics.used == 1 ) ;
-	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
+	mcr_Dispatch_add_unspecific ( dispPt, & obj ) ;
+	assert ( dispPt->generics.used == 1 ) ;
+	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & dispPt->generics, 0 ) )
 			== & obj ) ;
 
-	mcr_Dispatch_add_unspecific ( & disp, NULL ) ;
-	assert ( disp.generics.used == 1 ) ;
-	assert ( * ( ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 ) )
-			== & obj ) ;
+	dispPt->generics.used = 0 ;
 
-	mcr_Dispatch_clear ( & disp ) ;
-
-	printf ( "mcr_Dispatch_add_unspecific - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_add_unspecific - OK\n" ) ;
 }
 
-void chk_add_specific ( mcr_Dispatch * a, mcr_Hot * b, mcr_Signal * c,
-		unsigned int d )
+void chk_add_specific ( mcr_Signal * c,
+		unsigned int d, mcr_Hot * b )
 {
-	UNUSED ( a ) ; UNUSED ( b ) ; UNUSED ( c ) ; UNUSED ( d ) ;
+	UNUSED ( b ) ; UNUSED ( c ) ; UNUSED ( d ) ;
 	specCalled = 1 ;
 }
 
 void test_Dispatch_add_specific ( )
 {
 	mcr_Hot obj ;
-	disp.add_specific = NULL ;
-	mcr_Dispatch_add_specific ( & disp, & obj, NULL, 0 ) ;
-	disp.add_specific = chk_add_specific ;
+	dispPt->add_specific = NULL ;
+	mcr_Dispatch_add_specific ( dispPt, NULL, 0, & obj ) ;
+	dispPt->add_specific = chk_add_specific ;
 	specCalled = 0 ;
-	mcr_Dispatch_add_specific ( & disp, & obj, NULL, 0 ) ;
+	mcr_Dispatch_add_specific ( dispPt, NULL, 0, & obj ) ;
 	assert ( specCalled == 1 ) ;
-	assert ( ! disp.generics.used ) ;
+	assert ( ! dispPt->generics.used ) ;
 
-	printf ( "mcr_Dispatch_add_specific - OK\n" ) ;
-}
-
-void test_Dispatch_enable_auto ( )
-{
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	disp.enable_specific = disp.enable_unspecific = 1 ;
-	mcr_Dispatch_enable_auto ( & disp ) ;
-	assert ( dPt == mcr_dispatch ) ;
-
-	dPt = NULL ;
-	disp.enable_specific = 0 ;
-	mcr_Dispatch_enable_auto ( & disp ) ;
-	assert ( dPt == mcr_dispatch ) ;
-
-	dPt = mcr_dispatch ;
-	disp.enable_unspecific = 0 ;
-	mcr_Dispatch_enable_auto ( & disp ) ;
-	assert ( ! dPt ) ;
-
-	dPt = NULL ;
-	disp.enable_specific = 1 ;
-	mcr_Dispatch_enable_auto ( & disp ) ;
-	assert ( dPt == mcr_dispatch ) ;
-
-	printf ( "mcr_Dispatch_auto - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_add_specific - OK\n" ) ;
 }
 
 int dispatch_func ( mcr_Signal * s )
@@ -124,151 +94,54 @@ int dispatch_func ( mcr_Signal * s )
 	return 1 ;
 }
 
-void test_Dispatch_enable_auto_to ( )
-{
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	disp.enable_specific = disp.enable_unspecific = 1 ;
-	mcr_Dispatch_enable_auto_to ( & disp, dispatch_func ) ;
-	assert ( dPt == dispatch_func ) ;
-
-	dPt = NULL ;
-	disp.enable_specific = 0 ;
-	mcr_Dispatch_enable_auto_to ( & disp, dispatch_func ) ;
-	assert ( dPt == dispatch_func ) ;
-
-	dPt = dispatch_func ;
-	disp.enable_unspecific = 0 ;
-	mcr_Dispatch_enable_auto_to ( & disp, dispatch_func ) ;
-	assert ( ! dPt ) ;
-
-	dPt = NULL ;
-	disp.enable_specific = 1 ;
-	mcr_Dispatch_enable_auto_to ( & disp, dispatch_func ) ;
-	assert ( dPt == dispatch_func ) ;
-
-	printf ( "mcr_Dispatch_auto_to - OK\n" ) ;
-}
-
 void test_Dispatch_enable ( )
 {
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	mcr_Dispatch_enable ( & disp, 1 ) ;
-	assert ( dPt == mcr_dispatch ) ;
-	mcr_Dispatch_enable ( & disp, 0 ) ;
-	assert ( ! dPt ) ;
+	mcr_Dispatch_enable ( & mcr_iAlarm, 1 ) ;
+	assert ( mcr_iAlarm.dispatch == mcr_dispatch ) ;
+	assert ( mcr_iAlarm.dispatch_object ) ;
+	mcr_Dispatch_enable ( & mcr_iAlarm, 0 ) ;
+	assert ( ! mcr_iAlarm.dispatch ) ;
+	assert ( ! mcr_iAlarm.dispatch_object ) ;
 
-	printf ( "mcr_Dispatch_enable - OK\n" ) ;
-}
-
-void test_Dispatch_enable_to ( )
-{
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	mcr_Dispatch_enable_to ( & disp, 1, dispatch_func ) ;
-	assert ( dPt == dispatch_func ) ;
-	mcr_Dispatch_enable_to ( & disp, 0, dispatch_func ) ;
-	assert ( ! dPt ) ;
-
-	printf ( "mcr_Dispatch_enable_to - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_enable - OK\n" ) ;
 }
 
 void test_Dispatch_is_enabled ( )
 {
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	disp.enable_specific = disp.enable_unspecific = 1 ;
-	assert ( ! mcr_Dispatch_is_enabled ( & disp ) ) ;
-	dPt = mcr_dispatch ;
-	assert ( mcr_Dispatch_is_enabled ( & disp ) ) ;
-	dPt = ( void * ) 1 ;
-	assert ( mcr_Dispatch_is_enabled ( & disp ) < 0 ) ;
+	mcr_Dispatch_enable ( & mcr_iAlarm, 0 ) ;
+	assert ( ! mcr_Dispatch_is_enabled ( & mcr_iAlarm ) ) ;
+	mcr_Dispatch_enable ( & mcr_iAlarm, 1 ) ;
+	assert ( mcr_Dispatch_is_enabled ( & mcr_iAlarm ) ) ;
 
-	dPt = mcr_dispatch ;
-	disp.enable_specific = 0 ;
-	assert ( mcr_Dispatch_is_enabled ( & disp ) ) ;
-	disp.enable_unspecific = 0 ;
-	assert ( ! mcr_Dispatch_is_enabled ( & disp ) ) ;
-	disp.enable_specific = 1 ;
-	assert ( mcr_Dispatch_is_enabled ( & disp ) ) ;
-
-	printf ( "mcr_Dispatch_is_enabled - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_is_enabled - OK\n" ) ;
 }
 
-void test_Dispatch_is_enabled_to ( )
+void chk_remove ( mcr_Hot * b )
 {
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	disp.enable_specific = disp.enable_unspecific = 1 ;
-	assert ( ! mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) ) ;
-	dPt = dispatch_func ;
-	assert ( mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) ) ;
-	dPt = mcr_dispatch ;
-	assert ( mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) < 0 ) ;
-
-	dPt = dispatch_func ;
-	disp.enable_specific = 0 ;
-	assert ( mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) ) ;
-	disp.enable_unspecific = 0 ;
-	assert ( ! mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) ) ;
-	disp.enable_specific = 1 ;
-	assert ( mcr_Dispatch_is_enabled_to ( & disp, dispatch_func ) ) ;
-
-	printf ( "mcr_Dispatch_enabled_to - OK\n" ) ;
-}
-
-void chk_remove ( mcr_Dispatch * a, mcr_Hot * b )
-{
-	UNUSED ( a ) ; UNUSED ( b ) ;
+	UNUSED ( b ) ;
 	specCalled = 1 ;
 }
 
 void test_Dispatch_remove ( )
 {
 	mcr_Hot obj ;
-	disp.generics.used = 0 ;
-	disp.remove_specific = NULL ;
-	mcr_Dispatch_add_unspecific ( & disp, & obj ) ;
-	assert ( * ( mcr_Hot ** ) mcr_Array_at ( & disp.generics, 0 )
+	dispPt->generics.used = 0 ;
+	dispPt->remove_specific = NULL ;
+	mcr_Dispatch_add_unspecific ( dispPt, & obj ) ;
+	assert ( * ( mcr_Hot ** ) mcr_Array_at ( & dispPt->generics, 0 )
 			== & obj ) ;
-	mcr_Dispatch_remove ( & disp, & obj ) ;
-	assert ( ! disp.generics.used ) ;
-	disp.remove_specific = chk_remove ;
+	mcr_Dispatch_remove ( & mcr_iAlarm, & obj ) ;
+	assert ( ! dispPt->generics.used ) ;
+	dispPt->remove_specific = chk_remove ;
 	specCalled = 0 ;
-	mcr_Dispatch_remove ( & disp, & obj ) ;
+	mcr_Dispatch_remove ( & mcr_iAlarm, & obj ) ;
 	assert ( specCalled ) ;
 
-	printf ( "mcr_Dispatch_remove - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_remove - OK\n" ) ;
 }
 
-void test_Dispatch_reset ( )
+void chk_disp ( )
 {
-	mcr_Hot hots [ SIZE ] ;
-	mcr_signal_fnc dPt = NULL ;
-	disp.dispatcher_pt = & dPt ;
-	disp.generics.used = 0 ;
-	disp.enable_specific = 1 ;
-	for ( int i = 0 ; i < SIZE ; i++ )
-	{
-		mcr_Dispatch_add_unspecific ( & disp, hots + i ) ;
-	}
-	assert ( disp.generics.used == SIZE ) ;
-	mcr_Dispatch_reset ( & disp ) ;
-	assert ( ! disp.generics.used ) ;
-	assert ( dPt == mcr_dispatch ) ;
-	disp.enable_specific = 0 ;
-	disp.enable_unspecific = 0 ;
-	mcr_Dispatch_reset ( & disp ) ;
-	assert ( ! disp.generics.used ) ;
-	assert ( dPt == NULL ) ;
-
-	printf ( "mcr_Dispatch_reset - OK\n" ) ;
-}
-
-void chk_disp ( mcr_Dispatch * a )
-{
-	UNUSED ( a ) ;
 	specCalled = 1 ;
 }
 
@@ -277,17 +150,17 @@ void test_Dispatch_clear ( )
 	mcr_Hot hots [ SIZE ] ;
 	for ( int i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_Dispatch_add_unspecific ( & disp, hots + i ) ;
+		mcr_Dispatch_add_unspecific ( dispPt, hots + i ) ;
 	}
-	assert ( disp.generics.used == SIZE ) ;
-	mcr_Dispatch_clear ( & disp ) ;
-	assert ( ! disp.generics.used ) ;
-	disp.clear_specific = chk_disp ;
+	assert ( dispPt->generics.used == SIZE ) ;
+	mcr_Dispatch_clear ( & mcr_iAlarm ) ;
+	assert ( ! dispPt->generics.used ) ;
+	dispPt->clear_specific = chk_disp ;
 	specCalled = 0 ;
-	mcr_Dispatch_clear ( & disp ) ;
+	mcr_Dispatch_clear ( & mcr_iAlarm ) ;
 	assert ( specCalled ) ;
 
-	printf ( "mcr_Dispatch_clear - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_clear - OK\n" ) ;
 }
 
 void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int c )
@@ -297,9 +170,9 @@ void chk_hot_disp ( mcr_Hot * a, mcr_Signal * b, unsigned int c )
 	++ specCalled ;
 }
 
-int disp_spec ( mcr_Dispatch * a, mcr_Signal * b, unsigned int c )
+int disp_spec ( mcr_Signal * b, unsigned int c )
 {
-	UNUSED ( a ) ; UNUSED ( b ) ;
+	UNUSED ( b ) ;
 	assert ( c == mcr_internalMods ) ;
 	specCalled = 1 ;
 	return 0 ;
@@ -318,13 +191,14 @@ void test_dispatch ( )
 	mcr_Hot hots [ SIZE ] ;
 	mcr_Signal sig ;
 	sig.type = & mcr_iAlarm ;
-	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_iAlarm.id ) ;
-	mcr_Dispatch_clear ( pt ) ;
-	pt->dispatch_specific = NULL ;
+	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
+	mcr_Dispatch_clear ( sig.type ) ;
+//	pt->dispatch_specific = NULL ;
 	pt->modifier = NULL ;
 	for ( int i = 0 ; i < SIZE ; i ++ )
 	{
-		mcr_Hot_init_with ( hots + i, 0, chk_hot_disp, NULL ) ;
+		mcr_Hot_init_with ( hots + i, & mcr_iHotkey, NULL, 0,
+				0, chk_hot_disp, NULL ) ;
 		mcr_Dispatch_add_unspecific ( pt, hots + i ) ;
 	}
 	specCalled = 0 ;
@@ -339,7 +213,7 @@ void test_dispatch ( )
 	mcr_dispatch ( & sig ) ;
 	assert ( specCalled == 1 ) ;
 	specCalled = 0 ;
-	mcr_Dispatch_clear ( pt ) ;
+	mcr_Dispatch_clear ( & mcr_iAlarm ) ;
 	mcr_dispatch ( & sig ) ;
 	assert ( specCalled == 1 ) ;
 
@@ -352,12 +226,12 @@ void test_dispatch ( )
 	mcr_dispatch ( & sig ) ;
 	assert ( specCalled == 1 ) ;
 
-	printf ( "mcr_dispatch - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_dispatch - OK\n" ) ;
 }
 
 void test_Dispatch_register ( )
 {
-	mcr_Dispatch_free ( & disp ) ;
+	mcr_Dispatch disp ;
 	memset ( & disp, 1, sizeof ( mcr_Dispatch ) ) ;
 	mcr_Dispatch_register ( & disp, 0 ) ;
 	mcr_Dispatch_register ( & disp, mcr_ISignal_count ( ) ) ;
@@ -370,20 +244,19 @@ void test_Dispatch_register ( )
 			& disp, sizeof ( mcr_Dispatch ) ) ) ;
 
 	// Avoid problems with freeing dispatchers.
-	mcr_Dispatch_init ( & disp ) ;
-	mcr_Dispatch_register ( & disp, 0 ) ;
-	mcr_Dispatch_register ( & disp, mcr_ISignal_count ( ) ) ;
-	mcr_Dispatch_register ( & disp, mcr_ISignal_count ( ) << 1 ) ;
+	mcr_Dispatch_init ( mcr_Dispatch_get ( 0 ) ) ;
+	mcr_Dispatch_init ( mcr_Dispatch_get ( mcr_ISignal_count ( ) ) ) ;
+	mcr_Dispatch_init ( mcr_Dispatch_get ( mcr_ISignal_count ( ) << 1 ) ) ;
+	dispPt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
 
-	printf ( "mcr_Dispatch_register - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_register - OK\n" ) ;
 }
 
 mcr_Signal sig ;
 unsigned int otherMods ;
-int chk_disp_modified ( mcr_Dispatch * a, mcr_Signal * b,
+int chk_disp_modified ( mcr_Signal * b,
 		unsigned int c )
 {
-	assert ( a == & disp ) ;
 	assert ( b == & sig ) ;
 	assert ( c == otherMods ) ;
 	return 1 ;
@@ -391,10 +264,10 @@ int chk_disp_modified ( mcr_Dispatch * a, mcr_Signal * b,
 
 void test_Dispatch_dispatch_modified ( )
 {
-	disp.dispatch_specific = chk_disp_modified ;
-	mcr_Dispatch_dispatch_modified ( & disp, & sig, & otherMods ) ;
+	dispPt->dispatch_specific = chk_disp_modified ;
+	mcr_Dispatch_dispatch_modified ( dispPt, & sig, & otherMods ) ;
 
-	printf ( "mcr_Dispatch_dispatch_modified - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_dispatch_modified - OK\n" ) ;
 }
 
 
@@ -404,59 +277,60 @@ void test_DispatchGeneric_add_specific_dispatch_specific ( )
 	assert ( pt ) ;
 	mcr_Signal otherSig ;
 	mcr_Hot obj ;
-	mcr_Hot_init_with ( & obj, 0, chk_hot_disp, NULL ) ;
+	mcr_Hot_init_with ( & obj, & mcr_iHotkey, NULL, 0,
+			0, chk_hot_disp, NULL ) ;
 
 	assert ( ! pt->generics.used ) ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, -1 ) ;
+	mcr_DispatchGeneric_add_specific ( NULL, -1, & obj ) ;
 	assert ( * ( mcr_Hot ** ) mcr_Array_at ( & pt->generics, 0 )
 			== & obj ) ;
-	mcr_Dispatch_clear ( pt ) ;
+	mcr_Dispatch_clear ( NULL ) ;
 
 	mcr_internalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_add_specific ( & sig, mcr_internalMods, & obj ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
 	mcr_internalMods = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
 	mcr_internalMods = 42 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
 	mcr_internalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & otherSig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & otherSig, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
 	// Make sure hotkey removed for next test.
-	mcr_Dispatch_clear ( pt ) ;
+	mcr_Dispatch_clear ( NULL ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & sig, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 	mcr_internalMods = 42 ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, mcr_internalMods ) ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig, mcr_internalMods ) ;
+	mcr_DispatchGeneric_add_specific ( NULL, mcr_internalMods, & obj ) ;
+	mcr_DispatchGeneric_dispatch_specific ( & sig, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( NULL, mcr_internalMods ) ;
 	assert ( specCalled ) ;
 	specCalled = 0 ;
 	mcr_internalMods = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 	mcr_internalMods = MCR_ANY_MOD ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, NULL, mcr_internalMods ) ;
+	mcr_DispatchGeneric_dispatch_specific ( NULL, mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
-	mcr_Dispatch_clear ( pt ) ;
+	mcr_Dispatch_clear ( NULL ) ;
 
-	printf ( "mcr_DispatchGeneric_add_specific - OK\n" ) ;
-	printf ( "mcr_DispatchGeneric_dispatch_specific - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_DispatchGeneric_add_specific - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_DispatchGeneric_dispatch_specific - OK\n" ) ;
 }
 
 void test_DispatchGeneric_remove_specific ( )
@@ -464,32 +338,33 @@ void test_DispatchGeneric_remove_specific ( )
 	mcr_Dispatch * pt = mcr_Dispatch_get ( -1 ) ;
 	assert ( pt ) ;
 	mcr_Hot obj ;
-	mcr_Hot_init_with ( & obj, 0, chk_hot_disp, NULL ) ;
+	mcr_Hot_init_with ( & obj, & mcr_iHotkey, NULL, 0, 0,
+			chk_hot_disp, NULL ) ;
 
-	mcr_Dispatch_clear ( pt ) ;
+	mcr_Dispatch_clear ( NULL ) ;
 
 	mcr_internalMods = 42 ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, 42 ) ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, NULL, 42 ) ;
-	mcr_DispatchGeneric_add_specific ( pt, & obj, & sig, MCR_ANY_MOD ) ;
+	mcr_DispatchGeneric_add_specific ( & sig, 42, & obj ) ;
+	mcr_DispatchGeneric_add_specific ( NULL, 42, & obj ) ;
+	mcr_DispatchGeneric_add_specific ( & sig, MCR_ANY_MOD, & obj ) ;
 
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig,
+	mcr_DispatchGeneric_dispatch_specific ( & sig,
 			mcr_internalMods ) ;
 	assert ( specCalled ) ;
-	mcr_DispatchGeneric_remove_specific ( pt, & obj ) ;
+	mcr_DispatchGeneric_remove_specific ( & obj ) ;
 	specCalled = 0 ;
-	mcr_DispatchGeneric_dispatch_specific ( pt, & sig,
+	mcr_DispatchGeneric_dispatch_specific ( & sig,
 			mcr_internalMods ) ;
 	assert ( ! specCalled ) ;
 
-	printf ( "mcr_Dispatch_remove_specific - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_remove_specific - OK\n" ) ;
 }
 
 void test_DispatchGeneric_clear ( )
 {
 	// clear tested above.
-	printf ( "mcr_Dispatch_clear - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Dispatch_clear - OK\n" ) ;
 }
 
 // Dispatch, 25 functions. Not testing init, free, initialize,
@@ -501,14 +376,9 @@ int main ( void )
 	test_Dispatch_get ( ) ;
 	test_Dispatch_add_unspecific ( ) ;
 	test_Dispatch_add_specific ( ) ;
-	test_Dispatch_enable_auto ( ) ;
-	test_Dispatch_enable_auto_to ( ) ;
 	test_Dispatch_enable ( ) ;
-	test_Dispatch_enable_to ( ) ;
 	test_Dispatch_is_enabled ( ) ;
-	test_Dispatch_is_enabled_to ( ) ;
 	test_Dispatch_remove ( ) ;
-	test_Dispatch_reset ( ) ;
 	test_Dispatch_clear ( ) ;
 	test_dispatch ( ) ;
 	test_Dispatch_register ( ) ;
@@ -518,7 +388,7 @@ int main ( void )
 	test_DispatchGeneric_remove_specific ( ) ;
 	test_DispatchGeneric_clear ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

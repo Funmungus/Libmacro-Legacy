@@ -24,11 +24,13 @@ void cleanup ( void )
 
 void setup ( )
 {
+	mcr_set_stdio ( ) ;
 	mcr_reg_cleanup ( cleanup ) ;
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
 	mod.type = & mcr_iMod ;
-	mod.data = & data ;
+	mod.data.data = & data ;
+	mod.data.is_heap = 0 ;
 }
 
 void test_Mod_send ( )
@@ -51,7 +53,7 @@ void test_Mod_send ( )
 		assert ( mcr_internalMods == ~ i ) ;
 	}
 
-	printf ( "mcr_Mod_send - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_send - OK.\n" ) ;
 }
 
 void test_Mod_names ( )
@@ -77,10 +79,10 @@ void test_Mod_names ( )
 	mcr_Mod_clear_names ( ) ;
 	assert ( mcr_Mod_count ( ) == 0 ) ;
 
-	printf ( "mcr_Mod_get - OK.\n" ) ;
-	printf ( "mcr_Mod_get_name - OK.\n" ) ;
-	printf ( "mcr_Mod_count - OK.\n" ) ;
-	printf ( "mcr_Mod_get_all - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_get - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_get_name - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_count - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_get_all - OK.\n" ) ;
 }
 
 void test_Mod_echo ( )
@@ -106,10 +108,10 @@ void test_Mod_echo ( )
 	mcr_Mod_clear_echo ( ) ;
 	assert ( mcr_Mod_echo_count ( ) == 0 ) ;
 
-	printf ( "mcr_Mod_echo_get - OK.\n" ) ;
-	printf ( "mcr_Mod_echo_get_echo - OK.\n" ) ;
-	printf ( "mcr_Mod_echo_echo_count - OK.\n" ) ;
-	printf ( "mcr_Mod_echo_get_all - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_echo_get - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_echo_get_echo - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_echo_echo_count - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_echo_get_all - OK.\n" ) ;
 }
 
 void test_Mod_key ( )
@@ -131,10 +133,10 @@ void test_Mod_key ( )
 	mcr_Mod_clear_key ( ) ;
 	assert ( mcr_Mod_key_count ( ) == 0 ) ;
 
-	printf ( "mcr_Mod_key_get - OK.\n" ) ;
-	printf ( "mcr_Mod_key_get_key - OK.\n" ) ;
-	printf ( "mcr_Mod_key_key_count - OK.\n" ) ;
-	printf ( "mcr_Mod_key_get_all - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_key_get - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_key_get_key - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_key_key_count - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_key_get_all - OK.\n" ) ;
 }
 
 void test_HIDEcho_modify ( )
@@ -142,7 +144,7 @@ void test_HIDEcho_modify ( )
 	mcr_Signal sig ;
 	mcr_HIDEcho echo ;
 	mcr_Echo_init ( & echo ) ;
-	mcr_Signal_init_with ( & sig, & mcr_iHIDEcho, & echo ) ;
+	mcr_Signal_init_with ( & sig, & mcr_iHIDEcho, & echo, 0 ) ;
 	for ( unsigned int mod = 0 ; mod < SIZE ; mod ++ )
 	{
 		data.modifiers = mod ;
@@ -167,7 +169,7 @@ void test_HIDEcho_modify ( )
 	}
 	mcr_Mod_clear_echo ( ) ;
 
-	printf ( "mcr_HIDEcho_modify - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_HIDEcho_modify - OK.\n" ) ;
 }
 
 void test_Key_modify ( )
@@ -175,7 +177,7 @@ void test_Key_modify ( )
 	mcr_Signal sig ;
 	mcr_Key key ;
 	mcr_Key_init_with ( & key, 0, 0, MCR_DOWN ) ;
-	mcr_Signal_init_with ( & sig, & mcr_iKey, & key ) ;
+	mcr_Signal_init_with ( & sig, & mcr_iKey, & key, 0 ) ;
 	for ( unsigned int mod = 0 ; mod < SIZE ; mod ++ )
 	{
 		for ( int i = 0 ; i < 0x42 ; i ++ )
@@ -199,7 +201,7 @@ void test_Key_modify ( )
 	}
 	mcr_Mod_clear_key ( ) ;
 
-	printf ( "mcr_Key_modify - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_modify - OK.\n" ) ;
 }
 
 void test_Mod_compare ( )
@@ -211,7 +213,7 @@ void test_Mod_compare ( )
 	lhs.modifiers = 1 ;
 	assert ( mcr_Mod_compare ( & lhs, & data ) > 0 ) ;
 
-	printf ( "mcr_Mod_compare - OK.\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Mod_compare - OK.\n" ) ;
 }
 
 int main ( )
@@ -226,6 +228,6 @@ int main ( )
 	test_Key_modify ( ) ;
 	test_Mod_compare ( ) ;
 
-	printf ( "Mods test completed without assertion.\n" ) ;
+	fprintf ( mcr_stdout, "Mods test completed without assertion.\n" ) ;
 	return 0 ;
 }

@@ -23,81 +23,19 @@ void onComplete ( void )
 
 void setup ( )
 {
-	mcr_reg_cleanup_filed ( onComplete, __FILE__ ) ;
+	mcr_set_stdio ( ) ;
+	mcr_reg_cleanup ( onComplete ) ;
 	mcr_signal_initialize ( ) ;
 
 	size_t len = sizeof ( knowns ) / sizeof ( mcr_ISignal * ) ;
 	// Check registered for each
 	for ( size_t i = 0 ; i < len ; i++ )
 	{
-		assert ( mcr_ISignal_from_name ( knowns [ i ]->name ) == knowns [ i ] ) ;
-		assert ( mcr_ISignal_get ( knowns [ i ]->id ) == knowns [ i ] ) ;
-		assert ( mcr_ISignal_get_id ( knowns [ i ]->name ) ==
-				knowns [ i ]->id ) ;
+		assert ( mcr_ISignal_get ( knowns [ i ]->interface.id ) ==
+				knowns [ i ] ) ;
 	}
 
-	printf ( "Setup - OK\n" ) ;
-}
-
-// Echo codes
-void test_Echo_code ( )
-{
-	// The two HIDEchos that are sure to be on every system are
-	// LeftDown and LeftUp
-	int ret = mcr_Echo_code ( "LeftDown" ) ;
-	assert ( ret != -1 ) ;
-	ret = mcr_Echo_code ( "LeftUp" ) ;
-	assert ( ret != -1 ) ;
-	// Null, empty, and simply wrong should all return -1
-	ret = mcr_Echo_code ( NULL ) ;
-	assert ( ret == -1 ) ;
-	ret = mcr_Echo_code ( "" ) ;
-	assert ( ret == -1 ) ;
-	ret = mcr_Echo_code ( "jJoeiNbFI09aDdENn" ) ;
-	assert ( ret == -1 ) ;
-	// Try some symbols
-	ret = mcr_Echo_code ( "+_ ) ( * & ^%$#@ ! ~=-` [ ] \\{}| ; ':\",./<>?" ) ;
-	assert ( ret == -1 ) ;
-	printf ( "mcr_Echo_code - OK\n" ) ;
-}
-
-// TODO: dynamically find set of all echo names
-const char * names [ ] =
-{
-	"LeftDown", "LeftUp", "MiddleDown", "MiddleUp", "RightDown", "RightUp"
-} ;
-
-void test_Echo_name ( )
-{
-	for ( size_t i = 0 ; i < mcr_Echo_count ( ) ; i++ )
-	{
-		const char * ret = mcr_Echo_name ( i ) ;
-		assert ( ! strcmp ( ret, names [ i ] ) ) ;
-	}
-
-	printf ( "mcr_Echo_name - OK\n" ) ;
-}
-void test_Echo_count ( )
-{
-	size_t len = sizeof ( names ) / sizeof ( const char * ) ;
-	assert ( len == mcr_Echo_count ( ) ) ;
-	printf ( "mcr_Echo_count - OK\n" ) ;
-}
-const char * testEchoName = "TestEchoName" ;
-int testEchoValue = -1 ;
-void test_Echo_set_name ( )
-{
-	// good check
-	testEchoValue = mcr_Echo_count ( ) ;
-	int success = mcr_Echo_set_name ( testEchoValue, testEchoName ) ;
-	assert ( success ) ;
-	assert ( testEchoValue == ( int ) mcr_Echo_count ( ) - 1 ) ;
-	const char * retName = mcr_Echo_name ( testEchoValue ) ;
-	assert ( ! strcmp ( retName, testEchoName ) ) ;
-	int retVal = mcr_Echo_code ( testEchoName ) ;
-	assert ( retVal == testEchoValue ) ;
-
-	printf ( "mcr_Echo_set_name - OK\n" ) ;
+	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
 }
 
 void test_Echo_inits ( )
@@ -114,8 +52,8 @@ void test_Echo_inits ( )
 //	mcr_Echo_init_with ( & echo, 42 ) ;
 //	assert ( mcr_Echo_get ( & echo ) == ( int ) mcr_Echo_count ( ) -1 ) ;
 
-	printf ( "mcr_Echo_init - OK\n" ) ;
-	printf ( "mcr_Echo_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Echo_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Echo_init_with - OK\n" ) ;
 }
 
 void test_Key_inits ( )
@@ -147,8 +85,8 @@ void test_Key_inits ( )
 	assert ( mcr_Key_get_scan ( & k ) ==0 ) ;
 	assert ( mcr_Key_get_up_type ( & k ) == MCR_BOTH ) ;
 
-	printf ( "mcr_Key_init - OK\n" ) ;
-	printf ( "mcr_Key_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_init_with - OK\n" ) ;
 }
 
 void space_equal ( const mcr_SpacePosition lhs,
@@ -215,8 +153,8 @@ void test_MoveCursor_inits ( )
 		assert ( mcr_MoveCursor_is_justify ( & mc ) ) ;
 	}
 
-	printf ( "mcr_MoveCursor_init - OK\n" ) ;
-	printf ( "mcr_MoveCursor_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_init_with - OK\n" ) ;
 }
 
 void test_Scroll_inits ( )
@@ -257,8 +195,8 @@ void test_Scroll_inits ( )
 	memset ( mem, 0, sizeof ( mem ) ) ;
 	space_equal ( dim, mem ) ;
 
-	printf ( "mcr_Scroll_init - OK\n" ) ;
-	printf ( "mcr_Scroll_init_with - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_init - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_init_with - OK\n" ) ;
 }
 
 void test_Echo_getset ( )
@@ -276,8 +214,8 @@ void test_Echo_getset ( )
 	mcr_Echo_init ( & echo ) ;
 	assert ( mcr_Echo_get ( & echo ) == 0 ) ;
 
-	printf ( "mcr_Echo_set - OK\n" ) ;
-	printf ( "mcr_Echo_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Echo_set - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Echo_get - OK\n" ) ;
 }
 
 void test_Key_getset ( )
@@ -293,8 +231,8 @@ void test_Key_getset ( )
 		assert ( mcr_Key_get ( & k ) == i ) ;
 	}
 
-	printf ( "mcr_Key_set - OK\n" ) ;
-	printf ( "mcr_Key_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_set - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_get - OK\n" ) ;
 }
 void test_Key_getset_scan ( )
 {
@@ -307,8 +245,8 @@ void test_Key_getset_scan ( )
 		assert ( mcr_Key_get_scan ( & k ) == i ) ;
 	}
 
-	printf ( "mcr_Key_set_scan - OK\n" ) ;
-	printf ( "mcr_Key_get_scan - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_set_scan - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_get_scan - OK\n" ) ;
 }
 void test_Key_getset_up_type ( )
 {
@@ -325,8 +263,8 @@ void test_Key_getset_up_type ( )
 	mcr_Key_set_up_type ( & k, MCR_BOTH ) ;
 	assert ( mcr_Key_get_up_type ( & k ) == MCR_BOTH ) ;
 
-	printf ( "mcr_Key_set_up_type - OK\n" ) ;
-	printf ( "mcr_Key_get_up_type - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_set_up_type - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Key_get_up_type - OK\n" ) ;
 }
 
 void test_MoveCursor_getset ( )
@@ -353,8 +291,8 @@ void test_MoveCursor_getset ( )
 		}
 	}
 
-	printf ( "mcr_MoveCursor_get - OK\n" ) ;
-	printf ( "mcr_MoveCursor_set - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_set - OK\n" ) ;
 }
 void test_MoveCursor_getset_position ( )
 {
@@ -370,8 +308,8 @@ void test_MoveCursor_getset_position ( )
 		}
 	}
 
-	printf ( "mcr_MoveCursor_get_position - OK\n" ) ;
-	printf ( "mcr_MoveCursor_set_position - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_get_position - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_set_position - OK\n" ) ;
 }
 void test_MoveCursor_justifies ( )
 {
@@ -385,8 +323,8 @@ void test_MoveCursor_justifies ( )
 	mcr_MoveCursor_enable_justify ( & mc, 1 ) ;
 	assert ( mcr_MoveCursor_is_justify ( & mc ) ) ;
 
-	printf ( "mcr_MoveCursor_is_justify - OK\n" ) ;
-	printf ( "mcr_MoveCursor_enable_justify - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_is_justify - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_MoveCursor_enable_justify - OK\n" ) ;
 }
 
 void test_Scroll_getset ( )
@@ -413,8 +351,8 @@ void test_Scroll_getset ( )
 		}
 	}
 
-	printf ( "mcr_Scroll_get - OK\n" ) ;
-	printf ( "mcr_Scroll_set - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_get - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_set - OK\n" ) ;
 }
 void test_Scroll_getset_dimension ( )
 {
@@ -430,8 +368,8 @@ void test_Scroll_getset_dimension ( )
 		}
 	}
 
-	printf ( "mcr_Scroll_get_dimension - OK\n" ) ;
-	printf ( "mcr_Scroll_set_dimension - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_get_dimension - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_Scroll_set_dimension - OK\n" ) ;
 }
 
 
@@ -469,7 +407,7 @@ void test_resembles_justified ( )
 		}
 	}
 
-	printf ( "mcr_resembles_justified - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_resembles_justified - OK\n" ) ;
 }
 void test_resembles_absolute ( )
 {
@@ -507,7 +445,7 @@ void test_resembles_absolute ( )
 		dim [ xyz ] = mem [ xyz ] = 0 ;
 	}
 
-	printf ( "mcr_resembles_absolute - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_resembles_absolute - OK\n" ) ;
 }
 void test_resembles ( )
 {
@@ -593,7 +531,7 @@ void test_resembles ( )
 		mcr_MoveCursor_set_position ( & lhs, xyz, 0 ) ;
 	}
 
-	printf ( "mcr_resembles - OK\n" ) ;
+	fprintf ( mcr_stdout, "mcr_resembles - OK\n" ) ;
 }
 
 
@@ -606,11 +544,6 @@ void test_resembles ( )
 int main ( void )
 {
 	setup ( ) ;
-
-	test_Echo_code ( ) ;
-	test_Echo_name ( ) ;
-	test_Echo_count ( ) ;
-	test_Echo_set_name ( ) ;
 
 	test_Echo_inits ( ) ;
 
@@ -637,7 +570,7 @@ int main ( void )
 	test_resembles_absolute ( ) ;
 	test_resembles ( ) ;
 
-	printf ( "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }
