@@ -23,5 +23,6 @@ nohup.*
 template
 build*/
 tests/*test
+app/macronsole
 
 include/rapidxml/*
