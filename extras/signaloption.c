@@ -194,23 +194,21 @@ int mcr_alarm_modify ( int argc, char ** argv,
 	int setNotation = argv [ index ] [ 0 ] == '{' ;
 	if ( setNotation )
 		++ index ;
-	char * afterval = NULL ;
+	char * afterval = NULL, * name ;
 	long val ;
-	int i, nameIndex ;
+	int i ;
 	mcr_Alarm * data = sigPtOut->data.data ;
-	while ( index < argc )
+	while ( index + 1 < argc )
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
+		name = argv [ index ] ;
+		if ( setNotation && * name == '}' )
 			return index + 1 ;
 		for ( i = 0 ; i < len ; i ++ )
 		{
-			if ( ! strncasecmp ( argv [ index ], datanames [ i ],
-					( size_t ) lens [ i ] ) )
+			if ( ! strncasecmp ( name, datanames [ i ],
+					( unsigned ) lens [ i ] ) )
 			{
-				++ index ;
-				error_return ( index >= argc, index ) ;
-				val = strtol ( argv [ index ], & afterval, 0 ) ;
+				val = strtol ( argv [ ++ index ], & afterval, 0 ) ;
 				// Should be at int value after data name.
 				error_return ( afterval == argv [ index ], index ) ;
 				datafncs [ i ] ( data, val ) ;
@@ -218,10 +216,12 @@ int mcr_alarm_modify ( int argc, char ** argv,
 				break ;
 			}
 		}
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
+		// No data name processed.
+		error_return ( i == len, index ) ;
 		++ index ;
 	}
+	if ( setNotation && * name == '}' )
+		return index + 1 ;
 	return index ;
 }
 
@@ -240,6 +240,8 @@ int mcr_echo_modify ( int argc, char ** argv,
 		return index ;
 	if ( argv [ index ] [ 0 ] == '}' )
 		return index + 1 ;
+	if ( index + 1 >= argc ) 	/*NoVal*/
+		return index ;
 
 	int echo ;
 	char * afterval = NULL ;
@@ -247,6 +249,7 @@ int mcr_echo_modify ( int argc, char ** argv,
 		echo = strtol ( argv [ index ], & afterval, 0 ) ;
 	else
 		echo = mcr_Echo_code ( argv [ index ] ) ;
+	// Already checked for digit on the strtol.
 	MCR_ECHO_SET ( ( mcr_HIDEcho * ) sigPtOut->data.data, echo ) ;
 	++ index ;
 	if ( setNotation && argv [ index ] [ 0 ] == '}' )
@@ -265,24 +268,23 @@ int mcr_key_modify ( int argc, char ** argv,
 	int setNotation = argv [ index ] [ 0 ] == '{' ;
 	if ( setNotation )
 		++ index ;
-	char * afterval = NULL ;
+	char * afterval = NULL, * name ;
 	long val ;
-	int i, nameIndex ;
+	int i ;
 	mcr_Key * data = sigPtOut->data.data ;
-	while ( index < argc )
+	while ( index + 1 < argc )
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
+		name = argv [ index ] ;
+		if ( setNotation && * name == '}' )
 			return index + 1 ;
-		if ( ! strncasecmp ( argv [ index ], "key", 3 ) ||
-				! strncasecmp ( argv [ index ], "scan", 4 ) )
+		if ( ! strncasecmp ( name, "key", 3 ) ||
+				! strncasecmp ( name, "scan", 4 ) )
 		{
 			++ index ;
-			error_return ( index >= argc, index ) ;
 			val = strtol ( argv [ index ], & afterval, 0 ) ;
 			error_return ( afterval == argv [ index ], index ) ;
-			if ( * argv [ index - 1 ] == 'k' ||
-					* argv [ index - 1 ] == 'K' )
+			if ( * name == 'k' ||
+					* name == 'K' )
 			{
 				MCR_KEY_SET ( data, val ) ;
 			}
@@ -291,10 +293,9 @@ int mcr_key_modify ( int argc, char ** argv,
 				MCR_KEY_SET_SCAN ( data, val ) ;
 			}
 		}
-		else if ( ! strncasecmp ( argv [ index ], "up", 2 ) )
+		else if ( ! strncasecmp ( name, "up", 2 ) )
 		{
 			++ index ;
-			error_return ( index >= argc, index ) ;
 			if ( ! strncasecmp ( argv [ index ], "down", 4 ) )
 			{
 				MCR_KEY_SET_UP_TYPE ( data, MCR_DOWN ) ;
@@ -308,12 +309,10 @@ int mcr_key_modify ( int argc, char ** argv,
 				MCR_KEY_SET_UP_TYPE ( data, MCR_BOTH ) ;
 			}
 			else
-			{
 				error_return ( 1, index ) ;
-			}
 		}
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
+		else
+			error_return ( 1, index ) ;
 		++ index ;
 	}
 	return index ;
@@ -324,21 +323,52 @@ int mcr_movecursor_modify ( int argc, char ** argv,
 {
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iMoveCursor ) ;
 	suredata ( sigPtOut ) ;
 
 	int setNotation = argv [ index ] [ 0 ] == '{' ;
 	if ( setNotation )
 		++ index ;
-	char * afterval = NULL ;
+	char * afterval = NULL, * name ;
 	long val ;
-	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	int i ;
+	mcr_MoveCursor * data = sigPtOut->data.data ;
+	while ( index + 1 < argc )
 	{
-		nameIndex = index ;
+		name = argv [ index ++ ] ;
 		if ( setNotation && argv [ index ] [ 0 ] == '}' )
 			return ++ index ;
+		char oneChar = argv [ index ] [ 0 ] ;
+		if ( ( oneChar >= 'x' && oneChar <= 'z' ) ||
+				( oneChar >= 'X' && oneChar <= 'Z' ) )
+		{
+			++ index ;
+			error_return ( index >= argc, index ) ;
+			val = strtol ( argv [ index ], & afterval, 0 ) ;
+			error_return ( afterval == argv [ index ], index ) ;
+			oneChar = oneChar == 'x' || oneChar == 'X' ? MCR_X :
+					oneChar == 'y' || oneChar == 'Y' ? MCR_Y :
+					MCR_Z ;
+			MCR_MOVECURSOR_ENABLE_JUSTIFY ( data, oneChar ) ;
+		}
+		else if ( ! strncasecmp ( argv [ index ],
+				"justify", 7 ) )
+		{
+			++ index ;
+			error_return ( index >= argc, index ) ;
+			int justify ;
+			if ( mcr_convert_bool ( argv [ index ],
+					& justify ) )
+			{
+				MCR_MOVECURSOR_ENABLE_JUSTIFY ( data,
+						justify ) ;
+			}
+			else
+			{
+				dmsg ;
+				mcr_Script_parse_error ( ) ;
+			}
+		}
 		// If no data name processed, then prev == index.
 		error_return ( nameIndex == index, index ) ;
 		++ index ;
@@ -352,21 +382,29 @@ int mcr_noop_modify ( int argc, char ** argv,
 
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iNoOp ) ;
 	suredata ( sigPtOut ) ;
 
 	int setNotation = argv [ index ] [ 0 ] == '{' ;
 	if ( setNotation )
 		++ index ;
-	char * afterval = NULL ;
+	char * afterval = NULL, * name ;
 	long val ;
 	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	mcr_NoOp * data = sigPtOut->data.data ;
+	while ( index + 1 < argc )
 	{
 		nameIndex = index ;
 		if ( setNotation && argv [ index ] [ 0 ] == '}' )
 			return ++ index ;
+		name = argv [ index ++ ] ;
+		if ( ! strncasecmp ( argv [ index ], "sec", 3 ) )
+		{
+			error_return ( index >= argc, index ) ;
+
+		}
+		else
+			-- index ;
 		// If no data name processed, then prev == index.
 		error_return ( nameIndex == index, index ) ;
 		++ index ;
@@ -390,7 +428,7 @@ int mcr_scroll_modify ( int argc, char ** argv,
 	long val ;
 	int i, nameIndex ;
 	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	while ( index + 1 < argc )
 	{
 		nameIndex = index ;
 		if ( setNotation && argv [ index ] [ 0 ] == '}' )
@@ -418,7 +456,7 @@ int mcr_mods_modify ( int argc, char ** argv,
 	long val ;
 	int i, nameIndex ;
 	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	while ( index + 1 < argc )
 	{
 		nameIndex = index ;
 		if ( setNotation && argv [ index ] [ 0 ] == '}' )
