@@ -2,7 +2,6 @@ TEMPLATE = lib
 CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
-CONFIG += staticlib
 CONFIG += thread
 CONFIG += debug
 QMAKE_CFLAGS += -std=c11
