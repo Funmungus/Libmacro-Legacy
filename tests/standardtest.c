@@ -31,7 +31,7 @@ void setup ( )
 	// Check registered for each
 	for ( size_t i = 0 ; i < len ; i++ )
 	{
-		assert ( mcr_ISignal_get ( knowns [ i ]->interface.id ) ==
+		assert ( mcr_ISignal_get ( knowns [ i ]->iface.id ) ==
 				knowns [ i ] ) ;
 	}
 

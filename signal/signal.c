@@ -78,7 +78,14 @@ void mcr_Signal_copy ( mcr_Signal * dstPt, mcr_Signal * srcPt )
 {
 	dassert ( dstPt ) ;
 	dassert ( srcPt ) ;
-	MCR_SIGNAL_COPY ( dstPt, srcPt ) ;
+	if(srcPt->type)
+	{
+		MCR_SIGNAL_COPY ( dstPt, srcPt ) ;
+	}
+	else
+	{
+		MCR_SIGNAL_FREE ( dstPt ) ;
+	}
 }
 
 int mcr_Signal_compare ( const void * lhsSigPt,
@@ -95,8 +102,8 @@ void mcr_ISignal_init ( mcr_ISignal * newType,
 {
 	dassert ( newType ) ;
 	memset ( newType, 0, sizeof ( mcr_ISignal ) ) ;
-	newType->interface.id = -1 ;
-	newType->interface.data_size = dataSize ;
+	newType->iface.id = -1 ;
+	newType->iface.data_size = dataSize ;
 	newType->send = sender ;
 }
 

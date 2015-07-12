@@ -11,10 +11,14 @@
 
 # include "signal/standard.h"
 # include "signal/lnx/device.h"
+# ifdef MCR_USE_X
+# include "signal/lnx/usex.h"
+# endif
 
 // In order to inline we cannot privatize this.
-extern mcr_Array mcr_echoEvents ;
-extern mcr_Map mcr_keyToEcho [ 2 ] ;
+extern MCR_API mcr_Array mcr_echoEvents ;
+extern MCR_API mcr_Map mcr_keyToEcho [ 2 ] ;
+extern MCR_API mcr_SpacePosition mcr_cursor ;
 
 typedef struct mcr_HIDEcho
 {

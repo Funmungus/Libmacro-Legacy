@@ -16,7 +16,7 @@ nohup.*
 *.lib
 *.dll
 *.exe
-*.so
+*.so*
 *Makefile
 *makefile
 *.pro.user

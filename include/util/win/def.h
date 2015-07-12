@@ -14,20 +14,10 @@
 
 # include "util/def.h"
 
-struct timespec
-{
-	time_t tv_sec ;
-	long tv_nsec ;
-} ;
-
-# ifdef _MSC_VER
-# define _CRT_SECURE_NO_WARNINGS
-# endif
-
 # include <WinSDKVer.h>
 
 // Windows Version
-# define _WIN32_WINNT _WIN32_WINNT_WINXP	// 0x0501
+//# define _WIN32_WINNT _WIN32_WINNT_WINXP	// 0x0501
 
 # include <SDKDDKVer.h>
 
@@ -44,5 +34,16 @@ struct timespec
 	# define MCR_API __declspec ( dllimport )
 	# endif
 # endif
+
+# define snprintf _snprintf
+
+struct timespec
+{
+    int tv_sec ;
+    int tv_nsec ;
+};
+
+//(dst, size, ...)
+//	_snprintf ( dst, size, __VA_ARGS__ ) ;
 
 # endif

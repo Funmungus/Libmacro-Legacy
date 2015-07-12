@@ -6,8 +6,8 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-# include "extras/win/def.h"
 # include "extras/safestring.h"
+# include "extras/win/def.h"
 
 void mcr_randomize ( unsigned char * buffer,
 		int bufferSize )
@@ -20,7 +20,7 @@ void mcr_randomize ( unsigned char * buffer,
 
 # define handleErrors( ctx ) \
 { \
-	dmsg ;
+	dmsg ; \
 	EVP_CIPHER_CTX_free ( ctx ) ; \
 	return -1 ; \
 }

@@ -74,7 +74,7 @@ int mcr_Echo_set_name ( int eventCode, const char * eventName )
 {
 	if ( eventCode != -1 )
 	{
-		if ( ( unsigned int ) eventCode > _echoNames.used )
+		if ( ( unsigned int ) eventCode >= _echoNames.used )
 		{
 			mcr_Array name, initial ;
 			mcr_String_init ( & name ) ;
@@ -190,7 +190,7 @@ int mcr_Key_set_name ( int keyCode, const char * newName )
 	}
 	if ( keyCode != -1 )
 	{
-		if ( ( unsigned int ) keyCode > _keyNames.used )
+		if ( ( unsigned int ) keyCode >= _keyNames.used )
 		{
 			mcr_Array name, initial ;
 			mcr_String_init ( & name ) ;

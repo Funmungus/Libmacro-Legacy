@@ -3,9 +3,6 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 CONFIG += thread
-CONFIG += debug
-QMAKE_CFLAGS += -std=c11
-QMAKE_CXXFLAGS += -std=c++11
 
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
@@ -16,6 +13,10 @@ else {
 }
 
 INCLUDEPATH += ../include
+INCLUDES = $$INCLUDES
+LIBINCLUDES = $$LIBINCLUDES
+!isEmpty(INCLUDES):INCLUDEPATH += $$INCLUDES
+!isEmpty(LIBINCLUDES):LIBS += $$LIBINCLUDES
 
 win32:CONFIG += win
 else:win64:CONFIG += win
@@ -30,7 +31,29 @@ lnx:DEFINES += MCR_NATIVE_DIR=lnx
 mac:DEFINES += MCR_NATIVE_DIR=nativeless
 nativeless:DEFINES += MCR_NATIVE_DIR=nativeless
 
-lnx:LIBS += -lcrypto
+CONFIG(X11) {
+    DEFINES += MCR_USE_X
+    LIBS += -lX11
+    HEADERS += \
+        ../include/signal/lnx/usex.h
+    SOURCES += \
+        ../signal/lnx/lnxusex.c
+}
+CONFIG(Wayland) {
+    DEFINES += MCR_USE_Wayland
+}
+
+msvc:LIBS += -luser32
+win {
+    DEFINES += MCR_EXPORTS
+    CONFIG(debug,debug|release):LIBS += -llibeay32MTd
+    else:LIBS += -llibeay32MT
+}
+else{
+    lnx:LIBS += -lcrypto
+    QMAKE_CFLAGS += -std=c11
+    QMAKE_CXXFLAGS += -std=c++11
+}
 
 # native util
 win {
@@ -38,9 +61,6 @@ win {
         ../include/util/win/def.h \
 	../include/util/win/mcrstrings.h \
 	../include/util/win/util.h
-
-    SOURCES += \
-        ../util/win/winmcrstrings.c
 }
 lnx {
     HEADERS += \
@@ -50,7 +70,6 @@ lnx {
 	../include/util/lnx/util.h
 
     SOURCES += \
-	../util/lnx/lnxmcrstrings.c \
 	../util/lnx/lnxpriv.c
 }
 mac {
@@ -284,7 +303,7 @@ lnx {
     documentation.files = ../doxygen/html/*
     man.path = /usr/local/share/man
     man.files = ../doxygen/man/*
-    lib.path = /usr/lib/macrolibrary
-    lib.files = *.a *.so
-    INSTALLS += documentation lib man
+    lib.path = /usr/lib
+    lib.files = *.a *.so *.so.1
+    INSTALLS += lib
 }

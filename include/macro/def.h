@@ -15,4 +15,14 @@
 
 # include "hotkey/hotkey.h"
 
+/* For better security no macro thread count will ever
+ * be greater than this number. EVER!!! */
+# ifndef MCR_THREAD_MAX
+# define MCR_THREAD_MAX 0x10
+# endif
+
+# ifndef MCR_MACRO_JOIN_TIMEOUT
+# define MCR_MACRO_JOIN_TIMEOUT 2
+# endif
+
 # endif

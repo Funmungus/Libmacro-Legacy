@@ -410,7 +410,7 @@ void mcr_standard_initialize ( )
 {
 	mcr_ISignal_init ( & mcr_iAlarm, mcr_Alarm_send,
 			sizeof ( mcr_Alarm ) ) ;
-	mcr_iAlarm.interface.compare = mcr_tm_compare ;
+	mcr_iAlarm.iface.compare = mcr_tm_compare ;
 	mcr_ISignal_init_with ( & mcr_iHIDEcho, mcr_Echo_compare,
 			mcr_Echo_copy, sizeof ( mcr_HIDEcho ),
 			mcr_Echo_init, NULL, NULL, mcr_Echo_send ) ;

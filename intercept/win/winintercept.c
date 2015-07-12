@@ -25,26 +25,27 @@ static mcr_HIDEcho _echo ;
 static mcr_Key _key ;
 static mcr_MoveCursor _mc ;
 static mcr_Scroll _scr ;
-static mcr_Signal _echoSig = { & mcr_iHIDEcho, & _echo },
-		_keySig = { & mcr_iKey, & _key },
-		_mcSig = { & mcr_iMoveCursor, & _mc },
-		_scrSig = { & mcr_iScroll, & _scr } ;
-static int _vkset [ ] =
-{
-	VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN
-} ;
-static unsigned int _modset [ ] =
-{
-	MCR_SHIFT, MCR_CTRL, MCR_ALT, MCR_WIN, MCR_META
-} ;
-static unsigned int _modsetLen = sizeof ( _vkset ) /
-		sizeof ( int ) ;
-
+static mcr_Signal _echoSig = { & mcr_iHIDEcho, { & _echo, 0 } },
+		_keySig = { & mcr_iKey, { & _key, 0 } },
+		_mcSig = { & mcr_iMoveCursor, { & _mc, 0 } },
+		_scrSig = { & mcr_iScroll, { & _scr, 0 } } ;
+//static int _vkset [ ] =
+//{
+//	VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN
+//} ;
+//static unsigned int _modset [ ] =
+//{
+//	MCR_SHIFT, MCR_CTRL, MCR_ALT, MCR_WIN, MCR_META
+//} ;
+//static unsigned int _modsetLen = sizeof ( _vkset ) /
+//		sizeof ( int ) ;
+//
 static DWORD _echoFlags [ ] = {
 	MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN,
-	MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP
+	MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
+	MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP
 } ;
-static unsigned int _echoLen = sizeof ( _echoflags ) / sizeof ( DWORD ) ;
+static unsigned int _echoLen = sizeof ( _echoFlags ) / sizeof ( DWORD ) ;
 
 static int verify_key_state ( PBYTE keyState, size_t keyState_size ) ;
 static LRESULT CALLBACK key_proc ( int nCode, WPARAM wParam,
@@ -80,15 +81,23 @@ unsigned int mcr_intercept_get_mods ( )
 	if ( ! verify_key_state ( keyState, 0xFF ) )
 		return mcr_internalMods ;
 
-	for ( unsigned int i = 0 ; i < _modsetLen ; i ++ )
+	size_t modlen = mcr_Mod_key_count ( ) ;
+	int * modkeybuffer = malloc ( sizeof ( int ) *
+		modlen ) ;
+	if ( ! modkeybuffer ) return mcr_internalMods ;
+
+	mcr_Mod_key_get_all ( modkeybuffer, modlen ) ;
+
+	for ( size_t i = 0 ; i < modlen ; i ++ )
 	{
 		// high bit is down, lowest byte is toggled.
 		// high bit of byte is 0x80, high bit of short is 0x8000
-		if ( ( keyState [ _vkset [ i ] ] & 0x8080 ) != 0 )
+		if ( ( keyState [ modkeybuffer [ i ] ] & 0x8080 ) != 0 )
 		{
-			values |= _modset [ i ] ;
+			values |= mcr_Mod_key_get ( modkeybuffer [ i ] ) ;
 		}
 	}
+	free ( modkeybuffer ) ;
 	return values ;
 }
 
@@ -135,11 +144,11 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 			MCR_MOVECURSOR_SET_POSITION ( & _mc, MCR_Y, p->pt.y ) ;
 			// 0 absolute, 1 justify/relative
 			MCR_MOVECURSOR_ENABLE_JUSTIFY ( & _mc,
-					! ( p->flags & MOUSEEVENTF_ABSOLUTE ) )
+					! ( p->flags & MOUSEEVENTF_ABSOLUTE ) ) ;
 			if ( disp ( _mcSig ) )
 				return -1 ;
 		}
-		for ( int i = 0 ; i < len ; i++ )
+		for ( unsigned int i = 0 ; i < _echoLen ; i++ )
 		{
 			if ( ( p->flags & _echoFlags [ i ] ) )
 			{
@@ -201,7 +210,8 @@ static int verify_key_state ( PBYTE keyState, size_t keyState_size )
 
 void mcr_intercept_native_initialize ( )
 {
-	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
+	int i ;
+	for ( i = 0 ; i < GRABCOUNT ; i ++ )
 	{
 		for ( int j = 0 ; ! _allGrabbers [ i ] && j < 10 ; j ++ )
 		{
@@ -231,8 +241,6 @@ void mcr_intercept_native_initialize ( )
 	mcr_Scroll_init_with ( & _scr, nopos ) ;
 	mcr_cursor_position ( nopos ) ;
 	mcr_MoveCursor_init_with ( & _mc, nopos, 0 ) ;
-
-	mcr_intercept_enable_all ( 1 ) ;
 }
 
 void mcr_intercept_native_cleanup ( void )

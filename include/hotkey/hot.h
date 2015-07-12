@@ -22,7 +22,7 @@ typedef void ( * mcr_trigger_fnc ) ( mcr_Hot *, mcr_Signal *,
 
 typedef struct mcr_IHot
 {
-	mcr_Interface interface ;
+	mcr_Interface iface ;
 	//
 	// Trigger interface
 	//
@@ -148,13 +148,13 @@ MCR_API void mcr_hot_cleanup ( ) ;
 	( hotPt )->trigger_data = ( trigData ) ;
 
 # define MCR_HOT_FREE( hotPt ) \
-	MCR_IFREE ( & ( hotPt )->type->interface, & ( hotPt )->data ) ;
+	MCR_IFREE ( & ( hotPt )->type->iface, & ( hotPt )->data ) ;
 
 # define MCR_IHOT_MKDATA( ihotPt, dataPtOut ) \
-	MCR_IMKDATA ( & ( ihotPt )->interface, dataPtOut ) ;
+	MCR_IMKDATA ( & ( ihotPt )->iface, dataPtOut ) ;
 
 # define MCR_HOT_MKDATA( hotPt, dataPtOut ) \
-	MCR_IMKDATA ( & ( hotPt )->type->interface, dataPtOut ) ;
+	MCR_IMKDATA ( & ( hotPt )->type->iface, dataPtOut ) ;
 
 # define MCR_HOT_COPY( dstPt, srcPt ) \
 	dassert ( ( srcPt )->type ) ; \
@@ -164,15 +164,18 @@ MCR_API void mcr_hot_cleanup ( ) ;
 		MCR_HOT_FREE ( dstPt ) ; \
 	} \
 	( dstPt )->type = ( srcPt )->type ; \
-	MCR_ICPY ( & ( srcPt )->type->interface, & ( dstPt )->data, \
-			& ( srcPt )->data ) ;
+	MCR_ICPY ( & ( srcPt )->type->iface, & ( dstPt )->data, \
+			& ( srcPt )->data ) ; \
+	( dstPt )->block = ( srcPt )->block ; \
+	( dstPt )->trigger = ( srcPt )->trigger ; \
+	( dstPt )->trigger_data = ( srcPt )->trigger_data ;
 
 # define MCR_HOT_CMP( lHotPt, rHotPt ) \
 	( ( lHotPt )->type != ( rHotPt )->type ? \
 		( lHotPt )->type < ( rHotPt )->type ? \
 			-1 : \
 		1 : \
-	MCR_ICMP ( & ( lHotPt )->type->interface, & ( lHotPt )->data, \
+	MCR_ICMP ( & ( lHotPt )->type->iface, & ( lHotPt )->data, \
 				& ( rHotPt )->data ) ) \
 
 /*!
@@ -185,7 +188,7 @@ MCR_API void mcr_hot_cleanup ( ) ;
  * */
 # define MCR_IHOT_INIT( ihotPt, comparison, copier, \
 		dataSize, initializer, freer, trig ) \
-	MCR_IINIT ( & ( ihotPt )->interface, comparison, copier, \
+	MCR_IINIT ( & ( ihotPt )->iface, comparison, copier, \
 			dataSize, initializer, freer ) ; \
 	( ihotPt )->trigger = ( trig ) ;
 

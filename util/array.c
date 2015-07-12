@@ -164,7 +164,7 @@ int mcr_Array_insert ( mcr_Array * arrPt, size_t pos,
 	else
 	{
 		p1 = MCR_ARR_AT ( arrPt, pos ) ;
-		p2 = MCR_ARR_AT ( arrPt, pos + 1 ) ;
+		p2 = MCR_ARR_NEXT ( arrPt, p1 ) ;
 		if ( p1 && p2 )
 		{
 			// # elements to move is previous used count - insert index
@@ -232,15 +232,17 @@ int mcr_Array_from_array ( mcr_Array * arrPt, const void * arraySource,
 		size_t count )
 {
 	dassert ( arrPt ) ;
-	dassert ( arraySource ) ;
 	if ( ! mcr_Array_resize ( arrPt, count ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	memcpy ( arrPt->array, arraySource,
-			count * arrPt->element_size ) ;
 	arrPt->used = count ;
+	if ( count )
+	{
+		memcpy ( arrPt->array, arraySource,
+				count * arrPt->element_size ) ;
+	}
 	return 1 ;
 }
 

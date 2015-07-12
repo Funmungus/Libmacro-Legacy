@@ -17,7 +17,7 @@
 
 typedef struct mcr_Grabber
 {
-	mtx_t lock ;
+//	mtx_t lock ; /* Mutex locking broken on windows? */
 	HMODULE hModule ;
 	HHOOK id ;
 	HOOKPROC proc ;

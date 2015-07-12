@@ -102,6 +102,27 @@ size_t mcr_iregister ( mcr_IRegistry * iRegPt, mcr_Interface * newType )
 	return id ;
 }
 
+mcr_Interface * mcr_iget ( mcr_IRegistry * iRegPt, size_t typeId )
+{
+	if ( typeId < iRegPt->set.used )
+	{
+		mcr_Interface ** ifacePtPt = MCR_ARR_AT ( & iRegPt->set, typeId ) ;
+		return ifacePtPt ? * ifacePtPt : NULL ;
+	}
+	return NULL ;
+}
+
+mcr_Interface * mcr_ifrom_name (
+		mcr_IRegistry * iRegPt, const char * typeName )
+{
+	if (typeName)
+	{
+		mcr_Interface ** retPt = MCR_MAP_GET_VALUE (
+				& ( iRegPt )->name_map, & ( typeName ) ) ;
+		return retPt ? * retPt : NULL ;
+	}
+	return NULL ;
+}
 size_t mcr_iget_id ( mcr_IRegistry * iRegPt, const char * typeName )
 {
 	mcr_Interface * iPt = mcr_ifrom_name ( iRegPt, typeName ) ;

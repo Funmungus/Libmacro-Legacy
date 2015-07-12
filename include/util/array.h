@@ -13,7 +13,7 @@
 # ifndef MCR_ARRAY_H
 # define MCR_ARRAY_H
 
-# include "util/def.h"
+# include "util/mcrstrings.h"
 
 typedef int ( * mcr_compare_fnc ) ( const void *, const void * ) ;
 

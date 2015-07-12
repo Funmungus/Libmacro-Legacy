@@ -13,7 +13,7 @@
 # include "signal/win/def.h"
 
 // dynamic int [ ] for mcr_HIDEcho MOUSEEVENTF
-extern mcr_Array mcr_echoEvents ;
+MCR_API extern mcr_Array mcr_echoEvents ;
 
 typedef struct mcr_HIDEcho
 {
@@ -49,9 +49,9 @@ MCR_API int mcr_Echo_set_mouseflag ( int echoCode, int mouseEventFlags ) ;
 # define MCR_ECHO_SET( echoPt, code ) \
 	( echoPt )->event = ( code )
 # define MCR_ECHO_QUICKSEND( echoPt ) \
-	if ( ( ( size_t ) ( ( echoPt )->event ) ) < mcr_EchoEvents.used ) \
+	if ( ( ( size_t ) ( ( echoPt )->event ) ) < mcr_echoEvents.used ) \
 	{ \
-		mouse_event ( * ( int * ) MCR_ARR_AT ( & mcr_EchoEvents, \
+		mouse_event ( * ( int * ) MCR_ARR_AT ( & mcr_echoEvents, \
 				( echoPt )->event ), 0, 0, 0, 0 ) ; \
 	}
 # define MCR_ECHO_SEND( echoPt, success ) MCR_ECHO_QUICKSEND(echoPt)

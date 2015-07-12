@@ -13,7 +13,8 @@
 # define MCR_LNX_INTERCEPT_DEFINES_H
 
 # include "intercept/def.h"
-# include "signal/lnx/def.h"
+# include "signal/lnx/signal.h"
+# include <poll.h>
 
 # ifndef MCR_GRAB_SET_LENGTH
 # define MCR_GRAB_SET_LENGTH 16

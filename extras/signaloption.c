@@ -13,15 +13,49 @@ MCR_API const char * mcr_sendOptionName = "send" ;
 static mcr_Map _sigOpts ;
 static mcr_Array _sigMods ;
 
-static void alarm_set_sec ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_min ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_hour ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_mday ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_mon ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_year ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_wday ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_yday ( mcr_Alarm * almPt, int val ) ;
-static void alarm_set_isdst ( mcr_Alarm * almPt, int val ) ;
+typedef int ( * data_modify_fnc ) ( void * data, char * value ) ;
+
+static int signal_modify_loop ( int argc, char ** argv, int index,
+		mcr_Signal * sigPtOut, const char ** fncNames, const int * fncNameLengths,
+		const data_modify_fnc * fncs, const int fncSetLen ) ;
+
+static int alarm_set_sec ( void * data, char * value ) ;
+static int alarm_set_min ( void * data, char * value ) ;
+static int alarm_set_hour ( void * data, char * value ) ;
+static int alarm_set_mday ( void * data, char * value ) ;
+static int alarm_set_mon ( void * data, char * value ) ;
+static int alarm_set_year ( void * data, char * value ) ;
+static int alarm_set_wday ( void * data, char * value ) ;
+static int alarm_set_yday ( void * data, char * value ) ;
+static int alarm_set_isdst ( void * data, char * value ) ;
+
+// Echo special case
+
+static int key_set_key ( void * data, char * value ) ;
+static int key_set_scan ( void * data, char * value ) ;
+static int key_set_up ( void * data, char * value ) ;
+
+static int mc_set_x ( void * data, char * value ) ;
+static int mc_set_y ( void * data, char * value ) ;
+static int mc_set_z ( void * data, char * value ) ;
+static int mc_set_justify ( void * data, char * value ) ;
+
+static int noop_set_sec ( void * data, char * value ) ;
+static int noop_set_nsec ( void * data, char * value ) ;
+
+static int scroll_set_x ( void * data, char * value ) ;
+static int scroll_set_y ( void * data, char * value ) ;
+static int scroll_set_z ( void * data, char * value ) ;
+
+// Mods special case
+// Script special case
+
+static int command_set_file ( void * data, char * value ) ;
+static int command_add_arg ( void * data, char * value ) ;
+static int command_add_env ( void * data, char * value ) ;
+
+static int stringkey_set_text ( void * data, char * value ) ;
+static int stringkey_set_delay ( void * data, char * value ) ;
 
 int mcr_signal_option ( int argc, char ** argv, int index )
 {
@@ -126,7 +160,7 @@ int mcr_signal_modify ( int argc, char ** argv, int index,
 
 	/* Should be at signal type name. */
 	mcr_ISignal * isigPt = mcr_ISignal_from_name ( argv [ index ] ) ;
-	if ( ! isigPt || _sigMods.used < isigPt->interface.id )
+	if ( ! isigPt || _sigMods.used < isigPt->iface.id )
 		return index ; 	/* First index is not processed. */
 	if ( sigPtOut->type != isigPt )
 	{
@@ -140,7 +174,7 @@ int mcr_signal_modify ( int argc, char ** argv, int index,
 		return index ;
 	suredata ( sigPtOut ) ;
 	mcr_signal_modify_fnc * fPt = MCR_ARR_AT ( & _sigMods,
-			isigPt->interface.id ) ;
+			isigPt->iface.id ) ;
 	dassert ( fPt ) ;
 	if ( * fPt )
 		return ( * fPt ) ( argc, argv, index, sigPtOut ) ;
@@ -170,7 +204,6 @@ int mcr_alarm_modify ( int argc, char ** argv,
 	dassert ( sigPtOut->type == & mcr_iAlarm ) ;
 	suredata ( sigPtOut ) ;
 
-	typedef void ( * datafnc ) ( mcr_Alarm *, int ) ;
 	const char * datanames [ ] =
 	{
 		"sec", "min", "hr", "hour", "mday", "monthday", "mon", "yr",
@@ -181,7 +214,7 @@ int mcr_alarm_modify ( int argc, char ** argv,
 		3, 3, 2, 4, 4, 8, 3, 2,
 		4, 4, 7, 4, 7, 3, 5
 	} ;
-	const datafnc datafncs [ ] =
+	const data_modify_fnc datafncs [ ] =
 	{
 		alarm_set_sec, alarm_set_min, alarm_set_hour, alarm_set_hour,
 		alarm_set_mday, alarm_set_mday, alarm_set_mon, alarm_set_year,
@@ -190,39 +223,8 @@ int mcr_alarm_modify ( int argc, char ** argv,
 	} ;
 	const int len = sizeof ( lens ) / sizeof ( int ) ;
 
-	// If args exist, then it must have data.
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL, * name ;
-	long val ;
-	int i ;
-	mcr_Alarm * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
-	{
-		name = argv [ index ] ;
-		if ( setNotation && * name == '}' )
-			return index + 1 ;
-		for ( i = 0 ; i < len ; i ++ )
-		{
-			if ( ! strncasecmp ( name, datanames [ i ],
-					( unsigned ) lens [ i ] ) )
-			{
-				val = strtol ( argv [ ++ index ], & afterval, 0 ) ;
-				// Should be at int value after data name.
-				error_return ( afterval == argv [ index ], index ) ;
-				datafncs [ i ] ( data, val ) ;
-				// Now at next member name or end.
-				break ;
-			}
-		}
-		// No data name processed.
-		error_return ( i == len, index ) ;
-		++ index ;
-	}
-	if ( setNotation && * name == '}' )
-		return index + 1 ;
-	return index ;
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_echo_modify ( int argc, char ** argv,
@@ -252,9 +254,8 @@ int mcr_echo_modify ( int argc, char ** argv,
 	// Already checked for digit on the strtol.
 	MCR_ECHO_SET ( ( mcr_HIDEcho * ) sigPtOut->data.data, echo ) ;
 	++ index ;
-	if ( setNotation && argv [ index ] [ 0 ] == '}' )
-		return index + 1 ;
-	return index ;
+	return setNotation && argv [ index ] [ 0 ] == '}' ?
+		index + 1 : index ;
 }
 
 int mcr_key_modify ( int argc, char ** argv,
@@ -265,57 +266,22 @@ int mcr_key_modify ( int argc, char ** argv,
 	dassert ( sigPtOut->type == & mcr_iKey ) ;
 	suredata ( sigPtOut ) ;
 
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL, * name ;
-	long val ;
-	int i ;
-	mcr_Key * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
+	const char * datanames [ ] =
 	{
-		name = argv [ index ] ;
-		if ( setNotation && * name == '}' )
-			return index + 1 ;
-		if ( ! strncasecmp ( name, "key", 3 ) ||
-				! strncasecmp ( name, "scan", 4 ) )
-		{
-			++ index ;
-			val = strtol ( argv [ index ], & afterval, 0 ) ;
-			error_return ( afterval == argv [ index ], index ) ;
-			if ( * name == 'k' ||
-					* name == 'K' )
-			{
-				MCR_KEY_SET ( data, val ) ;
-			}
-			else
-			{
-				MCR_KEY_SET_SCAN ( data, val ) ;
-			}
-		}
-		else if ( ! strncasecmp ( name, "up", 2 ) )
-		{
-			++ index ;
-			if ( ! strncasecmp ( argv [ index ], "down", 4 ) )
-			{
-				MCR_KEY_SET_UP_TYPE ( data, MCR_DOWN ) ;
-			}
-			else if ( ! strncasecmp ( argv [ index ], "up", 2 ) )
-			{
-				MCR_KEY_SET_UP_TYPE ( data, MCR_UP ) ;
-			}
-			else if ( ! strncasecmp ( argv [ index ], "both", 4 ) )
-			{
-				MCR_KEY_SET_UP_TYPE ( data, MCR_BOTH ) ;
-			}
-			else
-				error_return ( 1, index ) ;
-		}
-		else
-			error_return ( 1, index ) ;
-		++ index ;
-	}
-	return index ;
+		"key", "scan", "up", "keyup", "key up", "key_up"
+	} ;
+	const int lens [ ] =
+	{
+		3, 4, 2, 5, 6, 6
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		key_set_key, key_set_scan, key_set_up, key_set_up, key_set_up
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
+
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_movecursor_modify ( int argc, char ** argv,
@@ -326,54 +292,22 @@ int mcr_movecursor_modify ( int argc, char ** argv,
 	dassert ( sigPtOut->type == & mcr_iMoveCursor ) ;
 	suredata ( sigPtOut ) ;
 
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL, * name ;
-	long val ;
-	int i ;
-	mcr_MoveCursor * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
+	const char * datanames [ ] =
 	{
-		name = argv [ index ++ ] ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		char oneChar = argv [ index ] [ 0 ] ;
-		if ( ( oneChar >= 'x' && oneChar <= 'z' ) ||
-				( oneChar >= 'X' && oneChar <= 'Z' ) )
-		{
-			++ index ;
-			error_return ( index >= argc, index ) ;
-			val = strtol ( argv [ index ], & afterval, 0 ) ;
-			error_return ( afterval == argv [ index ], index ) ;
-			oneChar = oneChar == 'x' || oneChar == 'X' ? MCR_X :
-					oneChar == 'y' || oneChar == 'Y' ? MCR_Y :
-					MCR_Z ;
-			MCR_MOVECURSOR_ENABLE_JUSTIFY ( data, oneChar ) ;
-		}
-		else if ( ! strncasecmp ( argv [ index ],
-				"justify", 7 ) )
-		{
-			++ index ;
-			error_return ( index >= argc, index ) ;
-			int justify ;
-			if ( mcr_convert_bool ( argv [ index ],
-					& justify ) )
-			{
-				MCR_MOVECURSOR_ENABLE_JUSTIFY ( data,
-						justify ) ;
-			}
-			else
-			{
-				dmsg ;
-				mcr_Script_parse_error ( ) ;
-			}
-		}
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
-	}
-	return index ;
+		"x", "y", "z", "justify"
+	} ;
+	const int lens [ ] =
+	{
+		1, 1, 1, 7
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		mc_set_x, mc_set_y, mc_set_z, mc_set_justify
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
+
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_noop_modify ( int argc, char ** argv,
@@ -385,86 +319,57 @@ int mcr_noop_modify ( int argc, char ** argv,
 	dassert ( sigPtOut->type == & mcr_iNoOp ) ;
 	suredata ( sigPtOut ) ;
 
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL, * name ;
-	long val ;
-	int i, nameIndex ;
-	mcr_NoOp * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
+	const char * datanames [ ] =
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		name = argv [ index ++ ] ;
-		if ( ! strncasecmp ( argv [ index ], "sec", 3 ) )
-		{
-			error_return ( index >= argc, index ) ;
+		"sec", "nsec"
+	} ;
+	const int lens [ ] =
+	{
+		3, 4
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		noop_set_sec, noop_set_nsec
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
 
-		}
-		else
-			-- index ;
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
-	}
-	return index ;
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_scroll_modify ( int argc, char ** argv,
 		int index, mcr_Signal * sigPtOut )
 {
-
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iScroll ) ;
 	suredata ( sigPtOut ) ;
 
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL ;
-	long val ;
-	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
+	const char * datanames [ ] =
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
-	}
-	return index ;
+		"x", "y", "z"
+	} ;
+	const int lens [ ] =
+	{
+		1, 1, 1
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		scroll_set_x, scroll_set_y, scroll_set_z
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
+
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_mods_modify ( int argc, char ** argv,
 		int index, mcr_Signal * sigPtOut )
 {
-
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iMod ) ;
 	suredata ( sigPtOut ) ;
-
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL ;
-	long val ;
-	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index + 1 < argc )
-	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
-	}
 	return index ;
 }
 
@@ -474,101 +379,370 @@ int mcr_command_modify ( int argc, char ** argv,
 
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iCommand ) ;
 	suredata ( sigPtOut ) ;
 
-	int setNotation = argv [ index ] [ 0 ] == '{' ;
-	if ( setNotation )
-		++ index ;
-	char * afterval = NULL ;
-	long val ;
-	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	const char * datanames [ ] =
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
-	}
-	return index ;
+		"file", "command", "path", "arg", "env"
+	} ;
+	const int lens [ ] =
+	{
+		4, 7, 4, 3, 3
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		command_set_file, command_set_file, command_set_file,
+		command_add_arg, command_add_env
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
+
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
 }
 
 int mcr_stringkey_modify ( int argc, char ** argv,
 		int index, mcr_Signal * sigPtOut )
 {
-
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
-	dassert ( sigPtOut->type == & mcr_i ) ;
+	dassert ( sigPtOut->type == & mcr_iStringKey ) ;
 	suredata ( sigPtOut ) ;
 
+	const char * datanames [ ] =
+	{
+		"text", "delay"
+	} ;
+	const int lens [ ] =
+	{
+		4, 5
+	} ;
+	const data_modify_fnc datafncs [ ] =
+	{
+		stringkey_set_text, stringkey_set_delay
+	} ;
+	const int len = sizeof ( lens ) / sizeof ( int ) ;
+
+	return signal_modify_loop ( argc, argv, index, sigPtOut,
+			datanames, lens, datafncs, len ) ;
+}
+
+static int signal_modify_loop ( int argc, char ** argv, int index,
+		mcr_Signal * sigPtOut, const char ** fncNames,
+		const int * fncNameLengths, const data_modify_fnc * fncs,
+		const int fncSetLen )
+{
 	int setNotation = argv [ index ] [ 0 ] == '{' ;
 	if ( setNotation )
 		++ index ;
-	char * afterval = NULL ;
-	long val ;
-	int i, nameIndex ;
-	mcr_ * data = sigPtOut->data.data ;
-	while ( index < argc )
+	char * name, * value ;
+	int i ;
+	while ( index + 1 < argc )
 	{
-		nameIndex = index ;
-		if ( setNotation && argv [ index ] [ 0 ] == '}' )
-			return ++ index ;
-		// If no data name processed, then prev == index.
-		error_return ( nameIndex == index, index ) ;
-		++ index ;
+		name = argv [ index ] ;
+		value = argv [ index + 1 ] ;
+		if ( setNotation )
+		{
+			if ( * name == '}' )
+				return index + 1 ;
+			if ( * value == '}' )
+				return index + 2 ;
+		}
+		for ( i = 0 ; i < fncSetLen ; i ++ )
+		{
+			if ( ! strncasecmp ( name, fncNames [ i ],
+					( unsigned ) fncNameLengths [ i ] ) )
+			{
+				// Invalid value string.
+				error_return ( ! fncs [ i ] ( sigPtOut->data.data,
+						value ), index ) ;
+				// Now at next member name or end.
+				break ;
+			}
+		}
+		// No data name processed, this signal is done.
+		if ( i == fncSetLen )
+			return index ;
+		index += 2 ;
 	}
 	return index ;
 }
 
-static void alarm_set_sec ( mcr_Alarm * almPt, int val )
+static int strtol_ok ( char * valueIn, long * valOut )
 {
-	almPt->tm_sec = val ;
-	almPt->tm_sec %= 62 ;
+	char * afterval = NULL ;
+	* valOut = strtol ( valueIn, & afterval, 0 ) ;
+	if ( afterval == NULL || afterval == valueIn )
+	{
+		dmsg ;
+		mcr_Script_parse_error ( ) ;
+		return 0 ;
+	}
+	return 1 ;
 }
-static void alarm_set_min ( mcr_Alarm * almPt, int val )
+
+static int alarm_set_sec ( void * data, char * value )
 {
-	almPt->tm_min = val ;
-	almPt->tm_min %= 60 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_sec = val % 62 ;
+		if ( val / 60 )
+		{
+			( ( mcr_Alarm * ) data )->tm_min = ( val / 60 ) % 60 ;
+		}
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_hour ( mcr_Alarm * almPt, int val )
+static int alarm_set_min ( void * data, char * value )
 {
-	almPt->tm_hour = val ;
-	almPt->tm_hour %= 24 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_min = val % 60 ;
+		if ( val / 60 )
+		{
+			( ( mcr_Alarm * ) data )->tm_hour = ( val / 60 ) % 60 ;
+		}
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_mday ( mcr_Alarm * almPt, int val )
+static int alarm_set_hour ( void * data, char * value )
 {
-	almPt->tm_mday = val ;
-	almPt->tm_mday %= 32 ;
-	if ( ! almPt->tm_mday )
-		almPt->tm_mday = 1 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_hour = val % 24 ;
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_mon ( mcr_Alarm * almPt, int val )
+static int alarm_set_mday ( void * data, char * value )
 {
-	almPt->tm_mon = val ;
-	almPt->tm_mon %= 12 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_mday = val % 32 ;
+		if ( ! ( ( mcr_Alarm * ) data )->tm_mday )
+			( ( mcr_Alarm * ) data )->tm_mday = 1 ;
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_year ( mcr_Alarm * almPt, int val )
+static int alarm_set_mon ( void * data, char * value )
 {
-	almPt->tm_year = val ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_mon = val % 12 ;
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_wday ( mcr_Alarm * almPt, int val )
+static int alarm_set_year ( void * data, char * value )
 {
-	almPt->tm_wday = val ;
-	almPt->tm_wday %= 7 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_year = val ;
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_yday ( mcr_Alarm * almPt, int val )
+static int alarm_set_wday ( void * data, char * value )
 {
-	almPt->tm_yday = val ;
-	almPt->tm_yday %= 366 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_wday = val ;
+		( ( mcr_Alarm * ) data )->tm_wday %= 7 ;
+		return 1 ;
+	}
+	return 0 ;
 }
-static void alarm_set_isdst ( mcr_Alarm * almPt, int val )
+static int alarm_set_yday ( void * data, char * value )
 {
-	almPt->tm_isdst = val ;
-	almPt->tm_isdst = almPt->tm_isdst && 1 ;
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_yday = val ;
+		( ( mcr_Alarm * ) data )->tm_yday %= 366 ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int alarm_set_isdst ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_Alarm * ) data )->tm_isdst = val ;
+		( ( mcr_Alarm * ) data )->tm_isdst = ( ( mcr_Alarm * ) data )->tm_isdst && 1 ;
+		return 1 ;
+	}
+	return 0 ;
+}
+
+static int key_set_key ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_KEY_SET ( ( mcr_Key * ) data, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int key_set_scan ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_KEY_SET_SCAN ( ( mcr_Key * ) data, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int key_set_up ( void * data, char * value )
+{
+	if ( ! strncasecmp ( value, "down", 4 ) )
+	{
+		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_DOWN ) ;
+	}
+	else if ( ! strncasecmp ( value, "up", 2 ) )
+	{
+		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_UP ) ;
+	}
+	else if ( ! strncasecmp ( value, "both", 4 ) )
+	{
+		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_BOTH ) ;
+	}
+	else
+		return 0 ;
+	return 1 ;
+}
+
+static int mc_set_x ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_X, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int mc_set_y ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_Y, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int mc_set_z ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_Z, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int mc_set_justify ( void * data, char * value )
+{
+	int justify ;
+	if ( mcr_convert_bool ( value, & justify ) )
+	{
+		MCR_MOVECURSOR_ENABLE_JUSTIFY ( ( mcr_MoveCursor * ) data,
+				justify ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+
+static int noop_set_sec ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_NoOp * ) data )->tv_sec = val ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int noop_set_nsec ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		( ( mcr_NoOp * ) data )->tv_nsec = val ;
+		return 1 ;
+	}
+	return 0 ;
+}
+
+static int scroll_set_x ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_X, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int scroll_set_y ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_Y, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+static int scroll_set_z ( void * data, char * value )
+{
+	long val ;
+	if ( strtol_ok ( value, & val ) )
+	{
+		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_Z, val ) ;
+		return 1 ;
+	}
+	return 0 ;
+}
+
+static int command_set_file ( void * data, char * value )
+{
+	UNUSED ( data ) ; UNUSED ( value ) ;
+	return 0 ;
+}
+static int command_add_arg ( void * data, char * value )
+{
+	UNUSED ( data ) ; UNUSED ( value ) ;
+	return 0 ;
+}
+static int command_add_env ( void * data, char * value )
+{
+	UNUSED ( data ) ; UNUSED ( value ) ;
+	return 0 ;
+}
+
+static int stringkey_set_text ( void * data, char * value )
+{
+	UNUSED ( data ) ; UNUSED ( value ) ;
+	return 0 ;
+}
+static int stringkey_set_delay ( void * data, char * value )
+{
+	UNUSED ( data ) ; UNUSED ( value ) ;
+	return 0 ;
 }
 
 void mcr_signaloption_initialize ( )

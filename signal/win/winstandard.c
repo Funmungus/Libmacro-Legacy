@@ -10,9 +10,9 @@
 # include "signal/win/standard.h"
 
 // index-> echo event integer
-MCR_API mcr_Array mcr_echoEvents ;
-MCR_API mcr_Map mcr_flagToEcho ;
-MCR_API int mcr_flagMask = -1 ;
+mcr_Array mcr_echoEvents ;
+mcr_Map mcr_flagToEcho ;
+int mcr_flagMask = -1 ;
 
 void mcr_standard_enable ( int enable )
 {
@@ -35,6 +35,7 @@ int mcr_Echo_set_mouseflag ( int echoCode, int mouseEventFlags )
 		ret = mcr_Map_map ( & mcr_flagToEcho, & mouseEventFlags,
 				& echoCode ) ;
 	}
+	return ret ;
 }
 
 void mcr_Echo_init ( void * echoPt )
@@ -42,6 +43,7 @@ void mcr_Echo_init ( void * echoPt )
 	dassert ( echoPt ) ;
 	( ( mcr_HIDEcho * ) echoPt )->event = 0 ;
 }
+
 void mcr_Key_init ( void * keyPt )
 {
 	dassert ( keyPt ) ;
@@ -92,20 +94,4 @@ void mcr_standard_native_initialize ( )
 	mcr_Array_init ( & mcr_echoEvents, sizeof ( int ) ) ;
 	mcr_Map_init ( & mcr_flagToEcho, sizeof ( int ), sizeof ( int ) ) ;
 	mcr_flagToEcho.compare = mcr_int_compare ;
-
-	int echoEvents [ ] =
-	{
-		MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
-		MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
-		MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
-	} ;
-	int count = sizeof ( echoEvents ) / sizeof ( int ) ;
-	mcr_Array_resize ( & mcr_echoEvents, count ) ;
-	for ( int i = 0 ; i < count ; i++ )
-	{
-		if ( ! mcr_Echo_set_mouseflag ( code, echoEvents + i ) )
-		{
-			dmsg ;
-		}
-	}
 }

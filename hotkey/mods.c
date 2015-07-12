@@ -30,12 +30,12 @@ void mcr_Mods_load_contract ( )
 	} ;
 	const char * addNames [ ] [ 2 ] =
 	{
-		{"Option"}, {"alt gr", "alt_gr"}, {}, {"Command"},
-		{}, {}, {"Control"}, {}, {},
-		{}, {}, {}, {}, {},
-		{}, {}, {}
+		{"Option", ""}, {"alt gr", "alt_gr"}, {"", ""}, {"Command", ""},
+		{"", ""}, {"", ""}, {"Control", ""}, {"", ""}, {"", ""},
+		{"", ""}, {"", ""}, {"", ""}, {"", ""}, {"", ""},
+		{"", ""}, {"", ""}, {"", ""}
 	} ;
-	size_t addLens [ ] =
+	size_t addLens [17] =
 	{
 		1, 2, 0, 1,
 		0, 0, 1, 0, 0,
@@ -48,6 +48,8 @@ void mcr_Mods_load_contract ( )
 		mcr_Mod_set_names ( mods [ i ], modNames [ i ], addNames [ i ],
 				addLens [ i ] ) ;
 	}
+	mcr_ISignal_set_name ( & mcr_iMod, "Mods" ) ;
+	mcr_ISignal_add_name ( & mcr_iMod, "Mod" ) ;
 	mcr_Mods_load_key_contract ( ) ;
 }
 
@@ -145,6 +147,20 @@ size_t mcr_Mod_echo_count ( )
 {
 	return _echoToMod.set.used ;
 }
+
+//unsigned int mcr_Mod_echo_modify ( unsigned int mods, const int echo )
+//{
+//	for ( size_t i = 0 ; i < _echoToMod.set.used ; i ++ )
+//	{
+//		int * echoPt = MCR_ARR_AT ( & _echoToMod.set, i ) ;
+//		mcr_Mod * modPt = MCR_MAP_VALUE ( & _echoToMod, echoPt ) ;
+//		if ( ( echo & * echoPt ) == * echoPt )
+//		{
+//			MCR_MOD_MODIFY_BITS ( mods, modPt->modifiers, modPt->up_type ) ;
+//		}
+//	}
+//	return mods ;
+//}
 
 void mcr_Mod_echo_get_all ( int * echoBuffer,
 		const size_t bufferLength )

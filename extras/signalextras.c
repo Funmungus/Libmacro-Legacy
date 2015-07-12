@@ -276,7 +276,8 @@ int mcr_StringKey_send_keys ( mcr_StringKey * skPt )
 			}
 		}
 	}
-	mcr_Array_free ( & string ) ;
+	if ( skPt->string.cryptic )
+		mcr_Array_free ( & string ) ;
 	return success ;
 }
 
@@ -410,6 +411,7 @@ void mcr_load_contracts ( )
 	mcr_Hot_load_contract ( ) ;
 	mcr_Mods_load_contract ( ) ;
 	mcr_StringKey_load_contract ( ) ;
+	mcr_ISignal_set_name ( & mcr_iCommand, "Command" ) ;
 }
 
 static int compare_args ( const mcr_Command * lhs,

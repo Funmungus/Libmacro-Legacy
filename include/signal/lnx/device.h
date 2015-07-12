@@ -44,8 +44,6 @@ extern mcr_Device mcr_keyDev ;
 extern mcr_Device mcr_absDev ;
 //! \brief To send MoveCursor justified.
 extern mcr_Device mcr_relDev ;
-//! \brief Reported current cursor position.
-extern mcr_SpacePosition mcr_cursor ;
 
 //! \brief Append similar input_event to the end of all sending of events.
 extern const struct input_event mcr_syncer ;

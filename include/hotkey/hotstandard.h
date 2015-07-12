@@ -31,9 +31,9 @@ typedef struct mcr_HotStaged
 	mcr_BlockStyle style ;
 } mcr_HotStaged ;
 
-extern mcr_IHot mcr_iHot ;
+MCR_API extern mcr_IHot mcr_iHot ;
 # define mcr_iHotkey mcr_iHot
-extern mcr_IHot mcr_iHotStaged ;
+MCR_API extern mcr_IHot mcr_iHotStaged ;
 
 MCR_API void mcr_Hot_load_contract ( ) ;
 
@@ -48,18 +48,18 @@ MCR_API void mcr_HotStaged_enable_blocking ( mcr_HotStaged * hotPt,
 MCR_API int mcr_HotStaged_push ( mcr_HotStaged * hotPt,
 		mcr_Signal * interceptPt, unsigned int modifiers ) ;
 MCR_API int mcr_HotStaged_push_with ( mcr_HotStaged * hotPt, int blocking,
-		mcr_Signal * interceptPt, size_t measurement_error,
+		mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers ) ;
 // Insert always insert_filled with a "activate for any" stage filler.
 MCR_API int mcr_HotStaged_insert ( mcr_HotStaged * hotPt,
 		mcr_Signal * interceptPt, unsigned int modifiers, size_t index ) ;
 MCR_API int mcr_HotStaged_insert_with ( mcr_HotStaged * hotPt,
-		int blocking, mcr_Signal * interceptPt, size_t measurement_error,
+		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers, size_t index ) ;
 MCR_API int mcr_HotStaged_set ( mcr_HotStaged * hotPt,
 		mcr_Signal * interceptPt, unsigned int modifiers, size_t index ) ;
 MCR_API int mcr_HotStaged_set_with ( mcr_HotStaged * hotPt,
-		int blocking, mcr_Signal * interceptPt, size_t measurement_error,
+		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers, size_t index ) ;
 MCR_API void mcr_deactivate_stages ( mcr_Array * stagesPt ) ;
 

@@ -69,8 +69,9 @@ void test_Stage_init_with ( )
 	mcr_Stage_init_with ( & stage, 0, NULL, 5, 42 ) ;
 	assert ( stage.activated == 0 ) ;
 	assert ( stage.blocking == 0 ) ;
-	assert ( ! memcmp ( & stage.intercept, & nulSig,
-			sizeof ( mcr_Signal ) ) ) ;
+	assert ( stage.intercept.type == nulSig.type ) ;
+	assert ( stage.intercept.data.data == nulSig.data.data ) ;
+	assert ( stage.intercept.data.is_heap == nulSig.data.is_heap ) ;
 	assert ( stage.isme == mcr_Stage_ismeGeneric ) ;
 	assert ( stage.resembles == mcr_Stage_resembleGeneric ) ;
 	assert ( stage.measurement_error == 5 ) ;

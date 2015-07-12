@@ -26,7 +26,7 @@ void mcr_Dispatch_add ( mcr_Signal * interceptPt, unsigned int mods,
 		mcr_Hot * hotPt )
 {
 	mcr_Dispatch * dispPt = interceptPt && interceptPt->type ?
-			mcr_Dispatch_get ( interceptPt->type->interface.id ) :
+			mcr_Dispatch_get ( interceptPt->type->iface.id ) :
 			& _dispatcherGeneric ;
 	if ( ! dispPt )
 		dispPt = & _dispatcherGeneric ;
@@ -46,7 +46,7 @@ void mcr_Dispatch_enable ( mcr_ISignal * typePt, int enable )
 	{
 		typePt->dispatch = mcr_dispatch ;
 		typePt->dispatch_object = mcr_Dispatch_get (
-				typePt->interface.id ) ;
+				typePt->iface.id ) ;
 	}
 	else
 	{
@@ -67,7 +67,7 @@ void mcr_Dispatch_remove ( mcr_ISignal * typePt, mcr_Hot * delHotkey )
 	if ( typePt )
 	{
 		mcr_Dispatch * dispPt = mcr_Dispatch_get (
-				typePt->interface.id ) ;
+				typePt->iface.id ) ;
 		if ( dispPt )
 		{
 			mcr_Array_remove_sorted ( & dispPt->generics, & delHotkey,
@@ -106,7 +106,7 @@ void mcr_Dispatch_clear ( mcr_ISignal * typePt )
 	if ( typePt )
 	{
 		mcr_Dispatch * dispPt = mcr_Dispatch_get (
-				typePt->interface.id ) ;
+				typePt->iface.id ) ;
 		if ( dispPt->clear_specific )
 			dispPt->clear_specific ( ) ;
 		mcr_Dispatch_free ( dispPt ) ;

@@ -106,6 +106,9 @@ void mcr_StringKey_load_contract ( )
 {
 	add_shifts ( ) ;
 	add_nonshifts ( ) ;
+	mcr_ISignal_set_name ( & mcr_iStringKey, "StringKey" ) ;
+	mcr_ISignal_add_name ( & mcr_iStringKey, "string key" ) ;
+	mcr_ISignal_add_name ( & mcr_iStringKey, "string_key" ) ;
 }
 
 static const int _keyVals [ ] =
@@ -242,7 +245,7 @@ static const int _keyVals [ ] =
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_nonshifted ( character, \
-				_keyVals [ character ], 250000000 ) ;
+				_keyVals [ character ], 30000000 ) ;
 # define arange( i, charMin, charMax ) \
 	for ( i = charMin ; i <= charMax ; i ++ ) \
 	{ \
@@ -265,7 +268,7 @@ static void add_nonshifts ( )
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_shifted ( character, \
-				_keyVals [ character ], 250000000 ) ;
+				_keyVals [ character ], 30000000 ) ;
 # define arange( i, charMin, charMax ) \
 	for ( i = charMin ; i <= charMax ; i ++ ) \
 	{ \

@@ -17,7 +17,7 @@
 # include "hotkey/def.h"
 
 //! \brief Modify \ref mcr_InternalMods with either set or release.
-extern mcr_ISignal mcr_iMod ;
+MCR_API extern mcr_ISignal mcr_iMod ;
 
 /*! \brief Pair of modifier bits and whether to set or release those
  * modifiers. May be sent with \ref mcr_IMod.
@@ -196,6 +196,17 @@ MCR_API void mcr_Mods_load_key_contract ( ) ;
 	if ( ( upType ) == MCR_DOWN ) \
 	{ \
 		MCR_MOD_ADD ( toModify, modifiers ) ; \
+	} \
+	else if ( ( upType ) == MCR_TOGGLE ) \
+	{ \
+		if ( MCR_MOD_HAS ( toModify, modifiers ) ) \
+		{ \
+			MCR_MOD_REMOVE ( toModify, modifiers ) ; \
+		} \
+		else \
+		{ \
+			MCR_MOD_ADD ( toModify, modifiers ) ; \
+		} \
 	} \
 	else \
 	{ \

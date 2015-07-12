@@ -1,9 +1,9 @@
 #!/bin/bash
 
 export MCR_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-echo "MCR_HOME set to ${MCR_HOME}"
+echo "準備出来ました"
 alias mcd="cd \"${MCR_HOME}\""
-alias ubu="ubuntu-sdk \"${MCR_HOME}/app/macronsole.pro\" \"${MCR_HOME}/lib/macrolibrary.pro\""
+alias ubu="ubuntu-sdk"
 alias pane="tmux resize-pane"
 alias a="git add --all ; status"
 alias c="git commit -sm"

@@ -51,7 +51,7 @@ size_t mcr_ISignal_register ( mcr_ISignal * newType )
 		dmsg ;
 		return -1 ;
 	}
-	return newType->interface.id ;
+	return newType->iface.id ;
 }
 
 size_t mcr_ISignal_register_with ( mcr_ISignal * newType,
@@ -67,7 +67,7 @@ size_t mcr_ISignal_register_with ( mcr_ISignal * newType,
 	{
 		dmsg ;
 	}
-	return newType->interface.id ;
+	return newType->iface.id ;
 }
 
 mcr_ISignal * mcr_ISignal_get ( size_t typeId )

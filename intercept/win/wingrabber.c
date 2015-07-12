@@ -22,7 +22,7 @@ void mcr_Grabber_init ( mcr_Grabber * grabPt )
 		return ;
 	}
 	memset ( grabPt, 0, sizeof ( mcr_Grabber ) ) ;
-	mtx_init ( & grabPt->lock, mtx_plain ) ;
+//	mtx_init ( & grabPt->lock, mtx_plain ) ;
 }
 
 void mcr_Grabber_init_with ( mcr_Grabber * grabPt, int type,
@@ -45,24 +45,24 @@ void mcr_Grabber_free ( mcr_Grabber * grabPt )
 		dmsg ;
 		return ;
 	}
-	mtx_lock ( & grabPt->lock ) ;
+//	mtx_lock ( & grabPt->lock ) ;
 	grab_unhook ( grabPt ) ;
-	mtx_unlock ( & grabPt->lock ) ;
+//	mtx_unlock ( & grabPt->lock ) ;
 	if ( grabPt->hThread )
 	{
 		WaitForSingleObject ( grabPt->hThread, INFINITE ) ;
 		CloseHandle ( grabPt->hThread ) ;
 		grabPt->hThread = NULL ;
 	}
-	mtx_destroy ( & grabPt->lock ) ;
+//	mtx_destroy ( & grabPt->lock ) ;
 }
 
 void mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 {
 	dassert ( grabPt ) ;
-	mtx_lock ( & grabPt->enable_lock ) ;
+//	mtx_lock ( & grabPt->lock ) ;
 	enable_impl ( grabPt, enable ) ;
-	mtx_unlock ( & grabPt->enable_lock ) ;
+//	mtx_unlock ( & grabPt->lock ) ;
 }
 
 int mcr_Grabber_is_enabled ( mcr_Grabber * grabPt )
@@ -103,9 +103,9 @@ static void enable_impl ( mcr_Grabber * grabPt, int enable )
 		 * an intercepting thread. */
 		if ( ! isEnabled && ! grabPt->hThread )
 		{
-			grabPt->hThread = CreateThread ( NULL, NULL,
+			grabPt->hThread = CreateThread ( NULL, 0,
 					( LPTHREAD_START_ROUTINE ) thrd_receive_hooking,
-					( LPVOID ) grabPt, NULL, & grabPt->dwThread ) ;
+					( LPVOID ) grabPt, 0, & grabPt->dwThread ) ;
 		}
 	}
 	else if ( isEnabled )
@@ -114,9 +114,9 @@ static void enable_impl ( mcr_Grabber * grabPt, int enable )
 		 * a currently intercepting thread, we disable from another
 		 * thread. */
 		DWORD dwThread = 0 ;
-		HANDLE hThread = CreateThread ( NULL, NULL,
+		HANDLE hThread = CreateThread ( NULL, 0,
 				( LPTHREAD_START_ROUTINE ) thrd_disable,
-				( LPVOID ) grabPt, NULL, & grabPt->dwThread ) ;
+				( LPVOID ) grabPt, 0, & grabPt->dwThread ) ;
 		CloseHandle ( hThread ) ;
 	}
 }
@@ -147,9 +147,9 @@ static void grab_unhook ( mcr_Grabber * grabPt )
 static DWORD WINAPI thrd_receive_hooking ( LPVOID lpParam )
 {
 	mcr_Grabber * me = ( mcr_Grabber * ) lpParam ;
-	mtx_lock ( & me->lock ) ;
-	mcr_Grabber_hook ( me ) ;
-	mtx_unlock ( & me->lock ) ;
+//	mtx_lock ( & me->lock ) ;
+	grab_hook ( me ) ;
+//	mtx_unlock ( & me->lock ) ;
 
 	MSG message ;
 	while ( MCR_GRABBER_ENABLED ( me ) &&
@@ -159,18 +159,18 @@ static DWORD WINAPI thrd_receive_hooking ( LPVOID lpParam )
 		DispatchMessage ( & message ) ;
 	}
 
-	mtx_lock ( & me->lock ) ;
-	mcr_Grabber_unhook ( me ) ;
-	mtx_unlock ( & me->lock ) ;
+//	mtx_lock ( & me->lock ) ;
+	grab_unhook ( me ) ;
+//	mtx_unlock ( & me->lock ) ;
 	return 0 ;
 }
 
 static DWORD WINAPI thrd_disable ( LPVOID lpParam )
 {
 	mcr_Grabber * grabPt = ( mcr_Grabber * ) lpParam ;
-	mtx_lock ( & grabPt->lock ) ;
+//	mtx_lock ( & grabPt->lock ) ;
 	grab_unhook ( grabPt ) ;
-	mtx_unlock ( & grabPt->lock ) ;
+//	mtx_unlock ( & grabPt->lock ) ;
 
 	if ( grabPt->hThread )
 	{
@@ -180,5 +180,3 @@ static DWORD WINAPI thrd_disable ( LPVOID lpParam )
 	}
 	return 0 ;
 }
-
-# endif

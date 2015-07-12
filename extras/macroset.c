@@ -20,7 +20,7 @@ int mcr_MacroSet_option ( int argc, char ** argv,
 	dassert ( index < argc ) ;
 
 	// Need at least one additional function to do on macro.
-	MCR_OPTION_MIN_OPTS ( argc, argv, index, mcr_macroOptionName, 1 ) ;
+	MCR_OPTION_MIN_OPTS ( argc, argv, index, 1 ) ;
 	mcr_macro_option_fnc * fPt = mcr_StringMap_get_value
 			( & _macroOptions, argv [ index + 1 ] ) ;
 	if ( ! fPt )
@@ -66,7 +66,7 @@ void mcr_MacroSet_free ( mcr_MacroSet * set )
 		dmsg ;
 		return ;
 	}
-	remove_hotkey ( set ) ;
+	mcr_Dispatch_remove_all ( & set->macro.hot ) ;
 	mcr_Signal_free ( & set->dispatch_specifier ) ;
 	mcr_Macro_free ( & set->macro ) ;
 }
@@ -78,7 +78,7 @@ void mcr_MacroSet_free_foreach ( mcr_MacroSet * set, ... )
 		dmsg ;
 		return ;
 	}
-	remove_hotkey ( set ) ;
+	mcr_Dispatch_remove_all ( & set->macro.hot ) ;
 	mcr_Signal_free ( & set->dispatch_specifier ) ;
 	mcr_Macro_free ( & set->macro ) ;
 }
@@ -101,10 +101,4 @@ void mcr_macroset_cleanup ( void )
 	mcr_Map_free ( & _set ) ;
 	MCR_MAP_FOR_EACH ( & _macroOptions, mcr_Array_free_foreach, 0 ) ;
 	mcr_Map_free ( & _macroOptions ) ;
-}
-
-static void remove_hotkey ( mcr_MacroSet * setPt )
-{
-	dassert ( setPt ) ;
-	mcr_Dispatch_remove_all ( & setPt->macro.hot ) ;
 }

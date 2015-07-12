@@ -34,9 +34,10 @@ typedef int ( * mcr_signal_fnc ) ( mcr_Signal * signalData ) ;
  * Logically a signal should be anything that can be "dispatched"
  * to another entity, or "sent" to cause an action.
  * */
+//struct mcr_Interface;
 typedef struct mcr_ISignal
 {
-	mcr_Interface interface ;
+	mcr_Interface iface ;
 	//
 	// Internal
 	//
@@ -102,6 +103,8 @@ MCR_API int mcr_send ( mcr_Signal * sigPt ) ;
 //
 MCR_API void * mcr_ISignal_mkdata_data ( mcr_ISignal * isigPt ) ;
 MCR_API mcr_Data mcr_ISignal_mkdata ( mcr_ISignal * isigPt ) ;
+# define mcr_Signal_id( sig ) \
+	( ( sig ).type ? ( sig ).type->iface.id : ( size_t ) -1 )
 MCR_API void mcr_Signal_copy ( mcr_Signal * dstPt, mcr_Signal * srcPt ) ;
 MCR_API int mcr_Signal_compare ( const void * lhsSigPt,
 		const void * rhsSigPt ) ;
@@ -226,23 +229,22 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
 	( signalPt )->data.is_heap = ( isHeap ) ;
 
 # define MCR_SIGNAL_FREE( sigPt ) \
-	MCR_IFREE ( & ( sigPt )->type->interface, & ( sigPt )->data ) ;
+	MCR_IFREE ( & ( sigPt )->type->iface, & ( sigPt )->data ) ;
 
 # define MCR_ISIGNAL_MKDATA( isigPt, dataPtOut ) \
-	MCR_IMKDATA ( & ( isigPt )->interface, dataPtOut ) ;
+	MCR_IMKDATA ( & ( isigPt )->iface, dataPtOut ) ;
 
 # define MCR_SIGNAL_MKDATA( sigPt, dataPtOut ) \
-	MCR_IMKDATA ( & ( sigPt )->type->interface, dataPtOut ) ;
+	MCR_IMKDATA ( & ( sigPt )->type->iface, dataPtOut ) ;
 
 # define MCR_SIGNAL_COPY( dstPt, srcPt ) \
 	dassert ( ( srcPt )->type ) ; \
-	if ( ( dstPt )->type && ( dstPt )->type \
-			!= ( srcPt )->type ) \
+	if ( ( dstPt )->type != ( srcPt )->type ) \
 	{ \
 		MCR_SIGNAL_FREE ( dstPt ) ; \
 	} \
 	( dstPt )->type = ( srcPt )->type ; \
-	MCR_ICPY ( & ( srcPt )->type->interface, & ( dstPt )->data, \
+	MCR_ICPY ( & ( srcPt )->type->iface, & ( dstPt )->data, \
 			& ( srcPt )->data ) ;
 
 # define MCR_SIGNAL_CMP( lSigPt, rSigPt ) \
@@ -251,7 +253,7 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
 			-1 : \
 		1 : \
 	( lSigPt )->type ? \
-		MCR_ICMP ( & ( lSigPt )->type->interface, & ( lSigPt )->data, \
+		MCR_ICMP ( & ( lSigPt )->type->iface, & ( lSigPt )->data, \
 				& ( rSigPt )->data ) : \
 	memcmp ( & ( lSigPt )->data.data, \
 			& ( rSigPt )->data.data, sizeof ( void * ) ) )
@@ -267,7 +269,7 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
 	( ( signalPt )->type->dispatch && \
 			( signalPt )->type->dispatch ( signalPt ) ? \
 		1 : \
-	( signalPt )->type->send ( ( signalPt ) ) ) \
+	( signalPt )->type->send ( ( signalPt ) ) )
 
 /*!
  * \brief MCR_SEND with array of pointers to mcr_Signal
@@ -302,7 +304,7 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * */
 # define MCR_ISIGNAL_INIT( isignalPt, comparison, copier, \
 		dataSize, initializer, freer, sender ) \
-	MCR_IINIT ( & ( isignalPt )->interface, comparison, copier, \
+	MCR_IINIT ( & ( isignalPt )->iface, comparison, copier, \
 			dataSize, initializer, freer ) ; \
 	( isignalPt )->send = ( sender ) ;
 

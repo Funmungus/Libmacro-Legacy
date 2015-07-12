@@ -36,7 +36,8 @@ typedef enum mcr_KeyUpType
 {
 	MCR_DOWN = 0,
 	MCR_UP,
-	MCR_BOTH
+	MCR_BOTH,
+	MCR_TOGGLE
 } mcr_KeyUpType ;
 
 /*! \brief Spatial position, indices are coordinates.

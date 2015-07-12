@@ -64,7 +64,7 @@ void verifySig ( mcr_Signal * s1sig )
 	assert ( s1sig != NULL ) ;
 	assert ( s1sig->type->dispatch == s1disp || ! s1sig->type->dispatch ) ;
 	assert ( s1sig->type->send == send_s1 ) ;
-	assert ( s1sig->type->interface.data_size == SIZEOF ) ;
+	assert ( s1sig->type->iface.data_size == SIZEOF ) ;
 }
 
 void onComplete ( void )
@@ -85,7 +85,7 @@ void setup ( )
 		size_t retId = mcr_ISignal_register ( isigs + i ) ;
 		mcr_ISignal_set_name ( isigs + i, names [ i ] ) ;
 		assert ( retId != ( size_t ) -1 ) ;
-		assert ( retId == isigs [ i ].interface.id ) ;
+		assert ( retId == isigs [ i ].iface.id ) ;
 		sigs [ i ].type = isigs + i ;
 		verifySig ( sigs + i ) ;
 	}
@@ -171,9 +171,9 @@ void test_ISignal_init ( )
 {
 	mcr_ISignal isig ;
 	mcr_ISignal_init ( & isig, send_s1, SIZEOF ) ;
-	assert ( isig.interface.data_size == SIZEOF ) ;
+	assert ( isig.iface.data_size == SIZEOF ) ;
 	assert ( isig.dispatch == NULL ) ;
-	assert ( isig.interface.id == ( size_t ) -1 ) ;
+	assert ( isig.iface.id == ( size_t ) -1 ) ;
 	assert ( isig.send == send_s1 ) ;
 
 	fprintf ( mcr_stdout, "mcr_ISignal_init - OK\n" ) ;
@@ -185,7 +185,7 @@ void test_ISignal_register ( )
 	size_t ret = mcr_ISignal_register ( & reggi ) ;
 	assert ( ret != ( size_t ) -1 ) ;
 	assert ( ret > 0 ) ;
-	assert ( ret == reggi.interface.id ) ;
+	assert ( ret == reggi.iface.id ) ;
 
 	fprintf ( mcr_stdout, "mcr_ISignal_register - OK\n" ) ;
 }
@@ -193,7 +193,7 @@ void test_ISignal_get ( )
 {
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
-		mcr_ISignal * got = mcr_ISignal_get ( isigs [ i ].interface.id ) ;
+		mcr_ISignal * got = mcr_ISignal_get ( isigs [ i ].iface.id ) ;
 		assert ( got == isigs + i ) ;
 	}
 
@@ -204,7 +204,7 @@ void test_ISignal_get_id ( )
 	for ( i = 0 ; i < SIZE ; i++ )
 	{
 		size_t got = mcr_ISignal_get_id ( names [ i ] ) ;
-		assert ( got == isigs [ i ].interface.id ) ;
+		assert ( got == isigs [ i ].iface.id ) ;
 	}
 
 	fprintf ( mcr_stdout, "mcr_ISignal_get_id - OK\n" ) ;
@@ -222,7 +222,7 @@ void test_ISignal_from_name ( )
 }
 void test_ISignal_count ( )
 {
-	assert ( mcr_ISignal_count ( ) == reggi.interface.id + 1 ) ;
+	assert ( mcr_ISignal_count ( ) == reggi.iface.id + 1 ) ;
 
 	fprintf ( mcr_stdout, "mcr_ISignal_count - OK\n" ) ;
 }

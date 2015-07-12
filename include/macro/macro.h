@@ -44,14 +44,23 @@ typedef struct mcr_Macro
 	mcr_Interrupt interruptor ;
 	mtx_t lock ;
 	mcr_Array signal_set ;
-	unsigned int threads ;
+	mcr_Array signal_isdispatch ;
+//	mcr_Map thread_finish ;
+	unsigned int thread_count ;
 	unsigned int queued ;
 } mcr_Macro ;
+
+//typedef struct
+//{
+//	mcr_Macro * mcr_pt ;
+//	thrd_t trd ;
+//} mcr_MacroThread ;
 
 MCR_API void mcr_Macro_init ( mcr_Macro * mcrPt ) ;
 MCR_API void mcr_Macro_init_with ( mcr_Macro * mcrPt,
 		int sticky, unsigned int threadMax, mcr_Hot * hotPt,
 		mcr_Signal * signalSet, size_t signalCount, int enable ) ;
+MCR_API void mcr_Macro_copy ( void * dstPt, void * srcPt ) ;
 MCR_API void mcr_Macro_free ( mcr_Macro * mcrPt ) ;
 /*! \brief Set the macro hotkey.
  *
@@ -61,6 +70,8 @@ MCR_API void mcr_Macro_free ( mcr_Macro * mcrPt ) ;
  * \param mcrPt This will be set into \ref mcr_Hot#data.
  * */
 MCR_API void mcr_Macro_set_hotkey ( mcr_Macro * mcrPt,
+		mcr_Hot * hotPt ) ;
+MCR_API void mcr_Macro_set_trigger ( mcr_Macro * mcrPt,
 		mcr_Hot * hotPt ) ;
 /*! \brief Stop macro execution according to \ref mcr_Interrupt.
  * */
@@ -75,6 +86,17 @@ MCR_API void mcr_Macro_get_signals ( mcr_Macro * mcrPt,
  * */
 MCR_API void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 		mcr_Signal * signalSet, size_t signalCount ) ;
+MCR_API mcr_Signal * mcr_Macro_get_signal ( mcr_Macro * mcrPt,
+		size_t index ) ;
+MCR_API void mcr_Macro_set_signal ( mcr_Macro * mcrPt,
+		mcr_Signal * copySig, size_t index ) ;
+MCR_API void mcr_Macro_insert_signal ( mcr_Macro * mcrPt,
+		mcr_Signal * copySig, size_t index ) ;
+MCR_API void mcr_Macro_remove_signal ( mcr_Macro * mcrPt,
+		size_t index ) ;
+MCR_API void mcr_Macro_push_signal ( mcr_Macro * mcrPt,
+		mcr_Signal * newSig ) ;
+MCR_API void mcr_Macro_pop_signal ( mcr_Macro * mcrPt ) ;
 MCR_API void mcr_Macro_enable ( mcr_Macro * mcrPt, int enable ) ;
 //! \brief Macro function called for hotkey trigger.
 MCR_API void mcr_Macro_trigger ( mcr_Hot * hotPt,

@@ -193,7 +193,7 @@ void mcr_DispatchAlarm_add_specific ( mcr_Signal * signalPt,
 	if ( mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 		return ;
 	}
 	add_mapped_array_sorted ( & _alarmModMap, & mods, & newHotkey,
@@ -242,7 +242,7 @@ void mcr_DispatchHIDEcho_add_specific ( mcr_Signal * signalPt,
 	if ( ( unsigned int ) echoKey == MCR_ANY_MOD && mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				mcr_iHIDEcho.interface.id ), newHotkey ) ;
+				mcr_iHIDEcho.iface.id ), newHotkey ) ;
 	}
 	else
 	{
@@ -323,7 +323,7 @@ void mcr_DispatchKey_add_specific ( mcr_Signal * signalPt,
 		mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 	}
 	// Trigger for some specific is assured.
 	else
@@ -474,7 +474,7 @@ void mcr_DispatchMoveCursor_add_specific ( mcr_Signal * signalPt,
 	if ( mods == MCR_ANY_MOD && justify == -1 )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 		return ;
 	}
 	if ( justify == -1 )
@@ -553,7 +553,7 @@ void mcr_DispatchNoOp_add_specific ( mcr_Signal * signalPt,
 	if ( mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 		return ;
 	}
 	add_mapped_array_sorted ( & _noopModMap, & mods, & newHotkey,
@@ -600,7 +600,7 @@ void mcr_DispatchScroll_add_specific ( mcr_Signal * signalPt,
 	if ( mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 		return ;
 	}
 	add_mapped_array_sorted ( & _scrollModMap, & mods, & newHotkey,
@@ -654,7 +654,7 @@ void mcr_DispatchMod_add_specific ( mcr_Signal * signalPt,
 			mods == MCR_ANY_MOD )
 	{
 		mcr_Dispatch_add_unspecific ( mcr_Dispatch_get (
-				signalPt->type->interface.id ), newHotkey ) ;
+				signalPt->type->iface.id ), newHotkey ) ;
 	}
 	add_mapped_map_sorted ( & _modModMap, & mod, & mods, & newHotkey,
 			& _intsMapInitial, & _hotsInitial, mcr_ref_compare ) ;
@@ -721,13 +721,13 @@ void mcr_dispatchstandard_initialize ( )
 		mcr_DispatchNoOp_init, mcr_DispatchScroll_init,
 		mcr_DispatchMod_init
 	} ;
-	int ids [ ] = {
-		mcr_iAlarm.interface.id, mcr_iHIDEcho.interface.id,
-		mcr_iKey.interface.id, mcr_iMoveCursor.interface.id,
-		mcr_iNoOp.interface.id, mcr_iScroll.interface.id,
-		mcr_iMod.interface.id
+	size_t ids [ ] = {
+		mcr_iAlarm.iface.id, mcr_iHIDEcho.iface.id,
+		mcr_iKey.iface.id, mcr_iMoveCursor.iface.id,
+		mcr_iNoOp.iface.id, mcr_iScroll.iface.id,
+		mcr_iMod.iface.id
 	} ;
-	int length = sizeof ( ids ) / sizeof ( int ) ;
+	int length = sizeof ( ids ) / sizeof ( size_t ) ;
 	for ( int i = 0 ; i < length ; i++ )
 	{
 		initFncs [ i ] ( & disp ) ;

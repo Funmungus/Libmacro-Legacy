@@ -24,7 +24,7 @@ typedef struct mcr_Stage
 {
 	int blocking ;
 	mcr_Signal intercept ;
-	size_t measurement_error ;
+	unsigned int measurement_error ;
 	unsigned int modifiers ;
 	//
 	// Internal
@@ -37,13 +37,13 @@ typedef struct mcr_Stage
 	mcr_isme_fnc resembles ;
 } mcr_Stage ;
 
-extern mcr_isme_fnc mcr_Stage_ismeGeneric ;
-extern mcr_isme_fnc mcr_Stage_resembleGeneric ;
+MCR_API extern mcr_isme_fnc mcr_Stage_ismeGeneric ;
+MCR_API extern mcr_isme_fnc mcr_Stage_resembleGeneric ;
 
 MCR_API void mcr_Stage_init ( mcr_Stage * stagePt ) ;
 MCR_API void mcr_Stage_init_with ( mcr_Stage * stagePt,
 		int blocking, mcr_Signal * interceptPt,
-		size_t measurement_error, unsigned int modifiers ) ;
+		unsigned int measurement_error, unsigned int modifiers ) ;
 MCR_API void mcr_Stage_free ( mcr_Stage * stagePt ) ;
 MCR_API void mcr_Stage_set ( mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods ) ;

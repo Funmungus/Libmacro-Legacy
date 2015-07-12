@@ -19,9 +19,9 @@ typedef struct mcr_Script
 typedef int ( * mcr_option_fnc ) ( int argc, char ** argv,
 		int index ) ;
 
-extern mcr_ISignal mcr_iScript ;
-extern const char * mcr_helpOptionName ;
-extern mcr_option_fnc mcr_defaultOption ;
+MCR_API extern mcr_ISignal mcr_iScript ;
+MCR_API extern const char * mcr_helpOptionName ;
+MCR_API extern mcr_option_fnc mcr_defaultOption ;
 
 MCR_API void mcr_Script_init ( void * scriptPt ) ;
 MCR_API void mcr_Script_free ( void * scriptPt ) ;

@@ -11,15 +11,28 @@
 void mcr_library_initialize ( int loadContracts )
 {
 	mcr_set_stdio ( ) ;
+	mcr_dclock ( clock_t start ) ;
 	mcr_reg_cleanup ( mcr_library_cleanup ) ;
-	mcr_set_stdio ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 	mcr_signal_initialize ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 	mcr_hotkey_initialize ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 	mcr_intercept_initialize ( ) ;
+	mcr_profile ( start ) ;
 # ifdef MCR_EXTRAS
+	mcr_dclock ( start ) ;
 	mcr_extras_initialize ( ) ;
+	mcr_profile ( start ) ;
 	if ( loadContracts )
+	{
+		mcr_dclock ( start ) ;
 		mcr_load_contracts ( ) ;
+		mcr_profile ( start ) ;
+	}
 # else
 	if ( loadContracts )
 	{
@@ -34,10 +47,18 @@ void mcr_library_initialize ( int loadContracts )
 
 void mcr_library_cleanup ( void )
 {
+	mcr_dclock ( clock_t start ) ;
 # ifdef MCR_EXTRAS
 	mcr_extras_cleanup ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 # endif
 	mcr_intercept_cleanup ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 	mcr_hotkey_cleanup ( ) ;
+	mcr_profile ( start ) ;
+	mcr_dclock ( start ) ;
 	mcr_signal_cleanup ( ) ;
+	mcr_profile ( start ) ;
 }

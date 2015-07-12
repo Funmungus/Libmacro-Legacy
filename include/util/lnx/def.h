@@ -10,5 +10,4 @@
 
 # include <pwd.h>
 # include <strings.h>
-# include <sys/types.h>
 # include <unistd.h>

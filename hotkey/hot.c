@@ -85,8 +85,8 @@ void mcr_IHot_init ( mcr_IHot * ihotPt, size_t dataSize )
 {
 	dassert ( ihotPt ) ;
 	memset ( ihotPt, 0, sizeof ( mcr_IHot ) ) ;
-	ihotPt->interface.id = -1 ;
-	ihotPt->interface.data_size = dataSize ;
+	ihotPt->iface.id = -1 ;
+	ihotPt->iface.data_size = dataSize ;
 }
 
 void mcr_IHot_init_with ( mcr_IHot * ihotPt, mcr_compare_fnc compare,

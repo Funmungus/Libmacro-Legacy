@@ -1,0 +1,10 @@
+Separate hotkey from macro structure.
+Does poll cause termination when computer suspends?
+* O_NONBLOCK breaks reading fd's.
+Regress: fault-tolerant grabbers in linux
+* If file does not exist, do not start thread.
+Option to grab events or never block.
+Register names for all enums.
+Add build support for popular graphic servers, X, Wayland, and Mir.
+Linux Suspend/resume signal listener (SIGSTOP).
+Safety check for setting device grabs in linux. (/proc/bus/input/devices ?)

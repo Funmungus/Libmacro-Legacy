@@ -73,15 +73,9 @@ MCR_API void mcr_iinit_with ( mcr_Interface * newType,
 //
 MCR_API void mcr_iinit_maps ( mcr_IRegistry * iRegPt ) ;
 MCR_API size_t mcr_iregister ( mcr_IRegistry * iRegPt, mcr_Interface * newType ) ;
-# define mcr_iget( iRegPt, typeId ) \
-	( ( typeId ) < ( iRegPt )->set.used ? \
-		 * ( mcr_Interface ** ) MCR_ARR_AT ( & ( iRegPt )->set, typeId ) : \
-	NULL )
-# define mcr_ifrom_name( iRegPt, typeName ) \
-	( typeName ? \
-		 * ( mcr_Interface ** ) MCR_MAP_GET_VALUE ( \
-				& ( iRegPt )->name_map, & ( typeName ) ) : \
-	NULL )
+MCR_API mcr_Interface * mcr_iget ( mcr_IRegistry * iRegPt, size_t typeId ) ;
+MCR_API mcr_Interface * mcr_ifrom_name (
+		mcr_IRegistry * iRegPt, const char * typeName ) ;
 MCR_API size_t mcr_iget_id ( mcr_IRegistry * iRegPt,
 		const char * typeName ) ;
 # define mcr_iget_name( iRegPt, id ) \

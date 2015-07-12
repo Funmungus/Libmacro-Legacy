@@ -27,7 +27,7 @@ void setup ( )
 	mcr_reg_cleanup ( onComplete ) ;
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
-	dispPt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
+	dispPt = mcr_Dispatch_get ( mcr_iAlarm.iface.id ) ;
 	assert ( dispPt ) ;
 
 	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
@@ -191,7 +191,7 @@ void test_dispatch ( )
 	mcr_Hot hots [ SIZE ] ;
 	mcr_Signal sig ;
 	sig.type = & mcr_iAlarm ;
-	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
+	mcr_Dispatch * pt = mcr_Dispatch_get ( mcr_iAlarm.iface.id ) ;
 	mcr_Dispatch_clear ( sig.type ) ;
 //	pt->dispatch_specific = NULL ;
 	pt->modifier = NULL ;
@@ -247,7 +247,7 @@ void test_Dispatch_register ( )
 	mcr_Dispatch_init ( mcr_Dispatch_get ( 0 ) ) ;
 	mcr_Dispatch_init ( mcr_Dispatch_get ( mcr_ISignal_count ( ) ) ) ;
 	mcr_Dispatch_init ( mcr_Dispatch_get ( mcr_ISignal_count ( ) << 1 ) ) ;
-	dispPt = mcr_Dispatch_get ( mcr_iAlarm.interface.id ) ;
+	dispPt = mcr_Dispatch_get ( mcr_iAlarm.iface.id ) ;
 
 	fprintf ( mcr_stdout, "mcr_Dispatch_register - OK\n" ) ;
 }

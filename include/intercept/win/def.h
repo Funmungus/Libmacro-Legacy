@@ -15,4 +15,8 @@
 # include "hotkey/hotkey.h"
 # include "util/win/def.h"
 
+# ifndef WM_MOUSEHWHEEL
+# define WM_MOUSEHWHEEL 0x020E
+# endif
+
 # endif // MCR_WIN_INTERCEPT_DEFINES_H

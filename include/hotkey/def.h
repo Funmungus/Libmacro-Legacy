@@ -15,14 +15,14 @@
 # include "signal/signal.h"
 
 //! \brief Value to trigger for any modifier or echo code.
-extern const unsigned int MCR_ANY_MOD ;
+MCR_API extern const unsigned int MCR_ANY_MOD ;
 //! \brief Value to trigger for any scan or key code.
-extern const int MCR_ANY_KEY ;
+MCR_API extern const int MCR_ANY_KEY ;
 //! \brief All modifiers known by Macro library to be set.
-extern unsigned int mcr_internalMods ;
+MCR_API extern unsigned int mcr_internalMods ;
 //! \brief Locking modifiers will block dispatch and changing modifiers.
-extern mtx_t mcr_modLock ;
+MCR_API extern mtx_t mcr_modLock ;
 //! \brief Maximum time to wait for locking modifiers. Default 1/4 second.
-extern struct timespec mcr_modLockTimeout ;
+MCR_API extern struct timespec mcr_modLockTimeout ;
 
 # endif

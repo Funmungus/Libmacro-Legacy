@@ -80,6 +80,7 @@ MCR_API void thrd_yield ( ) ;
 _Noreturn void thrd_exit ( int res ) ;
 MCR_API int thrd_detach ( thrd_t thr ) ;
 MCR_API int thrd_join ( thrd_t thr, int * res ) ;
+MCR_API void mcr_thrd_delete ( thrd_t * thr ) ;
 
 //
 // mutex

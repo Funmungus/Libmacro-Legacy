@@ -11,17 +11,28 @@
 
 MCR_API mcr_Array mcr_echoEvents ;
 MCR_API mcr_Map mcr_keyToEcho [ 2 ] ;
+MCR_API mcr_SpacePosition mcr_cursor = { 0 } ;
 
 static mcr_Key _keyInitial ;
+
+void mcr_cursor_position ( mcr_SpacePosition buffer )
+{
+	memcpy ( buffer, mcr_cursor, sizeof ( mcr_SpacePosition ) ) ;
+}
 
 void mcr_standard_enable ( int enable )
 {
 	if ( mcr_activate_root ( ) )
+	{
 		mcr_Device_enable_all ( enable ) ;
+	}
 	else
 	{
 		dmsg ;
 	}
+# ifdef MCR_USE_X
+	mcr_usex_enable ( enable ) ;
+# endif
 	mcr_activate_user ( ) ;
 }
 
@@ -115,11 +126,6 @@ void mcr_Scroll_init ( void * scrollPt )
 	sPt->events [ MCR_DIMENSION_CNT ] = mcr_syncer ;
 }
 
-void mcr_cursor_position ( mcr_SpacePosition buffer )
-{
-	memcpy ( buffer, mcr_cursor, sizeof ( mcr_SpacePosition ) ) ;
-}
-
 void mcr_standard_native_initialize ( )
 {
 	// Device initialization has a break, to wait for devices to be ready.
@@ -130,6 +136,9 @@ void mcr_standard_native_initialize ( )
 	mcr_keyToEcho [ 0 ].compare = mcr_keyToEcho [ 1 ].compare =
 			mcr_int_compare ;
 	mcr_Key_init ( & _keyInitial ) ;
+# ifdef MCR_USE_X
+	mcr_usex_initialize ( ) ;
+# endif
 }
 
 void mcr_standard_native_cleanup ( void )
@@ -138,4 +147,7 @@ void mcr_standard_native_cleanup ( void )
 	mcr_Array_free ( & mcr_echoEvents ) ;
 	mcr_Map_free ( mcr_keyToEcho ) ;
 	mcr_Map_free ( mcr_keyToEcho + 1 ) ;
+# ifdef MCR_USE_X
+	mcr_usex_cleanup ( ) ;
+# endif
 }

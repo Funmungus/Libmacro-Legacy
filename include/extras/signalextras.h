@@ -33,8 +33,8 @@ typedef struct mcr_StringKey
 	mcr_SafeString string ;
 } mcr_StringKey ;
 
-extern mcr_ISignal mcr_iCommand ;
-extern mcr_ISignal mcr_iStringKey ;
+MCR_API extern mcr_ISignal mcr_iCommand ;
+MCR_API extern mcr_ISignal mcr_iStringKey ;
 
 MCR_API void mcr_Command_init ( void * cmdPt ) ;
 MCR_API void mcr_Command_init_with ( mcr_Command * cmdPt,

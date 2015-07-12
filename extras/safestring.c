@@ -38,9 +38,9 @@ int mcr_SafeString_compare ( const void * lhs, const void * rhs )
 {
 	if ( ! lhs || ! rhs )
 		return lhs < rhs ? -1 : 1 ;
-	mcr_SafeString * lPt = lhs, * rPt = rhs ;
+	const mcr_SafeString * lPt = lhs, * rPt = rhs ;
 	mcr_Array lStr, rStr ;
-	mcr_Array * lStrPt = & lStr, * rStrPt = & rStr ;
+	const mcr_Array * lStrPt = & lStr, * rStrPt = & rStr ;
 	mcr_String_init ( & lStr ) ;
 	mcr_String_init ( & rStr ) ;
 	if ( lPt->cryptic )
@@ -182,7 +182,7 @@ void mcr_String_to_encrypted ( mcr_Array * toEncryptPt,
 			( toEncryptPt->used / 2 ) ) )
 	{
 		toEncryptPt->used = mcr_encrypt ( ( unsigned char * ) plain.array,
-				plain.used - 1, NULL, 0, pass, iv,
+				( unsigned int ) plain.used - 1, NULL, 0, pass, iv,
 				( unsigned char * ) toEncryptPt->array, tag ) ;
 	}
 	else
@@ -200,7 +200,7 @@ mcr_Array mcr_String_from_encrypted ( const mcr_Array * encryptedPt,
 	dassert ( iv ) ;
 	mcr_Array ret ;
 	mcr_String_init ( & ret ) ;
-	if ( ! encryptedPt->used )
+	if ( MCR_STR_ISEMPTY ( encryptedPt ) )
 		return ret ;
 	if ( ! mcr_Array_resize ( & ret, encryptedPt->used ) )
 	{
@@ -212,7 +212,7 @@ mcr_Array mcr_String_from_encrypted ( const mcr_Array * encryptedPt,
 			( unsigned char * ) encryptedPt->array,
 			( int ) encryptedPt->used, NULL, 0, tag, pass, iv,
 			( unsigned char * ) ret.array ) ;
-	if ( ret.used == ( unsigned int ) -1 || ! ret.used )
+	if ( ret.used == ( size_t ) -1 || ! ret.used )
 	{
 		dmsg ;
 		ret.used = 0 ;

@@ -13,18 +13,35 @@
 
 # include "util/lnx/priv.h"
 
+static int _uid = 1000 ;
+void mcr_setuid ( int uid )
+{
+	if ( uid )
+		_uid = uid ;
+	else
+		dmsg ;
+}
+
 int mcr_deactivate_root ( )
 {
+	// Full user, attempt set lower permission user,
+	// do not fail on higher permission user.
 	if ( getuid ( ) && geteuid ( ) )
-		return 1 ;
-	if ( ! getuid ( ) && ! geteuid ( ) )
 	{
-		dmsg ;
-		return 0 ;
+		if ( setuid ( _uid ) == -1 )
+		{ dmsg ; }
 	}
-//	if ( getuid ( ) )
-//		return seteuid ( getuid ( ) ) != -1 ;
-	if ( setuid ( getuid ( ) ? getuid ( ) : geteuid ( ) ) == -1 )
+	// Full root, use _uid in memory, and fail if not able.
+	else if ( ! getuid ( ) && ! geteuid ( ) )
+	{
+		if ( setuid ( _uid ) == -1 )
+		{
+			dmsg ;
+			return 0 ;
+		}
+	}
+	// We have a user, so try to set to that user, fail if not able.
+	else if ( setuid ( getuid ( ) ? getuid ( ) : geteuid ( ) ) == -1 )
 	{
 		dmsg ;
 		return 0 ;
@@ -56,10 +73,20 @@ int mcr_activate_root ( )
 
 int mcr_activate_user ( )
 {
-	// Only set user to non-root.
+	// Have a user, switch effective user.
 	if ( getuid ( ) )
 	{
 		if ( setreuid ( geteuid ( ), getuid ( ) ) == -1 )
+		{
+			dmsg ;
+			return 0 ;
+		}
+	}
+	// User root, effective user root, set effective to inter memory,
+	// fail if not able.
+	else if ( ! geteuid ( ) )
+	{
+		if ( seteuid ( _uid ) == -1 )
 		{
 			dmsg ;
 			return 0 ;

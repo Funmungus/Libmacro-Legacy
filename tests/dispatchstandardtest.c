@@ -82,7 +82,7 @@ void setup ( )
 // Alarm is mapped from modifier only.
 void alarmTest ( )
 {
-	MSET ( & mcr_iAlarm, & alm, mcr_iAlarm.interface.id ) ;
+	MSET ( & mcr_iAlarm, & alm, mcr_iAlarm.iface.id ) ;
 
 	memset ( & alm, 0, sizeof ( mcr_Alarm ) ) ;
 
@@ -114,7 +114,7 @@ void alarmTest ( )
 // Echo maps modifier to echo code to hotkey.
 void echoTest ( )
 {
-	MSET ( & mcr_iHIDEcho, & echo, mcr_iHIDEcho.interface.id ) ;
+	MSET ( & mcr_iHIDEcho, & echo, mcr_iHIDEcho.iface.id ) ;
 
 	mcr_Echo_init_with ( & echo, MCR_ANY_MOD ) ;
 
@@ -145,7 +145,7 @@ void echoTest ( )
 // Key maps key down/up to modifier to either key or scan code to hotkey.
 void keyTest ( )
 {
-	MSET ( & mcr_iKey, & key, mcr_iKey.interface.id ) ;
+	MSET ( & mcr_iKey, & key, mcr_iKey.iface.id ) ;
 
 	mcr_Key_init_with ( & key, MCR_ANY_KEY, MCR_ANY_KEY, MCR_BOTH ) ;
 
@@ -201,7 +201,7 @@ void keyTest ( )
 // Absolute or absolute mapped by modifier. Justify -1 is both.
 void cursorTest ( )
 {
-	MSET ( & mcr_iMoveCursor, & mc, mcr_iMoveCursor.interface.id ) ;
+	MSET ( & mcr_iMoveCursor, & mc, mcr_iMoveCursor.iface.id ) ;
 
 	mcr_SpacePosition pos = { 0 } ;
 	mcr_MoveCursor_init_with ( & mc, pos, -1 ) ;
@@ -243,7 +243,7 @@ void cursorTest ( )
 // Mapped only by modifier.
 void noopTest ( )
 {
-	MSET ( & mcr_iNoOp, & noop, mcr_iNoOp.interface.id ) ;
+	MSET ( & mcr_iNoOp, & noop, mcr_iNoOp.iface.id ) ;
 
 	memset ( & noop, 0, sizeof ( mcr_NoOp ) ) ;
 
@@ -271,7 +271,7 @@ void noopTest ( )
 // Mapped only by modifier.
 void scrollTest ( )
 {
-	MSET ( & mcr_iScroll, & scr, mcr_iScroll.interface.id ) ;
+	MSET ( & mcr_iScroll, & scr, mcr_iScroll.iface.id ) ;
 
 	mcr_Dimensions dm = { 0 } ;
 	mcr_Scroll_init_with ( & scr, dm ) ;

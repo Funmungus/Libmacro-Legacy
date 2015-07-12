@@ -121,7 +121,7 @@ int mcr_HotStaged_push ( mcr_HotStaged * hotPt,
 }
 
 int mcr_HotStaged_push_with ( mcr_HotStaged * hotPt, int blocking,
-		mcr_Signal * interceptPt, size_t measurement_error,
+		mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers )
 {
 	dassert ( hotPt ) ;
@@ -145,7 +145,7 @@ int mcr_HotStaged_insert ( mcr_HotStaged * hotPt,
 }
 
 int mcr_HotStaged_insert_with ( mcr_HotStaged * hotPt,
-		int blocking, mcr_Signal * interceptPt, size_t measurement_error,
+		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers, size_t index )
 {
 	dassert ( hotPt ) ;
@@ -168,7 +168,7 @@ int mcr_HotStaged_set ( mcr_HotStaged * hotPt,
 }
 
 int mcr_HotStaged_set_with ( mcr_HotStaged * hotPt,
-		int blocking, mcr_Signal * interceptPt, size_t measurement_error,
+		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
 		unsigned int modifiers, size_t index )
 {
 	dassert ( hotPt ) ;

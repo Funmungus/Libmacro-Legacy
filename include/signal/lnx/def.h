@@ -23,10 +23,10 @@
 # endif
 /*! \def MCR_ABS_RESOLUTION
  * Default value for \ref mcr_AbsDev resolution when library is built.
- * Default is 65535, or 0xFFFF
+ * Default is 4095, or 0x0FFF
  * */
 # ifndef MCR_ABS_RESOLUTION
-# define MCR_ABS_RESOLUTION 0xFFFF
+# define MCR_ABS_RESOLUTION 0x0FFF
 # endif
 
 # include "util/lnx/util.h"

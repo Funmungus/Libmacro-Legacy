@@ -45,3 +45,10 @@ unsigned int mcr_index_bit ( const unsigned int index )
 {
 	return 1 << index ;
 }
+
+const char * mcr_timestring ( )
+{
+	time_t curtime ;
+	time ( & curtime ) ;
+	return ctime ( & curtime ) ;
+}

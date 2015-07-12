@@ -66,17 +66,17 @@ typedef struct mcr_Scroll mcr_Scroll ;
 // Standard signal ISignals, i.e. type definition, or vtable.
 //
 /*! \brief Signal interface for \ref mcr_Alarm. */
-extern mcr_ISignal mcr_iAlarm ;
+MCR_API extern mcr_ISignal mcr_iAlarm ;
 /*! \brief Signal interface for \ref mcr_HIDEcho. */
-extern mcr_ISignal mcr_iHIDEcho ;
+MCR_API extern mcr_ISignal mcr_iHIDEcho ;
 /*! \brief Signal interface for \ref mcr_Key. */
-extern mcr_ISignal mcr_iKey ;
+MCR_API extern mcr_ISignal mcr_iKey ;
 /*! \brief Signal interface for \ref mcr_MoveCursor. */
-extern mcr_ISignal mcr_iMoveCursor ;
+MCR_API extern mcr_ISignal mcr_iMoveCursor ;
 /*! \brief Signal interface for \ref mcr_NoOp. */
-extern mcr_ISignal mcr_iNoOp ;
+MCR_API extern mcr_ISignal mcr_iNoOp ;
 /*! \brief Signal interface for \ref mcr_Scroll. */
-extern mcr_ISignal mcr_iScroll ;
+MCR_API extern mcr_ISignal mcr_iScroll ;
 
 //
 // Implement in native directory.

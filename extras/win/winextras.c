@@ -6,8 +6,8 @@
  * http://creativecommons.org/licenses/by/4.0/.
  * */
 
-# include "extras/win/def.h"
 # include "extras/extras.h"
+# include "extras/win/def.h"
 
 void mcr_extras_native_initialize ( )
 {

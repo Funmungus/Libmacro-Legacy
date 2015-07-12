@@ -144,7 +144,6 @@ void test_map_map ( )
 	CHKMAP ;
 	// Check entry without sorting
 	mcr_Map_free ( & map ) ;
-	map.compare = NULL ;
 	for ( i = SIZE - 1 ; i >= 0 ; i-- )
 	{
 		FAILIF ( ! mcr_Map_map ( & map, set1 + i, set2 + i ) ) ;
@@ -226,15 +225,6 @@ void test_map_map_pair ( )
 	CHKMAP ;
 	// entry without sorting
 	mcr_Map_free ( & map ) ;
-	map.compare = NULL ;
-	for ( i = SIZE - 1 ; i >= 0 ; i-- )
-	{
-		FAILIF ( ! mcr_Map_map_pair ( & map, setboth + i ) ) ;
-		assert ( ! memcmp ( mcr_Array_at ( & map.set, SIZE - 1 - i ), setboth + i,
-				SIZEBOTH ) ) ;
-	}
-	map.compare = set1compare ;
-	mcr_Map_sort ( & map ) ;
 	reset ( ) ;
 	CHKMAP ;
 	fprintf ( mcr_stdout, "map_pair OK\n" ) ;
@@ -380,20 +370,10 @@ void test_map_sort ( )
 	mcr_Map_free ( & map ) ;
 	mcr_Map_sort ( & map ) ;
 	// check sort without comparator
-	map.compare = NULL ;
 	for ( i = SIZE - 1 ; i >= 0 ; i-- )
 	{
 		mcr_Map_map_pair ( & map, setboth + i ) ;
 	}
-	mcr_Map_sort ( & map ) ;
-	// should still be backwards after sort
-	for ( i = 0 ; i < SIZE ; i++ )
-	{
-		assert ( ! memcmp ( mcr_Array_at ( & map.set, i ), setboth + SIZE - 1 - i,
-				SIZEBOTH ) ) ;
-	}
-	// check real sorting works too
-	map.compare = set1compare ;
 	mcr_Map_sort ( & map ) ;
 	CHKMAP ;
 	fprintf ( mcr_stdout, "sort OK\n" ) ;

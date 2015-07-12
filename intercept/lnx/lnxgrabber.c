@@ -107,7 +107,8 @@ int mcr_Grabber_enable ( mcr_Grabber * grabPt, int enable )
 
 	dassert ( ! MCR_STR_ISEMPTY ( & grabPt->path ) ) ;
 
-	grabPt->fd = open ( grabPt->path.array, O_RDONLY ) ;
+	grabPt->fd = open ( grabPt->path.array,
+			O_RDONLY /*| O_NONBLOCK*/ ) ;
 	if ( grabPt->fd == -1 )
 	{
 		dmsg ;
@@ -151,7 +152,7 @@ void mcr_Grabber_state ( mcr_Grabber * grabPt,
 			dmsg ;
 			return ;
 		}
-		fd = open ( grabPt->path.array, O_RDONLY ) ;
+		fd = open ( grabPt->path.array, O_RDONLY | O_NONBLOCK ) ;
 	}
 	if ( fd == -1 )
 	{

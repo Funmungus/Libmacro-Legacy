@@ -12,7 +12,6 @@
 MCR_API mcr_Device mcr_keyDev ;
 MCR_API mcr_Device mcr_absDev ;
 MCR_API mcr_Device mcr_relDev ;
-MCR_API mcr_SpacePosition mcr_cursor = { 0, 0, 0 } ;
 const MCR_API struct input_event mcr_syncer = { { 0, 0 }, EV_SYN, \
 		SYN_REPORT, 0 } ;
 MCR_API size_t mcr_abs_resolution = MCR_ABS_RESOLUTION ;
@@ -487,7 +486,7 @@ static int keyDevice_init ( )
 	snprintf ( mcr_keyDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macrolibrary-key" ) ;
 
-	mcr_keyDev.device.id.bustype = BUS_USB ;
+	mcr_keyDev.device.id.bustype = BUS_VIRTUAL ;
 	mcr_keyDev.device.id.vendor = 1 ;
 	mcr_keyDev.device.id.product = 1 ;
 	mcr_keyDev.device.id.version = 1 ;
@@ -505,13 +504,14 @@ static int keyDevice_init ( )
 		return 0 ;
 	}
 	int keybits [ KEY_CNT ] ;
-	for ( int i = 1 ; i < KEY_CNT ; i++ )
+	for ( int i = 0 ; i < KEY_CNT ; i++ )
 	{
 		keybits [ i ] = i ;
 	}
 
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_KEYBIT, keybits,
-			KEY_CNT ) )
+	// Do not write 0 value
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_KEYBIT,
+		 	keybits + 1, KEY_CNT - 1 ) )
 	{
 		dmsg ;
 		return 0 ;
@@ -526,7 +526,7 @@ static int absDevice_init ( )
 	snprintf ( mcr_absDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macrolibrary-abs" ) ;
 
-	mcr_absDev.device.id.bustype = BUS_USB ;
+	mcr_absDev.device.id.bustype = BUS_VIRTUAL ;
 	mcr_absDev.device.id.vendor = 1 ;
 	mcr_absDev.device.id.product = 1 ;
 	mcr_absDev.device.id.version = 1 ;
@@ -570,7 +570,7 @@ static int relDevice_init ( )
 	snprintf ( mcr_relDev.device.name, UINPUT_MAX_NAME_SIZE,
 			"macrolibrary-rel" ) ;
 
-	mcr_relDev.device.id.bustype = BUS_USB ;
+	mcr_relDev.device.id.bustype = BUS_VIRTUAL ;
 	mcr_relDev.device.id.vendor = 1 ;
 	mcr_relDev.device.id.product = 1 ;
 	mcr_relDev.device.id.version = 1 ;

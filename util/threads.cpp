@@ -38,7 +38,7 @@ int thrd_sleep_until ( struct tm * time_point )
 static void thrd_function ( thrd_start_t func, void * arg )
 {
 	dassert ( func ) ;
-	if ( func ( arg ) )
+	if ( func ( arg ) != thrd_success )
 	{
 		dmsg ;
 	}
@@ -61,20 +61,23 @@ int thrd_equal ( thrd_t lhs, thrd_t rhs )
 
 
 // std:: impl unknown
-//thrd_t thrd_current ( ) ;
+thrd_t thrd_current ( )
+{
+	return NULL;
+}
 
 int thrd_sleep ( const struct timespec * time_point,
 		struct timespec * remaining )
 {
 	// Output seconds, nanoseconds unknown
 	if ( remaining != NULL )
-		remaining->tv_sec = std::time ( NULL ) ;
+        remaining->tv_sec = ( int ) std::time ( NULL ) ;
 	std::this_thread::sleep_for
 			( std::chrono::seconds ( time_point->tv_sec ) ) ;
 	std::this_thread::sleep_for
 			( std::chrono::nanoseconds ( time_point->tv_nsec ) ) ;
 	if ( remaining != NULL )
-		remaining->tv_sec = std::time ( NULL ) - remaining->tv_sec ;
+        remaining->tv_sec = ( int ) std::time ( NULL ) - remaining->tv_sec ;
 	return thrd_success ;
 }
 
@@ -94,12 +97,19 @@ int thrd_detach ( thrd_t thr )
 	return thrd_success ;
 }
 
-int thrd_join ( thrd_t thr, int * )
+int thrd_join ( thrd_t thr, int * res )
 {
 	dassert ( thr ) ;
 	( ( std::thread * ) thr )->join ( ) ;
 	delete ( std::thread * ) thr ;
+	* res = thrd_success ;
 	return thrd_success ;
+}
+
+void mcr_thrd_delete ( thrd_t * thr )
+{
+	delete * ( std::thread ** ) thr ;
+	* thr = NULL ;
 }
 
 //
