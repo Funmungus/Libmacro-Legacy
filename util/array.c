@@ -450,7 +450,7 @@ int mcr_String_insert ( mcr_Array * arrPt, size_t index,
 	{
 		return mcr_String_append ( arrPt, str, len ) ;
 	}
-	size_t min = strlen ( str ) ;
+	size_t min = str ? strlen ( str ) : 0 ;
 	if ( len < min ) min = len ;
 	if ( ! mcr_Array_resize ( arrPt, arrPt->used + min ) )
 	{
@@ -536,7 +536,7 @@ int mcr_String_from_string ( mcr_Array * arrPt,
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
-	size_t min = strlen ( str ) ;
+	size_t min = str ? strlen ( str ) : 0 ;
 	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
 	{
 		dmsg ;
@@ -553,7 +553,7 @@ int mcr_String_nfrom_string ( mcr_Array * arrPt,
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
-	size_t min = strlen ( str ) ;
+	size_t min = str ? strlen ( str ) : 0 ;
 	if ( len < min ) min = len ;
 	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
 	{
@@ -571,7 +571,7 @@ int mcr_String_append ( mcr_Array * arrPt,
 {
 	dassert ( arrPt ) ;
 	dassert ( arrPt->element_size == sizeof ( char ) ) ;
-	size_t min = strlen ( str ) ;
+	size_t min = str ? strlen ( str ) : 0 ;
 	if ( len < min ) min = len ;
 	if ( ! mcr_Array_resize ( arrPt, min + 1 ) )
 	{
