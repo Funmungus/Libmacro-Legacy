@@ -1,10 +1,20 @@
-/* include/hotkey/stage.h - Stages of activation for hotkeys.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 /*! \file hotkey/stage.h
  * \brief Stages of activation for \ref mcr_HotStaged
@@ -26,6 +36,7 @@ typedef struct mcr_Stage
 	mcr_Signal intercept ;
 	unsigned int measurement_error ;
 	unsigned int modifiers ;
+	mcr_TriggerFor trigger_for ;
 	//
 	// Internal
 	//
@@ -43,12 +54,16 @@ MCR_API extern mcr_isme_fnc mcr_Stage_resembleGeneric ;
 MCR_API void mcr_Stage_init ( mcr_Stage * stagePt ) ;
 MCR_API void mcr_Stage_init_with ( mcr_Stage * stagePt,
 		int blocking, mcr_Signal * interceptPt,
-		unsigned int measurement_error, unsigned int modifiers ) ;
+		unsigned int measurement_error, unsigned int modifiers,
+		mcr_TriggerFor trigFor ) ;
 MCR_API void mcr_Stage_free ( mcr_Stage * stagePt ) ;
+# define mcr_Stage_free_foreach( sPt, ... ) mcr_Stage_free ( sPt )
 MCR_API void mcr_Stage_set ( mcr_Stage * stagePt,
-		mcr_Signal * interceptPt, unsigned int mods ) ;
+		mcr_Signal * interceptPt, unsigned int mods,
+		mcr_TriggerFor trigFor ) ;
 MCR_API void mcr_Stage_set_generic ( mcr_Stage * stagePt,
-		mcr_Signal * interceptPt, unsigned int mods ) ;
+		mcr_Signal * interceptPt, unsigned int mods,
+		mcr_TriggerFor trigFor ) ;
 
 MCR_API int mcr_Stage_compare ( const void * lhs, const void * rhs ) ;
 
@@ -112,20 +127,20 @@ MCR_API void mcr_Stage_clear ( ) ;
 MCR_API void mcr_stage_initialize ( ) ;
 MCR_API void mcr_stage_cleanup ( ) ;
 
-# define MCR_STAGE_ISME( sPt, sigPt, mods ) \
-	( ( sPt )->isme ? \
-		( sPt )->isme ( sPt, sigPt, mods ) : \
-	( sPt )->modifiers != MCR_ANY_MOD && \
-			( sPt )->modifiers != mods ? \
+# define MCR_STAGE_ISME( stage, sigPt, mods ) \
+	( ( stage ).isme ? \
+		( stage ).isme ( & ( stage ), sigPt, mods ) : \
+	( stage ).modifiers != MCR_ANY_MOD && \
+			( stage ).modifiers != mods ? \
 		0 : \
-	! ( sPt )->intercept.type || \
-			! ( sPt )->intercept.data.data ? \
+	! ( stage ).intercept.type || \
+			! ( stage ).intercept.data.data ? \
 		1 : \
-	! ( MCR_SIGNAL_CMP ( & ( sPt )->intercept, sigPt ) ) )
+	! ( MCR_SIGNAL_CMP ( ( stage ).intercept, * sigPt ) ) )
 
-# define MCR_STAGE_RESEMBLES( sPt, sigPt, mods ) \
-	( ( sPt )->resembles ? ( sPt )->resembles ( sPt, sigPt, mods ) : \
-			! ( sPt )->intercept.type || \
-			( sPt )->intercept.type == ( sigPt )->type )
+# define MCR_STAGE_RESEMBLES( stage, sigPt, mods ) \
+	( ( stage ).resembles ? ( stage ).resembles ( & ( stage ), sigPt, mods ) : \
+			! ( stage ).intercept.type || \
+			( stage ).intercept.type == ( sigPt )->type )
 
 # endif

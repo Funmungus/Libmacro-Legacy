@@ -1,10 +1,20 @@
-/* extras/lnx/lnxsignalextras.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -33,15 +43,15 @@ int mcr_Command_execvpe ( mcr_Command * cmdPt )
 	// Get environment and args beforehand, to decrypt before forking.
 	mcr_Array envMem ;
 	mcr_Array_init ( & envMem, sizeof ( mcr_Array ) ) ;
-	MCR_ARR_FOR_EACH ( & cmdPt->env, get_strings_redirect, & envMem ) ;
+	MCR_ARR_FOR_EACH ( cmdPt->env, get_strings_redirect, & envMem ) ;
 
 	if ( ( ! cmdPt->argv.used || argsArr ) && args
-			&& ! MCR_STR_ISEMPTY ( & file ) )
+			&& ! MCR_STR_EMPTY ( file ) )
 	{
 		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
 		{
 			argsArr [ i ] = mcr_SafeString_get (
-					MCR_ARR_AT ( & cmdPt->argv, i ) ) ;
+					MCR_ARR_AT ( cmdPt->argv, i ) ) ;
 			args [ i ] = argsArr [ i ].array ;
 		}
 		// Need at least one args for null termination.
@@ -59,25 +69,13 @@ int mcr_Command_execvpe ( mcr_Command * cmdPt )
 		}
 		else
 		{
-			/* If running as full root then that is the user's choice.
-			 * Create a safe environment for people who care. */
-			if ( getuid ( ) || geteuid ( ) )
+			if ( ! mcr_privilege_deactivate ( ) )
 			{
-				if ( ! mcr_deactivate_root ( ) )
-				{
-					dmsg ;
-					abort ( ) ;
-				}
-			}
-			else
-			{
-				fprintf ( mcr_stderr, "Executing as root. Please consider "
-						"running your program as setuid instead of root, "
-						" in which case forked execution will switch to "
-						"user." ) ;
+				dmsg ;
+				abort ( ) ;
 			}
 			/* TODO: Assuming environment changes only effect child. */
-			MCR_ARR_FOR_EACH ( & envMem, putenv_redirect, 0 ) ;
+			MCR_ARR_FOR_EACH ( envMem, putenv_redirect, 0 ) ;
 			if ( execvp ( file.array, args ) == -1 )
 			{
 				dmsg ;
@@ -97,7 +95,8 @@ int mcr_Command_execvpe ( mcr_Command * cmdPt )
 		free ( argsArr ) ;
 	}
 	free ( args ) ;
-	MCR_ARR_FOR_EACH ( & envMem, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( envMem,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
 	mcr_Array_free ( & envMem ) ;
 	return success ;
 }
@@ -268,7 +267,7 @@ static void add_nonshifts ( )
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_shifted ( character, \
-				_keyVals [ character ], 30000000 ) ;
+				_keyVals [ character ], ( 500 * 1000 * 1000 ) ) ;
 # define arange( i, charMin, charMax ) \
 	for ( i = charMin ; i <= charMax ; i ++ ) \
 	{ \
@@ -291,7 +290,7 @@ static void get_strings_redirect ( mcr_SafeString * ssPt,
 		mcr_Array * envMemPt )
 {
 	mcr_Array str = mcr_SafeString_get ( ssPt ) ;
-	if ( MCR_STR_ISEMPTY ( & str ) )
+	if ( MCR_STR_EMPTY ( str ) )
 		mcr_Array_free ( & str ) ;
 	else
 		mcr_Array_push ( envMemPt, & str ) ;
@@ -299,6 +298,6 @@ static void get_strings_redirect ( mcr_SafeString * ssPt,
 
 static void putenv_redirect ( mcr_Array * envStr, ... )
 {
-	if ( ! MCR_STR_ISEMPTY ( envStr ) )
+	if ( ! MCR_STR_EMPTY ( * envStr ) )
 		putenv ( envStr->array ) ;
 }

@@ -1,12 +1,23 @@
-/* include/signal/def.h
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 /*! \file signal/def.h
+ * \brief Definitions for signals
  * */
 
 # ifndef MCR_SIGNAL_DEFINES_H
@@ -30,7 +41,7 @@
 # define MCR_DIMENSION_CNT (MCR_DIMENSION_MAX + 1)
 
 /*!
- * \brief To signify a signal is being set released, or both.
+ * \brief A signal is set, released, or both
  */
 typedef enum mcr_KeyUpType
 {

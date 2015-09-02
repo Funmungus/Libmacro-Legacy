@@ -1,10 +1,20 @@
-/*
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "extras/extras.h"
 # include "extras/lnx/def.h"
@@ -72,7 +82,7 @@ int main ( )
 			strlen ( ( const char * ) aad ), key, iv, ciphertext, tag ) ;
 
 	/* Do something useful with the ciphertext here */
-	fprintf ( mcr_stdout, "Ciphertext is:\n" ) ;
+	fprintf ( mcr_out, "Ciphertext is:\n" ) ;
 	BIO_dump_fp ( stdout, ( const char * ) ciphertext, ciphertext_len ) ;
 
 	/* Decrypt the ciphertext */
@@ -84,8 +94,8 @@ int main ( )
 	decryptedtext [ decryptedtext_len ] = '\0' ;
 
 	/* Show the decrypted text */
-	fprintf ( mcr_stdout, "Decrypted text is:\n" ) ;
-	fprintf ( mcr_stdout, "%s\n", decryptedtext ) ;
+	fprintf ( mcr_out, "Decrypted text is:\n" ) ;
+	fprintf ( mcr_out, "%s\n", decryptedtext ) ;
 
 	/* Library clean up in extras */
 	return 0 ;

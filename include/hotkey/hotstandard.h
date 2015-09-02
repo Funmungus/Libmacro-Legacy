@@ -1,14 +1,23 @@
-/* include/hotkey/hotstandard.h - Specific hotkey type that is triggered in stages.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
 
-/*! \file hotkey/hotstaged.h
- * \brief \ref mcr_HotStaged Is a hotkey triggered after the activation
- * of all contained stages.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+/*! \file hotkey/hotstandard.h
+ * \brief Standard hotkey types
  * */
 
 # ifndef MCR_HOTSTAGED_H
@@ -42,25 +51,25 @@ MCR_API void mcr_Hot_load_contract ( ) ;
 //
 MCR_API void mcr_HotStaged_set_style ( mcr_HotStaged * hotPt,
 		mcr_BlockStyle style ) ;
-MCR_API int mcr_HotStaged_is_blocking ( mcr_HotStaged * hotPt ) ;
-MCR_API void mcr_HotStaged_enable_blocking ( mcr_HotStaged * hotPt,
+MCR_API int mcr_HotStaged_blocking ( mcr_HotStaged * hotPt ) ;
+MCR_API void mcr_HotStaged_set_blocking ( mcr_HotStaged * hotPt,
 		int blocking ) ;
-MCR_API int mcr_HotStaged_push ( mcr_HotStaged * hotPt,
-		mcr_Signal * interceptPt, unsigned int modifiers ) ;
-MCR_API int mcr_HotStaged_push_with ( mcr_HotStaged * hotPt, int blocking,
+MCR_API int mcr_HotStaged_push (mcr_HotStaged * hotPt,
+		mcr_Signal * interceptPt, unsigned int modifiers , mcr_TriggerFor trigFor) ;
+MCR_API int mcr_HotStaged_push_with (mcr_HotStaged * hotPt, int blocking,
 		mcr_Signal * interceptPt, unsigned int measurement_error,
-		unsigned int modifiers ) ;
+		unsigned int modifiers , mcr_TriggerFor trigFor) ;
 // Insert always insert_filled with a "activate for any" stage filler.
-MCR_API int mcr_HotStaged_insert ( mcr_HotStaged * hotPt,
-		mcr_Signal * interceptPt, unsigned int modifiers, size_t index ) ;
-MCR_API int mcr_HotStaged_insert_with ( mcr_HotStaged * hotPt,
+MCR_API int mcr_HotStaged_insert (mcr_HotStaged * hotPt,
+		mcr_Signal * interceptPt, unsigned int modifiers, mcr_TriggerFor trigFor, size_t index ) ;
+MCR_API int mcr_HotStaged_insert_with (mcr_HotStaged * hotPt,
 		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
-		unsigned int modifiers, size_t index ) ;
-MCR_API int mcr_HotStaged_set ( mcr_HotStaged * hotPt,
-		mcr_Signal * interceptPt, unsigned int modifiers, size_t index ) ;
-MCR_API int mcr_HotStaged_set_with ( mcr_HotStaged * hotPt,
+		unsigned int modifiers, mcr_TriggerFor trigFor, size_t index ) ;
+MCR_API int mcr_HotStaged_set (mcr_HotStaged * hotPt,
+		mcr_Signal * interceptPt, unsigned int modifiers, mcr_TriggerFor trigFor, size_t index ) ;
+MCR_API int mcr_HotStaged_set_with (mcr_HotStaged * hotPt,
 		int blocking, mcr_Signal * interceptPt, unsigned int measurement_error,
-		unsigned int modifiers, size_t index ) ;
+		unsigned int modifiers, mcr_TriggerFor trigFor, size_t index ) ;
 MCR_API void mcr_deactivate_stages ( mcr_Array * stagesPt ) ;
 
 //
@@ -74,6 +83,8 @@ MCR_API void mcr_HotStaged_init ( void * hotPt ) ;
 MCR_API void mcr_HotStaged_init_with ( mcr_HotStaged * hotPt,
 		mcr_Stage * stages, size_t stageCount, mcr_BlockStyle style ) ;
 MCR_API void mcr_HotStaged_free ( void * hotPt ) ;
+# define mcr_HotStaged_free_foreach( hotPt, ... ) \
+	mcr_HotStaged_free ( hotPt )
 /*! \brief \ref mcr_trigger_fnc for staged hotkey.
  *
  * If all stages activate, all will be deactivated and
@@ -82,7 +93,10 @@ MCR_API void mcr_HotStaged_free ( void * hotPt ) ;
 MCR_API void mcr_HotStaged_trigger ( mcr_Hot * hotPt,
 		mcr_Signal * interceptPt, unsigned int mods ) ;
 
-# define MCR_HOTSTAGED_ONCOMPLETE( hotPt, sigPt, mods ) \
+# define MCR_HOTSTAGED_ONCOMPLETE( hot, sigPt, mods ) \
+	if ( ( hot ).trigger ) \
+		( hot ).trigger ( & hot, sigPt, mods ) ;
+# define mcr_HotStaged_on_complete( hotPt, sigPt, mods ) \
 	if ( ( hotPt )->trigger ) \
 		( hotPt )->trigger ( hotPt, sigPt, mods ) ;
 

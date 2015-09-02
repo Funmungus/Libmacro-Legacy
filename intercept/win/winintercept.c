@@ -1,10 +1,20 @@
-/* intercept/win/winintercept.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "intercept/win/intercept.h"
 
@@ -55,7 +65,7 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 static LRESULT CALLBACK scroll_proc ( int nCode, WPARAM wParam,
 		LPARAM lParam ) ;
 
-int mcr_intercept_is_enabled ( )
+int mcr_intercept_enabled ( )
 {
 	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
 	{
@@ -65,11 +75,11 @@ int mcr_intercept_is_enabled ( )
 	return 0 ;
 }
 
-void mcr_intercept_enable ( int enable )
+void mcr_intercept_set_enabled ( int enable )
 {
 	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
 	{
-		mcr_Grabber_enable ( _allGrabbers [ i ], enable ) ;
+		mcr_Grabber_set_enabled ( _allGrabbers [ i ], enable ) ;
 	}
 }
 
@@ -86,7 +96,7 @@ unsigned int mcr_intercept_get_mods ( )
 		modlen ) ;
 	if ( ! modkeybuffer ) return mcr_internalMods ;
 
-	mcr_Mod_key_get_all ( modkeybuffer, modlen ) ;
+	mcr_Mod_key_all ( modkeybuffer, modlen ) ;
 
 	for ( size_t i = 0 ; i < modlen ; i ++ )
 	{
@@ -94,7 +104,7 @@ unsigned int mcr_intercept_get_mods ( )
 		// high bit of byte is 0x80, high bit of short is 0x8000
 		if ( ( keyState [ modkeybuffer [ i ] ] & 0x8080 ) != 0 )
 		{
-			values |= mcr_Mod_key_get ( modkeybuffer [ i ] ) ;
+			values |= mcr_Mod_from_key ( modkeybuffer [ i ] ) ;
 		}
 	}
 	free ( modkeybuffer ) ;
@@ -103,17 +113,17 @@ unsigned int mcr_intercept_get_mods ( )
 
 void mcr_intercept_enable_key ( int enable )
 {
-	mcr_Grabber_enable ( _keyGrabber, enable ) ;
+	mcr_Grabber_set_enabled ( _keyGrabber, enable ) ;
 }
 
 void mcr_intercept_enable_move ( int enable )
 {
-	mcr_Grabber_enable ( _moveGrabber, enable ) ;
+	mcr_Grabber_set_enabled ( _moveGrabber, enable ) ;
 }
 
 void mcr_intercept_enable_scroll ( int enable )
 {
-	mcr_Grabber_enable ( _scrollGrabber, enable ) ;
+	mcr_Grabber_set_enabled ( _scrollGrabber, enable ) ;
 }
 
 static LRESULT CALLBACK key_proc ( int nCode, WPARAM wParam,
@@ -122,7 +132,7 @@ static LRESULT CALLBACK key_proc ( int nCode, WPARAM wParam,
 	if ( nCode == HC_ACTION )
 	{
 		KBDLLHOOKSTRUCT * p = ( KBDLLHOOKSTRUCT * ) lParam ;
-		MCR_KEY_SET ( & _key, p->vkCode ) ;
+		MCR_KEY_SET_KEY ( & _key, p->vkCode ) ;
 		MCR_KEY_SET_SCAN ( & _key, p->scanCode ) ;
 		MCR_KEY_SET_UP_TYPE ( & _key, ( WPARAM_UPTYPE ( wParam ) ) ) ;
 		if ( disp ( _keySig ) )
@@ -140,10 +150,10 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 		// Check for movecursor
 		if ( ( p->flags & MOUSEEVENTF_MOVE ) )
 		{
-			MCR_MOVECURSOR_SET_POSITION ( & _mc, MCR_X, p->pt.x ) ;
-			MCR_MOVECURSOR_SET_POSITION ( & _mc, MCR_Y, p->pt.y ) ;
+			MCR_MOVECURSOR_SET_COORDINATE ( & _mc, MCR_X, p->pt.x ) ;
+			MCR_MOVECURSOR_SET_COORDINATE ( & _mc, MCR_Y, p->pt.y ) ;
 			// 0 absolute, 1 justify/relative
-			MCR_MOVECURSOR_ENABLE_JUSTIFY ( & _mc,
+			MCR_MOVECURSOR_SET_JUSTIFY ( & _mc,
 					! ( p->flags & MOUSEEVENTF_ABSOLUTE ) ) ;
 			if ( disp ( _mcSig ) )
 				return -1 ;
@@ -152,7 +162,7 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 		{
 			if ( ( p->flags & _echoFlags [ i ] ) )
 			{
-				MCR_ECHO_SET ( & _echo, i ) ;
+				MCR_ECHO_SET_ECHO ( & _echo, i ) ;
 				if ( disp ( _echoSig ) )
 					return -1 ;
 			}
@@ -172,12 +182,12 @@ static LRESULT CALLBACK scroll_proc ( int nCode, WPARAM wParam,
 		switch ( wParam )
 		{
 		case WM_MOUSEWHEEL :
-			MCR_SCROLL_SET_DIMENSION ( & _scr, MCR_X, 0 ) ;
-			MCR_SCROLL_SET_DIMENSION ( & _scr, MCR_Y, delta ) ;
+			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_X, 0 ) ;
+			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_Y, delta ) ;
 			break ;
 		case WM_MOUSEHWHEEL :
-			MCR_SCROLL_SET_DIMENSION ( & _scr, MCR_X, delta ) ;
-			MCR_SCROLL_SET_DIMENSION ( & _scr, MCR_Y, 0 ) ;
+			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_X, delta ) ;
+			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_Y, 0 ) ;
 			break ;
 		}
 

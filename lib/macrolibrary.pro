@@ -31,7 +31,7 @@ lnx:DEFINES += MCR_NATIVE_DIR=lnx
 mac:DEFINES += MCR_NATIVE_DIR=nativeless
 nativeless:DEFINES += MCR_NATIVE_DIR=nativeless
 
-CONFIG(X11) {
+CONFIG(x11) {
     DEFINES += MCR_USE_X
     LIBS += -lX11
     HEADERS += \
@@ -39,8 +39,8 @@ CONFIG(X11) {
     SOURCES += \
         ../signal/lnx/lnxusex.c
 }
-CONFIG(Wayland) {
-    DEFINES += MCR_USE_Wayland
+CONFIG(wayland) {
+    DEFINES += MCR_USE_WAYLAND
 }
 
 msvc:LIBS += -luser32
@@ -58,14 +58,12 @@ else{
 # native util
 win {
     HEADERS += \
-        ../include/util/win/def.h \
-	../include/util/win/mcrstrings.h \
+	../include/util/win/def.h \
 	../include/util/win/util.h
 }
 lnx {
     HEADERS += \
-        ../include/util/lnx/def.h \
-	../include/util/lnx/mcrstrings.h \
+	../include/util/lnx/def.h \
 	../include/util/lnx/priv.h \
 	../include/util/lnx/util.h
 
@@ -100,7 +98,8 @@ HEADERS += \
     ../include/util/array.h \
     ../include/util/threads.h \
     ../include/util/mcrstrings.h \
-    ../include/util/interface.h
+    ../include/util/interface.h \
+    ../include/util/priv.h
 
 # native signal
 win {

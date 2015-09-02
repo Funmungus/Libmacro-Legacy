@@ -1,13 +1,23 @@
-/* include/hotkey/dispatchstandard.h - Dispatch for standard types.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 /*! \file hotkey/dispatchstandard.h
- * \ref mcr_Dispatch and \ref mcr_Hot definitions for standard signals.
+ * \ref mcr_Dispatch and \ref mcr_Hot definitions for standard signals
  * */
 
 # ifndef MCR_DISPATCHSTANDARD_H
@@ -34,59 +44,66 @@ MCR_API void mcr_DispatchMod_free ( ) ;
 
 // Interface function implementation for specific dispatchers.
 // This does not include modifiers
-MCR_API void mcr_DispatchAlarm_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchAlarm_dispatch_specific (
+MCR_API void mcr_DispatchAlarm_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchAlarm_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchAlarm_remove_specific (
+MCR_API void mcr_DispatchAlarm_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchAlarm_clear ( ) ;
 
-MCR_API void mcr_DispatchHIDEcho_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchHIDEcho_dispatch_specific (
+MCR_API void mcr_DispatchHIDEcho_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchHIDEcho_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchHIDEcho_remove_specific (
+MCR_API void mcr_DispatchHIDEcho_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchHIDEcho_clear ( ) ;
 
-MCR_API void mcr_DispatchKey_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchKey_dispatch_specific (
+MCR_API void mcr_DispatchKey_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchKey_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchKey_remove_specific (
+MCR_API void mcr_DispatchKey_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchKey_clear ( ) ;
 
-MCR_API void mcr_DispatchMoveCursor_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchMoveCursor_dispatch_specific (
+MCR_API void mcr_DispatchMoveCursor_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchMoveCursor_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchMoveCursor_remove_specific (
+MCR_API void mcr_DispatchMoveCursor_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchMoveCursor_clear ( ) ;
 
-MCR_API void mcr_DispatchNoOp_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchNoOp_dispatch_specific (
+MCR_API void mcr_DispatchNoOp_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchNoOp_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchNoOp_remove_specific (
+MCR_API void mcr_DispatchNoOp_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchNoOp_clear ( ) ;
 
-MCR_API void mcr_DispatchScroll_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchScroll_dispatch_specific (
+MCR_API void mcr_DispatchScroll_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchScroll_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchScroll_remove_specific (
+MCR_API void mcr_DispatchScroll_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchScroll_clear ( ) ;
 
-MCR_API void mcr_DispatchMod_add_specific (
-		mcr_Signal * signalPt, unsigned int mods, mcr_Hot * newHotkey ) ;
-MCR_API int mcr_DispatchMod_dispatch_specific (
+MCR_API void mcr_DispatchMod_add (
+		mcr_Signal * signalPt, unsigned int mods,
+		mcr_TriggerFor triggerFor, mcr_Hot * newHotkey ) ;
+MCR_API int mcr_DispatchMod_dispatch (
 		mcr_Signal * signalPt, unsigned int mods ) ;
-MCR_API void mcr_DispatchMod_remove_specific (
+MCR_API void mcr_DispatchMod_remove (
 		mcr_Hot * delHotkey ) ;
 MCR_API void mcr_DispatchMod_clear ( ) ;
 

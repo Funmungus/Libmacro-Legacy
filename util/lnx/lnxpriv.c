@@ -1,10 +1,20 @@
-/* util/lnx/lnxpriv.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 // For seteuid
 # ifndef _GNU_SOURCE
@@ -12,6 +22,7 @@
 # endif
 
 # include "util/lnx/priv.h"
+# include "util/priv.h"
 
 static int _uid = 1000 ;
 void mcr_setuid ( int uid )
@@ -22,7 +33,7 @@ void mcr_setuid ( int uid )
 		dmsg ;
 }
 
-int mcr_deactivate_root ( )
+int mcr_privilege_deactivate ( )
 {
 	// Full user, attempt set lower permission user,
 	// do not fail on higher permission user.
@@ -49,47 +60,45 @@ int mcr_deactivate_root ( )
 	return 1 ;
 }
 
-int mcr_activate_root ( )
+static int privswap ( )
 {
-	if ( getuid ( ) && geteuid ( ) )
+	if ( setreuid ( geteuid ( ), getuid ( ) ) == -1 )
 	{
-		if ( seteuid ( 0 ) == -1 )
-		{
-			dmsg ;
-			return 0 ;
-		}
+		dmsg ;
+		return 0 ;
 	}
-	else if ( geteuid ( ) )
-	{
-		if ( setreuid ( geteuid ( ), getuid ( ) ) == -1 )
-		{
-			dmsg ;
-			return 0 ;
-		}
-	}
-	// Either already root, or seteuid success.
 	return 1 ;
 }
 
-int mcr_activate_user ( )
+int mcr_set_privileged ( int enable )
 {
-	// Have a user, switch effective user.
-	if ( getuid ( ) )
+	if ( enable )
 	{
-		if ( setreuid ( geteuid ( ), getuid ( ) ) == -1 )
+		if ( getuid ( ) && geteuid ( ) )
 		{
-			dmsg ;
-			return 0 ;
+			if ( seteuid ( 0 ) == -1 )
+			{
+				dmsg ;
+				return 0 ;
+			}
 		}
+		else if ( geteuid ( ) )
+		{ return privswap ( ) ; }
 	}
-	// User root, effective user root, set effective to inter memory,
-	// fail if not able.
-	else if ( ! geteuid ( ) )
+	else
 	{
-		if ( seteuid ( _uid ) == -1 )
+		// Have a user, switch effective user.
+		if ( getuid ( ) )
+		{ return privswap ( ) ; }
+		// User root, effective user root, set effective to inter memory,
+		// fail if not able.
+		else if ( ! geteuid ( ) )
 		{
-			dmsg ;
-			return 0 ;
+			if ( seteuid ( _uid ) == -1 )
+			{
+				dmsg ;
+				return 0 ;
+			}
 		}
 	}
 	return 1 ;

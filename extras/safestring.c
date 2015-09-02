@@ -1,10 +1,20 @@
-/* extras/safestring.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "extras/safestring.h"
 
@@ -92,16 +102,6 @@ void mcr_SafeString_free ( mcr_SafeString * ssPt )
 	mcr_Array_free ( & ssPt->text ) ;
 }
 
-void mcr_SafeString_free_foreach ( mcr_SafeString * ssPt, ... )
-{
-	if ( ! ssPt )
-	{
-		dmsg ;
-		return ;
-	}
-	mcr_Array_free ( & ssPt->text ) ;
-}
-
 mcr_Array mcr_SafeString_get ( const mcr_SafeString * ssPt )
 {
 	dassert ( ssPt ) ;
@@ -149,11 +149,35 @@ void mcr_SafeString_set ( mcr_SafeString * ssPt,
 	}
 }
 
+void mcr_SafeString_set_cryptic ( mcr_SafeString * ssPt,
+		int cryptic )
+{
+	dassert ( ssPt ) ;
+	if ( cryptic != ssPt->cryptic && ssPt->text.used )
+	{
+		if ( cryptic )
+		{
+			mcr_String_to_encrypted ( & ssPt->text, ssPt->tag,
+					( unsigned char * ) _pass, ssPt->iv ) ;
+		}
+		else
+		{
+			mcr_Array str = mcr_String_from_encrypted ( & ssPt->text,
+					ssPt->tag, ( unsigned char * ) _pass, ssPt->iv ) ;
+			free ( ssPt->text.array ) ;
+			memset ( ssPt->iv, 0, sizeof ( ssPt->iv ) ) ;
+			memset ( ssPt->tag, 0, sizeof ( ssPt->tag ) ) ;
+			ssPt->text = str ;
+		}
+		ssPt->cryptic = cryptic ;
+	}
+}
+
 void mcr_SafeString_recrypt ( mcr_SafeString * ssPt,
 		char * oldPass )
 {
 	dassert ( ssPt ) ;
-	if ( ! ssPt->cryptic || MCR_STR_ISEMPTY ( & ssPt->text ) )
+	if ( ! ssPt->cryptic || MCR_STR_EMPTY ( ssPt->text ) )
 		return ;
 	mcr_Array textVal = mcr_SafeString_from_password ( ssPt, oldPass ) ;
 	mcr_SafeString_set ( ssPt, textVal.array, ssPt->cryptic ) ;
@@ -167,7 +191,7 @@ void mcr_String_to_encrypted ( mcr_Array * toEncryptPt,
 	dassert ( tag ) ;
 	dassert ( pass ) ;
 	dassert ( iv ) ;
-	if ( MCR_STR_ISEMPTY ( toEncryptPt ) )
+	if ( MCR_STR_EMPTY ( * toEncryptPt ) )
 	{
 		return ;
 	}
@@ -200,7 +224,7 @@ mcr_Array mcr_String_from_encrypted ( const mcr_Array * encryptedPt,
 	dassert ( iv ) ;
 	mcr_Array ret ;
 	mcr_String_init ( & ret ) ;
-	if ( MCR_STR_ISEMPTY ( encryptedPt ) )
+	if ( MCR_STR_EMPTY ( * encryptedPt ) )
 		return ret ;
 	if ( ! mcr_Array_resize ( & ret, encryptedPt->used ) )
 	{

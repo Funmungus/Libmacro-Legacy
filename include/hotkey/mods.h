@@ -1,14 +1,24 @@
-/* include/hotkey/mods.h - Signal type to modify mcr_internalMods.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 /*! \file hotkey/mods.h
- * \brief mcr_Mods, signal to modify \ref mcr_internalMods. Also
- * handle known modifiers.
+ * \brief mcr_Mods, signal to modify \ref mcr_internalMods, and
+ * handle known modifiers
  * */
 
 # ifndef MCR_MODS_H
@@ -20,18 +30,21 @@
 MCR_API extern mcr_ISignal mcr_iMod ;
 
 /*! \brief Pair of modifier bits and whether to set or release those
- * modifiers. May be sent with \ref mcr_IMod.
+ * modifiers <br>
+ * May be sent with \ref mcr_iMod
  * */
 typedef struct mcr_Mod
 {
 	//! \brief Bit values representing a set of modifiers.
 	unsigned int modifiers ;
-	/*! \brief \ref MCR_DOWN will set the modifier, otherwise it is
-	 * released. */
+	/*! \brief \ref MCR_DOWN will set the modifier, \ref MCR_TOGGLE
+	 * will change the state from what it currently is, otherwise it is
+	 * released */
 	mcr_KeyUpType up_type ;
 } mcr_Mod ;
 
 MCR_API int mcr_Mod_send ( mcr_Signal * sigPt ) ;
+MCR_API int mcr_Mod_compare ( const void * lhs, const void * rhs ) ;
 
 //
 // Generic, known modifiers.
@@ -75,46 +88,38 @@ typedef enum mcr_ModTypes
 MCR_API void mcr_Mods_load_contract ( ) ;
 
 // Names
-MCR_API unsigned int mcr_Mod_get ( const char * name ) ;
-MCR_API const char * mcr_Mod_get_name (
+MCR_API unsigned int mcr_Mod_from ( const char * name ) ;
+MCR_API const char * mcr_Mod_name (
 		const unsigned int modifier ) ;
 MCR_API size_t mcr_Mod_count ( ) ;
-MCR_API void mcr_Mod_get_all ( unsigned int * modBuffer,
+MCR_API void mcr_Mod_all ( unsigned int * modBuffer,
 		const size_t bufferLength ) ;
 // Echo
-MCR_API mcr_Mod mcr_Mod_echo_get ( const int echo ) ;
-MCR_API int mcr_Mod_echo_get_echo ( const mcr_Mod modifier ) ;
+MCR_API mcr_Mod mcr_Mod_from_echo ( const int echo ) ;
+MCR_API int mcr_Mod_echo ( const mcr_Mod modifier ) ;
 MCR_API size_t mcr_Mod_echo_count ( ) ;
-MCR_API void mcr_Mod_echo_get_all ( int * echoBuffer,
+MCR_API void mcr_Mod_echo_all ( int * echoBuffer,
 		const size_t bufferLength ) ;
 // Key
-MCR_API unsigned int mcr_Mod_key_get ( const int key ) ;
-MCR_API int mcr_Mod_key_get_key ( const unsigned int modifier ) ;
+MCR_API unsigned int mcr_Mod_from_key ( const int key ) ;
+MCR_API int mcr_Mod_key_key ( const unsigned int modifier ) ;
 MCR_API size_t mcr_Mod_key_count ( ) ;
-MCR_API void mcr_Mod_key_get_all ( int * keyBuffer,
+MCR_API void mcr_Mod_key_all ( int * keyBuffer,
 		const size_t bufferLength ) ;
-
-MCR_API int mcr_Mod_compare ( const void * lhs, const void * rhs ) ;
-
 
 //
 // Modify modifiers
 //
 MCR_API unsigned int mcr_Mod_combine ( const unsigned int * modsArray,
 		const size_t length ) ;
-
 MCR_API void mcr_Mod_modify ( mcr_Mod * modPt,
 		const unsigned int modifier, const mcr_KeyUpType modifierKeyUp ) ;
-
 MCR_API unsigned int mcr_Mod_modify_bits ( const unsigned int mods,
 		const unsigned int modifier, const mcr_KeyUpType keyUp ) ;
-
 MCR_API unsigned int mcr_Mod_add ( const unsigned int mods,
 		const unsigned int newMod ) ;
-
-MCR_API int mcr_Mod_hasMod ( const unsigned int mods,
+MCR_API int mcr_Mod_has ( const unsigned int mods,
 		const unsigned int modVal ) ;
-
 MCR_API unsigned int mcr_Mod_remove ( const unsigned int mods,
 		const unsigned int delMod ) ;
 

@@ -1,10 +1,20 @@
-/*
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 
 # include "util/util.h"
@@ -289,11 +299,11 @@ void test_Array_prev ( )
 
 void test_Array_end ( )
 {
-	pt = MCR_ARR_END ( & arr ) ;
+	pt = MCR_ARR_END ( arr ) ;
 	assert ( pt == ( STR * ) ( ( ( char * )
 			mcr_Array_at ( & arr, SIZE - 1 ) ) + SIZEOF ) ) ;
 	mcr_Array_free ( & arr ) ;
-	assert ( MCR_ARR_END ( & arr ) == NULL ) ;
+	assert ( MCR_ARR_END ( arr ) == NULL ) ;
 	reset ( ) ;
 }
 
@@ -317,7 +327,7 @@ void inc ( void * arrIt, ... )
 void test_Array_for_each ( )
 {
 	reps = 0 ;
-	MCR_ARR_FOR_EACH ( & arr, inc, 42 ) ;
+	MCR_ARR_FOR_EACH ( arr, inc, 42 ) ;
 	assert ( reps == SIZE ) ;
 	reps = 0 ;
 	mcr_Array_for_each ( & arr, inc_impl, 42 ) ;
@@ -356,8 +366,8 @@ void test_Array_resize ( )
 
 /*void test_Array_print ( )
 {
-	fprintf ( mcr_stdout, "Two is a manual test, please read below.\n" ) ;
-	fprintf ( mcr_stdout, "Please verify array is printed correctly, from 0 to %d.\n",
+	fprintf ( mcr_out, "Two is a manual test, please read below.\n" ) ;
+	fprintf ( mcr_out, "Please verify array is printed correctly, from 0 to %d.\n",
 			SIZE - 1 ) ;
 	mcr_Array_print ( & arr ) ;
 }*/
@@ -388,7 +398,7 @@ int main ( void )
 	test_Array_resize ( ) ;
 //	test_Array_print ( ) ;
 
-	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_out, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

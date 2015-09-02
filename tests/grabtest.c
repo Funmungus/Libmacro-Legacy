@@ -1,10 +1,20 @@
-/* grabtest.c - Test Linux input event grabbing.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "intercept/intercept.h"
 # include "intercept/lnx/intercept.h"
@@ -43,7 +53,7 @@ void setup ( )
 
 	mcr_Hot_init_with ( & mHot, & mcr_iHot, 0, 0, 0, mTrigger, NULL ) ;
 
-	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
+	fprintf ( mcr_out, "Setup - OK\n" ) ;
 }
 
 int mSelect ( ) ;
@@ -63,7 +73,7 @@ int main ( int argc, char ** argv )
 	{
 	}
 
-	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_out, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }
@@ -74,18 +84,18 @@ void mTrigger ( mcr_Hot * hotPt, mcr_Signal * sigPt, unsigned int mods )
 	UNUSED ( mods ) ;
 	const char * name = mcr_ISignal_get_name
 			( sigPt->type->interface.id ) ;
-	fprintf ( mcr_stdout, "Triggered signal %llu:%s.\n",
+	fprintf ( mcr_out, "Triggered signal %llu:%s.\n",
 			( long long unsigned ) sigPt->type->interface.id,
 			name ? name : "NULL" ) ;
 }
 
 int mSelect ( )
 {
-	fprintf ( mcr_stdout, "\nPlease make an integer selection.\n" ) ;
-	fprintf ( mcr_stdout, "%7s%30s\n %7s%30s\n ",
+	fprintf ( mcr_out, "\nPlease make an integer selection.\n" ) ;
+	fprintf ( mcr_out, "%7s%30s\n %7s%30s\n ",
 		"-1 ) ", "exit",
 		"0 ) ", "nothing" ) ;
-	fprintf ( mcr_stdout, "Your selection : " ) ;
+	fprintf ( mcr_out, "Your selection : " ) ;
 
 	int i = -1 ;
 	SAFESCAN ( buffer ) ;

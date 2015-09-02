@@ -16,26 +16,24 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# ifndef MCR_LNX_USEX_H
-# define MCR_LNX_USEX_H
-# ifdef MCR_USEX
+/*! \file util/priv.h
+ * Set current operating permissions.
+ * */
 
-# include "X11/keysym.h"
-# include "X11/keysymdef.h"
-# include "signal/lnx/def.h"
+# ifndef MCR_PRIV_H
+# define MCR_PRIV_H
 
-/* Mods known by XLib */
-extern unsigned int mcr_xMods ;
+# include "util/def.h"
 
-// Install senders to replace standard ones.
-MCR_API void mcr_usex_enable ( int enable ) ;
-MCR_API int mcr_HIDEcho_usex_send ( mcr_Signal * sigPt ) ;
-MCR_API int mcr_Key_usex_send ( mcr_Signal * sigPt ) ;
-MCR_API int mcr_MoveCursor_usex_send ( mcr_Signal * sigPt ) ;
-MCR_API int mcr_Scroll_usex_send ( mcr_Signal * sigPt ) ;
+//
+// Defined for natively per OS
+//
+/*! \brief Disable privileges, and remove the ability to
+ * enable them. */
+MCR_API int mcr_privilege_deactivate ( ) ;
+//! \brief \return 0 for unprivileged, otherwise application has privileges
+MCR_API int mcr_privileged ( ) ;
+/*! \brief Enable privileges */
+MCR_API int mcr_set_privileged ( int enable ) ;
 
-MCR_API void mcr_usex_initialize ( ) ;
-MCR_API void mcr_usex_cleanup ( void ) ;
-
-# endif // MCR_USEX
-# endif // MCR_LNX_USEX_H
+# endif

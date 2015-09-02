@@ -1,10 +1,20 @@
-/* extras/signaloption.h
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "extras/signaloption.h"
 
@@ -93,7 +103,7 @@ int mcr_signal_send_option ( int argc, char ** argv, int index )
 	mcr_Signal sendSig = { 0 } ;
 	// Will be at one after "send"
 	index = mcr_signal_modify ( argc, argv, index, & sendSig ) ;
-	MCR_SEND ( & sendSig ) ;
+	MCR_SEND ( sendSig ) ;
 	mcr_Signal_free ( & sendSig ) ;
 	return index ;
 }
@@ -173,7 +183,7 @@ int mcr_signal_modify ( int argc, char ** argv, int index,
 	if ( index >= argc )
 		return index ;
 	suredata ( sigPtOut ) ;
-	mcr_signal_modify_fnc * fPt = MCR_ARR_AT ( & _sigMods,
+	mcr_signal_modify_fnc * fPt = MCR_ARR_AT ( _sigMods,
 			isigPt->iface.id ) ;
 	dassert ( fPt ) ;
 	if ( * fPt )
@@ -252,7 +262,7 @@ int mcr_echo_modify ( int argc, char ** argv,
 	else
 		echo = mcr_Echo_code ( argv [ index ] ) ;
 	// Already checked for digit on the strtol.
-	MCR_ECHO_SET ( ( mcr_HIDEcho * ) sigPtOut->data.data, echo ) ;
+	MCR_ECHO_SET_ECHO ( * ( mcr_HIDEcho * ) sigPtOut->data.data, echo ) ;
 	++ index ;
 	return setNotation && argv [ index ] [ 0 ] == '}' ?
 		index + 1 : index ;
@@ -590,7 +600,7 @@ static int key_set_key ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_KEY_SET ( ( mcr_Key * ) data, val ) ;
+		MCR_KEY_SET_KEY ( * ( mcr_Key * ) data, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -600,7 +610,7 @@ static int key_set_scan ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_KEY_SET_SCAN ( ( mcr_Key * ) data, val ) ;
+		MCR_KEY_SET_SCAN ( * ( mcr_Key * ) data, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -609,15 +619,15 @@ static int key_set_up ( void * data, char * value )
 {
 	if ( ! strncasecmp ( value, "down", 4 ) )
 	{
-		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_DOWN ) ;
+		MCR_KEY_SET_UP_TYPE ( * ( mcr_Key * ) data, MCR_DOWN ) ;
 	}
 	else if ( ! strncasecmp ( value, "up", 2 ) )
 	{
-		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_UP ) ;
+		MCR_KEY_SET_UP_TYPE ( * ( mcr_Key * ) data, MCR_UP ) ;
 	}
 	else if ( ! strncasecmp ( value, "both", 4 ) )
 	{
-		MCR_KEY_SET_UP_TYPE ( ( mcr_Key * ) data, MCR_BOTH ) ;
+		MCR_KEY_SET_UP_TYPE ( * ( mcr_Key * ) data, MCR_BOTH ) ;
 	}
 	else
 		return 0 ;
@@ -629,7 +639,7 @@ static int mc_set_x ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_X, val ) ;
+		MCR_MOVECURSOR_SET_COORDINATE ( * ( mcr_MoveCursor * ) data, MCR_X, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -639,7 +649,7 @@ static int mc_set_y ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_Y, val ) ;
+		MCR_MOVECURSOR_SET_COORDINATE ( * ( mcr_MoveCursor * ) data, MCR_Y, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -649,7 +659,7 @@ static int mc_set_z ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_MOVECURSOR_SET_POSITION ( ( mcr_MoveCursor * ) data, MCR_Z, val ) ;
+		MCR_MOVECURSOR_SET_COORDINATE ( * ( mcr_MoveCursor * ) data, MCR_Z, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -657,9 +667,9 @@ static int mc_set_z ( void * data, char * value )
 static int mc_set_justify ( void * data, char * value )
 {
 	int justify ;
-	if ( mcr_convert_bool ( value, & justify ) )
+	if ( mcr_atob ( value, & justify ) )
 	{
-		MCR_MOVECURSOR_ENABLE_JUSTIFY ( ( mcr_MoveCursor * ) data,
+		MCR_MOVECURSOR_SET_JUSTIFY ( * ( mcr_MoveCursor * ) data,
 				justify ) ;
 		return 1 ;
 	}
@@ -692,7 +702,7 @@ static int scroll_set_x ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_X, val ) ;
+		MCR_SCROLL_SET_COORDINATE ( * ( mcr_Scroll * ) data, MCR_X, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -702,7 +712,7 @@ static int scroll_set_y ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_Y, val ) ;
+		MCR_SCROLL_SET_COORDINATE ( * ( mcr_Scroll * ) data, MCR_Y, val ) ;
 		return 1 ;
 	}
 	return 0 ;
@@ -712,7 +722,7 @@ static int scroll_set_z ( void * data, char * value )
 	long val ;
 	if ( strtol_ok ( value, & val ) )
 	{
-		MCR_SCROLL_SET_DIMENSION ( ( mcr_Scroll * ) data, MCR_Z, val ) ;
+		MCR_SCROLL_SET_COORDINATE ( * ( mcr_Scroll * ) data, MCR_Z, val ) ;
 		return 1 ;
 	}
 	return 0 ;

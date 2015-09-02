@@ -1,18 +1,27 @@
-/* include/extras/signalextras.h
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # ifndef MCR_SIGNALEXTRAS_H
 # define MCR_SIGNALEXTRAS_H
 
 # include "extras/safestring.h"
 
-/*!
- * \brief
+/*! \brief
  *
  * All members are arrays of safe strings.
  * */
@@ -51,8 +60,7 @@ MCR_API int mcr_StringKey_compare ( const void * lhs, const void * rhs ) ;
 MCR_API void mcr_StringKey_copy ( void * dstPt, void * srcPt ) ;
 MCR_API void mcr_StringKey_free ( void * skPt ) ;
 
-
-MCR_API void mcr_Command_set ( mcr_Command * cmdPt,
+MCR_API void mcr_Command_set_file ( mcr_Command * cmdPt,
 		const char * file, int cryptic ) ;
 MCR_API void mcr_Command_set_args ( mcr_Command * cmdPt,
 		char * const argv [ ], int cryptic ) ;
@@ -74,7 +82,7 @@ MCR_API int mcr_Command_send ( mcr_Signal * sigPt ) ;
 //
 // String key development
 //
-MCR_API mcr_Array * mcr_StringKey_get_char ( int character ) ;
+MCR_API mcr_Array * mcr_StringKey_char ( int character ) ;
 MCR_API void mcr_StringKey_set_char ( int character,
 		mcr_Signal * charSignalArr, size_t arrLen ) ;
 MCR_API void mcr_StringKey_remove_char ( int character ) ;

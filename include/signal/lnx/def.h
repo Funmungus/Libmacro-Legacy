@@ -1,10 +1,20 @@
-/* include/signal/lnx/def.h
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # ifndef MCR_LNX_SIGNAL_DEFINES_H
 # define MCR_LNX_SIGNAL_DEFINES_H
@@ -31,12 +41,12 @@
 
 # include "util/lnx/util.h"
 # include "signal/def.h"
-# include <dirent.h> // Find uinput dev node after creation.
-# include <linux/input.h> // Event definitions.
+# include <dirent.h> // Find uinput dev node after creation
+# include <linux/input.h> // Event definitions
 # include <linux/joystick.h> // EVIO joysticks
 # include <linux/limits.h>
-# include <linux/uinput.h> // Create udev.
+# include <linux/uinput.h> // Create udev
 # include <sys/stat.h>
-# include <fcntl.h> // File control, open, create, read, write.
+# include <fcntl.h> // File control, open, create, read, write
 
-# endif // MCR_SIGNAL_DEFINES_H
+# endif // MCR_LNX_SIGNAL_DEFINES_H

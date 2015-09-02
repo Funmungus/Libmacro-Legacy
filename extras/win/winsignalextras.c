@@ -1,10 +1,20 @@
-/* extras/win/winsignalextras.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "extras/extras.h"
 # include "extras/win/def.h"
@@ -31,7 +41,7 @@ int mcr_Command_execvpe ( mcr_Command * cmdPt )
 //	MCR_ARR_FOR_EACH ( & cmdPt->env, get_strings_redirect, & envMem ) ;
 
 	if ( ( ! cmdPt->argv.used || argsArr ) && args
-			&& ! MCR_STR_ISEMPTY ( & file ) )
+			&& ! MCR_STR_EMPTY ( & file ) )
 	{
 		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
 		{
@@ -253,7 +263,7 @@ static void get_strings_redirect ( mcr_SafeString * ssPt,
 		mcr_Array * envMemPt )
 {
 	mcr_Array str = mcr_SafeString_get ( ssPt ) ;
-	if ( MCR_STR_ISEMPTY ( & str ) )
+	if ( MCR_STR_EMPTY ( & str ) )
 		mcr_Array_free ( & str ) ;
 	else
 		mcr_Array_push ( envMemPt, & str ) ;
@@ -261,6 +271,6 @@ static void get_strings_redirect ( mcr_SafeString * ssPt,
 
 //static void putenv_redirect ( mcr_Array * envStr, ... )
 //{
-//	if ( ! MCR_STR_ISEMPTY ( envStr ) )
+//	if ( ! MCR_STR_EMPTY ( envStr ) )
 //		putenv ( envStr->array ) ;
 //}

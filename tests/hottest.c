@@ -1,10 +1,20 @@
-/*
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 
 # include "hotkey/hotkey.h"
@@ -30,7 +40,7 @@ void setup ( )
 	mcr_signal_initialize ( ) ;
 	mcr_hotkey_initialize ( ) ;
 
-	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
+	fprintf ( mcr_out, "Setup - OK\n" ) ;
 }
 
 void test_Hot_init ( )
@@ -41,7 +51,7 @@ void test_Hot_init ( )
 	assert ( hotty.data.data == NULL ) ;
 	assert ( hotty.data.is_heap == 0 ) ;
 
-	fprintf ( mcr_stdout, "mcr_Hot_init - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Hot_init - OK\n" ) ;
 }
 
 int triggerCalled = 0 ;
@@ -66,7 +76,7 @@ void test_Hot_init_with ( )
 	assert ( hotty.trigger == triggerFnc ) ;
 	assert ( hotty.trigger_data == & obj ) ;
 
-	fprintf ( mcr_stdout, "mcr_Hot_init_with - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Hot_init_with - OK\n" ) ;
 }
 void test_Hot_trigger ( )
 {
@@ -86,7 +96,7 @@ void test_Hot_trigger ( )
 	trigMods = 0 ;
 	mcr_Hot_trigger ( & hotty, trigSignal, trigMods ) ;
 
-	fprintf ( mcr_stdout, "mcr_Hot_trigger - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Hot_trigger - OK\n" ) ;
 }
 void trigIncFnc ( mcr_Hot * hotPt, mcr_Signal * sigPt,
 		unsigned int mods )
@@ -111,7 +121,7 @@ void test_Hot_trigger_array ( )
 	mcr_Hot_trigger_array ( hotPtSet, SIZE, trigSignal, trigMods ) ;
 	assert ( triggerCalled == SIZE ) ;
 
-	fprintf ( mcr_stdout, "mcr_Hot_trigger_array - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Hot_trigger_array - OK\n" ) ;
 }
 
 int main ( void )
@@ -123,7 +133,7 @@ int main ( void )
 	test_Hot_trigger ( ) ;
 	test_Hot_trigger_array ( ) ;
 
-	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_out, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

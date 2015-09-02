@@ -1,10 +1,20 @@
-/* signal/lnx/lnxstandard.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "signal/standard.h"
 # include "signal/lnx/standard.h"
@@ -22,7 +32,7 @@ void mcr_cursor_position ( mcr_SpacePosition buffer )
 
 void mcr_standard_enable ( int enable )
 {
-	if ( mcr_activate_root ( ) )
+	if ( mcr_set_privileged ( 1 ) )
 	{
 		mcr_Device_enable_all ( enable ) ;
 	}
@@ -33,7 +43,7 @@ void mcr_standard_enable ( int enable )
 # ifdef MCR_USE_X
 	mcr_usex_enable ( enable ) ;
 # endif
-	mcr_activate_user ( ) ;
+	mcr_set_privileged ( 0 ) ;
 }
 
 int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt )
@@ -65,9 +75,9 @@ int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt )
 	}
 	if ( ret )
 	{
-		if ( ! mcr_Map_map ( mcr_keyToEcho + ( MCR_KEY_GET_UP_TYPE
-				( keyPt ) ? 1 : 0 ),
-				& MCR_KEY_GET ( keyPt ), & echoCode ) )
+		if ( ! mcr_Map_map ( mcr_keyToEcho + ( MCR_KEY_UP_TYPE
+				( * keyPt ) ? 1 : 0 ),
+				& MCR_KEY_KEY ( * keyPt ), & echoCode ) )
 		{
 			dmsg ;
 			ret = 0 ;
@@ -92,7 +102,7 @@ void mcr_Key_init ( void * keyPt )
 	kPt->events [ 1 ].type = EV_KEY ;
 	memcpy ( kPt->events + 2, & mcr_syncer,
 			sizeof ( struct input_event ) ) ;
-	kPt->key_up = MCR_BOTH ;
+	kPt->up_type = MCR_BOTH ;
 }
 void mcr_MoveCursor_init ( void * mcPt )
 {
@@ -111,7 +121,7 @@ void mcr_MoveCursor_init ( void * mcPt )
 	mPt->relvent [ MCR_Z ].code = REL_Z ;
 	mPt->relvent [ MCR_DIMENSION_CNT ] =
 			mPt->absvent [ MCR_DIMENSION_CNT ] = mcr_syncer ;
-	mPt->cursor_justify = 1 ;
+	mPt->justify = 1 ;
 }
 void mcr_Scroll_init ( void * scrollPt )
 {

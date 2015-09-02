@@ -1,10 +1,20 @@
-/* hotkey/hot.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "hotkey/dispatch.h"
 
@@ -23,21 +33,21 @@ void mcr_Hot_init_with ( mcr_Hot * hotPt, mcr_IHot * ihotPt,
 {
 	if ( ! hotPt ) return ;
 	memset ( hotPt, 0, sizeof ( mcr_Hot ) ) ;
-	MCR_HOT_INIT ( hotPt, ihotPt, data, isHeap, block, trigger,
+	MCR_HOT_INIT ( * hotPt, ihotPt, data, isHeap, block, trigger,
 			triggerData ) ;
 }
 
 void mcr_Hot_free ( mcr_Hot * hotPt )
 {
 	if ( ! hotPt ) return ;
-	MCR_HOT_FREE ( hotPt ) ;
+	MCR_HOT_FREE ( * hotPt ) ;
 }
 
 void * mcr_IHot_mkdata_data ( mcr_IHot * ihotPt )
 {
 	dassert ( ihotPt ) ;
 	mcr_Data d = { 0 } ;
-	MCR_IHOT_MKDATA ( ihotPt, & d ) ;
+	MCR_IHOT_MKDATA ( * ihotPt, d ) ;
 	return d.data ;
 }
 
@@ -45,7 +55,7 @@ mcr_Data mcr_IHot_mkdata ( mcr_IHot * ihotPt )
 {
 	dassert ( ihotPt ) ;
 	mcr_Data d = { 0 } ;
-	MCR_IHOT_MKDATA ( ihotPt, & d ) ;
+	MCR_IHOT_MKDATA ( * ihotPt, d ) ;
 	return d ;
 }
 
@@ -53,7 +63,7 @@ void mcr_Hot_copy ( mcr_Hot * dstPt, mcr_Hot * srcPt )
 {
 	dassert ( dstPt ) ;
 	dassert ( srcPt ) ;
-	MCR_HOT_COPY ( dstPt, srcPt ) ;
+	MCR_HOT_COPY ( * dstPt, * srcPt ) ;
 }
 
 int mcr_Hot_compare ( const void * lhsHotPt,
@@ -62,14 +72,14 @@ int mcr_Hot_compare ( const void * lhsHotPt,
 	dassert ( lhsHotPt ) ;
 	dassert ( rhsHotPt ) ;
 	const mcr_Hot * lHotPt = lhsHotPt, * rHotPt = rhsHotPt ;
-	return MCR_HOT_CMP ( lHotPt, rHotPt ) ;
+	return MCR_HOT_CMP ( * lHotPt, * rHotPt ) ;
 }
 
 
 int mcr_Hot_trigger ( mcr_Hot * hotPt, mcr_Signal * signalPt,
 		unsigned int mods )
 {
-	MCR_HOT_TRIGGER ( hotPt, signalPt, mods ) ;
+	MCR_HOT_TRIGGER ( * hotPt, signalPt, mods ) ;
 	return hotPt->block ;
 }
 
@@ -96,7 +106,7 @@ void mcr_IHot_init_with ( mcr_IHot * ihotPt, mcr_compare_fnc compare,
 {
 	dassert ( ihotPt ) ;
 	memset ( ihotPt, 0, sizeof ( mcr_IHot ) ) ;
-	MCR_IHOT_INIT ( ihotPt, compare, copy, dataSize, init,
+	MCR_IHOT_INIT ( * ihotPt, compare, copy, dataSize, init,
 			free, trigger ) ;
 }
 

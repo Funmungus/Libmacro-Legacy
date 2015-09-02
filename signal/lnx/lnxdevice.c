@@ -1,10 +1,20 @@
-/* signal/lnx/lnxdevice.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "signal/lnx/device.h"
 # include "signal/isignal.h"
@@ -14,7 +24,7 @@ MCR_API mcr_Device mcr_absDev ;
 MCR_API mcr_Device mcr_relDev ;
 const MCR_API struct input_event mcr_syncer = { { 0, 0 }, EV_SYN, \
 		SYN_REPORT, 0 } ;
-MCR_API size_t mcr_abs_resolution = MCR_ABS_RESOLUTION ;
+MCR_API __s32 mcr_abs_resolution = MCR_ABS_RESOLUTION ;
 
 static mcr_Array _uinputPath ;
 static mcr_Array _eventPath ;
@@ -64,7 +74,7 @@ void mcr_Device_set_event_directory
 	mcr_String_from_string ( & _eventPath, directoryPath ) ;
 }
 
-void mcr_Device_set_absolute_resolution ( size_t resolution )
+void mcr_Device_set_absolute_resolution ( __s32 resolution )
 {
 	mcr_abs_resolution = resolution ;
 	int wasEnabled = 0 ;
@@ -97,8 +107,8 @@ void mcr_Device_free ( mcr_Device * devPt )
 {
 	dassert ( devPt ) ;
 	mcr_Device_enable ( devPt, 0 ) ;
-	MCR_MAP_FOR_EACH_VALUE ( & devPt->type_value_map,
-			mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH_VALUE ( devPt->type_value_map,
+			MCR_EXP ( mcr_Array_free_foreach ),) ;
 	mcr_Map_free ( & devPt->type_value_map ) ;
 	mcr_Device_init ( devPt ) ;
 }
@@ -176,7 +186,7 @@ int mcr_Device_enable_all ( int enable )
 
 void mcr_Device_usage ( )
 {
-	fprintf ( mcr_stdout, "%s\n", "" ) ;
+	fprintf ( mcr_out, "%s\n", "" ) ;
 }
 
 int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
@@ -206,17 +216,17 @@ int mcr_Device_set_bits ( mcr_Device * devPt, int bitType, int * bits,
 	return 1 ;
 }
 
-mcr_Array * mcr_Device_get_bits ( mcr_Device * devPt, int bitType )
+mcr_Array * mcr_Device_bits ( mcr_Device * devPt, int bitType )
 {
 	dassert ( devPt ) ;
-	return MCR_MAP_GET_VALUE ( & devPt->type_value_map, & bitType ) ;
+	return MCR_MAP_GET_VALUE ( devPt->type_value_map, & bitType ) ;
 }
 
 int mcr_Device_has_evbit ( mcr_Device * devPt )
 {
 	dassert ( devPt ) ;
 	int evbit = UI_SET_EVBIT ;
-	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
+	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( devPt->type_value_map,
 			& evbit ) ;
 	return evbit_arr && evbit_arr->used ;
 }
@@ -425,7 +435,7 @@ static int device_write_bits ( mcr_Device * devPt, int setBit,
 	if ( ! bits->used )
 		return 1 ;
 	int success = 1 ;
-	MCR_ARR_FOR_EACH ( bits, write_bit_redirect, devPt->fd,
+	MCR_ARR_FOR_EACH ( * bits, write_bit_redirect, devPt->fd,
 			setBit, & success ) ;
 	return success ;
 }
@@ -434,7 +444,7 @@ static int device_write_evbit ( mcr_Device * devPt )
 {
 	dassert ( devPt ) ;
 	int evbit = UI_SET_EVBIT ;
-	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( & devPt->type_value_map,
+	mcr_Array * evbit_arr = MCR_MAP_GET_VALUE ( devPt->type_value_map,
 			& evbit ) ;
 	return evbit_arr && evbit_arr->used &&
 			device_write_bits ( devPt, evbit, evbit_arr ) ;
@@ -447,7 +457,7 @@ static void write_non_evbit_redirect ( int * evbitPair,
 	dassert ( devPt ) ;
 	dassert ( success ) ;
 	if ( * evbitPair == UI_SET_EVBIT ) return ;
-	mcr_Array * evbitArr = MCR_MAP_VALUE ( & devPt->type_value_map,
+	mcr_Array * evbitArr = MCR_MAP_VALUE ( devPt->type_value_map,
 			evbitPair ) ;
 	if ( ! device_write_bits ( devPt, * evbitPair, evbitArr ) )
 	{
@@ -463,7 +473,7 @@ static int device_write_non_evbit ( mcr_Device * devPt )
 	if ( ! devPt->type_value_map.set.used )
 		return 0 ;
 	int success = 1 ;
-	MCR_MAP_FOR_EACH ( & devPt->type_value_map, write_non_evbit_redirect,
+	MCR_MAP_FOR_EACH ( devPt->type_value_map, write_non_evbit_redirect,
 			devPt, & success ) ;
 	return success ;
 }
@@ -612,8 +622,8 @@ void mcr_Device_initialize ( )
 	mtx_init ( & _deviceLock, mtx_plain ) ;
 	mcr_String_init ( & _uinputPath ) ;
 	mcr_String_init ( & _eventPath ) ;
-	mcr_String_from_string ( & _uinputPath, STRINGIFY ( MCR_UINPUT_PATH ) ) ;
-	mcr_String_from_string ( & _eventPath, STRINGIFY ( MCR_EVENT_PATH ) ) ;
+	mcr_String_from_string ( & _uinputPath, MCR_STR ( MCR_UINPUT_PATH ) ) ;
+	mcr_String_from_string ( & _eventPath, MCR_STR ( MCR_EVENT_PATH ) ) ;
 	/* ioctl is unpredictable for valgrind. The first ioctl will
 	 * be uninitialized, and others should not cause errors. */
 	keyDevice_init ( ) ;

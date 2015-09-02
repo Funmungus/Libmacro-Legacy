@@ -1,10 +1,20 @@
-/*
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 
 # include "signal/signal.h"
@@ -90,7 +100,7 @@ void setup ( )
 		verifySig ( sigs + i ) ;
 	}
 
-	fprintf ( mcr_stdout, "Setup - OK\n" ) ;
+	fprintf ( mcr_out, "Setup - OK\n" ) ;
 }
 
 int alldispatchCalled = 0 ;
@@ -136,25 +146,25 @@ void test_Signal_init ( )
 	assert ( sig.data.data == NULL ) ;
 	verifySig ( & sig ) ;
 
-	fprintf ( mcr_stdout, "mcr_Signal_init - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Signal_init - OK\n" ) ;
 }
 void test_Signal_init_with ( )
 {
 	mcr_Signal sig ;
-	mcr_Signal_init_with ( & sig, NULL, NULL, 0 ) ;
+	mcr_Signal_init_with ( & sig, NULL, NULL, 0, 1 ) ;
 	assert ( sig.data.data == NULL ) ;
 	assert ( sig.type == NULL ) ;
-	mcr_Signal_init_with ( & sig, isigs, NULL, 0 ) ;
+	mcr_Signal_init_with ( & sig, isigs, NULL, 0, 1 ) ;
 	assert ( sig.data.data == NULL ) ;
 	assert ( sig.type == isigs ) ;
-	mcr_Signal_init_with ( & sig, NULL, datas, 0 ) ;
+	mcr_Signal_init_with ( & sig, NULL, datas, 0, 1 ) ;
 	assert ( sig.data.data == datas ) ;
 	assert ( sig.type == NULL ) ;
-	mcr_Signal_init_with ( & sig, isigs, datas, 0 ) ;
+	mcr_Signal_init_with ( & sig, isigs, datas, 0, 1 ) ;
 	assert ( sig.data.data == datas ) ;
 	assert ( sig.type == isigs ) ;
 
-	fprintf ( mcr_stdout, "mcr_Signal_init_with - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_Signal_init_with - OK\n" ) ;
 }
 void test_send ( )
 {
@@ -164,7 +174,7 @@ void test_send ( )
 	{
 		verifysend ( sigs + i ) ;
 	}
-	fprintf ( mcr_stdout, "mcr_send - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_send - OK\n" ) ;
 }
 
 void test_ISignal_init ( )
@@ -176,7 +186,7 @@ void test_ISignal_init ( )
 	assert ( isig.iface.id == ( size_t ) -1 ) ;
 	assert ( isig.send == send_s1 ) ;
 
-	fprintf ( mcr_stdout, "mcr_ISignal_init - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_init - OK\n" ) ;
 }
 mcr_ISignal reggi ;
 void test_ISignal_register ( )
@@ -187,7 +197,7 @@ void test_ISignal_register ( )
 	assert ( ret > 0 ) ;
 	assert ( ret == reggi.iface.id ) ;
 
-	fprintf ( mcr_stdout, "mcr_ISignal_register - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_register - OK\n" ) ;
 }
 void test_ISignal_get ( )
 {
@@ -197,7 +207,7 @@ void test_ISignal_get ( )
 		assert ( got == isigs + i ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_ISignal_get - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_get - OK\n" ) ;
 }
 void test_ISignal_get_id ( )
 {
@@ -207,7 +217,7 @@ void test_ISignal_get_id ( )
 		assert ( got == isigs [ i ].iface.id ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_ISignal_get_id - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_get_id - OK\n" ) ;
 }
 void test_ISignal_from_name ( )
 {
@@ -218,13 +228,13 @@ void test_ISignal_from_name ( )
 		assert ( got == isigs + i ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_ISignal_from_name - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_from_name - OK\n" ) ;
 }
 void test_ISignal_count ( )
 {
 	assert ( mcr_ISignal_count ( ) == reggi.iface.id + 1 ) ;
 
-	fprintf ( mcr_stdout, "mcr_ISignal_count - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_count - OK\n" ) ;
 }
 void test_ISignal_get_all ( )
 {
@@ -242,7 +252,7 @@ void test_ISignal_get_all ( )
 	}
 	free ( set ) ;
 
-	fprintf ( mcr_stdout, "mcr_ISignal_get_all - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ISignal_get_all - OK\n" ) ;
 }
 void test_name_compare ( )
 {
@@ -263,7 +273,7 @@ void test_name_compare ( )
 		assert ( ret ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_name_compare - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_name_compare - OK\n" ) ;
 }
 void test_int_compare ( )
 {
@@ -286,7 +296,7 @@ void test_int_compare ( )
 		assert ( ret > 0 ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_int_compare - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_int_compare - OK\n" ) ;
 }
 void test_unsigned_compare ( )
 {
@@ -320,7 +330,7 @@ void test_unsigned_compare ( )
 	rhs = ( unsigned int ) -5 ;
 	assert ( mcr_unsigned_compare ( & lhs, & rhs ) < 0 ) ;
 
-	fprintf ( mcr_stdout, "mcr_unsigned_compare - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_unsigned_compare - OK\n" ) ;
 }
 void test_size_t_compare ( )
 {
@@ -354,7 +364,7 @@ void test_size_t_compare ( )
 	rhs = ( size_t ) -5 ;
 	assert ( mcr_size_t_compare ( & lhs, & rhs ) < 0 ) ;
 
-	fprintf ( mcr_stdout, "mcr_size_t_compare - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_size_t_compare - OK\n" ) ;
 }
 void test_ref_compare ( )
 {
@@ -378,7 +388,7 @@ void test_ref_compare ( )
 		assert ( ret > 0 ) ;
 	}
 
-	fprintf ( mcr_stdout, "mcr_ref_compare - OK\n" ) ;
+	fprintf ( mcr_out, "mcr_ref_compare - OK\n" ) ;
 }
 
 
@@ -405,7 +415,7 @@ int main ( void )
 	test_size_t_compare ( ) ;
 	test_ref_compare ( ) ;
 
-	fprintf ( mcr_stdout, "Test complete without assertion error.\n" ) ;
+	fprintf ( mcr_out, "Test complete without assertion error.\n" ) ;
 
 	return 0 ;
 }

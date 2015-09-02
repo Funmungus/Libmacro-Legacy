@@ -1,4 +1,3 @@
 #!/bin/bash
 touch *.c
-qmake test.pro CONFIG+=grabtest && sudo make
-sudo chmod 4755 grabtest
+qmake test.pro CONFIG+="static debug" CONFIG+=grabtest && make

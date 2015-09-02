@@ -1,10 +1,20 @@
-﻿/* intercept/lnx/lnxintercept.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -47,7 +57,7 @@ static void clear_grabbers_impl ( ) ;
 
 # define MODBIT_SIZE ( ( sizeof ( char ) ) * max_mod_val ( ) / 8 + 1 )
 
-int mcr_intercept_is_enabled ( )
+int mcr_intercept_enabled ( )
 {
 	mtx_lock ( & _lock ) ;
 	int ret = is_enabled_impl ( ) ;
@@ -55,7 +65,7 @@ int mcr_intercept_is_enabled ( )
 	return ret ;
 }
 
-void mcr_intercept_enable ( int enable )
+void mcr_intercept_set_enabled ( int enable )
 {
 	mtx_lock ( & _lock ) ;
 	// Do not disable if already disabled.
@@ -106,7 +116,7 @@ void mcr_intercept_remove_grab ( const char * grabPath )
 	{
 		mcr_Array_free ( found ) ;
 		mcr_Array_remove ( & _grabPaths,
-				MCR_ARR_INDEXOF ( & _grabPaths, found ) ) ;
+				MCR_ARR_INDEXOF ( _grabPaths, found ) ) ;
 	}
 	mtx_unlock ( & _lock ) ;
 }
@@ -115,7 +125,8 @@ int mcr_intercept_set_grabs ( const char ** allGrabPaths,
 		size_t pathCount )
 {
 	mtx_lock ( & _lock ) ;
-	MCR_ARR_FOR_EACH ( & _grabPaths, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( _grabPaths,
+			MCR_EXP ( mcr_Array_free_foreach ),) ;
 	_grabPaths.used = 0 ;
 	int ret = 1 ;
 	for ( size_t i = 0 ; i < pathCount ; i ++ )
@@ -133,10 +144,10 @@ int mcr_intercept_set_grabs ( const char ** allGrabPaths,
 
 static int is_enabled_impl ( )
 {
-	GrabComplete ** ptArr = MCR_ARR_AT ( & _grabCompletes, 0 ) ;
+	GrabComplete ** ptArr = MCR_ARR_AT ( _grabCompletes, 0 ) ;
 	for ( size_t i = 0 ; i < _grabCompletes.used ; i ++ )
 	{
-		if ( MCR_GRABBER_ENABLED ( & ptArr [ i ]->grabber ) &&
+		if ( MCR_GRABBER_ENABLED ( ptArr [ i ]->grabber ) &&
 				! ptArr [ i ]->complete )
 			return 1 ;
 	}
@@ -283,17 +294,17 @@ static void grab_impl ( const char * grabPath )
 //	}
 }
 
-# define key_setall( keyPt, key, scan, uptype ) \
-	MCR_KEY_SET ( keyPt, key ) ; \
-	MCR_KEY_SET_SCAN ( keyPt, scan ) ; \
-	MCR_KEY_SET_UP_TYPE ( keyPt, uptype ) ;
+# define KEY_SETALL( keyObj, key, scan, uptype ) \
+	MCR_KEY_SET_KEY ( keyObj, key ) ; \
+	MCR_KEY_SET_SCAN ( keyObj, scan ) ; \
+	MCR_KEY_SET_UP_TYPE ( keyObj, uptype ) ;
 
-# define mc_setall( mcPt, posBuff, justify ) \
-	MCR_MOVECURSOR_SET ( mcPt, posBuff ) ; \
-	MCR_MOVECURSOR_ENABLE_JUSTIFY ( mcPt, justify ) ;
+# define MC_SETALL( mcObj, posBuff, justify ) \
+	MCR_MOVECURSOR_SET_POSITION ( mcObj, posBuff ) ; \
+	MCR_MOVECURSOR_SET_JUSTIFY ( mcObj, justify ) ;
 
 // 0 to not block, otherwise do block.
-# define disp( sig ) \
+# define DISP( sig ) \
 	( ( sig ).type->dispatch ? \
 			( sig ).type->dispatch ( & ( sig ) ) : 0 )
 
@@ -317,20 +328,20 @@ static void grab_impl ( const char * grabPath )
 	else	\
 		break ; 	/* Unknown, breakout */
 
-# define abssetcurrent( absPt, hasPosArray ) \
+# define ABS_SETCURRENT( abs, hasPosArray ) \
 	if ( ! ( hasPosArray ) [ MCR_X ] ) \
 	{ \
-		MCR_MOVECURSOR_SET_POSITION ( absPt, MCR_X, \
+		MCR_MOVECURSOR_SET_COORDINATE ( abs, MCR_X, \
 				mcr_cursor [ MCR_X ] ) ; \
 	} \
 	if ( ! ( hasPosArray ) [ MCR_Y ] ) \
 	{ \
-		MCR_MOVECURSOR_SET_POSITION ( absPt, MCR_Y, \
+		MCR_MOVECURSOR_SET_COORDINATE ( abs, MCR_Y, \
 				mcr_cursor [ MCR_Y ] ) ; \
 	} \
 	if ( ! ( hasPosArray ) [ MCR_Z ] ) \
 	{ \
-		MCR_MOVECURSOR_SET_POSITION ( absPt, MCR_Z, \
+		MCR_MOVECURSOR_SET_COORDINATE ( abs, MCR_Z, \
 				mcr_cursor [ MCR_Z ] ) ; \
 	}
 
@@ -355,17 +366,17 @@ static int intercept_start ( void * threadArgs )
 	 **/
 
 	mtx_lock ( & _lock ) ;
-	if ( ! mcr_Grabber_enable ( grabPt, 1 ) )
+	if ( ! mcr_Grabber_set_enabled ( grabPt, 1 ) )
 	{ dmsg ; }
 	// Give a delay between grabs before unlocking.
-	MCR_NOOP_QUICKSEND ( & delay ) ;
+	MCR_NOOP_QUICKSEND ( delay ) ;
 	mtx_unlock ( & _lock ) ;
 
 	// Will return an error if not enabled.
 	thrdStatus = read_grabber_exclusive ( grabPt ) ;
 
 	mtx_lock ( & _lock ) ;
-	if ( ! mcr_Grabber_enable ( grabPt, 0 ) )
+	if ( ! mcr_Grabber_set_enabled ( grabPt, 0 ) )
 	{ dmsg ; }
 //	dassert ( _grabMapPt ) ;
 //	mcr_Map_unmap ( _grabMapPt, & grabPt->path.array ) ;
@@ -390,11 +401,11 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 	mcr_HIDEcho echo ;
 	mcr_MoveCursor abs, rel ;
 	mcr_Scroll scr ;
-	mcr_Signal keysig = { & mcr_iKey, { & key, 0 } },
-			echosig = { & mcr_iHIDEcho, { & echo, 0 } },
-			abssig = { & mcr_iMoveCursor, { & abs, 0 } },
-			relsig = { & mcr_iMoveCursor, { & rel, 0 } },
-			scrsig = { & mcr_iScroll, { & scr, 0 } } ;
+	mcr_Signal keysig = { & mcr_iKey, { & key, 0 }, 1 },
+			echosig = { & mcr_iHIDEcho, { & echo, 0 }, 1 },
+			abssig = { & mcr_iMoveCursor, { & abs, 0 }, 1 },
+			relsig = { & mcr_iMoveCursor, { & rel, 0 }, 1 },
+			scrsig = { & mcr_iScroll, { & scr, 0 }, 1 } ;
 	mcr_Key_init_with ( & key, 0, 0, MCR_DOWN ) ;
 	mcr_Echo_init_with ( & echo, 0 ) ;
 	mcr_MoveCursor_init_with ( & abs, nopos, 0 ) ;
@@ -403,10 +414,10 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 	struct pollfd fd = { 0 } ;
 	fd.events = -1 ;
 	fd.fd = grabPt->fd ;
-	while ( MCR_GRABBER_ENABLED ( grabPt ) ) 	/* Disable point 1 */
+	while ( MCR_GRABBER_ENABLED ( * grabPt ) ) 	/* Disable point 1 */
 	{	/* Disable point 2. */
 		i = poll ( & fd, 1, 3000 ) ;
-		if ( ! MCR_GRABBER_ENABLED ( grabPt ) )
+		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
 			return thrd_success ;
 		if ( ! i || i < 0 )	/* Error or no data in 10 seconds. */
 			continue ;			/* Try again. */
@@ -414,7 +425,7 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 		 * If rdb < input_event size then we are returning an error
 		 * anyways. */
 		rdb = read ( fd.fd, events, sizeof ( events ) ) ;
-		if ( ! MCR_GRABBER_ENABLED ( grabPt ) )
+		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
 			return thrd_success ;
 		if ( rdb < ( int ) sizeof ( struct input_event ) )
 		{
@@ -430,42 +441,42 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( events [ i ].code == MSC_SCAN )
 				{
 					// Consume a key that already has scan code.
-					if ( MCR_KEY_GET_SCAN ( & key ) )
+					if ( MCR_KEY_SCAN ( key ) )
 					{
-						MCR_SEND ( & keysig ) ;
-						key_setall ( & key, 0, events [ i ].value,
+						MCR_SEND ( keysig ) ;
+						KEY_SETALL ( key, 0, events [ i ].value,
 								MCR_BOTH ) ;
 					}
 					else
 					{
-						MCR_KEY_SET_SCAN ( & key, events [ i ].value ) ;
+						MCR_KEY_SET_SCAN ( key, events [ i ].value ) ;
 					}
 				}
 				break ;
 			case EV_KEY :	/* Handle KEY */
-				if ( MCR_KEY_GET ( & key ) )
+				if ( MCR_KEY_KEY ( key ) )
 				{
-					echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho +
-							MCR_KEY_GET_UP_TYPE ( & key ),
-							& MCR_KEY_GET ( & key ) ) ;
+					echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho
+							[ MCR_KEY_UP_TYPE ( key ) ],
+							& MCR_KEY_KEY ( key ) ) ;
 					if ( echoFound )
 					{
-						MCR_ECHO_SET ( & echo, * echoFound ) ;
-						if ( disp ( echosig ) )
+						MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
+						if ( DISP ( echosig ) )
 						{
-							key_setall ( & key, events [ i ].code, 0,
+							KEY_SETALL ( key, events [ i ].code, 0,
 								events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 							break ;
 						}
 					}
-					MCR_SEND ( & keysig ) ;
-					key_setall ( & key, events [ i ].code, 0,
+					MCR_SEND ( keysig ) ;
+					KEY_SETALL ( key, events [ i ].code, 0,
 							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 				}
 				else
 				{
-					MCR_KEY_SET ( & key, events [ i ].code ) ;
-					MCR_KEY_SET_UP_TYPE ( & key,
+					MCR_KEY_SET_KEY ( key, events [ i ].code ) ;
+					MCR_KEY_SET_UP_TYPE ( key,
 							events [ i ].value ? MCR_DOWN :
 							MCR_UP ) ;
 				}
@@ -474,11 +485,11 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				abspos ( events [ i ].code, pos ) ;
 				if ( bAbs [ pos ] )
 				{
-					abssetcurrent ( & abs, bAbs ) ;
-					MCR_SEND ( & abssig ) ;
+					ABS_SETCURRENT ( abs, bAbs ) ;
+					MCR_SEND ( abssig ) ;
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				}
-				MCR_MOVECURSOR_SET_POSITION ( & abs, pos,
+				MCR_MOVECURSOR_SET_COORDINATE ( abs, pos,
 						events [ i ].value ) ;
 				++ bAbs [ pos ] ;
 				break ;
@@ -487,23 +498,23 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( events [ i ].code == REL_X || events [ i ].code
 						== REL_Y || events [ i ].code == REL_Z )
 				{
-					if ( MCR_MOVECURSOR_GET_POSITION ( & rel, pos ) )
+					if ( MCR_MOVECURSOR_COORDINATE ( rel, pos ) )
 					{
-						MCR_SEND ( & relsig ) ;
-						MCR_MOVECURSOR_SET ( & rel, nopos ) ;
+						MCR_SEND ( relsig ) ;
+						MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 					}
-					MCR_MOVECURSOR_SET_POSITION ( & rel, pos,
+					MCR_MOVECURSOR_SET_COORDINATE ( rel, pos,
 							events [ i ].value ) ;
 				}
 				// Currently assuming scroll if not relative movement.
 				else
 				{
-					if ( MCR_SCROLL_GET_DIMENSION ( & scr, pos ) )
+					if ( MCR_SCROLL_COORDINATE ( scr, pos ) )
 					{
-						MCR_SEND ( & scrsig ) ;
-						MCR_SCROLL_SET ( & scr, nopos ) ;
+						MCR_SEND ( scrsig ) ;
+						MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 					}
-					MCR_SCROLL_SET_DIMENSION ( & scr, pos,
+					MCR_SCROLL_SET_COORDINATE ( scr, pos,
 							events [ i ].value ) ;
 				}
 				break ;
@@ -514,10 +525,10 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( events [ i ].type != EV_SYN )
 				{
 					unknown_event ( fd.fd, events, MCR_GRAB_SET_SIZE ) ;
-					key_setall ( & key, 0, 0, MCR_BOTH ) ;
+					KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
-					MCR_MOVECURSOR_SET ( & rel, nopos ) ;
-					MCR_SCROLL_SET ( & scr, nopos ) ;
+					MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
+					MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 					/* all events should be consumed by unknown_event */
 					rdn = 0 ;
 				}
@@ -526,53 +537,53 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 			}
 		}
 		//Call final event, it was not called yet.
-		if ( MCR_KEY_GET ( & key ) || MCR_KEY_GET_SCAN ( & key ) )
+		if ( MCR_KEY_KEY ( key ) || MCR_KEY_SCAN ( key ) )
 		{
-			if ( MCR_KEY_GET ( & key ) )
+			if ( MCR_KEY_KEY ( key ) )
 			{
-				echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho +
-						MCR_KEY_GET_UP_TYPE ( & key ),
-						& MCR_KEY_GET ( & key ) ) ;
+				echoFound = MCR_MAP_GET_VALUE ( mcr_keyToEcho
+						[ MCR_KEY_UP_TYPE ( key ) ],
+						& MCR_KEY_KEY ( key ) ) ;
 				if ( echoFound )
 				{
-					MCR_ECHO_SET ( & echo, * echoFound ) ;
-					if ( ! disp ( echosig ) )
+					MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
+					if ( ! DISP ( echosig ) )
 					{
-						MCR_SEND ( & keysig ) ;
+						MCR_SEND ( keysig ) ;
 					}
 				}
 				else
 				{
-					MCR_SEND ( & keysig ) ;
+					MCR_SEND ( keysig ) ;
 				}
 			}
-			key_setall ( & key, 0, 0, MCR_BOTH ) ;
+			KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
 		}
 		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
 			if ( bAbs [ i ] )
 			{
-				abssetcurrent ( & abs, bAbs ) ;
-				MCR_SEND ( & abssig ) ;
+				ABS_SETCURRENT ( abs, bAbs ) ;
+				MCR_SEND ( abssig ) ;
 				memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				break ;
 			}
 		}
 		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
-			if ( MCR_MOVECURSOR_GET_POSITION ( & rel, i ) )
+			if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
 			{
-				MCR_SEND ( & relsig ) ;
-				MCR_MOVECURSOR_SET ( & rel, nopos ) ;
+				MCR_SEND ( relsig ) ;
+				MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 				break ;
 			}
 		}
 		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
-			if ( MCR_SCROLL_GET_DIMENSION ( & scr, i ) )
+			if ( MCR_SCROLL_COORDINATE ( scr, i ) )
 			{
-				MCR_SEND ( & scrsig ) ;
-				MCR_SCROLL_SET ( & scr, nopos ) ;
+				MCR_SEND ( scrsig ) ;
+				MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 				break ;
 			}
 		}
@@ -603,13 +614,13 @@ static unsigned int modify_eventbits ( char * keybitValues )
 		return 0 ;
 	}
 	keyBuffer.used = keyBuffer.size ;
-	mcr_Mod_key_get_all ( ( int * ) keyBuffer.array, keyBuffer.used ) ;
+	mcr_Mod_key_all ( ( int * ) keyBuffer.array, keyBuffer.used ) ;
 	int * keyArr = ( int * ) keyBuffer.array ;
 	for ( unsigned int i = 0 ; i < keyBuffer.used ; i++ )
 	{
 		if ( ( keybitValues [ MCR_EVENTINDEX ( keyArr [ i ] ) ] &
 				MCR_EVENTBIT ( keyArr [ i ] ) ) )
-			modVal |= mcr_Mod_key_get ( keyArr [ i ] ) ;
+			modVal |= mcr_Mod_from_key ( keyArr [ i ] ) ;
 	}
 	mcr_Array_free ( & keyBuffer ) ;
 	return modVal ;
@@ -659,7 +670,7 @@ void mcr_intercept_native_initialize ( )
 
 static void grabdisable_foreach ( GrabComplete ** ptPt, ... )
 {
-	mcr_Grabber_enable ( & ( * ptPt )->grabber, 0 ) ;
+	mcr_Grabber_set_enabled ( & ( * ptPt )->grabber, 0 ) ;
 }
 
 static void grabcomplete_free_foreach ( GrabComplete ** ptPt, ... )
@@ -685,7 +696,7 @@ static void clear_grabbers_impl ( )
 //	size_t prev = _grabMapPt->set.used ;
 //	MCR_MAP_FOR_EACH_VALUE ( _grabMapPt, grabdisable_redirect, 0 ) ;
 	size_t prev = _grabCompletes.used, i ;
-	MCR_ARR_FOR_EACH ( & _grabCompletes, grabdisable_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( _grabCompletes, grabdisable_foreach, 0 ) ;
 	struct timespec timeout = { 1, 0 } ;
 	GrabComplete ** ptArr ;
 	while ( _grabCompletes.used )
@@ -693,9 +704,9 @@ static void clear_grabbers_impl ( )
 		// Disable any that are being created while clearing.
 		if ( _grabCompletes.used >= prev )
 		{
-			MCR_ARR_FOR_EACH ( & _grabCompletes, grabdisable_foreach, 0 ) ;
+			MCR_ARR_FOR_EACH ( _grabCompletes, grabdisable_foreach, 0 ) ;
 		}
-		ptArr = MCR_ARR_AT ( & _grabCompletes, 0 ) ;
+		ptArr = MCR_ARR_AT ( _grabCompletes, 0 ) ;
 		for ( i = 0 ; i < _grabCompletes.used ; )
 		{
 			if ( ptArr [ i ]->complete )
@@ -712,9 +723,9 @@ static void clear_grabbers_impl ( )
 		if ( cnd_timedwait ( & _cnd, & _lock, & timeout ) ==
 				thrd_timeout )
 		{
-			MCR_ARR_FOR_EACH ( & _grabCompletes,
+			MCR_ARR_FOR_EACH ( _grabCompletes,
 					grabdisable_foreach, 0 ) ;
-			MCR_ARR_FOR_EACH ( & _grabCompletes,
+			MCR_ARR_FOR_EACH ( _grabCompletes,
 					grabcomplete_free_foreach, 0 ) ;
 			_grabCompletes.used = 0 ;
 		}
@@ -726,7 +737,8 @@ void mcr_intercept_native_cleanup ( void )
 //	dassert ( _grabMapPt ) ;
 	mtx_lock ( & _lock ) ;
 	clear_grabbers_impl ( ) ;
-	MCR_ARR_FOR_EACH ( & _grabPaths, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( _grabPaths,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
 	mcr_Array_free ( & _grabPaths ) ;
 	mcr_Array_free ( & _grabCompletes ) ;
 //	// Grabbers will now be empty.

@@ -1,10 +1,20 @@
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
 
-# include "signal/lnx/usex.h"
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-# define SCR_UP Button4
-# define SCR_DOWN Button5
-# define SCR_LEFT (Button5+1)
-# define SCR_RIGHT (Button5+2)
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 static Display * _dpy = NULL ;
 
@@ -51,13 +61,13 @@ int mcr_HIDEcho_usex_send ( mcr_Signal * sigPt )
 
 	mcr_Key * keyPt ;
 	keyPt = MCR_ARR_AT ( & mcr_echoEvents,
-			( unsigned int ) MCR_ECHO_GET ( echoPt ) ) ;
+			( unsigned int ) MCR_ECHO_ECHO ( echoPt ) ) ;
 	if ( keyPt )
 	{
 		_eEv.time = CurrentTime ;
 		// difference between this btn and first btn key code
 		// is also the difference from Xlib Button1
-		switch ( MCR_KEY_GET ( keyPt ) )
+		switch ( MCR_KEY_KEY ( keyPt ) )
 		{
 		case BTN_LEFT :
 		case BTN_0 :
@@ -76,7 +86,7 @@ int mcr_HIDEcho_usex_send ( mcr_Signal * sigPt )
 			return 0 ;
 		}
 
-		if ( MCR_KEY_GET_UP_TYPE ( keyPt ) == MCR_DOWN )
+		if ( MCR_KEY_UP_TYPE ( keyPt ) == MCR_DOWN )
 		{
 			_eEv.type = ButtonPress ;
 			XSendEvent ( _eEv.display, _eEv.window, True,
@@ -110,15 +120,15 @@ int mcr_Key_usex_send ( mcr_Signal * sigPt )
 	XGetInputFocus ( _kEv.display, & _kEv.window, & revert ) ;
 	_kEv.state = mcr_xMods ;
 
-	_kEv.keycode = ( unsigned int ) MCR_KEY_GET ( keyPt ) ;
-	if ( MCR_KEY_GET_UP_TYPE ( keyPt ) != MCR_UP )
+	_kEv.keycode = ( unsigned int ) MCR_KEY_KEY ( keyPt ) ;
+	if ( MCR_KEY_UP_TYPE ( keyPt ) != MCR_UP )
 	{
 		_kEv.time = CurrentTime ;
 		_kEv.type = KeyPress ;
 		XSendEvent ( _kEv.display, _kEv.window, True, KeyPressMask,
 				( XEvent * ) & _kEv ) ;
 	}
-	if ( MCR_KEY_GET_UP_TYPE ( keyPt ) != MCR_DOWN )
+	if ( MCR_KEY_UP_TYPE ( keyPt ) != MCR_DOWN )
 	{
 		_kEv.time = CurrentTime ;
 		_kEv.type = KeyRelease ;
@@ -139,11 +149,11 @@ int mcr_MoveCursor_usex_send ( mcr_Signal * sigPt )
 	if ( ! mcPt )
 		return 1 ;
 
-	if ( MCR_MOVECURSOR_IS_JUSTIFY ( mcPt ) )
+	if ( MCR_MOVECURSOR_JUSTIFY ( mcPt ) )
 	{
 		XWarpPointer ( _dpy, None, None, 1, 1, 1, 1,
-				MCR_MOVECURSOR_GET_POSITION ( mcPt, MCR_X ),
-				MCR_MOVECURSOR_GET_POSITION ( mcPt, MCR_Y ) ) ;
+				MCR_MOVECURSOR_COORDINATE ( mcPt, MCR_X ),
+				MCR_MOVECURSOR_COORDINATE ( mcPt, MCR_Y ) ) ;
 	}
 	else
 	{
@@ -155,8 +165,8 @@ int mcr_MoveCursor_usex_send ( mcr_Signal * sigPt )
 				& chldRet, & rtX, & rtY, & wX, & wY, & msk ) ;
 		// Amount to justify is the ( final absolute position )
 		// minus ( current position )
-		wX = MCR_MOVECURSOR_GET_POSITION ( mcPt, MCR_X ) - rtX ;
-		wY = MCR_MOVECURSOR_GET_POSITION ( mcPt, MCR_Y ) - rtY ;
+		wX = MCR_MOVECURSOR_COORDINATE ( mcPt, MCR_X ) - rtX ;
+		wY = MCR_MOVECURSOR_COORDINATE ( mcPt, MCR_Y ) - rtY ;
 		XWarpPointer ( _dpy, None, None, 1, 1, 1, 1,
 				wX, wY ) ;
 	}
@@ -176,8 +186,8 @@ int mcr_Scroll_usex_send ( mcr_Signal * sigPt )
 	XGetInputFocus ( _scrEv.display, & _scrEv.window, & revert ) ;
 	_scrEv.state = mcr_xMods ;
 
-	int x = ( int ) MCR_SCROLL_GET_DIMENSION ( scrPt, MCR_X ),
-			y = ( int ) MCR_SCROLL_GET_DIMENSION ( scrPt, MCR_Y ) ;
+	int x = ( int ) MCR_SCROLL_COORDINATE ( scrPt, MCR_X ),
+			y = ( int ) MCR_SCROLL_COORDINATE ( scrPt, MCR_Y ) ;
 
 # define scrloop \
 	_scrEv.time = CurrentTime ; \

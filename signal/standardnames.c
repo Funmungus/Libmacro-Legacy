@@ -1,10 +1,20 @@
-/* signal/standardnames.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "signal/standard.h"
 
@@ -23,13 +33,13 @@ int mcr_Echo_code ( const char * eventName )
 		dmsg ;
 		return -1 ;
 	}
-	int * codePt = MCR_STRINGMAP_GET_VALUE ( & _echoMap, eventName ) ;
+	int * codePt = MCR_STRINGMAP_GET_VALUE ( _echoMap, eventName ) ;
 	return codePt ? * codePt : -1 ;
 }
 
 const char * mcr_Echo_name ( int eventCode )
 {
-	mcr_Array * namePt = MCR_ARR_AT ( & _echoNames,
+	mcr_Array * namePt = MCR_ARR_AT ( _echoNames,
 			( size_t ) eventCode ) ;
 	return namePt ? namePt->array : NULL ;
 }
@@ -49,13 +59,13 @@ int mcr_Key_code ( const char * keyName )
 		dmsg ;
 		return 0 ;
 	}
-	int * keyPt = MCR_STRINGMAP_GET_VALUE ( & _keyMap, keyName ) ;
+	int * keyPt = MCR_STRINGMAP_GET_VALUE ( _keyMap, keyName ) ;
 	return keyPt ? * keyPt : 0 ;
 }
 
 const char * mcr_Key_name ( int keyCode )
 {
-	mcr_Array * namePt = MCR_ARR_AT ( & _keyNames,
+	mcr_Array * namePt = MCR_ARR_AT ( _keyNames,
 			( size_t ) keyCode ) ;
 	return namePt ? namePt->array : NULL ;
 }
@@ -91,7 +101,7 @@ int mcr_Echo_set_name ( int eventCode, const char * eventName )
 		else
 		{
 			if ( ! mcr_String_from_string ( MCR_ARR_AT (
-					& _echoNames, ( unsigned int ) eventCode ),
+					_echoNames, ( unsigned int ) eventCode ),
 					eventName ) )
 			{
 				dmsg ;
@@ -166,7 +176,7 @@ int mcr_Echo_rename_from_name ( const char * oldName,
 		const char * newName )
 {
 	dassert ( oldName ) ;
-	int * found = MCR_STRINGMAP_GET_VALUE ( & _echoMap, oldName ) ;
+	int * found = MCR_STRINGMAP_GET_VALUE ( _echoMap, oldName ) ;
 	if ( found )
 		return mcr_Echo_rename ( * found, newName ) ;
 	return 0 ;
@@ -174,9 +184,9 @@ int mcr_Echo_rename_from_name ( const char * oldName,
 
 void mcr_Echo_clear ( )
 {
-	MCR_MAP_FOR_EACH ( & _echoMap, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH ( _echoMap, mcr_Array_free_foreach,) ;
 	mcr_Map_free ( & _echoMap ) ;
-	MCR_ARR_FOR_EACH ( & _echoNames, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( _echoNames, mcr_Array_free_foreach,) ;
 	mcr_Array_free ( & _echoNames ) ;
 }
 
@@ -207,7 +217,7 @@ int mcr_Key_set_name ( int keyCode, const char * newName )
 		else
 		{
 			if ( ! mcr_String_from_string ( MCR_ARR_AT (
-					& _keyNames, ( unsigned int ) keyCode ),
+					_keyNames, ( unsigned int ) keyCode ),
 					newName ) )
 			{
 				dmsg ;
@@ -281,7 +291,7 @@ int mcr_Key_rename_from_name ( const char * oldName,
 		const char * newName )
 {
 	dassert ( oldName ) ;
-	int * found = MCR_STRINGMAP_GET_VALUE ( & _keyMap, oldName ) ;
+	int * found = MCR_STRINGMAP_GET_VALUE ( _keyMap, oldName ) ;
 	if ( found )
 		return mcr_Key_rename ( * found, newName ) ;
 	return 0 ;
@@ -289,9 +299,9 @@ int mcr_Key_rename_from_name ( const char * oldName,
 
 void mcr_Key_clear ( )
 {
-	MCR_MAP_FOR_EACH ( & _keyMap, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH ( _keyMap, mcr_Array_free_foreach,) ;
 	mcr_Map_free ( & _keyMap ) ;
-	MCR_ARR_FOR_EACH ( & _keyNames, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( _keyNames, mcr_Array_free_foreach,) ;
 	mcr_Array_free ( & _keyNames ) ;
 }
 

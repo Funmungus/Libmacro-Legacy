@@ -1,10 +1,20 @@
-/* extras/option.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "extras/script.h"
 
@@ -39,8 +49,8 @@ void mcr_Script_free ( void * scriptPt )
 		dmsg ;
 		return ;
 	}
-	MCR_ARR_FOR_EACH ( & ( ( mcr_Script * ) scriptPt )->scripts,
-			mcr_SafeString_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( ( ( mcr_Script * ) scriptPt )->scripts,
+			MCR_EXP ( mcr_SafeString_free_foreach ), ) ;
 	mcr_Array_free ( & ( ( mcr_Script * ) scriptPt )->scripts ) ;
 }
 
@@ -55,7 +65,7 @@ void mcr_Script_copy ( void * dstPt, void * srcPt )
 		dmsg ;
 		return ;
 	}
-	MCR_ARR_FOR_EACH ( & sPt->scripts, script_copy_foreach, dPt ) ;
+	MCR_ARR_FOR_EACH ( sPt->scripts, script_copy_foreach, dPt ) ;
 }
 
 int mcr_Script_compare ( const void * lhs, const void * rhs )
@@ -66,8 +76,8 @@ int mcr_Script_compare ( const void * lhs, const void * rhs )
 	if ( lPt->scripts.used != rPt->scripts.used )
 		return lPt->scripts.used < rPt->scripts.used ? -1 : 1 ;
 	int ret = 0 ;
-	mcr_SafeString * lss = MCR_ARR_AT ( & lPt->scripts, 0 ) ;
-	mcr_SafeString * rss = MCR_ARR_AT ( & rPt->scripts, 0 ) ;
+	mcr_SafeString * lss = MCR_ARR_AT ( lPt->scripts, 0 ) ;
+	mcr_SafeString * rss = MCR_ARR_AT ( rPt->scripts, 0 ) ;
 	for ( size_t i = 0 ; ! ret && i < lPt->scripts.used ; i ++ )
 	{
 		ret = mcr_SafeString_compare ( lss + i, rss + i ) ;
@@ -91,14 +101,15 @@ int mcr_Script_send ( mcr_Signal * sigPt )
 		for ( size_t i = 0 ; i < scripts.used ; i ++ )
 		{
 			arrArr [ i ] = mcr_SafeString_get ( MCR_ARR_AT (
-					& scrPt->scripts, i ) ) ;
+					scrPt->scripts, i ) ) ;
 			args [ i ] = arrArr [ i ].array ;
 		}
 		mcr_Script_option ( ( int ) scripts.used, args ) ;
 	}
 	else
 		dmsg ;
-	MCR_ARR_FOR_EACH ( & scripts, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( scripts,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
 	mcr_Array_free ( & scripts ) ;
 	free ( args ) ;
 	return 1 ;
@@ -126,7 +137,7 @@ int mcr_Script_do_option ( int argc, char ** argv, int index )
 	dassert ( argv ) ;
 	dassert ( index < argc ) ;
 	int next = index ;
-	mcr_option_fnc * found = MCR_STRINGMAP_GET_VALUE ( & _optionMap,
+	mcr_option_fnc * found = MCR_STRINGMAP_GET_VALUE ( _optionMap,
 			argv [ index ] ) ;
 	if ( found )
 	{
@@ -167,18 +178,18 @@ int mcr_Script_short_help ( int argc, char ** argv, int index )
 			return index + 2 ;
 		else
 		{
-			fprintf ( mcr_stdout, "%s\n", mcr_descNotAvailable ) ;
+			fprintf ( mcr_out, "%s\n", mcr_descNotAvailable ) ;
 			return index + 1 ;
 		}
 	}
 	for ( size_t i = 0 ; i < _optionMap.set.used ; i ++ )
 	{
 		mcr_Array * optName, * optHelp ;
-		optName = MCR_ARR_AT ( & _optionMap.set, i ) ;
+		optName = MCR_ARR_AT ( _optionMap.set, i ) ;
 		dassert ( optName ) ;
-		optHelp = MCR_STRINGMAP_GET_VALUE ( & _optDescMap,
+		optHelp = MCR_STRINGMAP_GET_VALUE ( _optDescMap,
 				optName->array ) ;
-		fprintf ( mcr_stdout, "%-32s - %-s\n", optName->array,
+		fprintf ( mcr_out, "%-32s - %-s\n", optName->array,
 				optHelp ? optHelp->array : mcr_descNotAvailable ) ;
 	}
 	/* Handled help without argument specified. */
@@ -192,7 +203,7 @@ void mcr_Script_parse_error ( )
 	time ( & t ) ;
 	tInfo = localtime ( & t ) ;
 	dassert ( tInfo ) ;
-	fprintf ( mcr_stderr, "%s:%s", asctime ( tInfo ),
+	fprintf ( mcr_err, "%s:%s", asctime ( tInfo ),
 			mcr_parseError ) ;
 }
 
@@ -206,10 +217,12 @@ void mcr_script_initialize ( )
 
 void mcr_script_cleanup ( )
 {
-	MCR_MAP_FOR_EACH ( & _optionMap, mcr_Array_free_foreach, 0 ) ;
-	MCR_MAP_FOR_EACH_VALUE ( & _optDescMap, mcr_Array_free_foreach,
-			0 ) ;
-	MCR_MAP_FOR_EACH ( & _optDescMap, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH ( _optionMap,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
+	MCR_MAP_FOR_EACH_VALUE ( _optDescMap,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
+	MCR_MAP_FOR_EACH ( _optDescMap,
+			MCR_EXP ( mcr_Array_free_foreach ), ) ;
 	mcr_Map_free ( & _optionMap ) ;
 	mcr_Map_free ( & _optDescMap ) ;
 }

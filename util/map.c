@@ -1,10 +1,20 @@
-/* util/map.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "util/map.h"
 
@@ -37,9 +47,9 @@ void * mcr_Map_get_slow ( const mcr_Map * mapPt, const void * keyPt )
 	dassert ( keyPt ) ;
 	if ( ! mapPt->set.used )
 		return NULL ;
-	void * end = MCR_ARR_END ( & mapPt->set ) ;
-	for ( void * i = MCR_ARR_AT ( & mapPt->set, 0 ) ;
-			i < end ; i = MCR_ARR_NEXT ( & mapPt->set, i ) )
+	void * end = MCR_ARR_END ( mapPt->set ) ;
+	for ( void * i = MCR_ARR_AT ( mapPt->set, 0 ) ;
+			i < end ; i = MCR_ARR_NEXT ( mapPt->set, i ) )
 	{
 		if ( ! memcmp ( i, keyPt, mapPt->sizeof_first ) )
 			return i ;
@@ -70,7 +80,7 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 		return 0 ;
 	}
 	// Point to pushed member.
-	mapping = MCR_ARR_AT ( & mapPt->set, mapPt->set.used - 1 ) ;
+	mapping = MCR_ARR_AT ( mapPt->set, mapPt->set.used - 1 ) ;
 
 	memcpy ( mapping, keyPt, mapPt->sizeof_first ) ;
 	if ( valuePt )
@@ -79,7 +89,7 @@ int mcr_Map_map ( mcr_Map * mapPt, const void * keyPt,
 		memcpy ( mapping, valuePt, mapPt->sizeof_second ) ;
 	}
 
-	MCR_MAP_SORT ( mapPt ) ;
+	MCR_MAP_SORT ( * mapPt ) ;
 
 	return 1 ;
 }
@@ -106,9 +116,9 @@ int mcr_Map_remap ( mcr_Map * mapPt, const void * previousKeyPt,
 			dmsg ;
 			return 0 ;
 		}
-		newPlace = MCR_ARR_AT ( & mapPt->set, mapPt->set.used - 1 ) ;
+		newPlace = MCR_ARR_AT ( mapPt->set, mapPt->set.used - 1 ) ;
 		memcpy ( newPlace, newKeyPt, mapPt->sizeof_first ) ;
-		newPlace = MCR_MAP_VALUE ( mapPt, newPlace ) ;
+		newPlace = MCR_MAP_VALUE ( * mapPt, newPlace ) ;
 	}
 	dassert ( newPlace ) ;
 	memcpy ( newPlace, oldPlace, mapPt->sizeof_second ) ;
@@ -131,7 +141,7 @@ void * mcr_Map_get ( const mcr_Map * mapPt, const void * keyPt )
 {
 	dassert ( mapPt ) ;
 	dassert ( keyPt ) ;
-	return mapPt->compare ? MCR_MAP_GET ( mapPt, keyPt ) :
+	return mapPt->compare ? MCR_MAP_GET ( * mapPt, keyPt ) :
 			mcr_Map_get_slow ( mapPt, keyPt ) ;
 }
 
@@ -140,7 +150,7 @@ void * mcr_Map_get_value ( const mcr_Map * mapPt,
 {
 	dassert ( mapPt ) ;
 	dassert ( keyPt ) ;
-	return MCR_MAP_VALUE ( mapPt, mcr_Map_get ( mapPt, keyPt ) ) ;
+	return MCR_MAP_VALUE ( * mapPt, mcr_Map_get ( mapPt, keyPt ) ) ;
 }
 
 void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
@@ -148,7 +158,7 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 {
 	dassert ( mapPt ) ;
 	dassert ( keyPt ) ;
-	void * found = MCR_MAP_GET ( mapPt, keyPt ) ;
+	void * found = MCR_MAP_GET ( * mapPt, keyPt ) ;
 	if ( found )
 	{
 		return found ;
@@ -160,7 +170,7 @@ void * mcr_Map_get_ensured ( mcr_Map * mapPt, const void * keyPt,
 			dmsg ;
 			return NULL ;
 		}
-		return MCR_MAP_GET ( mapPt, keyPt ) ;
+		return MCR_MAP_GET ( * mapPt, keyPt ) ;
 	}
 }
 
@@ -172,7 +182,7 @@ size_t mcr_Map_index_of ( const mcr_Map * mapPt, const void * keyPt )
 	char * mapping = mcr_Map_get ( mapPt, keyPt ) ;
 	if ( ! mapping )
 		return -1 ;
-	return MCR_ARR_INDEXOF ( & mapPt->set, mapping ) ;
+	return MCR_ARR_INDEXOF ( mapPt->set, mapping ) ;
 }
 
 void mcr_Map_for_each ( const mcr_Map * mapPt,
@@ -182,9 +192,9 @@ void mcr_Map_for_each ( const mcr_Map * mapPt,
 	if ( ! mapPt->set.used )
 		return ;
 	va_list lst ;
-	void * it = MCR_ARR_AT ( & mapPt->set, 0 ) ;
+	void * it = MCR_ARR_AT ( mapPt->set, 0 ) ;
 	if ( ! it ) return ;
-	void * end = MCR_ARR_END ( & mapPt->set ) ;
+	void * end = MCR_ARR_END ( mapPt->set ) ;
 	va_start ( lst, iterateFnc ) ;
 	while ( it < end )
 	{
@@ -192,7 +202,7 @@ void mcr_Map_for_each ( const mcr_Map * mapPt,
 		va_copy ( cpy, lst ) ;
 		iterateFnc ( it, cpy ) ;
 		va_end ( cpy ) ;
-		it = MCR_ARR_NEXT ( & mapPt->set, it ) ;
+		it = MCR_ARR_NEXT ( mapPt->set, it ) ;
 	}
 	va_end ( lst ) ;
 }
@@ -203,10 +213,10 @@ void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 	dassert ( mapPt ) ;
 	if ( ! mapPt->set.used ) return ;
 	va_list lst ;
-	void * it = MCR_ARR_AT ( & mapPt->set, 0 ) ;
+	void * it = MCR_ARR_AT ( mapPt->set, 0 ) ;
 	if ( ! it ) return ;
-	it = MCR_MAP_VALUE ( mapPt, it ) ;
-	void * end = MCR_ARR_END ( & mapPt->set ) ;
+	it = MCR_MAP_VALUE ( * mapPt, it ) ;
+	void * end = MCR_ARR_END ( mapPt->set ) ;
 	va_start ( lst, iterateFnc ) ;
 	while ( it < end )
 	{
@@ -214,7 +224,7 @@ void mcr_Map_for_each_value ( const mcr_Map * mapPt,
 		va_copy ( cpy, lst ) ;
 		iterateFnc ( it, cpy ) ;
 		va_end ( cpy ) ;
-		it = MCR_ARR_NEXT ( & mapPt->set, it ) ;
+		it = MCR_ARR_NEXT ( mapPt->set, it ) ;
 	}
 	va_end ( lst ) ;
 }
@@ -227,7 +237,7 @@ void mcr_Map_unmap ( mcr_Map * mapPt, const void * keyPt )
 	if ( index != ( size_t ) -1 )
 	{
 		mcr_Array_remove ( & mapPt->set, index ) ;
-		MCR_MAP_SORT ( mapPt ) ;
+		MCR_MAP_SORT ( * mapPt ) ;
 	}
 }
 
@@ -239,7 +249,7 @@ void mcr_Map_sort ( mcr_Map * mapPt )
 		dmsg ;
 		return ;
 	}
-	MCR_MAP_SORT ( mapPt ) ;
+	MCR_MAP_SORT ( * mapPt ) ;
 }
 
 void mcr_Map_clear ( mcr_Map * mapPt )
@@ -257,7 +267,7 @@ void mcr_Map_trim ( mcr_Map * mapPt )
 void mcr_Map_print ( mcr_Map * mapPt )
 {
 	dassert ( mapPt ) ;
-	fprintf ( mcr_stdout, "Map %p: first %llu, second %llu, "
+	fprintf ( mcr_out, "Map %p: first %llu, second %llu, "
 			"compare %p.\n\tMember... ", mapPt,
 			( long long unsigned ) mapPt->sizeof_first,
 			( long long unsigned ) mapPt->sizeof_second,
@@ -274,7 +284,7 @@ int mcr_StringMap_map ( mcr_Map * mapPt, const char * key,
 	if ( found )
 	{
 		mcr_String_from_string ( found, key ) ;
-		void * foundVal = MCR_MAP_VALUE ( mapPt, found ) ;
+		void * foundVal = MCR_MAP_VALUE ( * mapPt, found ) ;
 		memcpy ( foundVal, valuePt,
 				mapPt->sizeof_second ) ;
 	}
@@ -302,7 +312,7 @@ int mcr_StringMap_nmap ( mcr_Map * mapPt, const char * key,
 	if ( found )
 	{
 		mcr_String_nfrom_string ( found, key, count ) ;
-		void * foundVal = MCR_MAP_VALUE ( mapPt, found ) ;
+		void * foundVal = MCR_MAP_VALUE ( * mapPt, found ) ;
 		memcpy ( foundVal, valuePt,
 				mapPt->sizeof_second ) ;
 	}
@@ -327,7 +337,7 @@ int mcr_StringMap_remap ( mcr_Map * mapPt, const char * key,
 	dassert ( mapPt ) ;
 	dassert ( key ) ;
 	mcr_Array * found = mcr_StringMap_get ( mapPt, key ) ;
-	void * foundVal = MCR_MAP_VALUE ( mapPt, found ) ;
+	void * foundVal = MCR_MAP_VALUE ( * mapPt, found ) ;
 	if ( found )
 	{
 		if ( ! mcr_StringMap_map ( mapPt, newKey, foundVal ) )
@@ -336,9 +346,9 @@ int mcr_StringMap_remap ( mcr_Map * mapPt, const char * key,
 			return 0 ;
 		}
 		mcr_Array_free ( found ) ;
-		mcr_Array_remove ( & mapPt->set, MCR_ARR_INDEXOF ( & mapPt->set,
+		mcr_Array_remove ( & mapPt->set, MCR_ARR_INDEXOF ( mapPt->set,
 				found ) ) ;
-		MCR_MAP_SORT ( mapPt ) ;
+		MCR_MAP_SORT ( * mapPt ) ;
 	}
 	return 1 ;
 }
@@ -366,9 +376,9 @@ void mcr_StringMap_unmap ( mcr_Map * mapPt, const char * key )
 	if ( arrPt )
 	{
 		mcr_Array_free ( arrPt ) ;
-		mcr_Array_remove ( & mapPt->set, MCR_ARR_INDEXOF ( & mapPt->set,
+		mcr_Array_remove ( & mapPt->set, MCR_ARR_INDEXOF ( mapPt->set,
 				arrPt ) ) ;
-		MCR_MAP_SORT ( mapPt ) ;
+		MCR_MAP_SORT ( * mapPt ) ;
 	}
 }
 

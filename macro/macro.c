@@ -1,10 +1,20 @@
-/* macro/macro.c - Trigger a set of signals from a hotkey.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "macro/macro.h"
 
@@ -50,7 +60,6 @@ void mcr_Macro_init ( mcr_Macro * mcrPt )
 	mcr_Hot_init ( & mcrPt->hot, & mcr_iHot ) ;
 	set_macro_trigger ( mcrPt ) ;
 	mcr_Array_init ( & mcrPt->signal_set, sizeof ( mcr_Signal ) ) ;
-	mcr_Array_init ( & mcrPt->signal_isdispatch, sizeof ( char ) ) ;
 //	mcr_Map_init ( & mcrPt->thread_finish, sizeof ( thrd_t ),
 //			sizeof ( char ) ) ;
 //	mcrPt->thread_finish.compare = mcr_ref_compare ;
@@ -70,7 +79,7 @@ void mcr_Macro_init_with ( mcr_Macro * mcrPt,
 	mcrPt->thread_max = threadMax ;
 	mcr_Macro_set_hotkey ( mcrPt, hotPt ) ;
 	mcr_Macro_set_signals ( mcrPt, signalSet, signalCount ) ;
-	mcr_Macro_enable ( mcrPt, enable ) ;
+	mcr_Macro_set_enabled ( mcrPt, enable ) ;
 }
 
 void mcr_Macro_copy ( void * dstPt, void * srcPt )
@@ -81,11 +90,9 @@ void mcr_Macro_copy ( void * dstPt, void * srcPt )
 	dPt->sticky = sPt->sticky ;
 	dPt->thread_max = sPt->thread_max ;
 	mcr_Macro_set_hotkey ( dPt, & sPt->hot ) ;
-	mcr_Macro_enable ( dPt, MCR_MACRO_ENABLED ( sPt ) ) ;
+	mcr_Macro_set_enabled ( dPt, MCR_MACRO_ENABLED ( sPt ) ) ;
 	mcr_Macro_set_signals ( dPt, ( mcr_Signal * ) sPt->signal_set.array,
 			sPt->signal_set.used ) ;
-	mcr_Array_from_array ( & dPt->signal_isdispatch, sPt->
-			signal_isdispatch.array, sPt->signal_isdispatch.used ) ;
 }
 
 void mcr_Macro_free ( mcr_Macro * mcrPt )
@@ -99,10 +106,9 @@ void mcr_Macro_free ( mcr_Macro * mcrPt )
 	mtx_lock ( & mcrPt->lock ) ;
 	// Absolutey disable.
 	clear_threads ( mcrPt, MCR_INTERRUPT_DISABLE, 1 ) ;
-	MCR_ARR_FOR_EACH ( & mcrPt->signal_set, mcr_Signal_free_foreach,
-			0 ) ;
+	MCR_ARR_FOR_EACH ( mcrPt->signal_set,
+			MCR_EXP ( mcr_Signal_free_foreach ),) ;
 	mcr_Array_free ( & mcrPt->signal_set ) ;
-	mcr_Array_free ( & mcrPt->signal_isdispatch ) ;
 //	mcr_Map_free ( & mcrPt->thread_finish ) ;
 	mtx_unlock ( & mcrPt->lock ) ;
 	cnd_destroy ( & mcrPt->cnd ) ;
@@ -156,7 +162,19 @@ void mcr_Macro_interrupt ( mcr_Macro * mcrPt,
 	mtx_unlock ( & mcrPt->lock ) ;
 }
 
-void mcr_Macro_get_signals ( mcr_Macro * mcrPt,
+mcr_Signal * mcr_Macro_signal ( mcr_Macro * mcrPt,
+		size_t index )
+{
+	dassert ( mcrPt ) ;
+	mcr_Signal * ret = NULL ;
+	mtx_lock ( & mcrPt->lock ) ;
+	if ( index < mcrPt->signal_set.used )
+		ret = MCR_ARR_AT ( mcrPt->signal_set, index ) ;
+	mtx_unlock ( & mcrPt->lock ) ;
+	return ret ;
+}
+
+void mcr_Macro_signals ( mcr_Macro * mcrPt,
 		mcr_Signal * signalbuffer, size_t bufferCount )
 {
 	dassert ( mcrPt ) ;
@@ -179,21 +197,17 @@ void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 	int enableRet = mcrPt->interruptor != MCR_INTERRUPT_DISABLE ;
 	// When setting signals absolute disable.
 	clear_threads ( mcrPt, MCR_INTERRUPT_DISABLE, 1 ) ;
-	MCR_ARR_FOR_EACH ( & mcrPt->signal_set, mcr_Signal_free_foreach,
-			0 ) ;
+	MCR_ARR_FOR_EACH ( mcrPt->signal_set,
+			MCR_EXP ( mcr_Signal_free_foreach ),) ;
 	mcrPt->signal_set.used = 0 ;
-	if ( mcr_Array_resize ( & mcrPt->signal_set, signalCount ) &&
-			mcr_Array_resize ( & mcrPt->signal_isdispatch,
-			signalCount ) )
+	if ( mcr_Array_resize ( & mcrPt->signal_set, signalCount ) )
 	{
-		mcrPt->signal_isdispatch.used = mcrPt->signal_isdispatch.size ;
 		mcr_Signal newSig ;
 		for ( size_t i = 0 ; i < signalCount ; i ++ )
 		{
 			mcr_Signal_init ( & newSig, signalSet [ i ].type ) ;
 			mcr_Signal_copy ( & newSig, signalSet + i ) ;
 			mcr_Array_push ( & mcrPt->signal_set, & newSig ) ;
-			mcrPt->signal_isdispatch.array [ i ] = 1 ;
 		}
 	}
 	else
@@ -206,19 +220,12 @@ void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 	mtx_unlock ( & mcrPt->lock ) ;
 }
 
-mcr_Signal * mcr_Macro_get_signal ( mcr_Macro * mcrPt,
-		size_t index )
-{
-	dassert ( mcrPt ) ;
-	return MCR_ARR_AT ( & mcrPt->signal_set, index ) ;
-}
-
 void mcr_Macro_set_signal ( mcr_Macro * mcrPt,
 		mcr_Signal * copySig, size_t index ) 
 {
 	dassert ( mcrPt ) ;
 	dassert ( copySig ) ;
-	mcr_Signal * sigPt = mcr_Macro_get_signal ( mcrPt, index ) ;
+	mcr_Signal * sigPt = mcr_Macro_signal ( mcrPt, index ) ;
 	if ( sigPt )
 		mcr_Signal_copy ( sigPt, copySig ) ;
 	else
@@ -251,7 +258,7 @@ void mcr_Macro_remove_signal ( mcr_Macro * mcrPt,
 		size_t index ) 
 {
 	dassert ( mcrPt ) ;
-	mcr_Signal * sigPt = mcr_Macro_get_signal ( mcrPt, index ) ;
+	mcr_Signal * sigPt = mcr_Macro_signal ( mcrPt, index ) ;
 	if ( sigPt )
 	{
 		mcr_Signal_free ( sigPt ) ;
@@ -267,19 +274,7 @@ void mcr_Macro_push_signal ( mcr_Macro * mcrPt,
 	mtx_lock ( & mcrPt->lock ) ;
 	mcr_Signal addSig = { 0 } ;
 	mcr_Signal_copy ( & addSig, newSig ) ;
-	if ( mcr_Array_push ( & mcrPt->signal_set, & addSig ) )
-	{
-		if ( mcr_Array_resize ( & mcrPt->signal_isdispatch,
-				mcrPt->signal_set.size ) )
-		{
-			mcrPt->signal_isdispatch.used = mcrPt->signal_set.used ;
-			mcrPt->signal_isdispatch.array
-					[ mcrPt->signal_set.used - 1 ] = 1 ;
-		}
-		else
-			dmsg ;
-	}
-	else
+	if ( ! mcr_Array_push ( & mcrPt->signal_set, & addSig ) )
 	{
 		dmsg ;
 		mcr_Signal_free ( & addSig ) ;
@@ -293,16 +288,15 @@ void mcr_Macro_pop_signal ( mcr_Macro * mcrPt )
 	mtx_lock ( & mcrPt->lock ) ;
 	if ( mcrPt->signal_set.used )
 	{
-		mcr_Signal * sigPt = MCR_ARR_AT ( & mcrPt->signal_set,
+		mcr_Signal * sigPt = MCR_ARR_AT ( mcrPt->signal_set,
 				mcrPt->signal_set.used - 1 ) ;
 		mcr_Signal_free ( sigPt ) ;
 		-- mcrPt->signal_set.used ;
-		-- mcrPt->signal_isdispatch.used ;
 	}
 	mtx_unlock ( & mcrPt->lock ) ;
 }
 
-void mcr_Macro_enable ( mcr_Macro * mcrPt, int enable )
+void mcr_Macro_set_enabled ( mcr_Macro * mcrPt, int enable )
 {
 	dassert ( mcrPt ) ;
 	mcr_Macro_interrupt ( mcrPt, enable ? MCR_CONTINUE :
@@ -411,12 +405,7 @@ static int thread_macro ( void * data )
 			}
 			if ( sigArr [ index ].type )
 			{
-				if ( mcrPt->signal_isdispatch.array [ index ] )
-				{
-					if ( ! MCR_SEND ( sigArr + index ) )
-					{ dmsg ; }
-				}
-				else if ( ! sigArr [ index ].type->send ( sigArr + index ) )
+				if ( ! MCR_SEND ( sigArr [ index ] ) )
 				{ dmsg ; }
 			}
 			++ index ;

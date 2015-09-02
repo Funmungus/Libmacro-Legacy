@@ -1,10 +1,20 @@
-/* signal/lnx/lnxstandardnames.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "signal/standard.h"
 # include "signal/lnx/standard.h"
@@ -283,10 +293,10 @@ static void add_keynames ( )
 	}
 }
 
-# define keysetall( keyPt, keyscan, uptype ) \
-	MCR_KEY_SET ( keyPt, keyscan ) ; \
-	MCR_KEY_SET_SCAN ( keyPt, keyscan ) ; \
-	MCR_KEY_SET_UP_TYPE ( keyPt, uptype ) ;
+# define KEYSETALL( key, keyscan, uptype ) \
+	MCR_KEY_SET_KEY ( key, keyscan ) ; \
+	MCR_KEY_SET_SCAN ( key, keyscan ) ; \
+	MCR_KEY_SET_UP_TYPE ( key, uptype ) ;
 
 static void add_echokeys ( )
 {
@@ -308,9 +318,9 @@ static void add_echokeys ( )
 	int echoCode = 0 ;
 	for ( int i = 0 ; i < count ; i ++ )
 	{
-		keysetall ( & k, echokeys [ i ], MCR_DOWN ) ;
+		KEYSETALL ( k, echokeys [ i ], MCR_DOWN ) ;
 		mcr_Echo_set_key ( echoCode ++, & k ) ;
-		MCR_KEY_SET_UP_TYPE ( & k, MCR_UP ) ;
+		MCR_KEY_SET_UP_TYPE ( k, MCR_UP ) ;
 		mcr_Echo_set_key ( echoCode ++, & k ) ;
 	}
 }

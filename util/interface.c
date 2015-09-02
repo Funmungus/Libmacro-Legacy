@@ -1,10 +1,20 @@
-/* util/interface.c - Interface helper functions.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "util/interface.h"
 
@@ -12,7 +22,7 @@ void * mcr_mkdata_data ( mcr_Interface * iPt )
 {
 	dassert ( iPt ) ;
 	mcr_Data d = { 0 } ;
-	MCR_IMKDATA ( iPt, & d ) ;
+	MCR_IMKDATA ( * iPt, d ) ;
 	return d.data ;
 }
 
@@ -20,7 +30,7 @@ mcr_Data mcr_mkdata ( mcr_Interface * iPt )
 {
 	dassert ( iPt ) ;
 	mcr_Data d = { 0 } ;
-	MCR_IMKDATA ( iPt, & d ) ;
+	MCR_IMKDATA ( * iPt, d ) ;
 	return d ;
 }
 
@@ -30,7 +40,7 @@ void mcr_icpy ( mcr_Interface * iPt, mcr_Data * dstPt,
 	dassert ( iPt ) ;
 	dassert ( dstPt ) ;
 	dassert ( srcPt ) ;
-	MCR_ICPY ( iPt, dstPt, srcPt ) ;
+	MCR_ICPY ( * iPt, * dstPt, * srcPt ) ;
 }
 
 int mcr_icmp ( mcr_Interface * iPt, mcr_Data * lhs,
@@ -39,16 +49,15 @@ int mcr_icmp ( mcr_Interface * iPt, mcr_Data * lhs,
 	dassert ( iPt ) ;
 	dassert ( lhs ) ;
 	dassert ( rhs ) ;
-	return MCR_ICMP ( iPt, lhs, rhs ) ;
+	return MCR_ICMP ( * iPt, * lhs, * rhs ) ;
 }
 
 void mcr_ifree ( mcr_Interface * iPt, mcr_Data * dataPt )
 {
 	dassert ( iPt ) ;
 	dassert ( dataPt ) ;
-	MCR_IFREE ( iPt, dataPt ) ;
+	MCR_IFREE ( * iPt, * dataPt ) ;
 }
-
 
 void mcr_iinit ( mcr_Interface * newType,
 		size_t dataSize )
@@ -75,7 +84,7 @@ void mcr_iinit_with ( mcr_Interface * newType,
 		return ;
 	}
 	memset ( newType, 0, sizeof ( mcr_Interface ) ) ;
-	MCR_IINIT ( newType, compare, copy, dataSize, init, free ) ;
+	MCR_IINIT ( * newType, compare, copy, dataSize, init, free ) ;
 }
 
 
@@ -106,7 +115,7 @@ mcr_Interface * mcr_iget ( mcr_IRegistry * iRegPt, size_t typeId )
 {
 	if ( typeId < iRegPt->set.used )
 	{
-		mcr_Interface ** ifacePtPt = MCR_ARR_AT ( & iRegPt->set, typeId ) ;
+		mcr_Interface ** ifacePtPt = MCR_ARR_AT ( iRegPt->set, typeId ) ;
 		return ifacePtPt ? * ifacePtPt : NULL ;
 	}
 	return NULL ;
@@ -118,7 +127,7 @@ mcr_Interface * mcr_ifrom_name (
 	if (typeName)
 	{
 		mcr_Interface ** retPt = MCR_MAP_GET_VALUE (
-				& ( iRegPt )->name_map, & ( typeName ) ) ;
+				( iRegPt )->name_map, & ( typeName ) ) ;
 		return retPt ? * retPt : NULL ;
 	}
 	return NULL ;
@@ -151,7 +160,7 @@ int mcr_iset_name ( mcr_IRegistry * iRegPt,
 	}
 	else
 	{
-		mcr_Array * namePt = MCR_ARR_AT ( & iRegPt->names, iPt->id ) ;
+		mcr_Array * namePt = MCR_ARR_AT ( iRegPt->names, iPt->id ) ;
 		if ( ! mcr_String_from_string ( namePt, name ) )
 		{
 			dmsg ;
@@ -206,8 +215,10 @@ void mcr_iclear ( mcr_IRegistry * iRegPt )
 {
 	dassert ( iRegPt ) ;
 	mcr_Array_free ( & iRegPt->set ) ;
-	MCR_ARR_FOR_EACH ( & iRegPt->names, mcr_Array_free_foreach, 0 ) ;
+	MCR_ARR_FOR_EACH ( iRegPt->names,
+			MCR_EXP ( mcr_Array_free_foreach ),) ;
 	mcr_Array_free ( & iRegPt->names ) ;
-	MCR_MAP_FOR_EACH ( & iRegPt->name_map, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH ( iRegPt->name_map,
+			MCR_EXP (  mcr_Array_free_foreach ),) ;
 	mcr_Map_free ( & iRegPt->name_map ) ;
 }

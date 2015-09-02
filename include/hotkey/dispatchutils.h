@@ -1,10 +1,20 @@
-/* include/hotkey/dispatchutils.h - Static helper functions for dispatchers.
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # ifndef MCR_DISPATCHUTILS_H
 # define MCR_DISPATCHUTILS_H
@@ -21,18 +31,15 @@ typedef const void * cpointer_t ;
  * 2 ) Array is mcr_Hot **
  * 3 ) Trigger array with signalPt, mods, and block.
  * */
-# define TRIGGER_MAPPED_ARRAY( mcr_MapPt, keyPt, signalPt, mods, \
+# define TRIGGER_MAPPED_ARRAY( map, keyPt, signalPt, mods, \
 		block ) \
 { \
-	mcr_Array * _arrPt_ = MCR_MAP_GET_VALUE ( mcr_MapPt, keyPt ) ; \
-	if ( _arrPt_ ) \
+	mcr_Array * _arrPt_ = MCR_MAP_GET_VALUE ( map, keyPt ) ; \
+	if ( _arrPt_ && _arrPt_->used ) \
 	{ \
-		if ( _arrPt_->used ) \
-		{ \
-			mcr_Hot ** _hotsPt_ = MCR_ARR_AT ( _arrPt_, 0 ) ; \
-			MCR_HOT_TRIGGER_REF_ARRAY ( _hotsPt_, ( _arrPt_ )->used, \
-					signalPt, mods, block ) ; \
-		} \
+		mcr_Hot ** _hotsPt_ = MCR_ARR_AT ( * _arrPt_, 0 ) ; \
+		MCR_HOT_TRIGGER_REF_ARRAY ( _hotsPt_, ( _arrPt_ )->used, \
+				signalPt, mods, block ) ; \
 	} \
 }
 
@@ -41,31 +48,31 @@ typedef const void * cpointer_t ;
  * then MCR_MAP_TRIGGER_ARRAY for mapped map and specificKeyPt.
  * 3 ) Then MCR_MAP_TRIGGER_ARRAY for mapped map and genericKeyPt.
  * */
-# define TRIGGER_MAPPED_MAPS( mcr_MapPt, mapKeyPt, specificKeyPt, \
+# define TRIGGER_MAPPED_MAPS( map, mapKeyPt, specificKeyPt, \
 		genericKeyPt, signalPt, mods, block ) \
 { \
-	mcr_Map * _mapPt_ = MCR_MAP_GET_VALUE ( mcr_MapPt, mapKeyPt ) ; \
+	mcr_Map * _mapPt_ = MCR_MAP_GET_VALUE ( map, mapKeyPt ) ; \
 	if ( _mapPt_ ) \
 	{ \
 		if ( _mapPt_->compare && _mapPt_->compare ( specificKeyPt, \
 				genericKeyPt ) ) \
 		{ \
-			TRIGGER_MAPPED_ARRAY ( _mapPt_, specificKeyPt, \
+			TRIGGER_MAPPED_ARRAY ( * _mapPt_, specificKeyPt, \
 				signalPt, mods, block ) ; \
 		} \
-		TRIGGER_MAPPED_ARRAY ( _mapPt_, genericKeyPt, \
+		TRIGGER_MAPPED_ARRAY ( * _mapPt_, genericKeyPt, \
 				signalPt, mods, block ) ; \
 	} \
 }
 
-// Trigger only one map out of given mapPt
-# define TRIGGER_MAPPED_MAP( mapPt, keyPt, mappedKeyPt, signalPt, \
+// Trigger only one map out of given map
+# define TRIGGER_MAPPED_MAP( map, keyPt, mappedKeyPt, signalPt, \
 		mods, block ) \
 { \
-	mcr_Map * _found_ = MCR_MAP_GET_VALUE ( mapPt, keyPt ) ; \
+	mcr_Map * _found_ = MCR_MAP_GET_VALUE ( map, keyPt ) ; \
 	if ( _found_ ) \
 	{ \
-		TRIGGER_MAPPED_ARRAY ( _found_, mappedKeyPt, signalPt, mods, \
+		TRIGGER_MAPPED_ARRAY ( * _found_, mappedKeyPt, signalPt, mods, \
 				block ) ; \
 	} \
 }
@@ -76,10 +83,11 @@ typedef const void * cpointer_t ;
  * */
 static void clear_arr_empties ( mcr_Map * mapPt )
 {
+	mcr_dassert ( mapPt ) ;
 	for ( size_t i = 0 ; i < mapPt->set.used ; )
 	{
-		mcr_Array * arr = MCR_ARR_AT ( & mapPt->set, i ) ;
-		arr = MCR_MAP_VALUE ( mapPt, arr ) ;
+		mcr_Array * arr = MCR_ARR_AT ( mapPt->set, i ) ;
+		arr = MCR_MAP_VALUE ( * mapPt, arr ) ;
 		if ( arr->used )
 		{
 			++ i ;
@@ -102,8 +110,8 @@ static void clear_map_empties ( mcr_Map * mapPt )
 {
 	for ( size_t i = 0 ; i < mapPt->set.used ; )
 	{
-		mcr_Map * map = MCR_ARR_AT ( & mapPt->set, i ) ;
-		map = MCR_MAP_VALUE ( mapPt, map ) ;
+		mcr_Map * map = MCR_ARR_AT ( mapPt->set, i ) ;
+		map = MCR_MAP_VALUE ( * mapPt, map ) ;
 		if ( map->set.used )
 		{
 			++ i ;
@@ -134,7 +142,7 @@ static void arr_remove_sorted ( mcr_Array * arrPt, const void * deletion,
 static void map_arr_remove_sorted ( mcr_Map * mapPt, const void * deletion,
 		mcr_compare_fnc cmp )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, arr_remove_sorted, deletion, cmp ) ;
+	MCR_MAP_FOR_EACH_VALUE ( * mapPt, arr_remove_sorted, deletion, cmp ) ;
 	// Deletion is removed from all arrays. Remove empties.
 	clear_arr_empties ( mapPt ) ;
 }
@@ -145,7 +153,7 @@ static void map_arr_remove_sorted ( mcr_Map * mapPt, const void * deletion,
 static void map_map_remove_sorted ( mcr_Map * mapPt, const void * deletion,
 		mcr_compare_fnc cmp )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, map_arr_remove_sorted, deletion,
+	MCR_MAP_FOR_EACH_VALUE ( * mapPt, map_arr_remove_sorted, deletion,
 			cmp ) ;
 	clear_map_empties ( mapPt ) ;
 }
@@ -153,16 +161,17 @@ static void map_map_remove_sorted ( mcr_Map * mapPt, const void * deletion,
 /* map->array. mcr_Array_free all mapped arrays.
  * mcr_Map_free the parameter after all arrays are freed.
  * */
-static void map_arr_free_redirect ( mcr_Map * mapPt, ... )
+static void map_arr_free_foreach ( mcr_Map * mapPt, ... )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, mcr_Array_free_foreach, 0 ) ;
+	MCR_MAP_FOR_EACH_VALUE ( * mapPt,
+			MCR_EXP ( mcr_Array_free_foreach ),) ;
 	mcr_Map_free ( mapPt ) ;
 }
 
 // map->map
 static void map_map_free ( mcr_Map * mapPt, ... )
 {
-	MCR_MAP_FOR_EACH_VALUE ( mapPt, map_arr_free_redirect, 0 ) ;
+	MCR_MAP_FOR_EACH_VALUE ( * mapPt, map_arr_free_foreach, 0 ) ;
 	mcr_Map_free ( mapPt ) ;
 }
 
@@ -174,7 +183,7 @@ static void add_mapped_array_sorted ( mcr_Map * mapPt, const void * keyPt,
 	mcr_Array * found = mcr_Map_get_ensured ( mapPt, keyPt, arrEnsured ) ;
 	if ( found )
 	{
-		found = MCR_MAP_VALUE ( mapPt, found ) ;
+		found = MCR_MAP_VALUE ( * mapPt, found ) ;
 		mcr_Array_add_sorted ( found, pushValue, cmp ) ;
 	}
 	// Else allocation error.
@@ -191,7 +200,7 @@ static void add_mapped_map_sorted ( mcr_Map * mapPt, const void * keyPt,
 	mcr_Map * found = mcr_Map_get_ensured ( mapPt, keyPt, mapEnsured ) ;
 	if ( found )
 	{
-		found = MCR_MAP_VALUE ( mapPt, found ) ;
+		found = MCR_MAP_VALUE ( * mapPt, found ) ;
 		add_mapped_array_sorted ( found, mappedKeyPt, pushValue,
 				arrEnsured, cmp ) ;
 	}

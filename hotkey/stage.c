@@ -1,10 +1,20 @@
-/* hotkey/stage.c
- * Copyright ( C ) Jonathan Pelletier 2013
- *
- * This work is licensed under the Creative Commons Attribution 4.0
- * International License. To view a copy of this license, visit
- * http://creativecommons.org/licenses/by/4.0/.
- * */
+/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 # include "hotkey/stage.h"
 
@@ -23,16 +33,17 @@ void mcr_Stage_init ( mcr_Stage * stagePt )
 	stagePt->resembles = mcr_Stage_resembleGeneric ;
 }
 
-void mcr_Stage_init_with ( mcr_Stage * stagePt, int blocking,
+void mcr_Stage_init_with (mcr_Stage * stagePt, int blocking,
 		mcr_Signal * interceptPt, unsigned int measurement_error,
-		unsigned int modifiers )
+		unsigned int modifiers, mcr_TriggerFor trigFor )
 {
 	if ( ! stagePt )
 		return ;
 	memset ( stagePt, 0, sizeof ( mcr_Stage ) ) ;
 	stagePt->blocking = blocking ;
 	stagePt->measurement_error = measurement_error ;
-	mcr_Stage_set ( stagePt, interceptPt, modifiers ) ;
+	mcr_Stage_set ( stagePt, interceptPt, modifiers,
+			trigFor ) ;
 }
 
 void mcr_Stage_free ( mcr_Stage * stagePt )
@@ -42,8 +53,8 @@ void mcr_Stage_free ( mcr_Stage * stagePt )
 	mcr_Signal_free ( & stagePt->intercept ) ;
 }
 
-void mcr_Stage_set ( mcr_Stage * stagePt,
-		mcr_Signal * interceptPt, unsigned int mods )
+void mcr_Stage_set (mcr_Stage * stagePt,
+		mcr_Signal * interceptPt, unsigned int mods , mcr_TriggerFor trigFor)
 {
 	dassert ( stagePt ) ;
 	if ( interceptPt && interceptPt->type )
@@ -54,15 +65,17 @@ void mcr_Stage_set ( mcr_Stage * stagePt,
 		stagePt->resembles = mcr_Stage_resemble_for (
 			interceptPt->type->iface.id ) ;
 		stagePt->modifiers = mods ;
+		stagePt->trigger_for = trigFor ;
 	}
 	else
 	{
-		mcr_Stage_set_generic ( stagePt, interceptPt, mods ) ;
+		mcr_Stage_set_generic ( stagePt, interceptPt, mods,
+				trigFor ) ;
 	}
 }
 
-void mcr_Stage_set_generic ( mcr_Stage * stagePt,
-		mcr_Signal * interceptPt, unsigned int mods )
+void mcr_Stage_set_generic (mcr_Stage * stagePt,
+		mcr_Signal * interceptPt, unsigned int mods , mcr_TriggerFor trigFor)
 {
 	dassert ( stagePt ) ;
 	mcr_Signal_free ( & stagePt->intercept ) ;
@@ -71,6 +84,7 @@ void mcr_Stage_set_generic ( mcr_Stage * stagePt,
 	stagePt->isme = mcr_Stage_ismeGeneric ;
 	stagePt->resembles = mcr_Stage_resembleGeneric ;
 	stagePt->modifiers = mods ;
+	stagePt->trigger_for = trigFor ;
 }
 
 int mcr_Stage_compare ( const void * lhs, const void * rhs )
@@ -78,7 +92,7 @@ int mcr_Stage_compare ( const void * lhs, const void * rhs )
 	dassert ( lhs ) ;
 	dassert ( rhs ) ;
 	const mcr_Stage * lPt = lhs, * rPt = rhs ;
-	int ret = MCR_SIGNAL_CMP ( & lPt->intercept, & rPt->intercept ) ;
+	int ret = MCR_SIGNAL_CMP ( lPt->intercept, rPt->intercept ) ;
 	if ( ret )
 		return ret ;
 	if ( lPt->modifiers != rPt->modifiers )
@@ -87,6 +101,8 @@ int mcr_Stage_compare ( const void * lhs, const void * rhs )
 		return lPt->blocking < rPt->blocking ? -1 : 1 ;
 	if ( lPt->measurement_error != rPt->measurement_error )
 		return lPt->measurement_error < rPt->measurement_error ? -1 : 1 ;
+	if ( lPt->trigger_for != rPt->trigger_for )
+		return lPt->trigger_for < rPt->trigger_for ? -1 : 1 ;
 	return 0 ;
 }
 
@@ -97,7 +113,7 @@ mcr_isme_fnc mcr_Stage_isme_for ( size_t id )
 	if ( id > _ismeSet.used )
 		return NULL ;
 	return * ( mcr_isme_fnc * )
-			MCR_ARR_AT ( & _ismeSet, id ) ;
+			MCR_ARR_AT ( _ismeSet, id ) ;
 }
 
 mcr_isme_fnc mcr_Stage_resemble_for ( size_t id )
@@ -107,7 +123,7 @@ mcr_isme_fnc mcr_Stage_resemble_for ( size_t id )
 	if ( id > _resembleSet.used )
 		return NULL ;
 	return * ( mcr_isme_fnc * )
-			MCR_ARR_AT ( & _resembleSet, id ) ;
+			MCR_ARR_AT ( _resembleSet, id ) ;
 }
 
 size_t mcr_Stage_count ( )
@@ -146,7 +162,7 @@ void mcr_Stage_get_all ( mcr_isme_fnc * fncBuffer,
 			( stagePt )->intercept.data.data == ( interceptPt ) || \
 			! mcr_Signal_compare ( ( stagePt )->intercept.data.data, \
 			( interceptPt ) ) ;
-int mcr_Stage_isref ( mcr_Stage * stagePt,
+int mcr_Stage_isref (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	dassert ( stagePt ) ;
@@ -158,7 +174,7 @@ int mcr_Stage_isref ( mcr_Stage * stagePt,
 	refcommons ( stagePt, interceptPt ) ;
 }
 
-int mcr_Stage_resemble_ref ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_ref (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	dassert ( stagePt ) ;
@@ -207,7 +223,7 @@ int mcr_Stage_resemble_ref ( mcr_Stage * stagePt,
 	ANYDATA ( stagePt ) ; \
 	BADDATA ( interceptPt ) ;
 
-int mcr_Stage_isalarm ( mcr_Stage * stagePt,
+int mcr_Stage_isalarm (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iAlarm.iface.id ) ;
@@ -224,19 +240,19 @@ int mcr_Stage_isalarm ( mcr_Stage * stagePt,
 // ialarm default
 
 # define echocommons( stagePt, interceptPt ) \
-	int me = MCR_ECHO_GET ( ( mcr_HIDEcho * ) \
+	int me = MCR_ECHO_ECHO ( * ( mcr_HIDEcho * ) \
 			( stagePt )->intercept.data.data ) ; \
 	return me == ( int ) MCR_ANY_MOD || \
-			me == MCR_ECHO_GET ( \
-			( mcr_HIDEcho * ) ( interceptPt )->data.data ) ;
-int mcr_Stage_isecho ( mcr_Stage * stagePt,
+			me == MCR_ECHO_ECHO ( \
+			* ( mcr_HIDEcho * ) ( interceptPt )->data.data ) ;
+int mcr_Stage_isecho (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iHIDEcho.iface.id ) ;
 	echocommons ( stagePt, interceptPt ) ;
 }
 
-int mcr_Stage_resemble_echo ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_echo (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISICOMMONS ( stagePt, interceptPt, mods, mcr_iHIDEcho.iface.id ) ;
@@ -244,27 +260,27 @@ int mcr_Stage_resemble_echo ( mcr_Stage * stagePt,
 }
 
 # define keycommons( mePt, themPt ) \
-	int me = MCR_KEY_GET ( ( mePt ) ) ; \
-	int them = MCR_KEY_GET ( ( themPt ) ) ; \
+	int me = MCR_KEY_KEY ( * ( mePt ) ) ; \
+	int them = MCR_KEY_KEY ( * ( themPt ) ) ; \
 	if ( me != MCR_ANY_KEY && me != them ) \
 		return 0 ; \
-	me = MCR_KEY_GET_SCAN ( ( mePt ) ) ; \
-	them = MCR_KEY_GET_SCAN ( ( themPt ) ) ; \
+	me = MCR_KEY_SCAN ( * ( mePt ) ) ; \
+	them = MCR_KEY_SCAN ( * ( themPt ) ) ; \
 	if ( me != MCR_ANY_KEY && me != them ) \
 		return 0 ;
-int mcr_Stage_iskey ( mcr_Stage * stagePt,
+int mcr_Stage_iskey (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iKey.iface.id ) ;
 	mcr_Key * mePt = stagePt->intercept.data.data ;
 	mcr_Key * themPt = interceptPt->data.data ;
 	keycommons ( mePt, themPt ) ;
-	me = MCR_KEY_GET_UP_TYPE ( mePt ) ;
-	them = MCR_KEY_GET_UP_TYPE ( themPt ) ;
+	me = MCR_KEY_UP_TYPE ( * mePt ) ;
+	them = MCR_KEY_UP_TYPE ( * themPt ) ;
 	return me == MCR_BOTH || me == them ;
 }
 // For key type do not check Key up or mods.
-int mcr_Stage_resemble_key ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_key (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISICOMMONS ( stagePt, interceptPt, mods, mcr_iKey.iface.id ) ;
@@ -274,7 +290,7 @@ int mcr_Stage_resemble_key ( mcr_Stage * stagePt,
 	return 0 ;
 }
 
-int mcr_Stage_ismovecursor ( mcr_Stage * stagePt,
+int mcr_Stage_ismovecursor (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods,
@@ -283,7 +299,7 @@ int mcr_Stage_ismovecursor ( mcr_Stage * stagePt,
 			interceptPt->data.data, stagePt->measurement_error ) ;
 }
 
-int mcr_Stage_resemble_movecursor ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_movecursor (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISICOMMONS ( stagePt, interceptPt, mods,
@@ -292,7 +308,7 @@ int mcr_Stage_resemble_movecursor ( mcr_Stage * stagePt,
 			interceptPt->data.data, stagePt->measurement_error ) ;
 }
 
-int mcr_Stage_isnoop ( mcr_Stage * stagePt,
+int mcr_Stage_isnoop (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iNoOp.iface.id ) ;
@@ -306,19 +322,19 @@ int mcr_Stage_isnoop ( mcr_Stage * stagePt,
 // inoop default
 # define scrollcommons( stagePt, interceptPt, mods ) \
 	mcr_Dimensions lhs, rhs ; \
-	MCR_SCROLL_GET ( ( mcr_Scroll * ) \
+	MCR_SCROLL_DIMENSIONS ( * ( mcr_Scroll * ) \
 			( stagePt )->intercept.data.data, lhs ) ; \
-	MCR_SCROLL_GET ( ( mcr_Scroll * ) \
+	MCR_SCROLL_DIMENSIONS ( * ( mcr_Scroll * ) \
 			( interceptPt )->data.data, rhs ) ; \
 	return mcr_resembles_justified ( lhs, rhs ) ;
-int mcr_Stage_isscroll ( mcr_Stage * stagePt,
+int mcr_Stage_isscroll (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iScroll.iface.id ) ;
 	scrollcommons ( stagePt, interceptPt, mods ) ;
 }
 
-int mcr_Stage_resemble_scroll ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_scroll (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISICOMMONS ( stagePt, interceptPt, mods, mcr_iScroll.iface.id ) ;
@@ -329,7 +345,7 @@ int mcr_Stage_resemble_scroll ( mcr_Stage * stagePt,
 	if ( ( mePt )->modifiers != MCR_ANY_MOD && \
 			( mePt )->modifiers != ( themPt )->modifiers ) \
 		return 0 ;
-int mcr_Stage_ismod ( mcr_Stage * stagePt,
+int mcr_Stage_ismod (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISCOMMONS ( stagePt, interceptPt, mods, mcr_iMod.iface.id ) ;
@@ -340,7 +356,7 @@ int mcr_Stage_ismod ( mcr_Stage * stagePt,
 			mePt->up_type == themPt->up_type ;
 }
 
-int mcr_Stage_resemble_mod ( mcr_Stage * stagePt,
+int mcr_Stage_resemble_mod (mcr_Stage * stagePt,
 		mcr_Signal * interceptPt, unsigned int mods )
 {
 	ISICOMMONS ( stagePt, interceptPt, mods, mcr_iMod.iface.id ) ;
