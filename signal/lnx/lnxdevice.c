@@ -22,8 +22,9 @@
 MCR_API mcr_Device mcr_keyDev ;
 MCR_API mcr_Device mcr_absDev ;
 MCR_API mcr_Device mcr_relDev ;
-const MCR_API struct input_event mcr_syncer = { { 0, 0 }, EV_SYN, \
-		SYN_REPORT, 0 } ;
+const MCR_API struct input_event mcr_syncer = {
+		.type = EV_SYN,
+		.code = SYN_REPORT } ;
 MCR_API __s32 mcr_abs_resolution = MCR_ABS_RESOLUTION ;
 
 static mcr_Array _uinputPath ;
@@ -115,56 +116,45 @@ void mcr_Device_free ( mcr_Device * devPt )
 
 int mcr_Device_enable ( mcr_Device * devPt, int enable )
 {
+	int islocked = 0 ;
+# define returnerror( expression ) \
+	if ( expression ) \
+	{ \
+		dmsg ; \
+		if ( ! device_close ( devPt ) ) \
+		{ dmsg ; } \
+		if ( islocked ) \
+			mtx_unlock ( & _deviceLock ) ; \
+		return 0 ; \
+	}
 	dassert ( devPt ) ;
 	devPt->enabled = 0 ;
 	device_close_event ( devPt ) ;
 	// If already enabled, need to close and restart.
-	if ( ! device_close ( devPt ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
+	returnerror ( ! device_close ( devPt ) )
 
 	if ( ! enable ) // disable complete
 		return 1 ;
 	// Cannot have device with no evbits to set.
 	// Must have at least 1 UI_SET_EVBIT.
-	if ( ! mcr_Device_has_evbit ( devPt ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
+	returnerror ( ! mcr_Device_has_evbit ( devPt ) )
 
-	// Start by opening.
 	mtx_lock ( & _deviceLock ) ;
-	if ( ! device_open ( devPt ) )
-	{
-		dmsg ;
-		mtx_unlock ( & _deviceLock ) ;
-		return 0 ;
-	}
+	++ islocked ;
+	// Start by opening.
+	returnerror ( ! device_open ( devPt ) )
 
 	// Force evbit satisfaction.
-	if ( ! device_write_evbit ( devPt ) )
-	{
-		dmsg ;
-		mtx_unlock ( & _deviceLock ) ;
-		return 0 ;
-	}
+	returnerror ( ! device_write_evbit ( devPt ) )
 
 	// Then write all other bits. Ensured at least one mapping pair.
 	int valid = device_write_non_evbit ( devPt ) ;
 
-	if ( ! device_create ( devPt ) )
-	{
-		dmsg ;
-		mtx_unlock ( & _deviceLock ) ;
-		return 0 ;
-	}
+	returnerror ( ! device_create ( devPt ) )
 
 	// Created and ready. valid true is all good, false means some
 	// non-UI_SET_EVBIT did not work.
-	devPt->enabled = 1 ;
+	++ devPt->enabled ;
 	if ( ! device_open_event ( devPt ) )
 	{
 		dmsg ;
@@ -172,6 +162,7 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 	}
 	mtx_unlock ( & _deviceLock ) ;
 	return valid ;
+# undef returnerror
 }
 
 int mcr_Device_enable_all ( int enable )
@@ -491,6 +482,7 @@ static int device_create ( mcr_Device * devPt )
 
 static int keyDevice_init ( )
 {
+	int i ;
 	mcr_Device_init ( & mcr_keyDev ) ;
 
 	snprintf ( mcr_keyDev.device.name, UINPUT_MAX_NAME_SIZE,
@@ -501,27 +493,29 @@ static int keyDevice_init ( )
 	mcr_keyDev.device.id.product = 1 ;
 	mcr_keyDev.device.id.version = 1 ;
 
-	int evbits [ ] = { EV_KEY, EV_MSC, EV_SYN } ;
+	int evbits [ ] = { EV_SYN, EV_MSC, EV_KEY } ;
 	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	evbits [ 0 ] = MSC_SCAN ;
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_MSCBIT, evbits, 1 ) )
+	int mscbits [ MSC_CNT ] ;
+	for ( i = 0 ; i < MSC_CNT ; i ++ )
+	{ mscbits [ i ] = i ; }
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_MSCBIT, mscbits, MSC_CNT ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
 	int keybits [ KEY_CNT ] ;
-	for ( int i = 0 ; i < KEY_CNT ; i++ )
+	for ( i = 0 ; i < KEY_CNT ; i++ )
 	{
 		keybits [ i ] = i ;
 	}
 
 	// Do not write 0 value
 	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_KEYBIT,
-		 	keybits + 1, KEY_CNT - 1 ) )
+			keybits + 1, KEY_MAX ) )
 	{
 		dmsg ;
 		return 0 ;
@@ -531,6 +525,7 @@ static int keyDevice_init ( )
 
 static int absDevice_init ( )
 {
+	int i ;
 	mcr_Device_init ( & mcr_absDev ) ;
 
 	snprintf ( mcr_absDev.device.name, UINPUT_MAX_NAME_SIZE,
@@ -541,12 +536,12 @@ static int absDevice_init ( )
 	mcr_absDev.device.id.product = 1 ;
 	mcr_absDev.device.id.version = 1 ;
 
-	for ( int i = 0 ; i < ABS_MISC ; i++ )
+	for ( int i = 0 ; i <= ABS_MISC ; i++ )
 	{
 		mcr_absDev.device.absmax [ i ] = mcr_abs_resolution ;
 	}
 
-	int evbits [ ] = { EV_ABS, EV_KEY, EV_SYN } ;
+	int evbits [ ] = { EV_SYN, EV_KEY, EV_ABS } ;
 	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
 		dmsg ;
@@ -558,14 +553,21 @@ static int absDevice_init ( )
 		dmsg ;
 		return 0 ;
 	}
-	int absbits [ ABS_MISC ] ;
-	for ( int i = 0 ; i < ABS_MISC ; i++ )
+	evbits [ 0 ] = INPUT_PROP_POINTER ;
+	evbits [ 1 ] = INPUT_PROP_DIRECT ;
+	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_PROPBIT, evbits, 2 ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	int absbits [ ABS_MISC + 1 ] ;
+	for ( i = 0 ; i <= ABS_MISC ; i++ )
 	{
 		absbits [ i ] = i ;
 	}
 
 	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_ABSBIT, absbits,
-			ABS_MISC ) )
+			ABS_MISC + 1 ) )
 	{
 		dmsg ;
 		return 0 ;
@@ -575,6 +577,7 @@ static int absDevice_init ( )
 
 static int relDevice_init ( )
 {
+	int i ;
 	mcr_Device_init ( & mcr_relDev ) ;
 
 	snprintf ( mcr_relDev.device.name, UINPUT_MAX_NAME_SIZE,
@@ -585,12 +588,7 @@ static int relDevice_init ( )
 	mcr_relDev.device.id.product = 1 ;
 	mcr_relDev.device.id.version = 1 ;
 
-	for ( int i = 0 ; i < REL_MISC ; i++ )
-	{
-		mcr_relDev.device.absmax [ i ] = mcr_abs_resolution ;
-	}
-
-	int evbits [ ] = { EV_REL, EV_KEY, EV_SYN } ;
+	int evbits [ ] = { EV_SYN, EV_KEY, EV_REL } ;
 	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_EVBIT, evbits, 3 ) )
 	{
 		dmsg ;
@@ -602,14 +600,20 @@ static int relDevice_init ( )
 		dmsg ;
 		return 0 ;
 	}
-	int relbits [ REL_MISC ] ;
-	for ( int i = 0 ; i < REL_MISC ; i++ )
+	evbits [ 0 ] = INPUT_PROP_POINTER ;
+	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_PROPBIT, evbits, 1 ) )
+	{
+		dmsg ;
+		return 0 ;
+	}
+	int relbits [ REL_MISC + 1 ] ;
+	for ( i = 0 ; i <= REL_MISC ; i++ )
 	{
 		relbits [ i ] = i ;
 	}
 
 	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_RELBIT, relbits,
-			REL_MISC ) )
+			REL_MISC + 1 ) )
 	{
 		dmsg ;
 		return 0 ;

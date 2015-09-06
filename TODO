@@ -8,3 +8,10 @@ Register names for all enums.
 Add build support for popular graphic servers, X, Wayland, and Mir.
 Linux Suspend/resume signal listener (SIGSTOP).
 Safety check for setting device grabs in linux. (/proc/bus/input/devices ?)
+Rename properties:
+* mcr_standard_enable => mcr_standard_set_enabled, mcr_standard_enabled
+* mcr_ISignal_get ?
+* mcr_ISignal_get_id ?
+* mcr_Key_code ?
+* all code/name finding functions
+* mcr_SafeString_get
