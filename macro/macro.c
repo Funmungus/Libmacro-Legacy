@@ -221,7 +221,7 @@ void mcr_Macro_set_signals ( mcr_Macro * mcrPt,
 }
 
 void mcr_Macro_set_signal ( mcr_Macro * mcrPt,
-		mcr_Signal * copySig, size_t index ) 
+		mcr_Signal * copySig, size_t index )
 {
 	dassert ( mcrPt ) ;
 	dassert ( copySig ) ;
@@ -233,7 +233,7 @@ void mcr_Macro_set_signal ( mcr_Macro * mcrPt,
 }
 
 void mcr_Macro_insert_signal ( mcr_Macro * mcrPt,
-		mcr_Signal * copySig, size_t index ) 
+		mcr_Signal * copySig, size_t index )
 {
 	dassert ( mcrPt ) ;
 	dassert ( copySig ) ;
@@ -255,7 +255,7 @@ void mcr_Macro_insert_signal ( mcr_Macro * mcrPt,
 }
 
 void mcr_Macro_remove_signal ( mcr_Macro * mcrPt,
-		size_t index ) 
+		size_t index )
 {
 	dassert ( mcrPt ) ;
 	mcr_Signal * sigPt = mcr_Macro_signal ( mcrPt, index ) ;

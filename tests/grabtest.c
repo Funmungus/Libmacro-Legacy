@@ -22,7 +22,7 @@
 
 # define SIZE 64
 char buffer [ SIZE ] ;
-# define SAFESCAN(_buff_) fscanf ( mcr_stdin, "%63s", _buff_ )
+# define SAFESCAN(_buff_) fscanf ( mcr_in, "%63s", _buff_ )
 
 const char * myDev = NULL ;
 mcr_Hot mHot ;
@@ -46,7 +46,7 @@ void setup ( )
 	mcr_hotkey_initialize ( ) ;
 	mcr_intercept_initialize ( ) ;
 	mcr_intercept_add_grab ( myDev ) ;
-	mcr_intercept_enable ( 1 ) ;
+	mcr_intercept_set_enabled ( 1 ) ;
 	mcr_iAlarm.dispatch = mcr_iHIDEcho.dispatch =
 	mcr_iKey.dispatch = mcr_iMoveCursor.dispatch =
 	mcr_iNoOp.dispatch = mcr_iScroll.dispatch = mcr_dispatch ;
@@ -66,7 +66,6 @@ int main ( int argc, char ** argv )
 	setup ( ) ;
 
 	mcr_Dispatch_add_unspecific ( mcr_Dispatch_get ( -1 ), & mHot ) ;
-	mcr_Dispatch_get ( -1 )->enable_unspecific = 1 ;
 
 	for ( int i = mSelect ( ) ;
 		i != -1 ; i = mSelect ( ) )
@@ -83,9 +82,9 @@ void mTrigger ( mcr_Hot * hotPt, mcr_Signal * sigPt, unsigned int mods )
 	assert ( hotPt == & mHot ) ;
 	UNUSED ( mods ) ;
 	const char * name = mcr_ISignal_get_name
-			( sigPt->type->interface.id ) ;
+			( sigPt->type->iface.id ) ;
 	fprintf ( mcr_out, "Triggered signal %llu:%s.\n",
-			( long long unsigned ) sigPt->type->interface.id,
+			( long long unsigned ) sigPt->type->iface.id,
 			name ? name : "NULL" ) ;
 }
 
