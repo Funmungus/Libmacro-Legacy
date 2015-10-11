@@ -359,6 +359,14 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
 	memcmp ( & ( lsignal ).data.data, \
 			& ( rsignal ).data.data, sizeof ( void * ) ) )
 
+# define MCR_SIGNAL_DISPATCH( signal ) \
+	( ( signal ).is_dispatch && \
+			( signal ).type->dispatch && \
+			( signal ).type->dispatch ( & signal ) )
+# define mcr_Signal_dispatch_impl( sigPt ) \
+	( ( sigPt )->is_dispatch && \
+			( sigPt )->type->dispatch && \
+			( sigPt )->type->dispatch ( sigPt ) )
 /*! \brief If not \ref mcr_Signal#is_dispatch skip to sending signal.
  *
  * 1 ) if is_dispatch, dispatch specific, and if not blocking continue
@@ -368,15 +376,11 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param signal mcr_Signal
  * */
 # define MCR_SEND( signal ) \
-	( ( signal ).is_dispatch && \
-			( signal ).type->dispatch && \
-			( signal ).type->dispatch ( & signal ) ? \
+	( MCR_SIGNAL_DISPATCH ( signal ) ? \
 		1 : \
 	( signal ).type->send ( ( & signal ) ) )
 # define mcr_Send_impl( sigPt ) \
-	( ( sigPt )->is_dispatch && \
-			( sigPt )->type->dispatch && \
-			( sigPt )->type->dispatch ( sigPt ) ? \
+	( mcr_Signal_dispatch_impl ( sigPt ) ? \
 		1 : \
 	( sigPt )->type->send ( ( sigPt ) ) )
 

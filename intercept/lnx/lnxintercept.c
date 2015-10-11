@@ -392,8 +392,9 @@ static int intercept_start ( void * threadArgs )
 static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 {
 	dassert ( grabPt ) ;
-	struct input_event events [ MCR_GRAB_SET_LENGTH ] ;
-	int rdb, rdn, i, pos ;
+	struct input_event events [ MCR_GRAB_SET_LENGTH ],
+			eventsMem [ MCR_GRAB_SET_LENGTH ] ;
+	int rdb, rdn, i, pos, blocked = 0, unhandledEvents = 0 ;
 	int bAbs [ MCR_DIMENSION_CNT ] = { 0 } ;
 	int * echoFound = NULL ;
 	mcr_SpacePosition nopos = { 0 } ;
@@ -414,19 +415,22 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 	struct pollfd fd = { 0 } ;
 	fd.events = -1 ;
 	fd.fd = grabPt->fd ;
-	while ( MCR_GRABBER_ENABLED ( * grabPt ) ) 	/* Disable point 1 */
-	{	/* Disable point 2. */
-		i = poll ( & fd, 1, 3000 ) ;
-		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
-			return thrd_success ;
-		if ( ! i || i < 0 )	/* Error or no data in 10 seconds. */
-			continue ;			/* Try again. */
-		/* Disable point 3, but assume readable from select above.
-		 * If rdb < input_event size then we are returning an error
-		 * anyways. */
-		rdb = read ( fd.fd, events, sizeof ( events ) ) ;
-		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
-			return thrd_success ;
+	int isuser = ! mcr_privileged ( ) ;
+	while ( MCR_GRABBER_ENABLED ( * grabPt ) )
+	{
+		if ( ! unhandledEvents )
+		{
+			i = poll ( & fd, 1, 3000 ) ;
+			if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
+				return thrd_success ;
+			if ( ! i || i < 0 )	/* Error or no data in 3 seconds. */
+				continue ;			/* Try again. */
+			rdb = read ( fd.fd, events, sizeof ( events ) ) ;
+			if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
+				return thrd_success ;
+		}
+		else
+			unhandledEvents = 0 ;
 		if ( rdb < ( int ) sizeof ( struct input_event ) )
 		{
 			dmsg ;
@@ -443,7 +447,8 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 					// Consume a key that already has scan code.
 					if ( MCR_KEY_SCAN ( key ) )
 					{
-						MCR_SEND ( keysig ) ;
+						if ( MCR_SIGNAL_DISPATCH ( keysig ) )
+						{ ++ blocked ; break ; }
 						KEY_SETALL ( key, 0, events [ i ].value,
 								MCR_BOTH ) ;
 					}
@@ -462,14 +467,15 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 					if ( echoFound )
 					{
 						MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
-						if ( DISP ( echosig ) )
+						if ( MCR_SIGNAL_DISPATCH ( echosig ) )
 						{
 							KEY_SETALL ( key, events [ i ].code, 0,
 								events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 							break ;
 						}
 					}
-					MCR_SEND ( keysig ) ;
+					if ( MCR_SIGNAL_DISPATCH ( keysig ) )
+					{ ++ blocked ; break ; }
 					KEY_SETALL ( key, events [ i ].code, 0,
 							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 				}
@@ -486,7 +492,8 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( bAbs [ pos ] )
 				{
 					ABS_SETCURRENT ( abs, bAbs ) ;
-					MCR_SEND ( abssig ) ;
+					if ( MCR_SIGNAL_DISPATCH ( abssig ) )
+					{ ++ blocked ; break ; }
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				}
 				MCR_MOVECURSOR_SET_COORDINATE ( abs, pos,
@@ -500,7 +507,8 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_MOVECURSOR_COORDINATE ( rel, pos ) )
 					{
-						MCR_SEND ( relsig ) ;
+						if ( MCR_SIGNAL_DISPATCH ( relsig ) )
+						{ ++ blocked ; break ; }
 						MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 					}
 					MCR_MOVECURSOR_SET_COORDINATE ( rel, pos,
@@ -511,33 +519,19 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_SCROLL_COORDINATE ( scr, pos ) )
 					{
-						MCR_SEND ( scrsig ) ;
+						if ( MCR_SIGNAL_DISPATCH ( scrsig ) )
+						{ ++ blocked ; break ; }
 						MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 					}
 					MCR_SCROLL_SET_COORDINATE ( scr, pos,
 							events [ i ].value ) ;
 				}
 				break ;
-# ifdef DEBUG
-			default :
-			{
-				// synch is not directly handled, but it is known.
-				if ( events [ i ].type != EV_SYN )
-				{
-					unknown_event ( fd.fd, events, MCR_GRAB_SET_SIZE ) ;
-					KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
-					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
-					MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
-					MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
-					/* all events should be consumed by unknown_event */
-					rdn = 0 ;
-				}
-			}
-# endif
 			}
 		}
 		//Call final event, it was not called yet.
-		if ( MCR_KEY_KEY ( key ) || MCR_KEY_SCAN ( key ) )
+		if ( ! blocked &&
+				( MCR_KEY_KEY ( key ) || MCR_KEY_SCAN ( key ) ) )
 		{
 			if ( MCR_KEY_KEY ( key ) )
 			{
@@ -547,46 +541,96 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( echoFound )
 				{
 					MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
-					if ( ! DISP ( echosig ) )
-					{
-						MCR_SEND ( keysig ) ;
-					}
+					if ( MCR_SIGNAL_DISPATCH ( echosig ) )
+					{ ++ blocked ; }
+					else if ( MCR_SIGNAL_DISPATCH ( keysig ) )
+					{ ++ blocked ; }
 				}
-				else
-				{
-					MCR_SEND ( keysig ) ;
-				}
+				else if ( MCR_SIGNAL_DISPATCH ( keysig ) )
+				{ ++ blocked ; }
 			}
 			KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
 		}
-		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+		if ( ! blocked )
 		{
-			if ( bAbs [ i ] )
+			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 			{
-				ABS_SETCURRENT ( abs, bAbs ) ;
-				MCR_SEND ( abssig ) ;
-				memset ( bAbs, 0, sizeof ( bAbs ) ) ;
-				break ;
+				if ( bAbs [ i ] )
+				{
+					ABS_SETCURRENT ( abs, bAbs ) ;
+					if ( MCR_SIGNAL_DISPATCH ( abssig ) )
+					{ ++ blocked ; }
+					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
+					break ;
+				}
 			}
 		}
-		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+		if ( ! blocked )
 		{
-			if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
+			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 			{
-				MCR_SEND ( relsig ) ;
-				MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
-				break ;
+				if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
+				{
+					if ( MCR_SIGNAL_DISPATCH ( relsig ) )
+					{ ++ blocked ; }
+					MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
+					break ;
+				}
 			}
 		}
-		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+		if ( ! blocked )
 		{
-			if ( MCR_SCROLL_COORDINATE ( scr, i ) )
+			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 			{
-				MCR_SEND ( scrsig ) ;
-				MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
-				break ;
+				if ( MCR_SCROLL_COORDINATE ( scr, i ) )
+				{
+					if ( MCR_SIGNAL_DISPATCH ( scrsig ) )
+					{ ++ blocked ; }
+					MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
+					break ;
+				}
 			}
 		}
+		if ( ! blocked )
+		{
+			blocked = 0 ;
+			if ( isuser )
+			{
+				if ( ! mcr_set_privileged ( 1 ) )
+				{ dmsg ; }
+			}
+			i = poll ( & fd, 1, 0 ) ;
+			if ( ioctl ( fd.fd, EVIOCGRAB, 0 ) == -1 )
+			{ dmsg ; }
+			if ( write ( fd.fd, events, rdb ) == -1 )
+			{ dmsg ; }
+			if ( i > 0 )
+			{
+				// Get our new events, and clear the written.
+				i = read ( fd.fd, events,
+						fd.revents * sizeof ( struct input_event ) ) ;
+				read ( fd.fd, eventsMem, rdb ) ;
+				rdb = i ;
+				// Use new read events
+				++ unhandledEvents ;
+			}
+			else
+			{
+				read ( fd.fd, eventsMem, rdb ) ;
+				// continue, no unhandledEvents
+			}
+			if ( ioctl ( fd.fd, EVIOCGRAB, 1 ) == -1 )
+			{ dmsg ; }
+			if ( isuser )
+			{
+				if ( ! mcr_set_privileged ( 0 ) )
+				{ dmsg ; }
+			}
+		}
+		KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
+		memset ( bAbs, 0, sizeof ( bAbs ) ) ;
+		MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
+		MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 	}
 	return thrd_success ;
 }

@@ -70,6 +70,11 @@ static int privswap ( )
 	return 1 ;
 }
 
+int mcr_privileged ( )
+{
+	return ! geteuid ( ) ;
+}
+
 int mcr_set_privileged ( int enable )
 {
 	if ( enable )
