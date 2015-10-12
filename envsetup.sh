@@ -1,14 +1,13 @@
 #!/bin/bash
 
-export MCR_HOME=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+export MCR_HOME=$(dirname "${BASH_SOURCE[0]}")
 echo "準備出来ました"
 alias mcd="cd \"${MCR_HOME}\""
-alias ubu="ubuntu-sdk"
 
 # Adding space
 alias refs="msed \"/\&=/! s/\&/ \& /g\""
 alias andeq="msed \"s/\&=/ \&= /g\""
-alias pts="msed -E \"/(\t\* )|(\*=)|(\*\!)|(\/\*)|(\*\/)/! s/\*/ \* /g\""
+alias pts="msed -E \"/(->*)|(\t\* )|(\*=)|(\*\!)|(\/\*)|(\*\/)/! s/\*/ \* /g\""
 alias multeq="msed \"s/\*=/ \*= /g\""
 alias cospace="msed \"/^#/! s/\,/, /g\""
 alias leftpar="msed \"/^#/! s/(/ ( /g\""
@@ -34,8 +33,6 @@ alias single="msed \"s/ \+/ /g\""
 # alias commbeg="msed \"s,/ \+\*,/\*,g\""
 # alias commend="msed \"s,\* \+/,\*/,g\""
 # alias commdoxy="msed \"s,\* \+\!,\*\!,g\""
-# Clean out backup files
-alias cleanbak="find \"${MCR_HOME}\" -name '*.bak' -exec rm '{}' \;"
 
 function sedall() {
   cp "$1" "$1.bak"
