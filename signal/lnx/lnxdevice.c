@@ -299,8 +299,8 @@ static int device_close ( mcr_Device * devPt )
 	dassert ( devPt ) ;
 	if ( devPt->fd != -1 )
 	{
-		if ( ioctl ( devPt->fd, UI_DEV_DESTROY ) == -1
-				|| close ( devPt->fd ) == -1 )
+		if ( ioctl ( devPt->fd, UI_DEV_DESTROY ) < 0
+				|| close ( devPt->fd ) < 0 )
 		{
 			dmsg ;
 			return 0 ;
@@ -316,7 +316,7 @@ static int device_close_event ( mcr_Device * devPt )
 	dassert ( devPt ) ;
 	if ( devPt->event_fd != -1 )
 	{
-		if ( close ( devPt->event_fd ) == -1 )
+		if ( close ( devPt->event_fd ) < 0 )
 		{
 			dmsg ;
 			return 0 ;
@@ -344,7 +344,7 @@ static int device_open_event_wd ( mcr_Device * devPt )
 	for ( struct dirent * entry = readdir ( dirp ) ;
 			entry != NULL ; entry = readdir ( dirp ) )
 	{	// if ! entry then end of directory
-		if ( stat ( entry->d_name, & s ) == -1 )
+		if ( stat ( entry->d_name, & s ) < 0 )
 		{
 			dmsg ;
 			continue ;
@@ -390,7 +390,7 @@ static int device_verify_event_device ( mcr_Device * devPt,
 				nameBuffer ) ;
 	}
 	// Could not retrieve name, unknown error.
-	if ( comp == -1 )
+	if ( comp < 0 )
 	{
 		dmsg ;
 		// panic
@@ -411,7 +411,7 @@ static void write_bit_redirect ( int * bitPt, int fd,
 	dassert ( bitPt ) ;
 	dassert ( success ) ;
 	dassert ( fd != -1 ) ;
-	if ( ioctl ( fd, setBit, * bitPt ) == -1 )
+	if ( ioctl ( fd, setBit, * bitPt ) < 0 )
 	{
 		dmsg ;
 		 * success = 0 ;
@@ -480,9 +480,22 @@ static int device_create ( mcr_Device * devPt )
 	return 1 ;
 }
 
+static void rangeindex ( int * arr, int cnt )
+{
+	for ( int i = 0 ; i < cnt ; i ++ )
+	{ arr [ i ] = i ; }
+}
+
 static int keyDevice_init ( )
 {
-	int i ;
+# define devset( arr, max, uibit ) \
+	if ( ! mcr_Device_set_bits ( & mcr_keyDev, uibit, arr, max ) ) \
+	{ \
+		dmsg ; \
+		return 0 ; \
+	}
+
+	int i, j ;
 	mcr_Device_init ( & mcr_keyDev ) ;
 
 	snprintf ( mcr_keyDev.device.name, UINPUT_MAX_NAME_SIZE,
@@ -493,34 +506,24 @@ static int keyDevice_init ( )
 	mcr_keyDev.device.id.product = 1 ;
 	mcr_keyDev.device.id.version = 1 ;
 
-	int evbits [ ] = { EV_SYN, EV_MSC, EV_KEY } ;
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_EVBIT, evbits, 3 ) )
+	int evbits [ KEY_CNT ] ;
+	for ( i = j = 0 ; i < EV_CNT ; i ++ )
 	{
-		dmsg ;
-		return 0 ;
+		if ( i != EV_ABS && i != EV_REL )
+			evbits [ j ++ ] = i ;
 	}
-	int mscbits [ MSC_CNT ] ;
-	for ( i = 0 ; i < MSC_CNT ; i ++ )
-	{ mscbits [ i ] = i ; }
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_MSCBIT, mscbits, MSC_CNT ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
-	int keybits [ KEY_CNT ] ;
-	for ( i = 0 ; i < KEY_CNT ; i++ )
-	{
-		keybits [ i ] = i ;
-	}
-
+	devset ( evbits, EV_CNT - 2, UI_SET_EVBIT )
+	rangeindex ( evbits, KEY_CNT ) ;
 	// Do not write 0 value
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, UI_SET_KEYBIT,
-			keybits + 1, KEY_MAX ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
+	devset ( evbits + 1, KEY_MAX, UI_SET_KEYBIT )
+	devset ( evbits, MSC_CNT, UI_SET_MSCBIT )
+	devset ( evbits, SW_CNT, UI_SET_SWBIT )
+	devset ( evbits, LED_CNT, UI_SET_LEDBIT )
+	devset ( evbits, SND_CNT, UI_SET_SNDBIT )
+	devset ( evbits, FF_CNT, UI_SET_FFBIT )
+
 	return 1 ;
+# undef devset
 }
 
 static int absDevice_init ( )

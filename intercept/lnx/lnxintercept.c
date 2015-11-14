@@ -303,30 +303,33 @@ static void grab_impl ( const char * grabPath )
 	MCR_MOVECURSOR_SET_POSITION ( mcObj, posBuff ) ; \
 	MCR_MOVECURSOR_SET_JUSTIFY ( mcObj, justify ) ;
 
-// 0 to not block, otherwise do block.
-# define DISP( sig ) \
-	( ( sig ).type->dispatch ? \
-			( sig ).type->dispatch ( & ( sig ) ) : 0 )
-
 # define abspos( evPos, setPos ) \
-	if ( evPos == ABS_X ) 	\
+	switch ( evPos ) \
+	{ \
+	case ABS_X : \
 		setPos = MCR_X ; 	\
-	else if ( evPos == ABS_Y ) 	\
+		break ; \
+	case ABS_Y : \
 		setPos = MCR_Y ; 	\
-	else if ( evPos == ABS_Z ) 	\
+		break ; \
+	case ABS_Z : \
 		setPos = MCR_Z ; 	\
-	else	\
-		break ; 	/* Unknown, breakout */
+		break ; \
+	}
 
 # define relpos( evPos, setPos ) \
-	if ( evPos == REL_X || evPos == REL_HWHEEL ) 	\
+	switch ( evPos ) \
+	{ \
+	case REL_X : case REL_HWHEEL : \
 		setPos = MCR_X ; 	\
-	else if ( evPos == REL_Y || evPos == REL_WHEEL ) 	\
+		break ; \
+	case REL_Y : case REL_WHEEL : \
 		setPos = MCR_Y ; 	\
-	else if ( evPos == REL_Z || evPos == REL_DIAL ) 	\
+		break ; \
+	case REL_Z : case REL_DIAL : \
 		setPos = MCR_Z ; 	\
-	else	\
-		break ; 	/* Unknown, breakout */
+		break ; \
+	}
 
 # define ABS_SETCURRENT( abs, hasPosArray ) \
 	if ( ! ( hasPosArray ) [ MCR_X ] ) \
@@ -392,9 +395,20 @@ static int intercept_start ( void * threadArgs )
 static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 {
 	dassert ( grabPt ) ;
-	struct input_event events [ MCR_GRAB_SET_LENGTH ],
-			eventsMem [ MCR_GRAB_SET_LENGTH ] ;
-	int rdb, rdn, i, pos, blocked = 0, unhandledEvents = 0 ;
+	/* For abs and rel, keep memory of having such event type
+	 * at least once. */
+# define DISP_WRITEMEM( signal, writemem ) \
+if ( MCR_SIGNAL_DISPATCH ( signal ) ) \
+{ \
+	if ( writemem ) \
+		writemem = 0 ; \
+} \
+else if ( ! writemem ) \
+	++ writemem ;
+	struct input_event events [ MCR_GRAB_SET_LENGTH ] ;
+	/* Always assume writing to the generic device.  Start writing
+	to abs and rel only if those events happen at least once. */
+	int rdb, rdn, i, pos, writegen = 1, writeabs = 0, writerel = 0 ;
 	int bAbs [ MCR_DIMENSION_CNT ] = { 0 } ;
 	int * echoFound = NULL ;
 	mcr_SpacePosition nopos = { 0 } ;
@@ -413,24 +427,22 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 	mcr_MoveCursor_init_with ( & rel, nopos, 1 ) ;
 	mcr_Scroll_init_with ( & scr, nopos ) ;
 	struct pollfd fd = { 0 } ;
-	fd.events = -1 ;
+	fd.events = POLLIN | POLLPRI | POLLRDNORM | POLLRDBAND |
+			POLLREMOVE | POLLRDHUP ;
 	fd.fd = grabPt->fd ;
-	int isuser = ! mcr_privileged ( ) ;
-	while ( MCR_GRABBER_ENABLED ( * grabPt ) )
-	{
-		if ( ! unhandledEvents )
-		{
-			i = poll ( & fd, 1, 3000 ) ;
-			if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
-				return thrd_success ;
-			if ( ! i || i < 0 )	/* Error or no data in 3 seconds. */
-				continue ;			/* Try again. */
-			rdb = read ( fd.fd, events, sizeof ( events ) ) ;
-			if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
-				return thrd_success ;
-		}
-		else
-			unhandledEvents = 0 ;
+	while ( MCR_GRABBER_ENABLED ( * grabPt ) ) 	/* Disable point 1 */
+	{	/* Disable point 2. */
+		i = poll ( & fd, 1, 3000 ) ;
+		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
+			return thrd_success ;
+		if ( ! i || i < 0 )	/* Error or no data in 10 seconds. */
+			continue ;			/* Try again. */
+		/* Disable point 3, but assume readable from select above.
+		 * If rdb < input_event size then we are returning an error
+		 * anyways. */
+		rdb = read ( fd.fd, events, sizeof ( events ) ) ;
+		if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
+			return thrd_success ;
 		if ( rdb < ( int ) sizeof ( struct input_event ) )
 		{
 			dmsg ;
@@ -447,8 +459,8 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 					// Consume a key that already has scan code.
 					if ( MCR_KEY_SCAN ( key ) )
 					{
-						if ( MCR_SIGNAL_DISPATCH ( keysig ) )
-						{ ++ blocked ; break ; }
+						if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
+							writegen = 0 ;
 						KEY_SETALL ( key, 0, events [ i ].value,
 								MCR_BOTH ) ;
 					}
@@ -469,13 +481,15 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 						MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
 						if ( MCR_SIGNAL_DISPATCH ( echosig ) )
 						{
+							if ( writegen )
+								writegen = 0 ;
 							KEY_SETALL ( key, events [ i ].code, 0,
 								events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 							break ;
 						}
 					}
-					if ( MCR_SIGNAL_DISPATCH ( keysig ) )
-					{ ++ blocked ; break ; }
+					if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
+						writegen = 0 ;
 					KEY_SETALL ( key, events [ i ].code, 0,
 							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 				}
@@ -492,8 +506,7 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				if ( bAbs [ pos ] )
 				{
 					ABS_SETCURRENT ( abs, bAbs ) ;
-					if ( MCR_SIGNAL_DISPATCH ( abssig ) )
-					{ ++ blocked ; break ; }
+					DISP_WRITEMEM ( abssig, writeabs )
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				}
 				MCR_MOVECURSOR_SET_COORDINATE ( abs, pos,
@@ -507,8 +520,7 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_MOVECURSOR_COORDINATE ( rel, pos ) )
 					{
-						if ( MCR_SIGNAL_DISPATCH ( relsig ) )
-						{ ++ blocked ; break ; }
+						DISP_WRITEMEM ( relsig, writerel )
 						MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 					}
 					MCR_MOVECURSOR_SET_COORDINATE ( rel, pos,
@@ -519,8 +531,7 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				{
 					if ( MCR_SCROLL_COORDINATE ( scr, pos ) )
 					{
-						if ( MCR_SIGNAL_DISPATCH ( scrsig ) )
-						{ ++ blocked ; break ; }
+						DISP_WRITEMEM ( scrsig, writerel )
 						MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 					}
 					MCR_SCROLL_SET_COORDINATE ( scr, pos,
@@ -530,8 +541,7 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 			}
 		}
 		//Call final event, it was not called yet.
-		if ( ! blocked &&
-				( MCR_KEY_KEY ( key ) || MCR_KEY_SCAN ( key ) ) )
+		if ( MCR_KEY_KEY ( key ) || MCR_KEY_SCAN ( key ) )
 		{
 			if ( MCR_KEY_KEY ( key ) )
 			{
@@ -542,108 +552,60 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 				{
 					MCR_ECHO_SET_ECHO ( echo, * echoFound ) ;
 					if ( MCR_SIGNAL_DISPATCH ( echosig ) )
-					{ ++ blocked ; }
-					else if ( MCR_SIGNAL_DISPATCH ( keysig ) )
-					{ ++ blocked ; }
+					{
+						if ( writegen )
+							writegen = 0 ;
+						goto cleankey ; /* Skip dispatch key */
+					}
 				}
-				else if ( MCR_SIGNAL_DISPATCH ( keysig ) )
-				{ ++ blocked ; }
 			}
+			if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
+				writegen = 0 ;
+cleankey :
 			KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
 		}
-		if ( ! blocked )
+		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
-			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+			if ( bAbs [ i ] )
 			{
-				if ( bAbs [ i ] )
-				{
-					ABS_SETCURRENT ( abs, bAbs ) ;
-					if ( MCR_SIGNAL_DISPATCH ( abssig ) )
-					{ ++ blocked ; }
-					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
-					break ;
-				}
+				ABS_SETCURRENT ( abs, bAbs ) ;
+				DISP_WRITEMEM ( abssig, writeabs )
+				memset ( bAbs, 0, sizeof ( bAbs ) ) ;
+				break ;
 			}
 		}
-		if ( ! blocked )
+		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
-			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+			if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
 			{
-				if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
-				{
-					if ( MCR_SIGNAL_DISPATCH ( relsig ) )
-					{ ++ blocked ; }
-					MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
-					break ;
-				}
+				DISP_WRITEMEM ( relsig, writerel )
+				MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
+				break ;
 			}
 		}
-		if ( ! blocked )
+		for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
 		{
-			for ( i = 0 ; i < MCR_DIMENSION_CNT ; i ++ )
+			if ( MCR_SCROLL_COORDINATE ( scr, i ) )
 			{
-				if ( MCR_SCROLL_COORDINATE ( scr, i ) )
-				{
-					if ( MCR_SIGNAL_DISPATCH ( scrsig ) )
-					{ ++ blocked ; }
-					MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
-					break ;
-				}
+				DISP_WRITEMEM ( scrsig, writerel )
+				MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
+				break ;
 			}
 		}
-		if ( ! blocked )
+		if ( writegen )
 		{
-			blocked = 0 ;
-			if ( isuser )
-			{
-				if ( ! mcr_set_privileged ( 1 ) )
-				{ dmsg ; }
-			}
-			i = poll ( & fd, 1, 0 ) ;
-			if ( ioctl ( fd.fd, EVIOCGRAB, 0 ) == -1 )
+			if ( write ( mcr_keyDev.fd, events, rdb ) < 0 )
 			{ dmsg ; }
-			if ( write ( fd.fd, events, rdb ) == -1 )
-			{ dmsg ; }
-			if ( i > 0 )
-			{
-				// Get our new events, and clear the written.
-				i = read ( fd.fd, events,
-						fd.revents * sizeof ( struct input_event ) ) ;
-				read ( fd.fd, eventsMem, rdb ) ;
-				rdb = i ;
-				// Use new read events
-				++ unhandledEvents ;
-			}
-			else
-			{
-				read ( fd.fd, eventsMem, rdb ) ;
-				// continue, no unhandledEvents
-			}
-			if ( ioctl ( fd.fd, EVIOCGRAB, 1 ) == -1 )
-			{ dmsg ; }
-			if ( isuser )
-			{
-				if ( ! mcr_set_privileged ( 0 ) )
-				{ dmsg ; }
-			}
 		}
-		KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
-		memset ( bAbs, 0, sizeof ( bAbs ) ) ;
-		MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
-		MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
+		else
+			++ writegen ;
+		if ( writeabs && write ( mcr_absDev.fd, events, rdb ) < 0 )
+		{ dmsg ; }
+		if ( writerel && write ( mcr_relDev.fd, events, rdb ) < 0 )
+		{ dmsg ; }
 	}
 	return thrd_success ;
-}
-
-static void unknown_event ( int fd, struct input_event * events,
-		size_t size )
-{
-	if ( ioctl ( fd, EVIOCGRAB, 0 ) == -1 )
-	{ dmsg ; return ; }
-	write ( fd, events, size ) ;
-	read ( fd, events, size ) ;
-	if ( ioctl ( fd, EVIOCGRAB, 1 ) == -1 )
-	{ dmsg ; }
+# undef DISP_WRITEMEM
 }
 
 static unsigned int modify_eventbits ( char * keybitValues )

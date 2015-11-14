@@ -112,7 +112,7 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
  * */
 # define MCR_DEV_SEND( dev, eventObjects, size ) \
 	( ( dev ).fd == -1 || \
-			write ( ( dev ).fd, eventObjects, size ) == -1 ? \
+			write ( ( dev ).fd, eventObjects, size ) < 0 ? \
 		0 : \
 	1 )
 

@@ -41,8 +41,10 @@ void mcr_Grabber_init_with ( mcr_Grabber * grabPt,
 	mcr_Grabber_init ( grabPt ) ;
 	if ( path )
 	{
-		mcr_String_from_string ( & grabPt->path, path ) ;
-		mcr_Grabber_set_enabled ( grabPt, enable ) ;
+		if ( ! mcr_String_from_string ( & grabPt->path, path ) )
+		{ dmsg ; }
+		if ( ! mcr_Grabber_set_enabled ( grabPt, enable ) )
+		{ dmsg ; }
 	}
 }
 
@@ -55,8 +57,10 @@ void mcr_Grabber_free ( mcr_Grabber * grabPt )
 	}
 	if ( grabPt->fd != -1 )
 	{
-		ioctl ( grabPt->fd, EVIOCGRAB, 0 ) ;
-		close ( grabPt->fd ) ;
+		if ( ioctl ( grabPt->fd, EVIOCGRAB, 0 ) < 0 )
+		{ dmsg ; }
+		if ( close ( grabPt->fd ) < 0 )
+		{ dmsg ; }
 	}
 	mcr_Array_free ( & grabPt->path ) ;
 }
@@ -75,12 +79,15 @@ void mcr_Grabber_set_path ( mcr_Grabber * grabPt,
 	int wasEnabled = mcr_Grabber_enabled ( grabPt ) ;
 	if ( wasEnabled )
 	{
-		mcr_Grabber_set_enabled ( grabPt, 0 ) ;
+		if ( ! mcr_Grabber_set_enabled ( grabPt, 0 ) )
+		{ dmsg ; }
 	}
-	mcr_String_from_string ( & grabPt->path, path ) ;
+	if ( ! mcr_String_from_string ( & grabPt->path, path ) )
+	{ dmsg ; }
 	if ( wasEnabled )
 	{
-		mcr_Grabber_set_enabled ( grabPt, 1 ) ;
+		if ( ! mcr_Grabber_set_enabled ( grabPt, 1 ) )
+		{ dmsg ; }
 	}
 }
 
@@ -101,10 +108,10 @@ int mcr_Grabber_set_enabled ( mcr_Grabber * grabPt, int enable )
 	if ( grabPt->fd != -1 )
 	{
 		// Valgrind false positive error.
-		if ( ioctl ( grabPt->fd, EVIOCGRAB, 0 ) == -1 )
-			dmsg ;
-		if ( close ( grabPt->fd ) == -1 )
-			dmsg ;
+		if ( ioctl ( grabPt->fd, EVIOCGRAB, 0 ) < 0 )
+		{ dmsg ; }
+		if ( close ( grabPt->fd ) < 0 )
+		{ dmsg ; }
 		grabPt->fd = -1 ;
 		// We are now no longer grabbing
 	}
@@ -118,7 +125,7 @@ int mcr_Grabber_set_enabled ( mcr_Grabber * grabPt, int enable )
 	dassert ( ! MCR_STR_EMPTY ( grabPt->path ) ) ;
 
 	grabPt->fd = open ( grabPt->path.array,
-			O_RDONLY /*| O_NONBLOCK*/ ) ;
+			O_RDWR /*| O_NONBLOCK*/ ) ;
 	if ( grabPt->fd == -1 )
 	{
 		dmsg ;
@@ -130,7 +137,8 @@ int mcr_Grabber_set_enabled ( mcr_Grabber * grabPt, int enable )
 	if ( result < 0 )
 	{
 		dmsg ;
-		close ( grabPt->fd ) ;
+		if ( close ( grabPt->fd ) < 0 )
+		{ dmsg ; }
 		grabPt->fd = -1 ;
 		mcr_set_privileged ( 0 ) ;
 		return 0 ;
