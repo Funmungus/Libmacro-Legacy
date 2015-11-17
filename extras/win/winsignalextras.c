@@ -21,57 +21,35 @@
 
 static void add_nonshifts ( ) ;
 static void add_shifts ( ) ;
-static void get_strings_redirect ( mcr_SafeString * ssPt,
-		mcr_Array * envMemPt ) ;
-//static void putenv_redirect ( mcr_Array * envStr, ... ) ;
 
-int mcr_Command_execvpe ( mcr_Command * cmdPt )
+int mcr_execvpe ( const char * file, char * const * args,
+		char * const * env )
 {
-	dassert ( cmdPt ) ;
-	int success = 0 ;
-	size_t i ;
-	mcr_Array file = mcr_SafeString_get ( & cmdPt->file ) ;
-	mcr_Array * argsArr = malloc ( sizeof ( mcr_Array ) *
-			( cmdPt->argv.used ) ) ;
-	char ** args = malloc ( sizeof ( char * ) *
-			( cmdPt->argv.used + 1 ) ) ;
-	// Get environment and args beforehand, to decrypt before forking.
-//	mcr_Array envMem ;
-//	mcr_Array_init ( & envMem, sizeof ( mcr_Array ) ) ;
-//	MCR_ARR_FOR_EACH ( & cmdPt->env, get_strings_redirect, & envMem ) ;
-
-	if ( ( ! cmdPt->argv.used || argsArr ) && args
-			&& ! MCR_STR_EMPTY ( & file ) )
+	dassert ( file ) ; dassert ( args ) ; dassert ( env ) ;
+// Replace with CreateThread (CreateProcess if CreateThread does not work)
+	mcr_Array cmdline ;
+	mcr_String_init ( & cmdline ) ;
+	for ( char ** argPt = ( char ** ) args ; * argPt ; argPt ++ )
 	{
-		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
+		if ( ** argPt )
 		{
-			argsArr [ i ] = mcr_SafeString_get (
-					MCR_ARR_AT ( & cmdPt->argv, i ) ) ;
-			args [ i ] = argsArr [ i ].array ;
-		}
-		// Need at least one args for null termination.
-		args [ cmdPt->argv.used ] = NULL ;
-
-//		MCR_ARR_FOR_EACH ( & envMem, putenv_redirect, 0 ) ;
-		if ( _execvp ( file.array, args ) == -1 )
-		{
-			dmsg ;
+			mcr_String_push ( & cmdline, '"' ) ;
+			mcr_String_append ( & cmdline, * argPt, ( size_t ) -1 ) ;
+			mcr_String_push ( & cmdline, '"' ) ;
+			if ( * ( argPt + 1 ) )
+				mcr_String_push ( & cmdline, ' ' ) ;
 		}
 	}
-
-	mcr_Array_free ( & file ) ;
-	if ( argsArr )
-	{
-		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
-		{
-			mcr_Array_free ( argsArr + i ) ;
-		}
-		free ( argsArr ) ;
-	}
-	free ( args ) ;
-//	MCR_ARR_FOR_EACH ( & envMem, mcr_Array_free_foreach, 0 ) ;
-//	mcr_Array_free ( & envMem ) ;
-	return success ;
+	STARTUPINFOA sInfo = { 0 } ;
+	PROCESS_INFORMATION pInfo = { 0 } ;
+	GetStartupInfoA ( & sInfo ) ;
+	if ( ! CreateProcessA ( NULL, cmdline.array, NULL, NULL, FALSE,
+			DETACHED_PROCESS, env [ 0 ] ? env : NULL, NULL, & sInfo, & pInfo ) )
+	{ dmsg ; fprintf(stderr, "Error was %d\n", GetLastError());}
+	else if ( WaitForSingleObject ( pInfo.hProcess, INFINITE ) != WAIT_OBJECT_0 )
+	{ dmsg ; }
+	mcr_Array_free ( & cmdline ) ;
+	return 1 ;
 }
 
 void mcr_StringKey_load_contract ( )
@@ -214,7 +192,7 @@ static const int _keyVals [ ] =
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_nonshifted ( character, \
-				_keyVals [ character ], 250000000 ) ;
+				_keyVals [ character ], 10000000 ) ;
 # define arange( iterator, charMin, charMax ) \
 	for ( iterator = charMin ; iterator <= charMax ; iterator ++ ) \
 	{ \
@@ -240,7 +218,7 @@ static void add_nonshifts ( )
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_shifted ( character, \
-				_keyVals [ character ], 250000000 ) ;
+				_keyVals [ character ], 10000000 ) ;
 # define arange( iterator, charMin, charMax ) \
 	for ( iterator = charMin ; iterator <= charMax ; iterator ++ ) \
 	{ \
@@ -258,19 +236,3 @@ static void add_shifts ( )
 	add ( 0x5F ) ; 	// _
 	arange ( i, 0x7B, 0x7E ) ; 	// { - ~
 }
-
-static void get_strings_redirect ( mcr_SafeString * ssPt,
-		mcr_Array * envMemPt )
-{
-	mcr_Array str = mcr_SafeString_get ( ssPt ) ;
-	if ( MCR_STR_EMPTY ( & str ) )
-		mcr_Array_free ( & str ) ;
-	else
-		mcr_Array_push ( envMemPt, & str ) ;
-}
-
-//static void putenv_redirect ( mcr_Array * envStr, ... )
-//{
-//	if ( ! MCR_STR_EMPTY ( envStr ) )
-//		putenv ( envStr->array ) ;
-//}

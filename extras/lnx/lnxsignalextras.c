@@ -26,79 +26,48 @@
 
 static void add_nonshifts ( ) ;
 static void add_shifts ( ) ;
-static void get_strings_redirect ( mcr_SafeString * ssPt,
-		mcr_Array * envMemPt ) ;
-static void putenv_redirect ( mcr_Array * envStr, ... ) ;
 
-int mcr_Command_execvpe ( mcr_Command * cmdPt )
+int mcr_execvpe ( const char * file, char * const * args,
+		char * const * env )
 {
-	dassert ( cmdPt ) ;
-	int success = 0 ;
-	size_t i ;
-	mcr_Array file = mcr_SafeString_get ( & cmdPt->file ) ;
-	mcr_Array * argsArr = malloc ( sizeof ( mcr_Array ) *
-			( cmdPt->argv.used ) ) ;
-	char ** args = malloc ( sizeof ( char * ) *
-			( cmdPt->argv.used + 1 ) ) ;
-	// Get environment and args beforehand, to decrypt before forking.
-	mcr_Array envMem ;
-	mcr_Array_init ( & envMem, sizeof ( mcr_Array ) ) ;
-	MCR_ARR_FOR_EACH ( cmdPt->env, get_strings_redirect, & envMem ) ;
-
-	if ( ( ! cmdPt->argv.used || argsArr ) && args
-			&& ! MCR_STR_EMPTY ( file ) )
+	dassert ( file ) ; dassert ( args ) ; dassert ( env ) ;
+	pid_t child = fork ( ), child2 ;
+	if ( child == -1 )
+        { dmsg ; return 0 ; }
+	else if ( child )
 	{
-		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
+		if ( waitpid ( child, NULL, 0 ) == -1 )
 		{
-			argsArr [ i ] = mcr_SafeString_get (
-					MCR_ARR_AT ( cmdPt->argv, i ) ) ;
-			args [ i ] = argsArr [ i ].array ;
+			dmsg ;
+			return 0 ;
 		}
-		// Need at least one args for null termination.
-		args [ cmdPt->argv.used ] = NULL ;
-
-		pid_t child = fork ( ) ;
-		if ( child )
+	}
+	else // child pid = 0, this is the child
+	{
+		if ( ! mcr_privilege_deactivate ( ) )
 		{
-			if ( waitpid ( child, & success, 0 ) == -1 )
+			dmsg ;
+			_exit ( EXIT_FAILURE ) ;
+		}
+		if ( ( child2 = fork ( ) ) == -1 )
+		{ dmsg ; _exit ( EXIT_FAILURE ) ; }
+		else if ( child2 )
+		{ _exit ( EXIT_SUCCESS ) ; }
+		else // Execution child
+		{ // Do not exit when parent does
+			signal ( SIGHUP, SIG_IGN ) ;
+			if ( ( * env ? execvpe ( file, args, env ) :
+					execvp ( file, args ) ) == -1 )
 			{
 				dmsg ;
 			}
 			else
-				success = 1 ;
+			{ dmsg ; } // Continued execution is strange
 		}
-		else
-		{
-			if ( ! mcr_privilege_deactivate ( ) )
-			{
-				dmsg ;
-				abort ( ) ;
-			}
-			/* TODO: Assuming environment changes only effect child. */
-			MCR_ARR_FOR_EACH ( envMem, putenv_redirect, 0 ) ;
-			if ( execvp ( file.array, args ) == -1 )
-			{
-				dmsg ;
-			}
-			abort ( ) ;
-			/* abort abort */
-		}
+		/* Ensured exit for children, we do not want hanging processes */
+		_exit ( EXIT_FAILURE ) ;
 	}
-
-	mcr_Array_free ( & file ) ;
-	if ( argsArr )
-	{
-		for ( i = 0 ; i < cmdPt->argv.used ; i ++ )
-		{
-			mcr_Array_free ( argsArr + i ) ;
-		}
-		free ( argsArr ) ;
-	}
-	free ( args ) ;
-	MCR_ARR_FOR_EACH ( envMem,
-			MCR_EXP ( mcr_Array_free_foreach ), ) ;
-	mcr_Array_free ( & envMem ) ;
-	return success ;
+	return 1 ;
 }
 
 void mcr_StringKey_load_contract ( )
@@ -244,7 +213,7 @@ static const int _keyVals [ ] =
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_nonshifted ( character, \
-				_keyVals [ character ], 30000000 ) ;
+				_keyVals [ character ], 10000000 ) ;
 # define arange( i, charMin, charMax ) \
 	for ( i = charMin ; i <= charMax ; i ++ ) \
 	{ \
@@ -267,7 +236,7 @@ static void add_nonshifts ( )
 # define add( character ) \
 	if ( character <= 0x7E && _keyVals [ character ] ) \
 		mcr_StringKey_set_shifted ( character, \
-				_keyVals [ character ], ( 500 * 1000 * 1000 ) ) ;
+				_keyVals [ character ], ( 10000000 ) ) ;
 # define arange( i, charMin, charMax ) \
 	for ( i = charMin ; i <= charMax ; i ++ ) \
 	{ \
@@ -284,20 +253,4 @@ static void add_shifts ( )
 	add ( 0x5E ) ; 	// ^
 	add ( 0x5F ) ; 	// _
 	arange ( i, 0x7B, 0x7E ) ; 	// { - ~
-}
-
-static void get_strings_redirect ( mcr_SafeString * ssPt,
-		mcr_Array * envMemPt )
-{
-	mcr_Array str = mcr_SafeString_get ( ssPt ) ;
-	if ( MCR_STR_EMPTY ( str ) )
-		mcr_Array_free ( & str ) ;
-	else
-		mcr_Array_push ( envMemPt, & str ) ;
-}
-
-static void putenv_redirect ( mcr_Array * envStr, ... )
-{
-	if ( ! MCR_STR_EMPTY ( * envStr ) )
-		putenv ( envStr->array ) ;
 }

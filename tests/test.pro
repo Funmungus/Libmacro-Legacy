@@ -96,3 +96,8 @@ crypttest {
 TARGET = crypttest
 SOURCES = crypttest.c
 }
+
+cmdtest {
+TARGET = cmdtest
+SOURCES = cmdtest.c
+}

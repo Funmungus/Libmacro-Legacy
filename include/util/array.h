@@ -238,8 +238,9 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return void *
  * */
 # define MCR_ARR_AT( arr, pos ) \
-	( ( void * ) ( ( pos ) >= ( arr ).used ? NULL : ( arr ).array + \
-			( ( pos ) * ( arr ).element_size ) ) )
+( ( void * ) ( ( pos ) >= ( arr ).used ? \
+	NULL : \
+( arr ).array + ( ( pos ) * ( arr ).element_size ) ) )
 /*! \brief \ref mcr_Array_next
  *
  * \param arr const \ref mcr_Array
@@ -247,7 +248,7 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return void *
  * */
 # define MCR_ARR_NEXT( arr, curPt ) \
-	( ( void * ) ( ( const char * ) ( curPt ) + ( arr ).element_size ) )
+( ( void * ) ( ( ( const char * ) ( curPt ) ) + ( arr ).element_size ) )
 /*! \brief \ref mcr_Array_prev
  *
  * \param arr const \ref mcr_Array
@@ -255,17 +256,17 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return void *
  * */
 # define MCR_ARR_PREV( arr, curPt ) \
-	( ( void * ) ( ( const char * ) ( curPt ) - ( arr ).element_size ) )
+( ( void * ) ( ( ( const char * ) ( curPt ) ) - ( arr ).element_size ) )
 /*! \brief \ref mcr_Array_end
  *
  * \param arr const \ref mcr_Array
  * \return void *
  * */
 # define MCR_ARR_END( arr ) \
-	( ( void * ) ( ( arr ).used ? ( ( char * ) \
-			( arr ).array + \
+( ( void * ) ( ( arr ).used ? \
+	( ( char * ) ( arr ).array + \
 			( ( arr ).used * ( arr ).element_size ) ) : \
-			NULL ) )
+NULL ) )
 /*! \brief \ref mcr_Array_indexof
  *
  * \param arr const \ref mcr_Array
@@ -273,21 +274,20 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return size_t
  * */
 # define MCR_ARR_INDEXOF( arr, valPt ) \
-	( ( size_t ) ( ( arr ).used && ( const char * ) \
-			( valPt ) >= ( arr ).array && \
-			( void * ) ( valPt ) < MCR_ARR_END ( arr ) ? \
-				( ( ( const char * ) ( valPt ) ) - \
-						( arr ).array ) / ( arr ).element_size : \
-			( size_t ) -1 ) )
+( ( size_t ) ( ( arr ).used && ( const char * ) \
+		( valPt ) >= ( arr ).array && \
+		( void * ) ( valPt ) < MCR_ARR_END ( arr ) ? \
+	( ( ( const char * ) ( valPt ) ) - \
+			( arr ).array ) / ( arr ).element_size : \
+( size_t ) -1 ) )
 /*! \brief \ref mcr_Array_sort
  *
  * \param arr \ref mcr_Array
  * \param cmp \ref mcr_compare_fnc
  * */
 # define MCR_ARR_SORT( arr, cmp ) \
-	if ( ( arr ).used ) \
-		qsort ( ( arr ).array, ( arr ).used, \
-				( arr ).element_size, cmp ) ;
+if ( ( arr ).used ) \
+	qsort ( ( arr ).array, ( arr ).used, ( arr ).element_size, cmp ) ;
 /*! \brief \ref mcr_Array_find
  *
  * \param arr const \ref mcr_Array
@@ -296,8 +296,10 @@ MCR_API void mcr_Array_print ( const mcr_Array * arrPt ) ;
  * \return void *
  * */
 # define MCR_ARR_FIND( arr, elPt, cmp ) \
-	( ( void * ) ( ( arr ).used ? bsearch ( elPt, ( arr ).array, \
-			( arr ).used, ( arr ).element_size, cmp ) : NULL ) )
+( ( void * ) ( ( arr ).used ? \
+	bsearch ( elPt, ( arr ).array, ( arr ).used, \
+			( arr ).element_size, cmp ) : \
+NULL ) )
 /*! \brief \ref mcr_Array_for_each
  *
  * This will not create va_list or do any type checking on variable

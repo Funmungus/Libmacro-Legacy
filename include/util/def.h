@@ -89,9 +89,9 @@ Native functions will be unusable. )
 # ifndef mcr_dmsg
 //! \brief Automated error message based on errno
 # define mcr_dmsg \
-	fprintf ( mcr_err, "%s: Error %d:" __FILE__ " ( " \
-			MCR_STR ( __LINE__ ) " ): %s.\n", \
-			mcr_timestring ( ), errno, strerror ( errno ) )
+fprintf ( mcr_err, "%s: Error %d:" __FILE__ " ( " \
+		MCR_STR ( __LINE__ ) " ): %s.\n", \
+		mcr_timestring ( ), errno, strerror ( errno ) )
 # endif
 # ifndef mcr_dassert
 //! \brief Assertion only for debug builds
@@ -100,18 +100,18 @@ Native functions will be unusable. )
 # ifndef mcr_dclock
 //! \brief Initialize \ref clock_t with \ref clock, only for debug builds.
 # define mcr_dclock( assignVar ) \
-	assignVar = clock ( )
+assignVar = clock ( )
 # endif
 # ifndef mcr_profile
 /*! \brief If \ref MCR_CLOCKINTEREST clock ticks have passed
  *  since startClock has been initialized, then a message will print
  * to mcr_err */
 # define mcr_profile( startClock ) \
-	startClock = clock ( ) - startClock ; \
-	if ( startClock > MCR_CLOCKINTEREST ) \
-	{ fprintf ( mcr_err, "%s: Profile:" __FILE__ " ( " \
-				MCR_STR ( __LINE__ ) " ): %li clocks.\n", \
-				mcr_timestring ( ), startClock ) ; }
+startClock = clock ( ) - startClock ; \
+if ( startClock > MCR_CLOCKINTEREST ) \
+{ fprintf ( mcr_err, "%s: Profile:" __FILE__ " ( " \
+			MCR_STR ( __LINE__ ) " ): %li clocks.\n", \
+			mcr_timestring ( ), startClock ) ; }
 # endif
 # else
 # ifndef mcr_dmsg

@@ -65,8 +65,8 @@ MCR_API void mcr_Map_init ( mcr_Map * mapPt, size_t sizeofFirst,
  * \param sizeofSecond size_t
  * */
 # define mcr_StringMap_init( mapPt, sizeofSecond ) \
-	mcr_Map_init ( mapPt, sizeof ( mcr_Array ), sizeofSecond ) ; \
-	( mapPt )->compare = mcr_name_compare ;
+mcr_Map_init ( mapPt, sizeof ( mcr_Array ), sizeofSecond ) ; \
+( mapPt )->compare = mcr_name_compare ;
 /*! \brief dtor: Element sizes are retained.
  * */
 MCR_API void mcr_Map_free ( mcr_Map * mapPt ) ;
@@ -279,7 +279,7 @@ MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
  * \return void *
  * */
 # define MCR_MAP_GET( map, keyPt ) \
-	MCR_ARR_FIND ( ( map ).set, keyPt, ( map ).compare )
+MCR_ARR_FIND ( ( map ).set, keyPt, ( map ).compare )
 /*! \brief \ref mcr_StringMap_get
  *
  * \param map \ref mcr_Map
@@ -287,7 +287,7 @@ MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
  * \return void *
  * */
 # define MCR_STRINGMAP_GET( map, key ) \
-	MCR_MAP_GET ( map, & key )
+MCR_MAP_GET ( map, & key )
 /*! \brief Change address from key to value.
  *
  * \param map \ref mcr_Map
@@ -295,8 +295,8 @@ MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
  * \return void *
  * */
 # define MCR_MAP_VALUE( map, pairPt ) \
-	( ( void * ) ( pairPt ? ( char * ) ( pairPt ) \
-			+ ( map ).sizeof_first : NULL ) )
+( ( void * ) ( pairPt ? ( char * ) ( pairPt ) \
+		+ ( map ).sizeof_first : NULL ) )
 
 /*! \brief \ref mcr_Map_get_value
  *
@@ -305,23 +305,23 @@ MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
  * \return void *
  * */
 # define MCR_MAP_GET_VALUE( map, keyPt ) \
-	MCR_MAP_VALUE ( map, ( MCR_MAP_GET ( map, keyPt ) ) )
+MCR_MAP_VALUE ( map, ( MCR_MAP_GET ( map, keyPt ) ) )
 /*! \brief \ref mcr_StringMap_get_value
  *
  * \param map \ref mcr_Map
  * \param key const char * or mcr_Array
  * */
 # define MCR_STRINGMAP_GET_VALUE( map, key ) \
-	MCR_MAP_GET_VALUE ( map, & key )
+MCR_MAP_GET_VALUE ( map, & key )
 /*! \brief If compare is available, qsort given map.
  *
  * \param map \ref mcr_Map
  * */
 # define MCR_MAP_SORT( map ) \
-	if ( ( map ).compare ) \
-	{ \
-		MCR_ARR_SORT ( ( map ).set, ( map ).compare ) ; \
-	}
+if ( ( map ).compare ) \
+{ \
+	MCR_ARR_SORT ( ( map ).set, ( map ).compare ) ; \
+}
 
 /*! \brief Use the iterateFnc for every element of the map set,
  * with all variadic arguments.
@@ -334,7 +334,7 @@ MCR_API int mcr_ref_compare ( const void * lhs, const void * rhs ) ;
  * parameters given to this macro.
  * */
 # define MCR_MAP_FOR_EACH( map, iterateFnc, ... ) \
-	MCR_ARR_FOR_EACH ( ( map ).set, iterateFnc, __VA_ARGS__ )
+MCR_ARR_FOR_EACH ( ( map ).set, iterateFnc, __VA_ARGS__ )
 
 /*! \brief Use the iterateFnc for every value of the map set,
  * with all variadic arguments.

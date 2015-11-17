@@ -517,10 +517,10 @@ MCR_API void mcr_standard_native_cleanup ( void ) ;
 //
 //! \brief \ref mcr_Alarm_send
 # define MCR_ALARM_SEND( alarm ) \
-	( thrd_sleep_until ( & alarm ) == thrd_success )
+( thrd_sleep_until ( & alarm ) == thrd_success )
 //! \brief \ref mcr_Alarm_send
 # define MCR_ALARM_QUICKSEND( alarm ) \
-	( thrd_sleep_until ( & alarm ) )
+( thrd_sleep_until ( & alarm ) )
 //! \brief \ref mcr_Echo_send
 # define MCR_ECHO_SEND( echo, success )
 //! \brief \ref mcr_Echo_send
@@ -535,10 +535,10 @@ MCR_API void mcr_standard_native_cleanup ( void ) ;
 # define MCR_MOVECURSOR_QUICKSEND( mover )
 //! \brief \ref mcr_NoOp_send
 # define MCR_NOOP_SEND( noop ) \
-	( thrd_sleep ( & noop, NULL ) == thrd_success )
+( thrd_sleep ( & noop, NULL ) == thrd_success )
 //! \brief \ref mcr_NoOp_send
 # define MCR_NOOP_QUICKSEND( noop ) \
-	( thrd_sleep ( & noop, NULL ) )
+( thrd_sleep ( & noop, NULL ) )
 //! \brief \ref mcr_Scroll_send
 # define MCR_SCROLL_SEND( scroll, success )
 //! \brief \ref mcr_Scroll_send

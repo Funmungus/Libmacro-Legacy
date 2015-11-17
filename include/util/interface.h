@@ -170,10 +170,10 @@ MCR_API size_t mcr_iget_id ( mcr_IRegistry * iRegPt,
  * \return char *
  * */
 # define mcr_iget_name( iRegPt, id ) \
-	( id < ( iRegPt )->names.used ? \
-		( ( mcr_Array * ) MCR_ARR_AT ( \
-				( iRegPt )->names, id ) )->array : \
-	NULL )
+( id < ( iRegPt )->names.used ? \
+	( ( mcr_Array * ) MCR_ARR_AT ( \
+			( iRegPt )->names, id ) )->array : \
+NULL )
 /*! \brief Map a name to an interface, and vice versa.
  *
  * \param iPt Interface to map
@@ -204,7 +204,7 @@ MCR_API int mcr_irename ( mcr_IRegistry * iRegPt, const char * oldName,
  * \ret size_t
  * */
 # define mcr_icount( iRegPt ) \
-	( ( iRegPt )->set.used )
+( ( iRegPt )->set.used )
 /*! \brief Get a reference to all registered interfaces.
  *
  * \param buffer References are copied here.
@@ -222,15 +222,15 @@ MCR_API void mcr_iclear ( mcr_IRegistry * iRegPt ) ;
  * \param freeData \ref mcr_Data
  * */
 # define MCR_IFREE( interface, freeData ) \
-	if ( ( freeData ).data ) \
-	{ \
-		if ( ( interface ).free ) \
-			( interface ).free ( ( freeData ).data ) ; \
-		if ( ( freeData ).is_heap ) \
-			free ( ( freeData ).data ) ; \
-		( freeData ).data = NULL ; \
-		( freeData ).is_heap = 0 ; \
-	}
+if ( ( freeData ).data ) \
+{ \
+	if ( ( interface ).free ) \
+		( interface ).free ( ( freeData ).data ) ; \
+	if ( ( freeData ).is_heap ) \
+		free ( ( freeData ).data ) ; \
+	( freeData ).data = NULL ; \
+	( freeData ).is_heap = 0 ; \
+}
 
 /*! \brief \ref mcr_mkdata
  *
@@ -239,23 +239,23 @@ MCR_API void mcr_iclear ( mcr_IRegistry * iRegPt ) ;
  * and initialized here.
  * */
 # define MCR_IMKDATA( interface, dataOut ) \
-	if ( ( dataOut ).data && ( interface ).free ) \
-	{ /* Do not want to free heap, just uninitialize it. */ \
-		( interface ).free ( ( dataOut ).data ) ; \
-	} \
-	if ( ! ( dataOut ).data ) \
-	{ \
-		( dataOut ).data = malloc ( ( interface ).data_size ) ; \
-		if ( ( dataOut ).data ) \
-			( dataOut ).is_heap = 1 ; \
-	} \
+if ( ( dataOut ).data && ( interface ).free ) \
+{ /* Do not want to free heap, just uninitialize it. */ \
+	( interface ).free ( ( dataOut ).data ) ; \
+} \
+if ( ! ( dataOut ).data ) \
+{ \
+	( dataOut ).data = malloc ( ( interface ).data_size ) ; \
 	if ( ( dataOut ).data ) \
-	{ \
-		if ( ( interface ).init ) \
-			( interface ).init ( ( dataOut ).data ) ; \
-		else \
-			memset ( ( dataOut ).data, 0, ( interface ).data_size ) ; \
-	}
+		( dataOut ).is_heap = 1 ; \
+} \
+if ( ( dataOut ).data ) \
+{ \
+	if ( ( interface ).init ) \
+		( interface ).init ( ( dataOut ).data ) ; \
+	else \
+		memset ( ( dataOut ).data, 0, ( interface ).data_size ) ; \
+}
 
 /*! \brief \ref mcr_icpy
  *
@@ -264,23 +264,23 @@ MCR_API void mcr_iclear ( mcr_IRegistry * iRegPt ) ;
  * \param dataIn \ref mcr_Data
  * */
 # define MCR_ICPY( interface, dataOut, dataIn ) \
-	if ( ( dataIn ).data ) \
+if ( ( dataIn ).data ) \
+{ \
+	MCR_IMKDATA ( interface, dataOut ) ; \
+	if ( ( dataOut ).data ) \
 	{ \
-		MCR_IMKDATA ( interface, dataOut ) ; \
-		if ( ( dataOut ).data ) \
-		{ \
-			if ( ( interface ).copy ) \
-				( interface ).copy ( ( dataOut ).data, \
-						( dataIn ).data ) ; \
-			else \
-				memcpy ( ( dataOut ).data, ( dataIn ).data, \
-						( interface ).data_size ) ; \
-		} \
+		if ( ( interface ).copy ) \
+			( interface ).copy ( ( dataOut ).data, \
+					( dataIn ).data ) ; \
+		else \
+			memcpy ( ( dataOut ).data, ( dataIn ).data, \
+					( interface ).data_size ) ; \
 	} \
-	else \
-	{ \
-		MCR_IFREE ( interface, dataOut ) ; \
-	}
+} \
+else \
+{ \
+	MCR_IFREE ( interface, dataOut ) ; \
+}
 
 /*! \brief \ref mcr_icmp
  *
@@ -289,14 +289,13 @@ MCR_API void mcr_iclear ( mcr_IRegistry * iRegPt ) ;
  * \param rData \ref mcr_Data
  * */
 # define MCR_ICMP( interface, lData, rData ) \
-	( ! ( lData ).data || ! ( rData ).data ? \
-		( rData ).data ? \
-			-1 : \
-		( lData ).data && 1 : \
-	( interface ).compare ? \
-		( interface ).compare ( ( lData ).data, ( rData ).data ) : \
-	memcmp ( ( lData ).data, ( rData ).data, \
-			( interface ).data_size ) )
+( ! ( lData ).data || ! ( rData ).data ? \
+	( rData ).data ? \
+		-1 : \
+	( lData ).data && 1 : \
+( interface ).compare ? \
+	( interface ).compare ( ( lData ).data, ( rData ).data ) : \
+memcmp ( ( lData ).data, ( rData ).data, ( interface ).data_size ) )
 
 /*! \brief \ref mcr_iinit_with
  *
@@ -309,11 +308,11 @@ MCR_API void mcr_iclear ( mcr_IRegistry * iRegPt ) ;
  * */
 # define MCR_IINIT( interface, comparison, copier, \
 		dataSize, initializer, freer ) \
-	( interface ).id = ( size_t ) -1 ; \
-	( interface ).compare = ( comparison ) ; \
-	( interface ).copy = ( copier ) ; \
-	( interface ).data_size = ( dataSize ) ; \
-	( interface ).init = ( initializer ) ; \
-	( interface ).free = ( freer ) ;
+( interface ).id = ( size_t ) -1 ; \
+( interface ).compare = ( comparison ) ; \
+( interface ).copy = ( copier ) ; \
+( interface ).data_size = ( dataSize ) ; \
+( interface ).init = ( initializer ) ; \
+( interface ).free = ( freer ) ;
 
 # endif // MCR_INTERFACE_H

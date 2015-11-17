@@ -71,7 +71,6 @@ int mcr_atob ( const char * value, int * retVal )
 	return 1 ;
 }
 
-
 int mcr_String_insert ( mcr_Array * strPt, size_t index,
 		const char * str, size_t len )
 {
@@ -81,17 +80,17 @@ int mcr_String_insert ( mcr_Array * strPt, size_t index,
 	{
 		return mcr_String_append ( strPt, str, len ) ;
 	}
-	size_t min = str ? strlen ( str ) : 0 ;
-	if ( len < min ) min = len ;
-	if ( ! mcr_Array_resize ( strPt, strPt->used + min ) )
+	size_t mini = str ? strlen ( str ) : 0 ;
+	if ( len < mini ) mini = len ;
+	if ( ! mcr_Array_resize ( strPt, strPt->used + mini ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	memmove ( strPt->array + index + min, strPt->array + index,
+	memmove ( strPt->array + index + mini, strPt->array + index,
 			strPt->used - index ) ;
 	strPt->used = strPt->size ;
-	memcpy ( strPt->array + index, str, min ) ;
+	memcpy ( strPt->array + index, str, mini ) ;
 	/* Assume null terminated already. */
 	return 1 ;
 }
@@ -108,7 +107,7 @@ int mcr_String_insert_char (mcr_Array * strPt, size_t index,
 	return mcr_Array_insert ( strPt, index, & c ) ;
 }
 
-void mcr_String_remove (mcr_Array * strPt, size_t index,
+void mcr_String_remove ( mcr_Array * strPt, size_t index,
 		size_t count )
 {
 	dassert ( strPt ) ;
@@ -141,6 +140,8 @@ int mcr_String_push (mcr_Array * strPt, const char c )
 	dassert ( strPt ) ;
 	dassert ( strPt->element_size == sizeof ( char ) ) ;
 	char nc = '\0' ;
+	if ( ! strPt->used && ! mcr_Array_push ( strPt, & nc ) )
+	{ dmsg ; return 0 ; }
 	if ( ! mcr_Array_push ( strPt, & nc ) )
 	{
 		dmsg ;
@@ -167,13 +168,13 @@ int mcr_String_from_string (mcr_Array * strPt,
 {
 	dassert ( strPt ) ;
 	dassert ( strPt->element_size == sizeof ( char ) ) ;
-	size_t min = str ? strlen ( str ) : 0 ;
-	if ( ! mcr_Array_resize ( strPt, min + 1 ) )
+	size_t mini = str ? strlen ( str ) : 0 ;
+	if ( ! mcr_Array_resize ( strPt, mini + 1 ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	memcpy ( strPt->array, str, min ) ;
+	memcpy ( strPt->array, str, mini ) ;
 	strPt->array [ strPt->size - 1 ] = '\0' ;
 	strPt->used = strPt->size ;
 	return 1 ;
@@ -184,34 +185,34 @@ int mcr_String_nfrom_string (mcr_Array * strPt,
 {
 	dassert ( strPt ) ;
 	dassert ( strPt->element_size == sizeof ( char ) ) ;
-	size_t min = str ? strlen ( str ) : 0 ;
-	if ( len < min ) min = len ;
-	if ( ! mcr_Array_resize ( strPt, min + 1 ) )
+	size_t mini = str ? strlen ( str ) : 0 ;
+	if ( len < mini ) mini = len ;
+	if ( ! mcr_Array_resize ( strPt, mini + 1 ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	memcpy ( strPt->array, str, min ) ;
+	memcpy ( strPt->array, str, mini ) ;
 	strPt->array [ strPt->size - 1 ] = '\0' ;
 	strPt->used = strPt->size ;
 	return 1 ;
 }
 
-int mcr_String_append (mcr_Array * strPt,
+int mcr_String_append ( mcr_Array * strPt,
 		const char * str, size_t len )
 {
 	dassert ( strPt ) ;
 	dassert ( strPt->element_size == sizeof ( char ) ) ;
-	size_t min = str ? strlen ( str ) : 0 ;
-	if ( len < min ) min = len ;
-	if ( ! mcr_Array_resize ( strPt, min + 1 ) )
+	size_t mini = str ? strlen ( str ) : 0 ;
+	if ( len < mini ) mini = len ;
+	if ( ! mcr_Array_resize ( strPt, strPt->used + mini + 1 ) )
 	{
 		dmsg ;
 		return 0 ;
 	}
-	memcpy ( strPt->array + strPt->used - 1, str, min ) ;
+	memcpy ( strPt->array + strPt->used - 1, str, mini ) ;
 	strPt->array [ strPt->size - 1 ] = '\0' ;
-	strPt->used = strPt->size ;
+	strPt->used += mini ;
 	return 1 ;
 }
 

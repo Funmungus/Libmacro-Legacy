@@ -39,7 +39,7 @@ MCR_API int mcr_atob ( const char * value, int * retVal ) ;
 //
 //! \brief Initialize an array to be a char string.
 # define mcr_String_init( strPt ) \
-	mcr_Array_init ( strPt, sizeof ( char ) )
+mcr_Array_init ( strPt, sizeof ( char ) )
 /*! \brief Insert another string at given index. This string will be
  * resized, if needed.
  *
@@ -125,6 +125,6 @@ MCR_API int mcr_String_compare ( const void * lhs, const void * rhs ) ;
  * \return boolean logical expression
  * */
 # define MCR_STR_EMPTY( arr ) \
-	( ! ( arr ).used || ( arr ).array [ 0 ] == '\0' )
+( ! ( arr ).used || ( arr ).array [ 0 ] == '\0' )
 
 # endif

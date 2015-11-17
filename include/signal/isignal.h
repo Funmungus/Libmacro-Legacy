@@ -126,7 +126,7 @@ MCR_API mcr_Data mcr_ISignal_mkdata ( mcr_ISignal * isigPt ) ;
 /*! \brief \ref mcr_Signal#iface.id, or -1 for no isignal set
  * \return size_t */
 # define mcr_Signal_id( sig ) \
-	( ( sig ).type ? ( sig ).type->iface.id : ( size_t ) -1 )
+( ( sig ).type ? ( sig ).type->iface.id : ( size_t ) -1 )
 /*! \brief \ref mcr_icpy, plus copying isignal reference and
  * \ref mcr_Signal#is_dispatch
  *
@@ -292,18 +292,18 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * */
 # define MCR_SIGNAL_INIT( signal, typePt, dataPt, isHeap, \
 		isDispatch ) \
-	( signal ).type = ( typePt ) ; \
-	( signal ).data.data = ( dataPt ) ; \
-	( signal ).data.is_heap = ( isHeap ) ; \
-	( signal ).is_dispatch = ( isDispatch ) ;
+( signal ).type = ( typePt ) ; \
+( signal ).data.data = ( dataPt ) ; \
+( signal ).data.is_heap = ( isHeap ) ; \
+( signal ).is_dispatch = ( isDispatch ) ;
 
 /*! \brief \ref mcr_Signal_free
  *
  * \param signal \ref mcr_Signal
  * */
 # define MCR_SIGNAL_FREE( signal ) \
-	if ( ( signal ).type ) \
-		MCR_IFREE ( ( signal ).type->iface, ( signal ).data )
+if ( ( signal ).type ) \
+	MCR_IFREE ( ( signal ).type->iface, ( signal ).data )
 
 /*! \brief \ref mcr_mkdata_data
  *
@@ -311,7 +311,7 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param dataOut \ref mcr_Data
  * */
 # define MCR_ISIGNAL_MKDATA( isignal, dataOut ) \
-	MCR_IMKDATA ( ( isignal ).iface, dataOut )
+MCR_IMKDATA ( ( isignal ).iface, dataOut )
 
 /*! \brief \ref mcr_mkdata_data
  *
@@ -319,8 +319,8 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param dataOut \ref mcr_Data
  * */
 # define MCR_SIGNAL_MKDATA( signal, dataOut ) \
-	if ( ( signal ).type ) \
-		MCR_IMKDATA ( ( signal ).type->iface, dataOut ) ;
+if ( ( signal ).type ) \
+	MCR_IMKDATA ( ( signal ).type->iface, dataOut ) ;
 
 /*! \brief \ref mcr_icpy, including \ref mcr_Signal#is_dispatch
  *
@@ -328,19 +328,19 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param src \ref mcr_Signal
  * */
 # define MCR_SIGNAL_COPY( dst, src ) \
-	if ( ( src ).type ) \
+if ( ( src ).type ) \
+{ \
+	if ( ( dst ).type != ( src ).type ) \
 	{ \
-		if ( ( dst ).type != ( src ).type ) \
-		{ \
-			MCR_SIGNAL_FREE ( dst ) ; \
-		} \
-		( dst ).type = ( src ).type ; \
-		MCR_ICPY ( ( src ).type->iface, ( dst ).data, \
-				( src ).data ) ; \
-	} \
-	else \
 		MCR_SIGNAL_FREE ( dst ) ; \
-	( dst ).is_dispatch = ( src ).is_dispatch ;
+	} \
+	( dst ).type = ( src ).type ; \
+	MCR_ICPY ( ( src ).type->iface, ( dst ).data, \
+			( src ).data ) ; \
+} \
+else \
+	MCR_SIGNAL_FREE ( dst ) ; \
+( dst ).is_dispatch = ( src ).is_dispatch ;
 
 /*! \brief \ref mcr_Signal_cmp
  *
@@ -349,24 +349,24 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \return Logical expression
  * */
 # define MCR_SIGNAL_CMP( lsignal, rsignal ) \
-	( ( lsignal ).type != ( rsignal ).type ? \
-		( lsignal ).type < ( rsignal ).type ? \
-			-1 : \
-		1 : \
-	( lsignal ).type ? \
-		MCR_ICMP ( ( lsignal ).type->iface, ( lsignal ).data, \
-				( rsignal ).data ) : \
-	memcmp ( & ( lsignal ).data.data, \
-			& ( rsignal ).data.data, sizeof ( void * ) ) )
+( ( lsignal ).type != ( rsignal ).type ? \
+	( lsignal ).type < ( rsignal ).type ? \
+		-1 : \
+	1 : \
+( lsignal ).type ? \
+	MCR_ICMP ( ( lsignal ).type->iface, ( lsignal ).data, \
+			( rsignal ).data ) : \
+memcmp ( & ( lsignal ).data.data, \
+		& ( rsignal ).data.data, sizeof ( void * ) ) )
 
 # define MCR_SIGNAL_DISPATCH( signal ) \
-	( ( signal ).is_dispatch && \
-			( signal ).type->dispatch && \
-			( signal ).type->dispatch ( & signal ) )
+( ( signal ).is_dispatch && \
+		( signal ).type->dispatch && \
+		( signal ).type->dispatch ( & ( signal ) ) )
 # define mcr_Signal_dispatch_impl( sigPt ) \
-	( ( sigPt )->is_dispatch && \
-			( sigPt )->type->dispatch && \
-			( sigPt )->type->dispatch ( sigPt ) )
+( ( sigPt )->is_dispatch && \
+		( sigPt )->type->dispatch && \
+		( sigPt )->type->dispatch ( sigPt ) )
 /*! \brief If not \ref mcr_Signal#is_dispatch skip to sending signal.
  *
  * 1 ) if is_dispatch, dispatch specific, and if not blocking continue
@@ -376,13 +376,13 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param signal mcr_Signal
  * */
 # define MCR_SEND( signal ) \
-	( MCR_SIGNAL_DISPATCH ( signal ) ? \
-		1 : \
-	( signal ).type->send ( ( & signal ) ) )
+( MCR_SIGNAL_DISPATCH ( signal ) ? \
+	1 : \
+( signal ).type->send ( ( & signal ) ) )
 # define mcr_Send_impl( sigPt ) \
-	( mcr_Signal_dispatch_impl ( sigPt ) ? \
-		1 : \
-	( sigPt )->type->send ( ( sigPt ) ) )
+( mcr_Signal_dispatch_impl ( sigPt ) ? \
+	1 : \
+( sigPt )->type->send ( ( sigPt ) ) )
 
 /*! \brief \ref MCR_SEND with array of pointers to mcr_Signal
  *
@@ -391,13 +391,13 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param success int Set to 0 on failure
  * */
 # define MCR_SEND_REF_ARRAY( signalPtArray, arrLen, success ) \
-	for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
-			_arrayIterator_ ++ ) \
-	{ \
-		if ( ! MCR_SEND \
-				( * ( ( signalPtArray ) [ _arrayIterator_ ] ) ) ) \
-			( success ) = 0 ; \
-	}
+for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
+		_arrayIterator_ ++ ) \
+{ \
+	if ( ! mcr_Send_impl ( ( signalPtArray ) [ _arrayIterator_ ] ) \
+			&& success ) \
+		success = 0 ; \
+}
 
 /*! \brief \ref MCR_SEND with array of mcr_Signal
  *
@@ -406,12 +406,13 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * \param success int Set to 0 on failure
  * */
 # define MCR_SEND_ARRAY( signalArray, arrLen, success ) \
-	for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
-			_arrayIterator_ ++ ) \
-	{ \
-		if ( ! MCR_SEND ( ( signalPtArray ) [ _arrayIterator_ ] ) ) \
-			( success ) = 0 ; \
-	}
+for ( size_t _arrayIterator_ = 0 ; _arrayIterator_ < ( arrLen ) ; \
+		_arrayIterator_ ++ ) \
+{ \
+	if ( ! MCR_SEND ( ( signalPtArray ) [ _arrayIterator_ ] ) && \
+			success ) \
+		success = 0 ; \
+}
 
 /*! \brief For mcr_ISignal set compare, copy, data size,
  * init, free, and send
@@ -427,8 +428,8 @@ MCR_API void mcr_signalreg_cleanup ( void ) ;
  * */
 # define MCR_ISIGNAL_INIT( isignal, comparison, copier, \
 		dataSize, initializer, freer, sender ) \
-	MCR_IINIT ( ( isignal ).iface, comparison, copier, \
-			dataSize, initializer, freer ) ; \
-	( isignal ).send = ( sender ) ;
+MCR_IINIT ( ( isignal ).iface, comparison, copier, \
+		dataSize, initializer, freer ) ; \
+( isignal ).send = ( sender ) ;
 
 # endif

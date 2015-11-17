@@ -16,7 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "extras/signalextras.h"
+# include "extras/extras.h"
 
 MCR_API mcr_ISignal mcr_iCommand ;
 MCR_API mcr_ISignal mcr_iStringKey ;
@@ -33,8 +33,10 @@ static int compare_env ( const mcr_Command * lhs,
 static void copy_args ( mcr_Command * dstPt, mcr_Command * srcPt ) ;
 static void copy_env ( mcr_Command * dstPt, mcr_Command * srcPt ) ;
 
-static void arr_set_delay_redirect ( mcr_Array * arrPt, mcr_NoOp delay ) ;
-static void char_free_redirect ( mcr_Array * arrIt, ... ) ;
+static void arr_set_delay_foreach ( mcr_Array * arrPt, mcr_NoOp delay ) ;
+static void char_free_foreach ( mcr_Array * arrIt, ... ) ;
+static void ssget_foreach ( mcr_SafeString * ssPt, mcr_Array * argArrPt,
+		char ** argsArr, size_t * argsItPt ) ;
 
 void mcr_Command_init ( void * cmdPt )
 {
@@ -165,7 +167,6 @@ void mcr_StringKey_free ( void * skPt )
 	mcr_SafeString_free ( & sPt->string ) ;
 }
 
-
 void mcr_Command_set_file ( mcr_Command * cmdPt,
 		const char * file, int cryptic )
 {
@@ -252,15 +253,16 @@ void mcr_Command_clear_env ( mcr_Command * cmdPt )
 	mcr_Array_free ( & cmdPt->env ) ;
 }
 
+// TODO: Unicode support.
 int mcr_StringKey_send ( mcr_Signal * sigPt )
 {
 	dassert ( sigPt ) ;
-	if ( sigPt->data.data )
-		return mcr_StringKey_send_keys ( sigPt->data.data ) ;
-	return 0 ;
+	mcr_StringKey * skPt ;
+	if ( ! ( skPt = sigPt->data.data ) )
+		return 0 ;
+	return mcr_StringKey_send_keys ( sigPt->data.data ) ;
 }
 
-// TODO: Unicode support.
 int mcr_StringKey_send_keys ( mcr_StringKey * skPt )
 {
 	dassert ( skPt ) ;
@@ -277,7 +279,7 @@ int mcr_StringKey_send_keys ( mcr_StringKey * skPt )
 			i ++ )
 	{
 		found = MCR_ARR_AT ( _keyChars,
-				( unsigned char ) strPt->array [ i ] ) ;
+				( unsigned ) strPt->array [ i ] ) ;
 		if ( found && found->used )
 		{
 			end = MCR_ARR_END ( * found ) ;
@@ -289,6 +291,7 @@ int mcr_StringKey_send_keys ( mcr_StringKey * skPt )
 					dmsg ;
 					success = 0 ;
 				}
+				MCR_NOOP_QUICKSEND ( skPt->interval ) ;
 			}
 		}
 	}
@@ -300,9 +303,55 @@ int mcr_StringKey_send_keys ( mcr_StringKey * skPt )
 int mcr_Command_send ( mcr_Signal * sigPt )
 {
 	dassert ( sigPt ) ;
-	if ( sigPt->data.data )
-		return mcr_Command_execvpe ( sigPt->data.data ) ;
-	return 0 ;
+	mcr_Command * cmdPt ;
+	if ( ! ( cmdPt = sigPt->data.data ) )
+		return 0 ;
+
+	int success = 0 ;
+	size_t i ;
+	char ** args = NULL, ** envies = NULL ;
+	mcr_Array file = mcr_SafeString_get ( & cmdPt->file ) ;
+	mcr_Array argsArr, envArr ;
+	mcr_Array_init ( & argsArr, sizeof ( mcr_Array ) ) ;
+	mcr_Array_init ( & envArr, sizeof ( mcr_Array ) ) ;
+	if ( MCR_STR_EMPTY ( file ) )
+	{ goto cleanup ; }
+	/* args + 1, file is required first */
+	args = malloc ( sizeof ( char * ) *
+			( cmdPt->argv.used + 2 ) ) ;
+	envies = malloc ( sizeof ( char * ) *
+			( cmdPt->argv.used + 1 ) ) ;
+	if ( ! args || ! envies ||
+			! mcr_Array_resize ( & argsArr, cmdPt->argv.used ) ||
+			! mcr_Array_resize ( & envArr, cmdPt->env.used ) )
+	{ dmsg ; goto cleanup ; }
+
+	// For each argument, push argument and set into arg array
+	// Also null terminate.
+	args [ 0 ] = file.array ;
+	i = 1 ;
+	MCR_ARR_FOR_EACH ( cmdPt->argv, ssget_foreach,
+			& argsArr, args, & i ) ;
+	args [ i ] = NULL ;
+	i = 0 ;
+	MCR_ARR_FOR_EACH ( cmdPt->env, ssget_foreach,
+			& envArr, envies, & i ) ;
+	envies [ i ] = NULL ;
+
+	success = mcr_execvpe ( file.array, args, envies ) >= 0 ;
+	if ( ! success )
+	{ dmsg ; }
+
+cleanup :
+	free ( args ) ;
+	free ( envies ) ;
+	MCR_ARR_FOR_EACH ( argsArr, MCR_EXP ( mcr_Array_free_foreach ), ) ;
+	MCR_ARR_FOR_EACH ( envArr, MCR_EXP ( mcr_Array_free_foreach ), ) ;
+	mcr_Array_free ( & argsArr ) ;
+	mcr_Array_free ( & envArr ) ;
+	mcr_Array_free ( & file ) ;
+
+	return success ;
 }
 
 //
@@ -371,19 +420,18 @@ void mcr_StringKey_set_shifted ( int character,
 {
 	// shifted set is shift, key press, key release, and unshift
 	// ( with delays is 7 in all )
-	mcr_NoOp delay = { 0 } ;
-	delay.tv_nsec = nsec ;
+	mcr_NoOp delay = { .tv_nsec = nsec } ;
 	mcr_Key keys [ 4 ] ;
 	int shift = mcr_Mod_key_key ( MCR_SHIFT ) ;
 	mcr_Key_init_with ( keys, shift, shift, MCR_DOWN ) ;
 	mcr_Key_init_with ( keys + 1, key, key, MCR_DOWN ) ;
 	mcr_Key_init_with ( keys + 2, key, key, MCR_UP ) ;
 	mcr_Key_init_with ( keys + 3, shift, shift, MCR_UP ) ;
-	mcr_Signal sigs [ 7 ] = {
+	mcr_Signal sigs [ 8 ] = {
 	{ & mcr_iKey, { keys, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 },
 		{ & mcr_iKey, { keys + 1, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 },
 		{ & mcr_iKey, { keys + 2, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 },
-		{ & mcr_iKey, { keys + 3, 0 }, 1 }
+		{ & mcr_iKey, { keys + 3, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 }
 	} ;
 	mcr_StringKey_set_char ( character, sigs, 7 ) ;
 }
@@ -398,16 +446,16 @@ void mcr_StringKey_set_nonshifted ( int character,
 	mcr_Key keys [ 2 ] ;
 	mcr_Key_init_with ( keys + 0, key, key, MCR_DOWN ) ;
 	mcr_Key_init_with ( keys + 1, key, key, MCR_UP ) ;
-	mcr_Signal sigs [ 3 ] = {
+	mcr_Signal sigs [ 4 ] = {
 	{ & mcr_iKey, { keys, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 },
-		{ & mcr_iKey, { keys + 1, 0 }, 1 }
+		{ & mcr_iKey, { keys + 1, 0 }, 1 }, { & mcr_iNoOp, { & delay, 0 }, 1 }
 	} ;
 	mcr_StringKey_set_char ( character, sigs, 3 ) ;
 }
 
 void mcr_StringKey_set_delays ( mcr_NoOp delay )
 {
-	MCR_ARR_FOR_EACH ( _keyChars, arr_set_delay_redirect, delay ) ;
+	MCR_ARR_FOR_EACH ( _keyChars, arr_set_delay_foreach, delay ) ;
 }
 
 size_t mcr_StringKey_char_count ( )
@@ -417,7 +465,7 @@ size_t mcr_StringKey_char_count ( )
 
 void mcr_StringKey_char_clear ( )
 {
-	MCR_ARR_FOR_EACH ( _keyChars, char_free_redirect, 0 ) ;
+	MCR_ARR_FOR_EACH ( _keyChars, char_free_foreach, 0 ) ;
 	mcr_Array_free ( & _keyChars ) ;
 }
 
@@ -511,12 +559,12 @@ static void set_delay_redirect ( mcr_Signal * sigPt, mcr_NoOp delay )
 	}
 }
 
-static void arr_set_delay_redirect ( mcr_Array * arrPt, mcr_NoOp delay )
+static void arr_set_delay_foreach ( mcr_Array * arrPt, mcr_NoOp delay )
 {
 	MCR_ARR_FOR_EACH ( * arrPt, set_delay_redirect, delay ) ;
 }
 
-static void char_free_redirect ( mcr_Array * arrIt, ... )
+static void char_free_foreach ( mcr_Array * arrIt, ... )
 {
 	MCR_ARR_FOR_EACH ( * arrIt,
 			MCR_EXP ( mcr_Signal_free_foreach ), ) ;
@@ -553,4 +601,17 @@ void mcr_signalextras_cleanup ( void )
 	mcr_Array_free ( & _keyChars ) ;
 	mcr_Array_free ( & _charInitial ) ;
 	mcr_Array_free ( & _ssArrInitial ) ;
+}
+
+static void ssget_foreach ( mcr_SafeString * ssPt, mcr_Array * argArrPt,
+		char ** argsArr, size_t * argsItPt )
+{
+	mcr_Array str = mcr_SafeString_get ( ssPt ) ;
+	if ( MCR_STR_EMPTY ( str ) )
+		mcr_Array_free ( & str ) ;
+	else
+	{
+		mcr_Array_push ( argArrPt , & str ) ;
+		argsArr [ ( * argsItPt ) ++ ] = str.array ;
+	}
 }

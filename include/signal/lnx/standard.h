@@ -67,34 +67,34 @@ MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
 # undef MCR_KEY_SEND
 # undef MCR_KEY_QUICKSEND
 # define MCR_KEY_QUICKSEND( key ) \
-	if ( ( key ).up_type != MCR_UP ) \
-	{ \
-		( key ).events [ 1 ].value = 1 ; \
-		MCR_DEV_SEND ( mcr_keyDev, ( key ).events, \
-				sizeof ( ( key ).events ) ) ; \
-	} \
-	if ( ( key ).up_type != MCR_DOWN ) \
-	{ \
-		( key ).events [ 1 ].value = 0 ; \
-		MCR_DEV_SEND ( mcr_keyDev, ( key ).events, \
-				sizeof ( ( key ).events ) ) ; \
-	}
+if ( ( key ).up_type != MCR_UP ) \
+{ \
+	( key ).events [ 1 ].value = 1 ; \
+	MCR_DEV_SEND ( mcr_genDev, ( key ).events, \
+			sizeof ( ( key ).events ) ) ; \
+} \
+if ( ( key ).up_type != MCR_DOWN ) \
+{ \
+	( key ).events [ 1 ].value = 0 ; \
+	MCR_DEV_SEND ( mcr_genDev, ( key ).events, \
+			sizeof ( ( key ).events ) ) ; \
+}
 
 # define MCR_KEY_SEND( key, success ) \
-	if ( ( key ).up_type != MCR_UP ) \
-	{ \
-		( key ).events [ 1 ].value = 1 ; \
-		if ( ! MCR_DEV_SEND ( mcr_keyDev, ( key ).events, \
-				sizeof ( ( key ).events ) ) ) \
-			success = 0 ; \
-	} \
-	if ( ( key ).up_type != MCR_DOWN ) \
-	{ \
-		( key ).events [ 1 ].value = 0 ; \
-		if ( ! MCR_DEV_SEND ( mcr_keyDev, ( key ).events, \
-				sizeof ( ( key ).events ) ) ) \
-			success = 0 ; \
-	}
+if ( ( key ).up_type != MCR_UP ) \
+{ \
+	( key ).events [ 1 ].value = 1 ; \
+	if ( ! MCR_DEV_SEND ( mcr_genDev, ( key ).events, \
+			sizeof ( ( key ).events ) ) ) \
+		success = 0 ; \
+} \
+if ( ( key ).up_type != MCR_DOWN ) \
+{ \
+	( key ).events [ 1 ].value = 0 ; \
+	if ( ! MCR_DEV_SEND ( mcr_genDev, ( key ).events, \
+			sizeof ( ( key ).events ) ) ) \
+		success = 0 ; \
+}
 
 // mcr_HIDEcho
 # undef MCR_ECHO_ECHO
@@ -102,26 +102,26 @@ MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
 # undef MCR_ECHO_SEND
 # undef MCR_ECHO_QUICKSEND
 # define MCR_ECHO_ECHO( echo ) \
-	( echo ).event
+( echo ).event
 # define MCR_ECHO_SET_ECHO( echo, code ) \
-	( echo ).event = ( code )
+( echo ).event = ( code )
 # define MCR_ECHO_SEND( echo, success ) \
-	if ( ( unsigned ) ( ( echo ).event ) < mcr_echoEvents.used ) \
-	{ \
-		MCR_KEY_SEND ( * ( mcr_Key * ) MCR_ARR_AT ( mcr_echoEvents, \
-				( unsigned ) ( echo ).event ), success ) \
-	} \
-	else \
-		dmsg ; \
+if ( ( unsigned ) ( ( echo ).event ) < mcr_echoEvents.used ) \
+{ \
+	MCR_KEY_SEND ( * ( mcr_Key * ) MCR_ARR_AT ( mcr_echoEvents, \
+			( unsigned ) ( echo ).event ), success ) \
+} \
+else \
+	dmsg ; \
 
 # define MCR_ECHO_QUICKSEND( echo ) \
-	if ( ( unsigned ) ( ( echo ).event ) < mcr_echoEvents.used ) \
-	{ \
-		MCR_KEY_QUICKSEND ( * ( mcr_Key * ) MCR_ARR_AT ( mcr_echoEvents, \
-				( unsigned ) ( echo ).event ) ) \
-	} \
-	else \
-		dmsg \
+if ( ( unsigned ) ( ( echo ).event ) < mcr_echoEvents.used ) \
+{ \
+	MCR_KEY_QUICKSEND ( * ( mcr_Key * ) MCR_ARR_AT ( mcr_echoEvents, \
+			( unsigned ) ( echo ).event ) ) \
+} \
+else \
+	dmsg \
 
 // mcr_Key
 # undef MCR_KEY_KEY
@@ -131,17 +131,17 @@ MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
 # undef MCR_KEY_UP_TYPE
 # undef MCR_KEY_SET_UP_TYPE
 # define MCR_KEY_KEY( key ) \
-	( key ).events [ 1 ].code
+( key ).events [ 1 ].code
 # define MCR_KEY_SET_KEY( key, keyCode ) \
-	( key ).events [ 1 ].code = ( keyCode )
+( key ).events [ 1 ].code = ( keyCode )
 # define MCR_KEY_SCAN( key ) \
-	( key ).events [ 0 ].value
+( key ).events [ 0 ].value
 # define MCR_KEY_SET_SCAN( key, scan ) \
-	( key ).events [ 0 ].value = ( scan )
+( key ).events [ 0 ].value = ( scan )
 # define MCR_KEY_UP_TYPE( key ) \
-	( key ).up_type
+( key ).up_type
 # define MCR_KEY_SET_UP_TYPE( key, keyUp ) \
-	( key ).up_type = ( keyUp )
+( key ).up_type = ( keyUp )
 
 // mcr_MoveCursor
 # undef MCR_MOVECURSOR_POSITION
@@ -153,78 +153,78 @@ MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
 # undef MCR_MOVECURSOR_SEND
 # undef MCR_MOVECURSOR_QUICKSEND
 # define MCR_MOVECURSOR_POSITION( mc, buffer ) \
-	( buffer ) [ MCR_X ] = ( mc ).relvent [ MCR_X ].value ; \
-	( buffer ) [ MCR_Y ] = ( mc ).relvent [ MCR_Y ].value ; \
-	( buffer ) [ MCR_Z ] = ( mc ).relvent [ MCR_Z ].value ;
+( buffer ) [ MCR_X ] = ( mc ).relvent [ MCR_X ].value ; \
+( buffer ) [ MCR_Y ] = ( mc ).relvent [ MCR_Y ].value ; \
+( buffer ) [ MCR_Z ] = ( mc ).relvent [ MCR_Z ].value ;
 # define MCR_MOVECURSOR_SET_POSITION( mc, buffer ) \
-	( mc ).relvent [ MCR_X ].value = \
-	( mc ).absvent [ MCR_X ].value = ( buffer ) [ MCR_X ] ; \
-	( mc ).relvent [ MCR_Y ].value = \
-	( mc ).absvent [ MCR_Y ].value = ( buffer ) [ MCR_Y ] ; \
-	( mc ).relvent [ MCR_Z ].value = \
-	( mc ).absvent [ MCR_Z ].value = ( buffer ) [ MCR_Z ] ;
+( mc ).relvent [ MCR_X ].value = \
+( mc ).absvent [ MCR_X ].value = ( buffer ) [ MCR_X ] ; \
+( mc ).relvent [ MCR_Y ].value = \
+( mc ).absvent [ MCR_Y ].value = ( buffer ) [ MCR_Y ] ; \
+( mc ).relvent [ MCR_Z ].value = \
+( mc ).absvent [ MCR_Z ].value = ( buffer ) [ MCR_Z ] ;
 # define MCR_MOVECURSOR_COORDINATE( mc, posType ) \
-	( mc ).relvent [ posType ].value
+( mc ).relvent [ posType ].value
 # define MCR_MOVECURSOR_SET_COORDINATE( mc, posType, val ) \
-	( mc ).relvent [ posType ].value = \
-	( mc ).absvent [ posType ].value = val ;
+( mc ).relvent [ posType ].value = \
+( mc ).absvent [ posType ].value = val ;
 # define MCR_MOVECURSOR_JUSTIFY( mc ) \
-	( mc ).justify
+( mc ).justify
 # define MCR_MOVECURSOR_SET_JUSTIFY( mc, enable ) \
-	( mc ).justify = ( enable )
+( mc ).justify = ( enable )
 # define MCR_MOVECURSOR_JUSTIFY_IMPL( mc ) \
-	if ( ( mc ).justify ) \
-	{ \
-		mcr_cursor [ MCR_X ] += ( mc ).relvent [ MCR_X ].value ; \
-		mcr_cursor [ MCR_Y ] += ( mc ).relvent [ MCR_Y ].value ; \
-		mcr_cursor [ MCR_Z ] += ( mc ).relvent [ MCR_Z ].value ; \
-		if ( mcr_cursor [ MCR_X ] > ( long long ) mcr_abs_resolution ) \
-			mcr_cursor [ MCR_X ] = mcr_abs_resolution ; \
-		else if ( mcr_cursor [ MCR_X ] < 0 ) \
-			mcr_cursor [ MCR_X ] = 0 ; \
-		if ( mcr_cursor [ MCR_Y ] > ( long long ) mcr_abs_resolution ) \
-			mcr_cursor [ MCR_Y ] = mcr_abs_resolution ; \
-		else if ( mcr_cursor [ MCR_Y ] < 0 ) \
-			mcr_cursor [ MCR_Y ] = 0 ; \
-		if ( mcr_cursor [ MCR_Z ] > ( long long ) mcr_abs_resolution ) \
-			mcr_cursor [ MCR_Z ] = mcr_abs_resolution ; \
-		else if ( mcr_cursor [ MCR_Z ] < 0 ) \
-			mcr_cursor [ MCR_Z ] = 0 ; \
-	}
+if ( ( mc ).justify ) \
+{ \
+	mcr_cursor [ MCR_X ] += ( mc ).relvent [ MCR_X ].value ; \
+	mcr_cursor [ MCR_Y ] += ( mc ).relvent [ MCR_Y ].value ; \
+	mcr_cursor [ MCR_Z ] += ( mc ).relvent [ MCR_Z ].value ; \
+	if ( mcr_cursor [ MCR_X ] > ( long long ) mcr_abs_resolution ) \
+		mcr_cursor [ MCR_X ] = mcr_abs_resolution ; \
+	else if ( mcr_cursor [ MCR_X ] < 0 ) \
+		mcr_cursor [ MCR_X ] = 0 ; \
+	if ( mcr_cursor [ MCR_Y ] > ( long long ) mcr_abs_resolution ) \
+		mcr_cursor [ MCR_Y ] = mcr_abs_resolution ; \
+	else if ( mcr_cursor [ MCR_Y ] < 0 ) \
+		mcr_cursor [ MCR_Y ] = 0 ; \
+	if ( mcr_cursor [ MCR_Z ] > ( long long ) mcr_abs_resolution ) \
+		mcr_cursor [ MCR_Z ] = mcr_abs_resolution ; \
+	else if ( mcr_cursor [ MCR_Z ] < 0 ) \
+		mcr_cursor [ MCR_Z ] = 0 ; \
+}
 
 # define MCR_MOVECURSOR_SEND( mc, success ) \
-	if ( ( mc ).justify ) \
-	{ \
-		if ( ! MCR_DEV_SEND ( mcr_relDev, ( mc ).relvent, \
-				sizeof ( ( mc ).relvent ) ) ) \
-			success = 0 ; \
-		MCR_MOVECURSOR_JUSTIFY_IMPL ( mc ) ; \
-	} \
-	else \
-	{ \
-		if ( ! MCR_DEV_SEND ( mcr_absDev, ( mc ).absvent, \
-				sizeof ( ( mc ).absvent ) ) ) \
-			success = 0 ; \
-		mcr_cursor [ MCR_X ] = ( mc ).absvent [ MCR_X ].value ; \
-		mcr_cursor [ MCR_Y ] = ( mc ).absvent [ MCR_Y ].value ; \
-		mcr_cursor [ MCR_Z ] = ( mc ).absvent [ MCR_Z ].value ; \
-	}
+if ( ( mc ).justify ) \
+{ \
+	if ( ! MCR_DEV_SEND ( mcr_genDev, ( mc ).relvent, \
+			sizeof ( ( mc ).relvent ) ) ) \
+		success = 0 ; \
+	MCR_MOVECURSOR_JUSTIFY_IMPL ( mc ) ; \
+} \
+else \
+{ \
+	if ( ! MCR_DEV_SEND ( mcr_absDev, ( mc ).absvent, \
+			sizeof ( ( mc ).absvent ) ) ) \
+		success = 0 ; \
+	mcr_cursor [ MCR_X ] = ( mc ).absvent [ MCR_X ].value ; \
+	mcr_cursor [ MCR_Y ] = ( mc ).absvent [ MCR_Y ].value ; \
+	mcr_cursor [ MCR_Z ] = ( mc ).absvent [ MCR_Z ].value ; \
+}
 
 # define MCR_MOVECURSOR_QUICKSEND( mc ) \
-	if ( ( mc ).justify ) \
-	{ \
-		MCR_DEV_SEND ( mcr_relDev, ( mc ).relvent, \
-				sizeof ( ( mc ).relvent ) ) ; \
-		MCR_MOVECURSOR_JUSTIFY_IMPL ( mc ) ; \
-	} \
-	else \
-	{ \
-		MCR_DEV_SEND ( mcr_absDev, ( mc ).absvent, \
-				sizeof ( ( mc ).absvent ) ) ; \
-		mcr_cursor [ MCR_X ] = ( mc ).absvent [ MCR_X ].value ; \
-		mcr_cursor [ MCR_Y ] = ( mc ).absvent [ MCR_Y ].value ; \
-		mcr_cursor [ MCR_Z ] = ( mc ).absvent [ MCR_Z ].value ; \
-	}
+if ( ( mc ).justify ) \
+{ \
+	MCR_DEV_SEND ( mcr_genDev, ( mc ).relvent, \
+			sizeof ( ( mc ).relvent ) ) ; \
+	MCR_MOVECURSOR_JUSTIFY_IMPL ( mc ) ; \
+} \
+else \
+{ \
+	MCR_DEV_SEND ( mcr_absDev, ( mc ).absvent, \
+			sizeof ( ( mc ).absvent ) ) ; \
+	mcr_cursor [ MCR_X ] = ( mc ).absvent [ MCR_X ].value ; \
+	mcr_cursor [ MCR_Y ] = ( mc ).absvent [ MCR_Y ].value ; \
+	mcr_cursor [ MCR_Z ] = ( mc ).absvent [ MCR_Z ].value ; \
+}
 
 // mcr_Scroll
 # undef MCR_SCROLL_DIMENSIONS
@@ -234,23 +234,23 @@ MCR_API int mcr_Echo_set_key ( int echoCode, mcr_Key * keyPt ) ;
 # undef MCR_SCROLL_SEND
 # undef MCR_SCROLL_QUICKSEND
 # define MCR_SCROLL_DIMENSIONS( scroll, buffer ) \
-	( buffer ) [ MCR_X ] = ( scroll ).events [ MCR_X ].value ; \
-	( buffer ) [ MCR_Y ] = ( scroll ).events [ MCR_Y ].value ; \
-	( buffer ) [ MCR_Z ] = ( scroll ).events [ MCR_Z ].value ;
+( buffer ) [ MCR_X ] = ( scroll ).events [ MCR_X ].value ; \
+( buffer ) [ MCR_Y ] = ( scroll ).events [ MCR_Y ].value ; \
+( buffer ) [ MCR_Z ] = ( scroll ).events [ MCR_Z ].value ;
 # define MCR_SCROLL_SET_DIMENSIONS( scroll, buffer ) \
-	( scroll ).events [ MCR_X ].value = ( buffer ) [ MCR_X ] ; \
-	( scroll ).events [ MCR_Y ].value = ( buffer ) [ MCR_Y ] ; \
-	( scroll ).events [ MCR_Z ].value = ( buffer ) [ MCR_Z ] ;
+( scroll ).events [ MCR_X ].value = ( buffer ) [ MCR_X ] ; \
+( scroll ).events [ MCR_Y ].value = ( buffer ) [ MCR_Y ] ; \
+( scroll ).events [ MCR_Z ].value = ( buffer ) [ MCR_Z ] ;
 # define MCR_SCROLL_COORDINATE( scroll, pos ) \
-	( scroll ).events [ pos ].value
+( scroll ).events [ pos ].value
 # define MCR_SCROLL_SET_COORDINATE( scroll, pos, val ) \
-	( scroll ).events [ pos ].value = val
+( scroll ).events [ pos ].value = val
 # define MCR_SCROLL_SEND( scroll, success ) \
-	if ( ! MCR_DEV_SEND ( mcr_relDev, ( scroll ).events, \
-			sizeof ( ( scroll ).events ) ) ) \
-		success = 0 ;
+if ( ! MCR_DEV_SEND ( mcr_genDev, ( scroll ).events, \
+		sizeof ( ( scroll ).events ) ) ) \
+	success = 0 ;
 # define MCR_SCROLL_QUICKSEND( scroll ) \
-	MCR_DEV_SEND ( mcr_relDev, ( scroll ).events, \
-			sizeof ( ( scroll ).events ) )
+MCR_DEV_SEND ( mcr_genDev, ( scroll ).events, \
+		sizeof ( ( scroll ).events ) )
 
 # endif // MCR_LNX_STANDARD_H

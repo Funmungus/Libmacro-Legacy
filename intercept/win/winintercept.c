@@ -69,7 +69,7 @@ int mcr_intercept_enabled ( )
 {
 	for ( int i = 0 ; i < GRABCOUNT ; i ++ )
 	{
-		if ( MCR_GRABBER_ENABLED ( _allGrabbers [ i ] ) )
+		if ( MCR_GRABBER_ENABLED ( * _allGrabbers [ i ] ) )
 			return 1 ;
 	}
 	return 0 ;
@@ -132,9 +132,9 @@ static LRESULT CALLBACK key_proc ( int nCode, WPARAM wParam,
 	if ( nCode == HC_ACTION )
 	{
 		KBDLLHOOKSTRUCT * p = ( KBDLLHOOKSTRUCT * ) lParam ;
-		MCR_KEY_SET_KEY ( & _key, p->vkCode ) ;
-		MCR_KEY_SET_SCAN ( & _key, p->scanCode ) ;
-		MCR_KEY_SET_UP_TYPE ( & _key, ( WPARAM_UPTYPE ( wParam ) ) ) ;
+		MCR_KEY_SET_KEY ( _key, p->vkCode ) ;
+		MCR_KEY_SET_SCAN ( _key, p->scanCode ) ;
+		MCR_KEY_SET_UP_TYPE ( _key, ( WPARAM_UPTYPE ( wParam ) ) ) ;
 		if ( disp ( _keySig ) )
 			return -1 ;
 	}
@@ -150,10 +150,10 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 		// Check for movecursor
 		if ( ( p->flags & MOUSEEVENTF_MOVE ) )
 		{
-			MCR_MOVECURSOR_SET_COORDINATE ( & _mc, MCR_X, p->pt.x ) ;
-			MCR_MOVECURSOR_SET_COORDINATE ( & _mc, MCR_Y, p->pt.y ) ;
+			MCR_MOVECURSOR_SET_COORDINATE ( _mc, MCR_X, p->pt.x ) ;
+			MCR_MOVECURSOR_SET_COORDINATE ( _mc, MCR_Y, p->pt.y ) ;
 			// 0 absolute, 1 justify/relative
-			MCR_MOVECURSOR_SET_JUSTIFY ( & _mc,
+			MCR_MOVECURSOR_SET_JUSTIFY ( _mc,
 					! ( p->flags & MOUSEEVENTF_ABSOLUTE ) ) ;
 			if ( disp ( _mcSig ) )
 				return -1 ;
@@ -162,7 +162,7 @@ static LRESULT CALLBACK move_proc ( int nCode, WPARAM wParam,
 		{
 			if ( ( p->flags & _echoFlags [ i ] ) )
 			{
-				MCR_ECHO_SET_ECHO ( & _echo, i ) ;
+				MCR_ECHO_SET_ECHO ( _echo, i ) ;
 				if ( disp ( _echoSig ) )
 					return -1 ;
 			}
@@ -182,12 +182,12 @@ static LRESULT CALLBACK scroll_proc ( int nCode, WPARAM wParam,
 		switch ( wParam )
 		{
 		case WM_MOUSEWHEEL :
-			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_X, 0 ) ;
-			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_Y, delta ) ;
+			MCR_SCROLL_SET_COORDINATE ( _scr, MCR_X, 0 ) ;
+			MCR_SCROLL_SET_COORDINATE ( _scr, MCR_Y, delta ) ;
 			break ;
 		case WM_MOUSEHWHEEL :
-			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_X, delta ) ;
-			MCR_SCROLL_SET_COORDINATE ( & _scr, MCR_Y, 0 ) ;
+			MCR_SCROLL_SET_COORDINATE ( _scr, MCR_X, delta ) ;
+			MCR_SCROLL_SET_COORDINATE ( _scr, MCR_Y, 0 ) ;
 			break ;
 		}
 

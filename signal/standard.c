@@ -216,7 +216,7 @@ int mcr_Key_send ( mcr_Signal * signalData )
 	dassert ( signalData ) ;
 	chkdata ( signalData ) ;
 	int success = 1 ;
-	MCR_KEY_SEND ( * ( mcr_Key * ) signalData->data.data, success ) ;
+	MCR_KEY_SEND ( * ( ( mcr_Key * ) signalData->data.data ), success ) ;
 	return success ;
 }
 

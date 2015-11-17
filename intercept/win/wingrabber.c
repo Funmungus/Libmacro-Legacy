@@ -78,7 +78,7 @@ void mcr_Grabber_set_enabled ( mcr_Grabber * grabPt, int enable )
 int mcr_Grabber_enabled ( mcr_Grabber * grabPt )
 {
 	dassert ( grabPt ) ;
-	return MCR_GRABBER_ENABLED ( grabPt ) ;
+	return MCR_GRABBER_ENABLED ( * grabPt ) ;
 }
 
 /*
@@ -106,7 +106,7 @@ LRESULT CALLBACK mouseProc ( int nCode, WPARAM wParam, LPARAM lParam )
 static void enable_impl ( mcr_Grabber * grabPt, int enable )
 {
 	dassert ( grabPt ) ;
-	int isEnabled = MCR_GRABBER_ENABLED ( grabPt ) ;
+	int isEnabled = MCR_GRABBER_ENABLED ( * grabPt ) ;
 	if ( enable )
 	{
 		/* Not already enabled, can enable, and does not have
@@ -134,7 +134,7 @@ static void enable_impl ( mcr_Grabber * grabPt, int enable )
 static void grab_hook ( mcr_Grabber * grabPt )
 {
 	dassert ( grabPt ) ;
-	if ( ! MCR_GRABBER_ENABLED ( grabPt ) )
+	if ( ! MCR_GRABBER_ENABLED ( * grabPt ) )
 	{
 		grabPt->hModule = GetModuleHandle ( NULL ) ;
 		// This can return NULL if invalid values.
@@ -146,7 +146,7 @@ static void grab_hook ( mcr_Grabber * grabPt )
 static void grab_unhook ( mcr_Grabber * grabPt )
 {
 	dassert ( grabPt ) ;
-	if ( MCR_GRABBER_ENABLED ( grabPt ) )
+	if ( MCR_GRABBER_ENABLED ( * grabPt ) )
 	{
 		UnhookWindowsHookEx ( grabPt->id ) ;
 		grabPt->id = NULL ;
@@ -162,7 +162,7 @@ static DWORD WINAPI thrd_receive_hooking ( LPVOID lpParam )
 //	mtx_unlock ( & me->lock ) ;
 
 	MSG message ;
-	while ( MCR_GRABBER_ENABLED ( me ) &&
+	while ( MCR_GRABBER_ENABLED ( * me ) &&
 			GetMessage ( & message, NULL, 0, 0 ) )
 	{
 		TranslateMessage ( & message ) ;

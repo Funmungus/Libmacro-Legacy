@@ -46,13 +46,10 @@ typedef struct mcr_Device
 } mcr_Device ;
 
 // Non-static to inline write function.
-//! \brief To send Key and HIDEcho signals
-extern mcr_Device mcr_keyDev ;
+//! \brief To send non-absolute events.
+extern mcr_Device mcr_genDev ;
 //! \brief To send MoveCursor unjustified
 extern mcr_Device mcr_absDev ;
-//! \brief To send MoveCursor justified
-extern mcr_Device mcr_relDev ;
-
 //! \brief Append similar input_event to the end of all sending of events.
 extern const struct input_event mcr_syncer ;
 
@@ -111,10 +108,10 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
  * \return int
  * */
 # define MCR_DEV_SEND( dev, eventObjects, size ) \
-	( ( dev ).fd == -1 || \
-			write ( ( dev ).fd, eventObjects, size ) < 0 ? \
-		0 : \
-	1 )
+( ( dev ).fd == -1 || \
+		write ( ( dev ).fd, eventObjects, size ) < 0 ? \
+	0 : \
+1 )
 
 /*! \brief \ref MCR_DEV_SEND for single input_event.
  *
@@ -123,11 +120,11 @@ MCR_API int mcr_Device_has_evbit ( mcr_Device * devPt ) ;
  * \return int
  * */
 # define MCR_DEV_SEND_ONE( dev, eventObject, success) \
-	MCR_DEV_SEND ( dev, eventObject, sizeof ( struct input_event ) )
+MCR_DEV_SEND ( dev, eventObject, sizeof ( struct input_event ) )
 
 //! \brief Send a syncing event to this device.
 # define MCR_DEV_SYNC( dev, success ) \
-	MCR_DEV_SEND_ONE ( dev, & mcr_syncer )
+MCR_DEV_SEND_ONE ( dev, & mcr_syncer )
 
 /*! \brief Initialize values for known mcr_Device objects,
  * and allocate resources.

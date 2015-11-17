@@ -106,8 +106,10 @@ MCR_API void mcr_signalextras_initialize ( ) ;
 MCR_API void mcr_signalextras_cleanup ( void ) ;
 
 //
-// Implement in native directory
+// Implemented in native directory
 //
-MCR_API int mcr_Command_execvpe ( mcr_Command * cmdPt ) ;
+//! \brief Same as execvpe, except a new process is created to not kill this one.
+MCR_API int mcr_execvpe ( const char * file, char * const * args,
+		char * const * env ) ;
 
 # endif // MCR_SIGNALEXTRAS_H

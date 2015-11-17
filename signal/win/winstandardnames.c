@@ -133,7 +133,7 @@ static void add_keynames ( )
 		"RWin", //0x5C
 		"Apps", //0x5D
 		"", //0x5E
-		"SLeep", //0x5F
+		"Sleep", //0x5F
 		"Numpad0", //0x60
 		"Numpad1", //0x61
 		"Numpad2", //0x62
@@ -230,7 +230,7 @@ static void add_keynames ( )
 		"-", //0xBD '-'
 		".", //0xBE '.'
 		"OEM_2 ( US '/?' ) ", //0xBF US '/?'
-		"OEM_3 ( US '`‾' ) ", //0xC0 US '`‾'
+		"OEM_3 ( US '`~' ) ", //0xC0 US '`~'
 		"", //0xC1
 		"", //0xC2
 		"", //0xC3

@@ -19,9 +19,9 @@
 # include "signal/lnx/device.h"
 # include "signal/isignal.h"
 
-MCR_API mcr_Device mcr_keyDev ;
+MCR_API mcr_Device mcr_genDev ;
 MCR_API mcr_Device mcr_absDev ;
-MCR_API mcr_Device mcr_relDev ;
+
 const MCR_API struct input_event mcr_syncer = {
 		.type = EV_SYN,
 		.code = SYN_REPORT } ;
@@ -54,9 +54,8 @@ static int device_write_non_evbit ( mcr_Device * devPt ) ;
 // Write UI_DEV_CREATE after writing all evbits to device.
 static int device_create ( mcr_Device * devPt ) ;
 
-static int keyDevice_init ( ) ;
+static int genDevice_init ( ) ;
 static int absDevice_init ( ) ;
-static int relDevice_init ( ) ;
 
 void mcr_Device_set_uinput_path ( const char * path )
 {
@@ -85,12 +84,12 @@ void mcr_Device_set_absolute_resolution ( __s32 resolution )
 	absDevice_init ( ) ;
 	if ( wasEnabled )
 		mcr_Device_enable ( & mcr_absDev, 1 ) ;
-	if ( mcr_relDev.enabled )
-		wasEnabled = 1 ;
-	mcr_Device_free ( & mcr_relDev ) ;
-	relDevice_init ( ) ;
-	if ( wasEnabled )
-		mcr_Device_enable ( & mcr_relDev, 1 ) ;
+//	if ( mcr_relDev.enabled )
+//		wasEnabled = 1 ;
+//	mcr_Device_free ( & mcr_relDev ) ;
+//	relDevice_init ( ) ;
+//	if ( wasEnabled )
+//		mcr_Device_enable ( & mcr_relDev, 1 ) ;
 }
 
 void mcr_Device_init ( mcr_Device * devPt )
@@ -167,11 +166,11 @@ int mcr_Device_enable ( mcr_Device * devPt, int enable )
 
 int mcr_Device_enable_all ( int enable )
 {
-	int success = mcr_Device_enable ( & mcr_keyDev, enable ) ;
+	int success = mcr_Device_enable ( & mcr_genDev, enable ) ;
 	if ( ! mcr_Device_enable ( & mcr_absDev, enable ) )
 		success = 0 ;
-	if ( ! mcr_Device_enable ( & mcr_relDev, enable ) )
-		return 0 ;
+//	if ( ! mcr_Device_enable ( & mcr_relDev, enable ) )
+//		return 0 ;
 	return success ;
 }
 
@@ -426,6 +425,7 @@ static int device_write_bits ( mcr_Device * devPt, int setBit,
 	if ( ! bits->used )
 		return 1 ;
 	int success = 1 ;
+	// TODO write evbit here and not check while enabling
 	MCR_ARR_FOR_EACH ( * bits, write_bit_redirect, devPt->fd,
 			setBit, & success ) ;
 	return success ;
@@ -486,41 +486,45 @@ static void rangeindex ( int * arr, int cnt )
 	{ arr [ i ] = i ; }
 }
 
-static int keyDevice_init ( )
+static int genDevice_init ( )
 {
 # define devset( arr, max, uibit ) \
-	if ( ! mcr_Device_set_bits ( & mcr_keyDev, uibit, arr, max ) ) \
+	if ( ! mcr_Device_set_bits ( & mcr_genDev, uibit, arr, max ) ) \
 	{ \
 		dmsg ; \
 		return 0 ; \
 	}
 
 	int i, j ;
-	mcr_Device_init ( & mcr_keyDev ) ;
+	mcr_Device_init ( & mcr_genDev ) ;
 
-	snprintf ( mcr_keyDev.device.name, UINPUT_MAX_NAME_SIZE,
-			"macrolibrary-key" ) ;
+	snprintf ( mcr_genDev.device.name, UINPUT_MAX_NAME_SIZE,
+			"macrolibrary-gen" ) ;
 
-	mcr_keyDev.device.id.bustype = BUS_VIRTUAL ;
-	mcr_keyDev.device.id.vendor = 1 ;
-	mcr_keyDev.device.id.product = 1 ;
-	mcr_keyDev.device.id.version = 1 ;
+	mcr_genDev.device.id.bustype = BUS_VIRTUAL ;
+	mcr_genDev.device.id.vendor = 1 ;
+	mcr_genDev.device.id.product = 1 ;
+	mcr_genDev.device.id.version = 1 ;
 
 	int evbits [ KEY_CNT ] ;
 	for ( i = j = 0 ; i < EV_CNT ; i ++ )
 	{
-		if ( i != EV_ABS && i != EV_REL )
+		if ( i != EV_ABS )
 			evbits [ j ++ ] = i ;
 	}
-	devset ( evbits, EV_CNT - 2, UI_SET_EVBIT )
+	devset ( evbits, EV_CNT - 1, UI_SET_EVBIT )
 	rangeindex ( evbits, KEY_CNT ) ;
 	// Do not write 0 value
-	devset ( evbits + 1, KEY_MAX, UI_SET_KEYBIT )
+	devset ( evbits, KEY_CNT, UI_SET_KEYBIT )
+	devset ( evbits, REL_CNT, UI_SET_RELBIT )
 	devset ( evbits, MSC_CNT, UI_SET_MSCBIT )
 	devset ( evbits, SW_CNT, UI_SET_SWBIT )
 	devset ( evbits, LED_CNT, UI_SET_LEDBIT )
 	devset ( evbits, SND_CNT, UI_SET_SNDBIT )
 	devset ( evbits, FF_CNT, UI_SET_FFBIT )
+	evbits [ 0 ] = INPUT_PROP_POINTER ;
+	evbits [ 1 ] = INPUT_PROP_DIRECT ;
+	devset ( evbits, 2, UI_SET_PROPBIT )
 
 	return 1 ;
 # undef devset
@@ -578,52 +582,6 @@ static int absDevice_init ( )
 	return 1 ;
 }
 
-static int relDevice_init ( )
-{
-	int i ;
-	mcr_Device_init ( & mcr_relDev ) ;
-
-	snprintf ( mcr_relDev.device.name, UINPUT_MAX_NAME_SIZE,
-			"macrolibrary-rel" ) ;
-
-	mcr_relDev.device.id.bustype = BUS_VIRTUAL ;
-	mcr_relDev.device.id.vendor = 1 ;
-	mcr_relDev.device.id.product = 1 ;
-	mcr_relDev.device.id.version = 1 ;
-
-	int evbits [ ] = { EV_SYN, EV_KEY, EV_REL } ;
-	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_EVBIT, evbits, 3 ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
-	evbits [ 0 ] = BTN_LEFT ;
-	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_KEYBIT, evbits, 1 ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
-	evbits [ 0 ] = INPUT_PROP_POINTER ;
-	if ( ! mcr_Device_set_bits ( & mcr_absDev, UI_SET_PROPBIT, evbits, 1 ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
-	int relbits [ REL_MISC + 1 ] ;
-	for ( i = 0 ; i <= REL_MISC ; i++ )
-	{
-		relbits [ i ] = i ;
-	}
-
-	if ( ! mcr_Device_set_bits ( & mcr_relDev, UI_SET_RELBIT, relbits,
-			REL_MISC + 1 ) )
-	{
-		dmsg ;
-		return 0 ;
-	}
-	return 1 ;
-}
-
 void mcr_Device_initialize ( )
 {
 	mtx_init ( & _deviceLock, mtx_plain ) ;
@@ -633,16 +591,14 @@ void mcr_Device_initialize ( )
 	mcr_String_from_string ( & _eventPath, MCR_STR ( MCR_EVENT_PATH ) ) ;
 	/* ioctl is unpredictable for valgrind. The first ioctl will
 	 * be uninitialized, and others should not cause errors. */
-	keyDevice_init ( ) ;
+	genDevice_init ( ) ;
 	absDevice_init ( ) ;
-	relDevice_init ( ) ;
 }
 
 void mcr_Device_cleanup ( )
 {
-	mcr_Device_free ( & mcr_keyDev ) ;
+	mcr_Device_free ( & mcr_genDev ) ;
 	mcr_Device_free ( & mcr_absDev ) ;
-	mcr_Device_free ( & mcr_relDev ) ;
 	mcr_Array_free ( & _uinputPath ) ;
 	mcr_Array_free ( & _eventPath ) ;
 	mtx_destroy ( & _deviceLock ) ;

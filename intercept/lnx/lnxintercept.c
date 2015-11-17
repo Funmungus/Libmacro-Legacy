@@ -46,8 +46,6 @@ static int thread_enable ( void * threadArgs ) ;
 static void grab_impl ( const char * grabPath ) ;
 static int intercept_start ( void * threadArgs ) ;
 static int read_grabber_exclusive ( mcr_Grabber * grabPt ) ;
-static void unknown_event ( int fd, struct input_event * events,
-		size_t size ) ;
 static unsigned int modify_eventbits ( char * keybit_values ) ;
 static unsigned int max_mod_val ( ) ;
 //static void clear_grabbers ( ) ;
@@ -83,7 +81,7 @@ void mcr_intercept_set_enabled ( int enable )
 
 unsigned int mcr_intercept_get_mods ( )
 {
-	int ret = ioctl ( mcr_keyDev.fd, EVIOCGKEY
+	int ret = ioctl ( mcr_genDev.fd, EVIOCGKEY
 			( MODBIT_SIZE ), _bitRetrieval ) ;
 	if ( ret < 0 )
 	{
@@ -397,18 +395,21 @@ static int read_grabber_exclusive ( mcr_Grabber * grabPt )
 	dassert ( grabPt ) ;
 	/* For abs and rel, keep memory of having such event type
 	 * at least once. */
-# define DISP_WRITEMEM( signal, writemem ) \
+# define DISP_WRITEMEM( signal ) \
+if ( MCR_SIGNAL_DISPATCH ( signal ) && writegen ) \
+	writegen = 0 ;
+# define DISP_WRITEMEM_ABS( signal ) \
 if ( MCR_SIGNAL_DISPATCH ( signal ) ) \
 { \
-	if ( writemem ) \
-		writemem = 0 ; \
+	if ( writeabs ) \
+		writeabs = 0 ; \
 } \
-else if ( ! writemem ) \
-	++ writemem ;
+else if ( ! writeabs ) \
+	++ writeabs ;
 	struct input_event events [ MCR_GRAB_SET_LENGTH ] ;
 	/* Always assume writing to the generic device.  Start writing
 	to abs and rel only if those events happen at least once. */
-	int rdb, rdn, i, pos, writegen = 1, writeabs = 0, writerel = 0 ;
+	int rdb, rdn, i, pos, writegen = 1, writeabs = 0 ;
 	int bAbs [ MCR_DIMENSION_CNT ] = { 0 } ;
 	int * echoFound = NULL ;
 	mcr_SpacePosition nopos = { 0 } ;
@@ -459,8 +460,7 @@ else if ( ! writemem ) \
 					// Consume a key that already has scan code.
 					if ( MCR_KEY_SCAN ( key ) )
 					{
-						if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
-							writegen = 0 ;
+						DISP_WRITEMEM ( keysig )
 						KEY_SETALL ( key, 0, events [ i ].value,
 								MCR_BOTH ) ;
 					}
@@ -488,8 +488,7 @@ else if ( ! writemem ) \
 							break ;
 						}
 					}
-					if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
-						writegen = 0 ;
+					DISP_WRITEMEM ( keysig )
 					KEY_SETALL ( key, events [ i ].code, 0,
 							events [ i ].value ? MCR_DOWN : MCR_UP ) ;
 				}
@@ -506,7 +505,7 @@ else if ( ! writemem ) \
 				if ( bAbs [ pos ] )
 				{
 					ABS_SETCURRENT ( abs, bAbs ) ;
-					DISP_WRITEMEM ( abssig, writeabs )
+					DISP_WRITEMEM_ABS ( abssig )
 					memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				}
 				MCR_MOVECURSOR_SET_COORDINATE ( abs, pos,
@@ -520,7 +519,7 @@ else if ( ! writemem ) \
 				{
 					if ( MCR_MOVECURSOR_COORDINATE ( rel, pos ) )
 					{
-						DISP_WRITEMEM ( relsig, writerel )
+						DISP_WRITEMEM ( relsig )
 						MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 					}
 					MCR_MOVECURSOR_SET_COORDINATE ( rel, pos,
@@ -531,7 +530,7 @@ else if ( ! writemem ) \
 				{
 					if ( MCR_SCROLL_COORDINATE ( scr, pos ) )
 					{
-						DISP_WRITEMEM ( scrsig, writerel )
+						DISP_WRITEMEM ( scrsig )
 						MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 					}
 					MCR_SCROLL_SET_COORDINATE ( scr, pos,
@@ -559,8 +558,7 @@ else if ( ! writemem ) \
 					}
 				}
 			}
-			if ( MCR_SIGNAL_DISPATCH ( keysig ) && writegen )
-				writegen = 0 ;
+			DISP_WRITEMEM ( keysig )
 cleankey :
 			KEY_SETALL ( key, 0, 0, MCR_BOTH ) ;
 		}
@@ -569,7 +567,7 @@ cleankey :
 			if ( bAbs [ i ] )
 			{
 				ABS_SETCURRENT ( abs, bAbs ) ;
-				DISP_WRITEMEM ( abssig, writeabs )
+				DISP_WRITEMEM_ABS ( abssig )
 				memset ( bAbs, 0, sizeof ( bAbs ) ) ;
 				break ;
 			}
@@ -578,7 +576,7 @@ cleankey :
 		{
 			if ( MCR_MOVECURSOR_COORDINATE ( rel, i ) )
 			{
-				DISP_WRITEMEM ( relsig, writerel )
+				DISP_WRITEMEM ( relsig )
 				MCR_MOVECURSOR_SET_POSITION ( rel, nopos ) ;
 				break ;
 			}
@@ -587,25 +585,24 @@ cleankey :
 		{
 			if ( MCR_SCROLL_COORDINATE ( scr, i ) )
 			{
-				DISP_WRITEMEM ( scrsig, writerel )
+				DISP_WRITEMEM ( scrsig )
 				MCR_SCROLL_SET_DIMENSIONS ( scr, nopos ) ;
 				break ;
 			}
 		}
 		if ( writegen )
 		{
-			if ( write ( mcr_keyDev.fd, events, rdb ) < 0 )
+			if ( write ( mcr_genDev.fd, events, rdb ) < 0 )
 			{ dmsg ; }
 		}
 		else
 			++ writegen ;
 		if ( writeabs && write ( mcr_absDev.fd, events, rdb ) < 0 )
 		{ dmsg ; }
-		if ( writerel && write ( mcr_relDev.fd, events, rdb ) < 0 )
-		{ dmsg ; }
 	}
 	return thrd_success ;
 # undef DISP_WRITEMEM
+# undef DISP_WRITEMEM_ABS
 }
 
 static unsigned int modify_eventbits ( char * keybitValues )
