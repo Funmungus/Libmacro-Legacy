@@ -1,4 +1,4 @@
-/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,224 +16,218 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "extras/script.h"
+#include "mcr/extras/extras.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-MCR_API const char * mcr_helpOptionName = "help" ;
-MCR_API mcr_option_fnc mcr_defaultOption = NULL ;
-MCR_API const char * mcr_descNotAvailable =
-		"Description is not available." ;
-MCR_API const char * mcr_parseError =
-		"A parsing error has occurred." ;
+MCR_API const char *mcr_helpOptionName = "help";
+MCR_API mcr_option_fnc mcr_defaultOption = NULL;
+MCR_API const char *mcr_descNotAvailable = "Description is not available.";
+MCR_API const char *mcr_parseError = "A parsing error has occurred.";
 
-static mcr_Map _optionMap ;
-static mcr_Map _optDescMap ;
+static struct mcr_Map _optionMap;
+static struct mcr_Map _optDescMap;
 
-static void script_copy_foreach ( mcr_SafeString * ssPt,
-		mcr_Script * scrPt ) ;
+static void script_copy_foreach(struct mcr_SafeString *ssPt,
+	mcr_Script * scrPt);
 
-void mcr_Script_init ( void * scriptPt )
+void mcr_Script_init(void *scriptPt)
 {
-	if ( ! scriptPt )
-	{
-		dmsg ;
-		return ;
+	if (!scriptPt) {
+		dmsg;
+		return;
 	}
-	mcr_Array_init ( & ( ( mcr_Script * ) scriptPt )->scripts,
-			sizeof ( mcr_SafeString ) ) ;
+	mcr_Array_init(&((mcr_Script *) scriptPt)->scripts);
+	mcr_Array_set_all(&((mcr_Script *) scriptPt)->scripts,
+		NULL, sizeof(struct mcr_SafeString));
 }
 
-void mcr_Script_free ( void * scriptPt )
+void mcr_Script_free(void *scriptPt)
 {
-	if ( ! scriptPt )
-	{
-		dmsg ;
-		return ;
+	if (!scriptPt) {
+		dmsg;
+		return;
 	}
-	MCR_ARR_FOR_EACH ( ( ( mcr_Script * ) scriptPt )->scripts,
-			MCR_EXP ( mcr_SafeString_free_foreach ), ) ;
-	mcr_Array_free ( & ( ( mcr_Script * ) scriptPt )->scripts ) ;
+	MCR_ARR_FOR_EACH(((mcr_Script *) scriptPt)->scripts,
+		MCR_EXP(mcr_SafeString_free_foreach),);
+	mcr_Array_free(&((mcr_Script *) scriptPt)->scripts);
 }
 
-void mcr_Script_copy ( void * dstPt, void * srcPt )
+void mcr_Script_copy(void *dstPt, void *srcPt)
 {
-	dassert ( dstPt ) ;
-	dassert ( srcPt ) ;
-	mcr_Script * dPt = dstPt, * sPt = srcPt ;
-	mcr_Script_free ( dPt ) ;
-	if ( ! mcr_Array_resize ( & dPt->scripts, sPt->scripts.used ) )
-	{
-		dmsg ;
-		return ;
+	dassert(dstPt);
+	dassert(srcPt);
+	mcr_Script *dPt = dstPt, *sPt = srcPt;
+	mcr_Script_free(dPt);
+	if (!mcr_Array_resize(&dPt->scripts, sPt->scripts.used)) {
+		dmsg;
+		return;
 	}
-	MCR_ARR_FOR_EACH ( sPt->scripts, script_copy_foreach, dPt ) ;
+	MCR_ARR_FOR_EACH(sPt->scripts, script_copy_foreach, dPt);
 }
 
-int mcr_Script_compare ( const void * lhs, const void * rhs )
+int mcr_Script_compare(const void *lhs, const void *rhs)
 {
-	dassert ( lhs ) ;
-	dassert ( rhs ) ;
-	const mcr_Script * lPt = lhs, * rPt = rhs ;
-	if ( lPt->scripts.used != rPt->scripts.used )
-		return lPt->scripts.used < rPt->scripts.used ? -1 : 1 ;
-	int ret = 0 ;
-	mcr_SafeString * lss = MCR_ARR_AT ( lPt->scripts, 0 ) ;
-	mcr_SafeString * rss = MCR_ARR_AT ( rPt->scripts, 0 ) ;
-	for ( size_t i = 0 ; ! ret && i < lPt->scripts.used ; i ++ )
-	{
-		ret = mcr_SafeString_compare ( lss + i, rss + i ) ;
-	}
-	return ret ;
-}
-
-int mcr_Script_send ( mcr_Signal * sigPt )
-{
-	dassert ( sigPt ) ;
-	mcr_Script * scrPt = sigPt->data.data ;
-	if ( ! scrPt )
-		return 0 ;
-	mcr_Array scripts ;
-	mcr_Array_init ( & scripts, sizeof ( mcr_Array ) ) ;
-	char ** args = malloc ( scrPt->scripts.used * sizeof ( void * ) ) ;
-	if ( args && mcr_Array_resize ( & scripts, scrPt->scripts.used ) )
-	{
-		scripts.used = scripts.size ;
-		mcr_Array * arrArr = ( mcr_Array * ) scripts.array ;
-		for ( size_t i = 0 ; i < scripts.used ; i ++ )
-		{
-			arrArr [ i ] = mcr_SafeString_get ( MCR_ARR_AT (
-					scrPt->scripts, i ) ) ;
-			args [ i ] = arrArr [ i ].array ;
+	if (rhs) {
+		if (lhs) {
+			if (lhs == rhs)
+				return 0;
+			const mcr_Script *lPt = lhs, *rPt = rhs;
+			if (lPt->scripts.used != rPt->scripts.used)
+				return lPt->scripts.used <
+					rPt->scripts.used ? -1 : 1;
+			int ret = 0;
+			struct mcr_SafeString *lss =
+				MCR_ARR_ELEMENT(lPt->scripts, 0);
+			struct mcr_SafeString *rss =
+				MCR_ARR_ELEMENT(rPt->scripts, 0);
+			for (size_t i = 0; !ret && i < lPt->scripts.used; i++) {
+				ret = mcr_SafeString_compare(lss + i, rss + i);
+			}
+			return ret;
 		}
-		mcr_Script_option ( ( int ) scripts.used, args ) ;
+		return -1;
 	}
-	else
-		dmsg ;
-	MCR_ARR_FOR_EACH ( scripts,
-			MCR_EXP ( mcr_Array_free_foreach ), ) ;
-	mcr_Array_free ( & scripts ) ;
-	free ( args ) ;
-	return 1 ;
+	return ! !lhs;
 }
 
-void mcr_Script_option ( int argc, char ** argv )
+int mcr_Script_send(struct mcr_Signal *sigPt)
 {
-	int i = 0, next = 0 ;
-	while ( i < argc )
-	{
-		next = mcr_Script_do_option ( argc, argv, i ) ;
-		if ( next <= i )
-		{
-			dmsg ;
-			mcr_Script_parse_error ( ) ;
-			++ i ;
+	dassert(sigPt);
+	mcr_Script *scrPt = sigPt->inst.data.data;
+	if (!scrPt)
+		return 0;
+	struct mcr_Array scripts;
+	mcr_Array_init(&scripts);
+	mcr_Array_set_all(&scripts, NULL, sizeof(struct mcr_Array));
+	char **args = malloc(scrPt->scripts.used * sizeof(void *));
+	if (args && mcr_Array_resize(&scripts, scrPt->scripts.used)) {
+		scripts.used = scripts.size;
+		struct mcr_Array *arrArr = (struct mcr_Array *)scripts.array;
+		for (size_t i = 0; i < scripts.used; i++) {
+			mcr_SafeString_text(MCR_ARR_ELEMENT(scrPt->scripts, i),
+				arrArr + i);
+			args[i] = arrArr[i].array;
 		}
-		else
-			i = next ;
+		mcr_Script_option((int)scripts.used, args);
+	} else
+		dmsg;
+	MCR_ARR_FOR_EACH(scripts, MCR_EXP(mcr_Array_free_foreach),);
+	mcr_Array_free(&scripts);
+	free(args);
+	return 1;
+}
+
+void mcr_Script_option(int argc, char **argv)
+{
+	int i = 0, next = 0;
+	while (i < argc) {
+		next = mcr_Script_do_option(argc, argv, i);
+		if (next <= i) {
+			dmsg;
+			mcr_Script_parse_error();
+			++i;
+		} else
+			i = next;
 	}
 }
 
-int mcr_Script_do_option ( int argc, char ** argv, int index )
+int mcr_Script_do_option(int argc, char **argv, int index)
 {
-	dassert ( argv ) ;
-	dassert ( index < argc ) ;
-	int next = index ;
-	mcr_option_fnc * found = MCR_STRINGMAP_GET_VALUE ( _optionMap,
-			argv [ index ] ) ;
-	if ( found )
-	{
-		dassert ( * found ) ;
-		next = ( * found ) ( argc, argv, index ) ;
+	dassert(argv);
+	dassert(index < argc);
+	int next = index;
+	mcr_option_fnc *found =
+		(mcr_option_fnc *) MCR_STRINGMAP_ELEMENT(_optionMap,
+		argv[index]);
+	if (found) {
+		found = MCR_STRINGMAP_VALUEOF(_optionMap, found);
+		dassert(*found);
+		next = (*found) (argc, argv, index);
 	}
-	if ( mcr_defaultOption && next == index )
-	{
-		next = mcr_defaultOption ( argc, argv, index ) ;
+	if (mcr_defaultOption && next == index) {
+		next = mcr_defaultOption(argc, argv, index);
 	}
-	return next ;
+	return next;
 }
 
-void mcr_Script_set_option ( const char * key, mcr_option_fnc optFnc )
+void mcr_Script_set_option(const char *key, mcr_option_fnc optFnc)
 {
-	dassert ( key ) ;
-	if ( ! optFnc )
-	{
-		mcr_StringMap_unmap ( & _optionMap, key ) ;
-	}
-	else if ( ! mcr_StringMap_map ( & _optionMap, key, & optFnc ) )
-		dmsg ;
+	dassert(key);
+	if (!optFnc) {
+		mcr_StringMap_unmap(&_optionMap, key);
+	} else if (!mcr_StringMap_map(&_optionMap, key, &optFnc))
+		dmsg;
 }
 
-int mcr_Script_short_help ( int argc, char ** argv, int index )
+int mcr_Script_short_help(int argc, char **argv, int index)
 {
-	dassert ( argv ) ;
-	dassert ( index < argc ) ;
+	dassert(argv);
+	dassert(index < argc);
 
-	if ( index + 1 < argc )
-	{
-		char * helpArgs [ 2 ] =
-				{ argv [ index + 1 ], ( char * ) mcr_helpOptionName } ;
-		int handled = mcr_Script_do_option ( 2, helpArgs, 0 ) ;
+	if (index + 1 < argc) {
+		char *helpArgs[2] =
+			{ argv[index + 1], (char *)mcr_helpOptionName };
+		int handled = mcr_Script_do_option(2, helpArgs, 0);
 		/* If both the option and "help" are not handled, assume
 		 * help was not available for given option. */
-		if ( handled > 1 )
-			return index + 2 ;
-		else
-		{
-			fprintf ( mcr_out, "%s\n", mcr_descNotAvailable ) ;
-			return index + 1 ;
+		if (handled > 1)
+			return index + 2;
+		else {
+			fprintf(stdout, "%s\n", mcr_descNotAvailable);
+			return index + 1;
 		}
 	}
-	for ( size_t i = 0 ; i < _optionMap.set.used ; i ++ )
-	{
-		mcr_Array * optName, * optHelp ;
-		optName = MCR_ARR_AT ( _optionMap.set, i ) ;
-		dassert ( optName ) ;
-		optHelp = MCR_STRINGMAP_GET_VALUE ( _optDescMap,
-				optName->array ) ;
-		fprintf ( mcr_out, "%-32s - %-s\n", optName->array,
-				optHelp ? optHelp->array : mcr_descNotAvailable ) ;
+	for (size_t i = 0; i < _optionMap.set.used; i++) {
+		struct mcr_Array *optName, *optHelp;
+		optName = MCR_ARR_ELEMENT(_optionMap.set, i);
+		dassert(optName);
+		optHelp = (struct mcr_Array *)MCR_STRINGMAP_ELEMENT(_optDescMap,
+			optName->array);
+		optHelp = MCR_STRINGMAP_VALUEOF(_optDescMap, optHelp);
+		fprintf(stdout, "%-32s - %-s\n", optName->array,
+			optHelp ? optHelp->array : mcr_descNotAvailable);
 	}
 	/* Handled help without argument specified. */
-	return index + 1 ;
+	return index + 1;
 }
 
-void mcr_Script_parse_error ( )
+void mcr_Script_parse_error()
 {
-	time_t t ;
-	struct tm * tInfo ;
-	time ( & t ) ;
-	tInfo = localtime ( & t ) ;
-	dassert ( tInfo ) ;
-	fprintf ( mcr_err, "%s:%s", asctime ( tInfo ),
-			mcr_parseError ) ;
+	time_t t;
+	struct tm *tInfo;
+	time(&t);
+	tInfo = localtime(&t);
+	dassert(tInfo);
+	fprintf(stdout, "%s:%s", asctime(tInfo), mcr_parseError);
 }
 
-void mcr_script_initialize ( )
+void mcr_script_initialize()
 {
-	mcr_StringMap_init ( & _optionMap, sizeof ( mcr_option_fnc ) ) ;
-	mcr_StringMap_init ( & _optDescMap, sizeof ( mcr_Array ) ) ;
-	mcr_Script_set_option ( mcr_helpOptionName, mcr_Script_short_help ) ;
-	// TODO script isignal
+	mcr_StringMap_init(&_optionMap);
+	mcr_StringMap_set_all(&_optionMap, sizeof(mcr_option_fnc), NULL);
+	mcr_StringMap_init(&_optDescMap);
+	mcr_StringMap_set_all(&_optDescMap, sizeof(struct mcr_Array), NULL);
+	mcr_Script_set_option(mcr_helpOptionName, mcr_Script_short_help);
+	/* TODO script isignal */
 }
 
-void mcr_script_cleanup ( )
+void mcr_script_cleanup()
 {
-	MCR_MAP_FOR_EACH ( _optionMap,
-			MCR_EXP ( mcr_Array_free_foreach ), ) ;
-	MCR_MAP_FOR_EACH_VALUE ( _optDescMap,
-			MCR_EXP ( mcr_Array_free_foreach ), ) ;
-	MCR_MAP_FOR_EACH ( _optDescMap,
-			MCR_EXP ( mcr_Array_free_foreach ), ) ;
-	mcr_Map_free ( & _optionMap ) ;
-	mcr_Map_free ( & _optDescMap ) ;
+	MCR_MAP_FOR_EACH(_optionMap, MCR_EXP(mcr_Array_free_foreach),);
+	MCR_MAP_FOR_EACH_VALUE(_optDescMap, MCR_EXP(mcr_Array_free_foreach),);
+	MCR_MAP_FOR_EACH(_optDescMap, MCR_EXP(mcr_Array_free_foreach),);
+	mcr_Map_free(&_optionMap);
+	mcr_Map_free(&_optDescMap);
 }
 
-static void script_copy_foreach ( mcr_SafeString * ssPt,
-		mcr_Script * scrPt )
+static void script_copy_foreach(struct mcr_SafeString *ssPt, mcr_Script * scrPt)
 {
-	mcr_SafeString ss ;
-	mcr_SafeString_init ( & ss ) ;
-	mcr_SafeString_copy ( & ss, ssPt ) ;
+	struct mcr_SafeString ss;
+	mcr_SafeString_init(&ss);
+	mcr_SafeString_copy(&ss, ssPt);
 
-	if ( ! mcr_Array_push ( & scrPt->scripts, & ss ) )
-		mcr_SafeString_free ( & ss ) ;
+	if (!mcr_Array_append(&scrPt->scripts, &ss, 1, 0))
+		mcr_SafeString_free(&ss);
 }

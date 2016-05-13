@@ -1,4 +1,4 @@
-/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,22 +16,4 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "extras/extras.h"
-
-void mcr_extras_initialize ( )
-{
-	mcr_safestring_initialize ( ) ;
-	mcr_signalextras_initialize ( ) ;
-//	mcr_script_initialize ( ) ;
-//	mcr_macroset_initialize ( ) ;
-	mcr_extras_native_initialize ( ) ;
-}
-
-void mcr_extras_cleanup ( void )
-{
-	mcr_extras_native_cleanup ( ) ;
-//	mcr_macroset_cleanup ( ) ;
-//	mcr_script_cleanup ( ) ;
-	mcr_signalextras_cleanup ( ) ;
-	mcr_safestring_cleanup ( ) ;
-}
+#include "mcr/extras/extras.h"

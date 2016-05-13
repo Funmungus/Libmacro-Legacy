@@ -1,4 +1,4 @@
-/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,49 +16,41 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "util/util.h"
+#include "mcr/util/util.h"
+#include <errno.h>
 
-MCR_API FILE * mcr_out ;
-MCR_API FILE * mcr_in ;
-MCR_API FILE * mcr_err ;
-
-void mcr_set_stdio ( )
+unsigned int mcr_bit_index(unsigned int bitval)
 {
-	mcr_out = stdout ;
-	mcr_in = stdin ;
-	mcr_err = stderr ;
-}
-
-void mcr_reg_cleanup ( void ( * cleaner ) ( void ) )
-{
-	if ( atexit ( cleaner ) )
-	{
-		dmsg ;
-		exit ( 2 ) ;
+	if (bitval == 0)
+		return -1;	/* No on bit gives no index information.
+				   If not 0, there will definitely be some bit value contained */
+	unsigned int index = 0;
+	while ((bitval & 0x01) == 0) {
+		++index;
+		bitval >>= 1;
 	}
+	return index;
 }
 
-unsigned int mcr_bit_index ( unsigned int bitval )
+const char *mcr_timestamp()
 {
-	if ( bitval == 0 ) return -1 ; /* No on bit gives no index information.
-			If not 0, there will definitely be some bit value contained */
-	unsigned int index = 0 ;
-	while ( ( bitval & 0x01 ) == 0 )
-	{
-		++ index ;
-		bitval >>= 1 ;
+	time_t curtime;
+	time(&curtime);
+	return ctime(&curtime);
+}
+
+int mcr_thrd_errno(int thrdError)
+{
+	switch (thrdError) {
+	case thrd_success:
+		return 0;
+	case thrd_nomem:
+		return ENOMEM;
+	case thrd_busy:
+		return EBUSY;
+	case thrd_timeout:
+	case thrd_error:
+		break;
 	}
-	return index ;
-}
-
-unsigned int mcr_index_bit ( const unsigned int index )
-{
-	return 1 << index ;
-}
-
-const char * mcr_timestring ( )
-{
-	time_t curtime ;
-	time ( & curtime ) ;
-	return ctime ( & curtime ) ;
+	return EINTR;
 }

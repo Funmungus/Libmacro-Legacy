@@ -1,0 +1,47 @@
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+  Copyright (C) 2013  Jonathan D. Pelletier
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#ifndef MCR_LNX_STANDARD_DEF_H
+#define MCR_LNX_STANDARD_DEF_H
+
+#include "mcr/util/lnx/nutil.h"
+#include "mcr/standard/def.h"
+#include <linux/input.h>	/* input_event */
+#include <linux/uinput.h>	/* uinput_user_dev */
+
+/*! \def MCR_UINPUT_PATH
+ * Default value for uinput node when library is built.
+ */
+#ifndef MCR_UINPUT_PATH
+#define MCR_UINPUT_PATH /dev/uinput
+#endif
+/*! \def MCR_EVENT_PATH
+ * Default value for device input event path when library is built.
+ */
+#ifndef MCR_EVENT_PATH
+#define MCR_EVENT_PATH /dev/input
+#endif
+/*! \def MCR_ABS_RESOLUTION
+ * Default value for \ref mcr_AbsDev resolution when library is built.
+ * Default is 4095, or 0x0FFF
+ */
+#ifndef MCR_ABS_RESOLUTION
+#define MCR_ABS_RESOLUTION 0x0FFF
+#endif
+
+#endif

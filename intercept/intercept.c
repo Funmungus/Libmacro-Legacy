@@ -1,4 +1,4 @@
-/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,19 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "intercept/intercept.h"
+#include "mcr/intercept/intercept.h"
+#include "mcr/intercept/private.h"
 
-void mcr_reset_mods ( )
+void mcr_intercept_reset_modifiers(struct mcr_context *ctx)
 {
-	mcr_internalMods = mcr_intercept_get_mods ( ) ;
-}
-
-void mcr_intercept_initialize ( )
-{
-	mcr_intercept_native_initialize ( ) ;
-}
-
-void mcr_intercept_cleanup ( void )
-{
-	mcr_intercept_native_cleanup ( ) ;
+	mcr_set_modifiers(ctx, mcr_intercept_modifiers(ctx));
 }

@@ -1,4 +1,4 @@
-/* Macrolibrary - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library.
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,209 +16,105 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-# include "util/interface.h"
+#include "mcr/util/util.h"
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void * mcr_mkdata_data ( mcr_Interface * iPt )
+void mcr_iinit(void *ifaceDataPt)
 {
-	dassert ( iPt ) ;
-	mcr_Data d = { 0 } ;
-	MCR_IMKDATA ( * iPt, d ) ;
-	return d.data ;
-}
-
-mcr_Data mcr_mkdata ( mcr_Interface * iPt )
-{
-	dassert ( iPt ) ;
-	mcr_Data d = { 0 } ;
-	MCR_IMKDATA ( * iPt, d ) ;
-	return d ;
-}
-
-void mcr_icpy ( mcr_Interface * iPt, mcr_Data * dstPt,
-		mcr_Data * srcPt )
-{
-	dassert ( iPt ) ;
-	dassert ( dstPt ) ;
-	dassert ( srcPt ) ;
-	MCR_ICPY ( * iPt, * dstPt, * srcPt ) ;
-}
-
-int mcr_icmp ( mcr_Interface * iPt, mcr_Data * lhs,
-		mcr_Data * rhs )
-{
-	dassert ( iPt ) ;
-	dassert ( lhs ) ;
-	dassert ( rhs ) ;
-	return MCR_ICMP ( * iPt, * lhs, * rhs ) ;
-}
-
-void mcr_ifree ( mcr_Interface * iPt, mcr_Data * dataPt )
-{
-	dassert ( iPt ) ;
-	dassert ( dataPt ) ;
-	MCR_IFREE ( * iPt, * dataPt ) ;
-}
-
-void mcr_iinit ( mcr_Interface * newType,
-		size_t dataSize )
-{
-	if ( ! newType )
-	{
-		dmsg ;
-		return ;
+	if (ifaceDataPt) {
+		memset(ifaceDataPt, 0, sizeof(struct mcr_Interface));
+		((struct mcr_Interface *)ifaceDataPt)->id = ~0;
 	}
-	memset ( newType, 0, sizeof ( mcr_Interface ) ) ;
-	newType->id = -1 ;
-	newType->data_size = dataSize ;
 }
 
-void mcr_iinit_with ( mcr_Interface * newType,
-		mcr_compare_fnc compare,
-		void ( * copy ) ( void *, void * ),
-		size_t dataSize, void ( * init ) ( void * ),
-		void ( * free ) ( void * ) )
+void mcr_iset_all(void *ifaceDataPt,
+	mcr_compare_fnc compare,
+	mcr_copy_fnc copy,
+	size_t dataSize, mcr_data_fnc init, mcr_data_fnc free)
 {
-	if ( ! newType )
-	{
-		dmsg ;
-		return ;
+	struct mcr_Interface *iPt = ifaceDataPt;
+	dassert(ifaceDataPt);
+	iPt->compare = compare;
+	iPt->copy = copy;
+	iPt->data_size = dataSize;
+	iPt->init = init;
+	iPt->free = free;
+}
+
+struct mcr_Data mcr_imkdata(const void *ifaceDataPt)
+{
+	const struct mcr_Interface *iPt = ifaceDataPt;
+	struct mcr_Data data = { 0 };
+	if (iPt) {
+		MCR_IMKDATA(*iPt, data);
 	}
-	memset ( newType, 0, sizeof ( mcr_Interface ) ) ;
-	MCR_IINIT ( * newType, compare, copy, dataSize, init, free ) ;
+	return data;
 }
 
-
-void mcr_iinit_maps ( mcr_IRegistry * iRegPt )
+struct mcr_Data mcr_iref_mkdata(const void *const *ifaceDataPtPt)
 {
-	dassert ( iRegPt ) ;
-	mcr_Array_init ( & iRegPt->set, sizeof ( mcr_Interface * ) ) ;
-	mcr_Array_init ( & iRegPt->names, sizeof ( mcr_Array ) ) ;
-	mcr_StringMap_init ( & iRegPt->name_map, sizeof ( mcr_Interface * ) ) ;
+	return ifaceDataPtPt ? mcr_imkdata(*ifaceDataPtPt) : mcr_imkdata(NULL);
 }
 
-size_t mcr_iregister ( mcr_IRegistry * iRegPt, mcr_Interface * newType )
+void mcr_ifree(const void *ifaceDataPt, struct mcr_Data *dataPt)
 {
-	dassert ( iRegPt ) ;
-	dassert ( newType ) ;
-	size_t id = iRegPt->set.used ;
-	if ( ! mcr_Array_push ( & iRegPt->set, & newType ) )
-	{
-		dmsg ;
-		return -1 ;
+	const struct mcr_Interface *iPt = ifaceDataPt;
+	if (iPt && dataPt) {
+		MCR_IFREE(*iPt, *dataPt);
+		dataPt->data = NULL;
 	}
-	// If successful, we can set the id.
-	newType->id = id ;
-	return id ;
 }
 
-mcr_Interface * mcr_iget ( mcr_IRegistry * iRegPt, size_t typeId )
+int mcr_icpy(const void *ifaceDataPt, struct mcr_Data *dstPt,
+	struct mcr_Data *srcPt)
 {
-	if ( typeId < iRegPt->set.used )
-	{
-		mcr_Interface ** ifacePtPt = MCR_ARR_AT ( iRegPt->set, typeId ) ;
-		return ifacePtPt ? * ifacePtPt : NULL ;
-	}
-	return NULL ;
-}
-
-mcr_Interface * mcr_ifrom_name (
-		mcr_IRegistry * iRegPt, const char * typeName )
-{
-	if (typeName)
-	{
-		mcr_Interface ** retPt = MCR_MAP_GET_VALUE (
-				( iRegPt )->name_map, & ( typeName ) ) ;
-		return retPt ? * retPt : NULL ;
-	}
-	return NULL ;
-}
-size_t mcr_iget_id ( mcr_IRegistry * iRegPt, const char * typeName )
-{
-	mcr_Interface * iPt = mcr_ifrom_name ( iRegPt, typeName ) ;
-	return iPt ? iPt->id : ( size_t ) -1 ;
-}
-
-int mcr_iset_name ( mcr_IRegistry * iRegPt,
-		mcr_Interface * iPt, const char * name )
-{
-	dassert ( iRegPt ) ;
-	dassert ( iPt ) ;
-	dassert ( iPt->id != ( size_t ) -1 ) ;
-	dassert ( name ) ;
-	if ( iPt->id >= iRegPt->names.used )
-	{
-		mcr_Array setName = { 0 }, initial = { 0 } ;
-		setName.element_size = initial.element_size = sizeof ( char ) ;
-		if ( ! mcr_String_from_string ( & setName, name ) ||
-				! mcr_Array_insert_filled ( & iRegPt->names, iPt->id,
-				& setName, & initial ) )
-		{
-			dmsg ;
-			mcr_Array_free ( & setName ) ;
-			return 0 ;
+	const struct mcr_Interface *iPt = ifaceDataPt;
+	dassert(iPt);
+	dassert(dstPt);
+	if (srcPt->data == dstPt->data)
+		return 0;
+	if (srcPt && srcPt->data) {
+		if (!dstPt->data) {
+			MCR_IMKDATA(*iPt, *dstPt);
+			if (!dstPt->data) {
+				mset_error(ENOMEM);
+				return -ENOMEM;
+			}
 		}
+		if (iPt->copy)
+			return iPt->copy(dstPt->data, srcPt->data);
+		else
+			memcpy(dstPt->data, srcPt->data, iPt->data_size);
+	} else {
+		MCR_IFREE(*iPt, *dstPt);
+		dstPt->data = NULL;
 	}
-	else
-	{
-		mcr_Array * namePt = MCR_ARR_AT ( iRegPt->names, iPt->id ) ;
-		if ( ! mcr_String_from_string ( namePt, name ) )
-		{
-			dmsg ;
-			return 0 ;
+	return 0;
+}
+
+int mcr_icmp(const void *ifaceDataPt, const struct mcr_Data *lhs,
+	const struct mcr_Data *rhs)
+{
+	const struct mcr_Interface *iPt = ifaceDataPt;
+	dassert(iPt);
+	if (rhs) {
+		if (lhs) {
+			return MCR_ICMP(*iPt, *lhs, *rhs);
 		}
+		return -1;
 	}
-	return mcr_iadd_name ( iRegPt, iPt, name ) ;
+	return ! !lhs;
 }
 
-int mcr_iadd_name ( mcr_IRegistry * iRegPt, mcr_Interface * iPt,
-		const char * name )
+void mcr_iset_data(const void *ifaceDataPt, struct mcr_Data *dataPt,
+	void *data, mcr_data_fnc deallocate)
 {
-	dassert ( iRegPt ) ;
-	dassert ( iPt ) ;
-	dassert ( name ) ;
-	if ( ! mcr_StringMap_map ( & iRegPt->name_map, name, & iPt ) )
-	{
-		dmsg ;
-		return 0 ;
+	const struct mcr_Interface *iPt = ifaceDataPt;
+	dassert(iPt);
+	if (dataPt) {
+		MCR_ISET_DATA(*iPt, *dataPt, data, deallocate);
 	}
-	return 1 ;
-}
-
-int mcr_irename ( mcr_IRegistry * iRegPt, const char * oldName,
-		const char * newName )
-{
-	dassert ( iRegPt ) ;
-	mcr_Interface * iPt = mcr_ifrom_name ( iRegPt, oldName ) ;
-	if ( iPt )
-	{
-		// Remove old name, set new.
-		mcr_StringMap_unmap ( & iRegPt->name_map, oldName ) ;
-		return mcr_iset_name ( iRegPt, iPt, newName ) ;
-	}
-	dmsg ;
-	return 0 ;
-}
-
-void mcr_iget_all ( mcr_IRegistry * iRegPt, mcr_Interface ** buffer,
-		size_t bufferLength )
-{
-	dassert ( iRegPt ) ;
-	dassert ( buffer ) ;
-	mcr_Interface ** arr = ( mcr_Interface ** ) iRegPt->set.array ;
-	for ( size_t i = 0 ; i < bufferLength && i < iRegPt->set.used ; i ++ )
-	{
-		buffer [ i ] = arr [ i ] ;
-	}
-}
-
-void mcr_iclear ( mcr_IRegistry * iRegPt )
-{
-	dassert ( iRegPt ) ;
-	mcr_Array_free ( & iRegPt->set ) ;
-	MCR_ARR_FOR_EACH ( iRegPt->names,
-			MCR_EXP ( mcr_Array_free_foreach ),) ;
-	mcr_Array_free ( & iRegPt->names ) ;
-	MCR_MAP_FOR_EACH ( iRegPt->name_map,
-			MCR_EXP (  mcr_Array_free_foreach ),) ;
-	mcr_Map_free ( & iRegPt->name_map ) ;
 }

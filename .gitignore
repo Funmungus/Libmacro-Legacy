@@ -1,6 +1,7 @@
 # To be ignored by git
 
 *~
+.swp
 bin
 out
 obj
