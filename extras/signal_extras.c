@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -27,10 +27,7 @@
 /* All data here will be dynamically allocated. */
 static int compare_args(const struct mcr_Command *lhs,
 	const struct mcr_Command *rhs);
-static int compare_env(const struct mcr_Command *lhs,
-	const struct mcr_Command *rhs);
 static int copy_args(struct mcr_Command *dstPt, struct mcr_Command *srcPt);
-static int copy_env(struct mcr_Command *dstPt, struct mcr_Command *srcPt);
 
 static int set_signal_delays(struct mcr_Array *sigArrPt,
 	struct mcr_ISignal *inoop, struct timespec delay);
@@ -47,33 +44,34 @@ struct mcr_ISignal *mcr_iStringKey(struct mcr_context *ctx)
 	return &ctx->extras.istring_key.isignal;
 }
 
-void mcr_Command_init(void *cmdDataPt)
+int mcr_Command_init(void *cmdPt)
 {
-	struct mcr_Command *cmdPt = cmdDataPt;
-	if (cmdPt) {
-		memset(cmdDataPt, 0, sizeof(struct mcr_Command));
-		mcr_SafeString_init(&cmdPt->file);
-		mcr_Array_init(&cmdPt->argv);
-		mcr_Array_set_all(&cmdPt->argv, NULL,
-			sizeof(struct mcr_SafeString));
-		mcr_Array_init(&cmdPt->env);
-		mcr_Array_set_all(&cmdPt->env, NULL,
-			sizeof(struct mcr_SafeString));
+	struct mcr_Command *localPt = cmdPt;
+	if (localPt) {
+		memset(cmdPt, 0, sizeof(struct mcr_Command));
+		mcr_SafeString_init(&localPt->file);
+		localPt->argv =
+			mcr_Array_new(NULL, sizeof(struct mcr_SafeString));
 	}
+	return 0;
 }
 
-void mcr_Command_free(void *cmdDataPt)
+struct mcr_Command mcr_Command_new()
 {
-	struct mcr_Command *cmdPt = cmdDataPt;
-	if (cmdPt) {
-		mcr_SafeString_free(&cmdPt->file);
-		MCR_ARR_FOR_EACH(cmdPt->argv,
-			MCR_EXP(mcr_SafeString_free_foreach),);
-		MCR_ARR_FOR_EACH(cmdPt->env,
-			MCR_EXP(mcr_SafeString_free_foreach),);
-		mcr_Array_free(&cmdPt->argv);
-		mcr_Array_free(&cmdPt->env);
+	struct mcr_Command ret;
+	mcr_Command_init(&ret);
+	return ret;
+}
+
+int mcr_Command_deinit(void *cmdPt)
+{
+	struct mcr_Command *localPt = cmdPt;
+	if (localPt) {
+		mcr_SafeString_deinit(&localPt->file);
+		MCR_ARR_FOR_EACH(localPt->argv, mcr_SafeString_deinit);
+		mcr_Array_deinit(&localPt->argv);
 	}
+	return 0;
 }
 
 int mcr_Command_compare(const void *lhs, const void *rhs)
@@ -87,9 +85,7 @@ int mcr_Command_compare(const void *lhs, const void *rhs)
 			if ((ret = mcr_SafeString_compare(&lPt->file,
 						&rPt->file)))
 				return ret;
-			if ((ret = compare_args(lPt, rPt)))
-				return ret;
-			return compare_env(lPt, rPt);
+			return compare_args(lPt, rPt);
 		}
 		return -1;
 	}
@@ -98,32 +94,44 @@ int mcr_Command_compare(const void *lhs, const void *rhs)
 
 int mcr_Command_copy(void *dstPt, void *srcPt)
 {
+	int err;
 	struct mcr_Command *dPt = dstPt, *sPt = srcPt;
 	dassert(dstPt);
 	if (sPt) {
-		return mcr_SafeString_copy(&dPt->file, &sPt->file) &&
-			copy_args(dPt, sPt) && copy_env(dPt, sPt);
+		if ((err = mcr_SafeString_copy(&dPt->file, &sPt->file)))
+			return err;
+		return copy_args(dPt, sPt);
 	}
-	mcr_Command_free(dPt);
+	mcr_Command_deinit(dPt);
 	mcr_Command_init(dPt);
 	return 0;
 }
 
-void mcr_StringKey_init(void *skDataPt)
+int mcr_StringKey_init(void *skPt)
 {
-	struct mcr_StringKey *skPt = skDataPt;
-	if (skPt) {
-		memset(skDataPt, 0, sizeof(struct mcr_StringKey));
-		skPt->interval.tv_nsec = 1000 * 1000 * 100;
+	struct mcr_StringKey *localPt = skPt;
+	if (localPt) {
+		memset(skPt, 0, sizeof(struct mcr_StringKey));
+		localPt->interval.tv_nsec = 1000 * 1000 * 100;
+		mcr_SafeString_init(&localPt->string);
 	}
+	return 0;
 }
 
-void mcr_StringKey_free(void *skDataPt)
+struct mcr_StringKey mcr_StringKey_new()
 {
-	struct mcr_StringKey *skPt = skDataPt;
-	if (skPt) {
-		mcr_SafeString_free(&skPt->string);
+	struct mcr_StringKey ret;
+	mcr_StringKey_init(&ret);
+	return ret;
+}
+
+int mcr_StringKey_deinit(void *skPt)
+{
+	struct mcr_StringKey *localPt = skPt;
+	if (localPt) {
+		mcr_SafeString_deinit(&localPt->string);
 	}
+	return 0;
 }
 
 int mcr_StringKey_compare(const void *lhs, const void *rhs)
@@ -156,7 +164,7 @@ int mcr_StringKey_copy(void *dstPt, void *srcPt)
 		dPt->interval = sPt->interval;
 		return mcr_SafeString_copy(&dPt->string, &sPt->string);
 	}
-	mcr_StringKey_free(dPt);
+	mcr_StringKey_deinit(dPt);
 	mcr_StringKey_init(dPt);
 	return 0;
 }
@@ -174,7 +182,7 @@ int mcr_Command_set_args(struct mcr_Command *cmdPt, char *const argv[],
 	size_t i = 0;
 	int err = 0;
 	dassert(cmdPt);
-	MCR_ARR_FOR_EACH(cmdPt->argv, MCR_EXP(mcr_SafeString_free_foreach),);
+	MCR_ARR_FOR_EACH(cmdPt->argv, mcr_SafeString_deinit);
 	cmdPt->argv.used = 0;
 	for (i = 0; argv[i] != NULL; i++) {
 		if ((err = mcr_Command_add_arg(cmdPt, argv[i], cryptic)))
@@ -193,8 +201,8 @@ int mcr_Command_add_arg(struct mcr_Command *cmdPt, char *const arg,
 	if (arg) {
 		mcr_SafeString_init(&addString);
 		if ((err = mcr_SafeString_set_text(&addString, arg, cryptic)) ||
-			(err = mcr_Array_push(&cmdPt->argv, &addString, 0))) {
-			mcr_SafeString_free(&addString);
+			(err = mcr_Array_push(&cmdPt->argv, &addString))) {
+			mcr_SafeString_deinit(&addString);
 			return err;
 		}
 	}
@@ -204,48 +212,8 @@ int mcr_Command_add_arg(struct mcr_Command *cmdPt, char *const arg,
 void mcr_Command_clear_args(struct mcr_Command *cmdPt)
 {
 	dassert(cmdPt);
-	MCR_ARR_FOR_EACH(cmdPt->argv, MCR_EXP(mcr_SafeString_free_foreach),);
+	MCR_ARR_FOR_EACH(cmdPt->argv, mcr_SafeString_deinit);
 	mcr_Array_clear(&cmdPt->argv);
-}
-
-int mcr_Command_set_env(struct mcr_Command *cmdPt, char *const envp[],
-	bool cryptic)
-{
-	size_t i;
-	int err = 0;
-	dassert(cmdPt);
-	MCR_ARR_FOR_EACH(cmdPt->env, MCR_EXP(mcr_SafeString_free_foreach),);
-	cmdPt->env.used = 0;
-	for (i = 0; envp[i] != NULL; i++) {
-		if ((err = mcr_Command_add_env(cmdPt, envp[i], cryptic)))
-			return err;
-	}
-	mcr_Array_trim(&cmdPt->env);
-	return err;
-}
-
-int mcr_Command_add_env(struct mcr_Command *cmdPt, char *const env,
-	bool cryptic)
-{
-	struct mcr_SafeString addString;
-	int err = 0;
-	dassert(cmdPt);
-	if (env) {
-		mcr_SafeString_init(&addString);
-		if ((err = mcr_SafeString_set_text(&addString, env, cryptic)) ||
-			(err = mcr_Array_push(&cmdPt->env, &addString, 0))) {
-			mcr_SafeString_free(&addString);
-			return err;
-		}
-	}
-	return err;
-}
-
-void mcr_Command_clear_env(struct mcr_Command *cmdPt)
-{
-	dassert(cmdPt);
-	MCR_ARR_FOR_EACH(cmdPt->env, MCR_EXP(mcr_SafeString_free_foreach),);
-	mcr_Array_clear(&cmdPt->env);
 }
 
 /* TODO: Unicode support. */
@@ -253,7 +221,8 @@ fixme;
 int mcr_StringKey_send(struct mcr_Signal *sigPt)
 {
 	struct mcr_StringKey *skPt = mcr_SK_data(sigPt);
-	struct mcr_context *ctx = ((struct mcr_CtxISignal *)sigPt->isig)->ctx;
+	struct mcr_context *ctx =
+		((struct mcr_CtxISignal *)sigPt->isignal)->ctx;
 	dassert(sigPt);
 	if (!skPt)
 		return 0;
@@ -273,7 +242,7 @@ int mcr_StringKey_send_data(struct mcr_context *ctx, struct mcr_StringKey *skPt)
 	mcr_String_init(&string);
 	if (skPt->string.cryptic) {
 		if ((err = mcr_SafeString_text(&skPt->string, strPt))) {
-			mcr_String_free(&string);
+			mcr_String_deinit(&string);
 			return err;
 		}
 	} else {
@@ -284,22 +253,17 @@ int mcr_StringKey_send_data(struct mcr_context *ctx, struct mcr_StringKey *skPt)
 		for (i = (unsigned char *)strPt->array; *i; i++) {
 			found = MCR_ARR_ELEMENT(ctx->extras.key_chars, *i);
 			if (found && found->used) {
-				end = MCR_ARR_END(*found);
-				for (sigPt = MCR_ARR_FIRST(*found);
+				end = mcr_Array_end(found);
+				for (sigPt = mcr_Array_first(found);
 					sigPt < end; sigPt++) {
 					if ((err = mcr_send(ctx, sigPt)))
 						lastErr = err;
-					if ((err = thrd_sleep(&skPt->interval,
-								NULL)) !=
-						thrd_success) {
-						lastErr = mcr_thrd_errno(err);
-						mset_error(lastErr);
-					}
 				}
+				thrd_sleep(&skPt->interval, NULL);
 			}
 		}
 	}
-	mcr_String_free(&string);
+	mcr_String_deinit(&string);
 	return lastErr;
 }
 
@@ -313,14 +277,13 @@ int mcr_Command_send(struct mcr_Signal *sigPt)
 int mcr_Command_send_data(struct mcr_Command *cmdPt)
 {
 	int err = 0;
-	size_t i, argsUsed = cmdPt->argv.used, envUsed = cmdPt->env.used;
-	char **args = NULL, **envies = NULL;
+	size_t i, argsUsed = cmdPt->argv.used;
+	char **args = NULL;
 	mcr_String file;
-	struct mcr_Array argsArr, envArr;
+	struct mcr_Array argsArr;
 	mcr_String_init(&file);
-	mcr_Array_init(&envArr);
-	mcr_Array_set_all(&envArr, NULL, sizeof(mcr_String));
-	argsArr = envArr;
+	mcr_Array_init(&argsArr);
+	mcr_Array_set_all(&argsArr, NULL, sizeof(mcr_String));
 	if ((err = mcr_SafeString_text(&cmdPt->file, &file))) {
 		goto cleanup;
 	}
@@ -330,37 +293,31 @@ int mcr_Command_send_data(struct mcr_Command *cmdPt)
 	/* +1, extra space for NULL termination
 	 * args + 1, file is required first */
 	args = malloc(sizeof(char *) * (argsUsed + 2));
-	envies = malloc(sizeof(char *) * (envUsed + 1));
-	if (!args || !envies) {
+	if (!args) {
 		err = ENOMEM;
 		mset_error(ENOMEM);
 		goto cleanup;
 	}
-	if ((err = mcr_Array_resize(&argsArr, argsUsed)) ||
-		(err = mcr_Array_resize(&envArr, envUsed))) {
+	if ((err = mcr_Array_resize(&argsArr, argsUsed))) {
 		goto cleanup;
 	}
 	/* For each argument, push argument and set into arg array */
 	/* Also null terminate. */
 	args[0] = file.array;
 	i = 1;
-	MCR_ARR_FOR_EACH(cmdPt->argv, ssget_foreach, &argsArr, args, &i);
+#define localExp(itPt) \
+ssget_foreach(itPt, &argsArr, args, &i);
+	MCR_ARR_FOR_EACH(cmdPt->argv, localExp);
+#undef localExp
 	args[argsUsed + 1] = NULL;
-	i = 0;
-	MCR_ARR_FOR_EACH(cmdPt->env, ssget_foreach, &envArr, envies, &i);
-	envies[envUsed] = NULL;
 
-	err = mcr_execvpe(file.array, args, envies);
+	err = mcr_execvp(file.array, args);
  cleanup:
 	if (args)
 		free(args);
-	if (envies)
-		free(envies);
-	MCR_ARR_FOR_EACH(argsArr, MCR_EXP(mcr_String_free_foreach),);
-	MCR_ARR_FOR_EACH(envArr, MCR_EXP(mcr_String_free_foreach),);
-	mcr_Array_free(&argsArr);
-	mcr_Array_free(&envArr);
-	mcr_String_free(&file);
+	MCR_ARR_FOR_EACH(argsArr, mcr_String_deinit);
+	mcr_Array_deinit(&argsArr);
+	mcr_String_deinit(&file);
 
 	return err;
 }
@@ -387,7 +344,7 @@ int mcr_StringKey_set_char(struct mcr_context *ctx, int character,
 		return err;
 	arrPt = MCR_ARR_ELEMENT(ctx->extras.key_chars, (unsigned)character);
 	dassert(arrPt);
-	MCR_ARR_FOR_EACH(*arrPt, MCR_EXP(mcr_Signal_free_foreach),);
+	MCR_ARR_FOR_EACH(*arrPt, mcr_Signal_deinit);
 	if (charSignalArr && arrLen) {
 		mcr_Array_clear(arrPt);
 		if ((err = mcr_Array_resize(arrPt, arrLen)))
@@ -396,14 +353,14 @@ int mcr_StringKey_set_char(struct mcr_context *ctx, int character,
 		mcr_Signal_init(&cpy);
 		for (i = 0; i < arrLen; i++) {
 			if ((err = mcr_Signal_copy(&cpy, charSignalArr + i)) ||
-				(err = mcr_Array_push(arrPt, &cpy, false))) {
-				mcr_Signal_free(&cpy);
+				(err = mcr_Array_push(arrPt, &cpy))) {
+				mcr_Signal_deinit(&cpy);
 				return err;
 			}
 			cpy = emptySig;
 		}
 	} else {
-		mcr_Array_free(arrPt);
+		mcr_Array_deinit(arrPt);
 	}
 	return err;
 }
@@ -413,10 +370,10 @@ void mcr_StringKey_remove_char(struct mcr_context *ctx, int character)
 	struct mcr_Array *arrPt = mcr_Array_element(&ctx->extras.key_chars,
 		(unsigned)character);
 	if (arrPt) {
-		MCR_ARR_FOR_EACH(*arrPt, MCR_EXP(mcr_Signal_free_foreach),);
+		MCR_ARR_FOR_EACH(*arrPt, mcr_Signal_deinit);
 		if ((unsigned)character ==
 			MCR_ARR_LAST_INDEX(ctx->extras.key_chars)) {
-			mcr_Array_free(arrPt);
+			mcr_Array_deinit(arrPt);
 			mcr_Array_pop(&ctx->extras.key_chars);
 		} else
 			mcr_Array_clear(arrPt);
@@ -433,15 +390,15 @@ int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
 	struct mcr_ISignal *ikey = mcr_iKey(ctx), *inoop = mcr_iNoOp(ctx);
 	if (shift == -1) {
 		mset_error(EINVAL);
-		return -EINVAL;
+		return EINVAL;
 	}
 	delay.tv_nsec = nsec;
 	memset(sigs, 0, sizeof(sigs));
 	// Evens are keys
 	for (i = 0; i < 7; i += 2) {
-		sigs[i].isig = ikey;
-		MCR_INST_RESET(sigs[i].inst);
-		if (!MCR_INST_IS_HEAP(sigs[i].inst)) {
+		sigs[i].isignal = ikey;
+		mcr_Instance_reset(&sigs[i].instance);
+		if (!mcr_Instance_is_heap(&sigs[i].instance)) {
 			mset_error(ENOMEM);
 			ret = ENOMEM;
 			goto cleanout;
@@ -449,8 +406,8 @@ int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
 	}
 	// Odds are delays
 	for (i = 1; i < 7; i += 2) {
-		sigs[i].isig = inoop;
-		sigs[i].inst.data.data = &delay;
+		sigs[i].isignal = inoop;
+		sigs[i].instance.data.data = &delay;
 	}
 	mcr_Key_set_all(MCR_KEY_DATA(sigs[0]), shift, shift, MCR_DOWN);
 	mcr_Key_set_all(MCR_KEY_DATA(sigs[2]), key, key, MCR_DOWN);
@@ -461,7 +418,7 @@ int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
 		mcr_StringKey_set_char(ctx, character, sigs + 2, 3);
  cleanout:
 	for (i = 7; i--;) {
-		mcr_Signal_free(sigs + i);
+		mcr_Signal_deinit(sigs + i);
 	}
 	return ret;
 }
@@ -472,7 +429,7 @@ int mcr_StringKey_set_delays(struct mcr_context *ctx, struct timespec delay)
 	char *itPt, *end;
 	size_t bytes;
 	struct mcr_ISignal *inoop = mcr_iNoOp(ctx);
-	MCR_ARR_ITER(ctx->extras.key_chars, itPt, end, bytes);
+	mcr_Array_iter(&ctx->extras.key_chars, &itPt, &end, &bytes);
 	while (itPt < end) {
 		if ((err = set_signal_delays((struct mcr_Array *)itPt, inoop,
 					delay)))
@@ -492,11 +449,11 @@ void mcr_StringKey_char_clear(struct mcr_context *ctx)
 	struct mcr_Array *arrPt;
 	char *itPt, *end;
 	size_t bytes;
-	MCR_ARR_ITER(ctx->extras.key_chars, itPt, end, bytes);
+	mcr_Array_iter(&ctx->extras.key_chars, &itPt, &end, &bytes);
 	while (itPt < end) {
 		arrPt = (struct mcr_Array *)itPt;
-		MCR_ARR_FOR_EACH(*arrPt, MCR_EXP(mcr_Signal_free_foreach),);
-		mcr_Array_free(arrPt);
+		MCR_ARR_FOR_EACH(*arrPt, mcr_Signal_deinit);
+		mcr_Array_deinit(arrPt);
 		itPt += bytes;
 	}
 	mcr_Array_clear(&ctx->extras.key_chars);
@@ -507,14 +464,14 @@ void mcr_StringKey_char_trim(struct mcr_context *ctx)
 	struct mcr_Array *arrPt;
 	char *first, *rIt;
 	size_t bytes;
-	MCR_ARR_ITER(ctx->extras.key_chars, first, rIt, bytes);
+	mcr_Array_iter(&ctx->extras.key_chars, &first, &rIt, &bytes);
 	if (first) {
 		rIt -= bytes;
 		while (rIt >= first) {
 			arrPt = (struct mcr_Array *)rIt;
 			if (arrPt->used)
 				break;
-			mcr_Array_free(arrPt);
+			mcr_Array_deinit(arrPt);
 			mcr_Array_pop(&ctx->extras.key_chars);
 			rIt -= bytes;
 		}
@@ -538,22 +495,6 @@ static int compare_args(const struct mcr_Command *lhs,
 	return ret;
 }
 
-static int compare_env(const struct mcr_Command *lhs,
-	const struct mcr_Command *rhs)
-{
-	size_t i = 0, used = lhs->env.used;
-	int ret = 0;
-	struct mcr_SafeString *lss = MCR_ARR_FIRST(lhs->env),
-		*rss = MCR_ARR_FIRST(rhs->env);
-	if (used != rhs->env.used)
-		return MCR_CMP_INTEGRAL(used, rhs->env.used);
-	while (!ret && i < used) {
-		ret = mcr_SafeString_compare(lss + i, rss + i);
-		++i;
-	}
-	return ret;
-}
-
 static int copy_args(struct mcr_Command *dstPt, struct mcr_Command *srcPt)
 {
 	mcr_String arr;
@@ -561,47 +502,20 @@ static int copy_args(struct mcr_Command *dstPt, struct mcr_Command *srcPt)
 	size_t i;
 	int err = 0;
 	mcr_String_init(&arr);
-	MCR_ARR_FOR_EACH(dstPt->argv, MCR_EXP(mcr_SafeString_free_foreach),)
-		mcr_Array_clear(&dstPt->argv);
+	MCR_ARR_FOR_EACH(dstPt->argv, mcr_SafeString_deinit);
+	mcr_Array_clear(&dstPt->argv);
 	for (i = 0; i < srcPt->argv.used; i++) {
 		if (ssPt[i].cryptic) {
 			if ((err = mcr_SafeString_text(ssPt + i, &arr)) ||
 				(err = mcr_Command_add_arg(dstPt, arr.array,
 						true))) {
-				mcr_String_free(&arr);
+				mcr_String_deinit(&arr);
 				return err;
 			}
-			mcr_String_free(&arr);
+			mcr_String_deinit(&arr);
 		} else {
 			if ((err = mcr_Command_add_arg(dstPt,
 						ssPt[i].text.array, 0)))
-				return err;
-		}
-	}
-	return err;
-}
-
-static int copy_env(struct mcr_Command *dstPt, struct mcr_Command *srcPt)
-{
-	mcr_String arr;
-	struct mcr_SafeString *ssPt = MCR_ARR_FIRST(srcPt->env);
-	size_t i;
-	int err = 0;
-	mcr_String_init(&arr);
-	MCR_ARR_FOR_EACH(dstPt->env, MCR_EXP(mcr_SafeString_free_foreach),)
-		mcr_Array_clear(&dstPt->env);
-	for (i = 0; i < srcPt->env.used; i++) {
-		if (ssPt[i].cryptic) {
-			if ((err = mcr_SafeString_text(ssPt + i, &arr)) ||
-				(err = mcr_Command_add_env(dstPt, arr.array,
-						true))) {
-				mcr_String_free(&arr);
-				return err;
-			}
-			mcr_String_free(&arr);
-		} else {
-			if ((err = mcr_Command_add_env(dstPt,
-						ssPt[i].text.array, false)))
 				return err;
 		}
 	}
@@ -613,15 +527,16 @@ int mcr_signal_extras_initialize(struct mcr_context *ctx)
 	struct mcr_ISignal *isigPt = mcr_iStringKey(ctx);
 	int err = 0;
 	mcr_ISignal_init(isigPt);
-	mcr_iset_all(isigPt, mcr_StringKey_compare,
-		mcr_StringKey_copy, sizeof(struct mcr_StringKey),
-		mcr_StringKey_init, mcr_StringKey_free);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_StringKey),
+		mcr_StringKey_init, mcr_StringKey_deinit, mcr_StringKey_compare,
+		mcr_StringKey_copy);
 	isigPt->send = mcr_StringKey_send;
+	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
 	isigPt = mcr_iCommand(ctx);
 	mcr_ISignal_init(isigPt);
-	mcr_iset_all(isigPt, mcr_Command_compare,
-		mcr_Command_copy, sizeof(struct mcr_Command),
-		mcr_Command_init, mcr_Command_free);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Command),
+		mcr_Command_init, mcr_Command_deinit, mcr_Command_compare,
+		mcr_Command_copy);
 	isigPt->send = mcr_Command_send;
 	mcr_Array_init(&ctx->extras.key_chars);
 	mcr_Array_set_all(&ctx->extras.key_chars, NULL,
@@ -635,10 +550,11 @@ int mcr_signal_extras_initialize(struct mcr_context *ctx)
 	return err;
 }
 
-void mcr_signal_extras_cleanup(struct mcr_context *ctx)
+int mcr_signal_extras_deinitialize(struct mcr_context *ctx)
 {
 	mcr_StringKey_char_clear(ctx);
-	mcr_Array_free(&ctx->extras.key_chars);
+	mcr_Array_deinit(&ctx->extras.key_chars);
+	return 0;
 }
 
 static int set_signal_delays(struct mcr_Array *sigArrPt,
@@ -648,13 +564,13 @@ static int set_signal_delays(struct mcr_Array *sigArrPt,
 	size_t bytes;
 	struct mcr_Signal *sigPt;
 	mcr_NoOp *dataPt;
-	MCR_ARR_ITER(*sigArrPt, itPt, end, bytes);
+	mcr_Array_iter(sigArrPt, &itPt, &end, &bytes);
 	while (itPt < end) {
 		sigPt = (struct mcr_Signal *)itPt;
-		if (sigPt->isig == inoop) {
+		if (sigPt->isignal == inoop) {
 			dataPt = mcr_NoOp_data(sigPt);
 			if (!dataPt) {
-				mcr_inst_reset(sigPt);
+				mcr_Instance_reset(sigPt);
 				dataPt = mcr_NoOp_data(sigPt);
 				if (!dataPt) {
 					mset_error(ENOMEM);
@@ -677,10 +593,11 @@ static int ssget_foreach(struct mcr_SafeString *ssPt,
 	err = mcr_SafeString_text(ssPt, &str);
 	if (!err) {
 		if (!MCR_STR_IS_EMPTY(str)) {
-			err = mcr_Array_push(argArrPt, &str, false);
+			err = mcr_Array_push(argArrPt, &str);
 			argsArr[(*argsItPt)++] = str.array;
+			return err;
 		}
 	}
-	mcr_String_free(&str);
+	mcr_String_deinit(&str);
 	return err;
 }

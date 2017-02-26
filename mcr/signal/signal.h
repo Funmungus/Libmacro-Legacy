@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,10 @@
 */
 
 /*! \file
- * \brief \ref mcr_Signal
+ * \brief \ref mcr_Signal - Signal to send or dispatch
+ *
+ * See \ref mcr_send
+ * See \ref mcr_dispatch
  */
 
 #ifndef MCR_SIGNAL_H
@@ -26,59 +29,66 @@
 #include "mcr/signal/mod_flags.h"
 #include "mcr/signal/dispatcher.h"
 
-/*!
- * \brief Use functions in \ref mcr_ISignal to dispatch and
+/*! \brief Use functions in \ref mcr_ISignal to dispatch and
  * send the whole object, mcr_ISignal + data members.
  */
 struct mcr_Signal {
 	/*! \brief \ref mcr_Instance of \ref mcr_ISignal */
 	union {
-		const struct mcr_ISignal *isig;
-		struct mcr_Instance inst;
-		const struct mcr_Interface *iface;
+		const struct mcr_ISignal *isignal;
+		struct mcr_Instance instance;
+		const struct mcr_Interface *interface;
 	};
 	/* Signal specific */
-	/*! \brief 0 to not dispatch, otherwise do dispatch */
+	/*! \brief False to not dispatch, otherwise do dispatch */
 	bool is_dispatch;
 };
 
-/*! \brief Data interface of signal structures. */
-MCR_API const struct mcr_Interface *mcr_Signal_iface();
-/* General use: initializer and send function */
-/*! ctor */
-MCR_API void mcr_Signal_init(void *sigDataPt);
-MCR_API void mcr_Signal_free(void *sigDataPt);
-/*! \ref mcr_Signal_free */
-#define mcr_Signal_free_foreach(sigPt, ignore) mcr_Signal_free(sigPt)
-/*!
- * \brief Cause dispatch, and then call the isignal send function.
+/*! \brief Data interface of mcr_Signal structures
  *
+ * \return Interface to manage mcr_Signal objects
+ */
+MCR_API const struct mcr_Interface *mcr_Signal_interface();
+
+/*! \brief \ref mcr_Signal ctor
+ *
+ * \param signalPt \ref opt \ref mcr_Signal *
+ * \return 0
+ */
+MCR_API int mcr_Signal_init(void *signalPt);
+/*! \brief \ref mcr_Signal dtor
+ *
+ * \param signalPt \ref opt \ref mcr_Signal *
+ * \return 0
+ */
+MCR_API int mcr_Signal_deinit(void *signalPt);
+/*! \brief Dispatch, and then call the signal interface send function.
+ *
+ * If dispatch blocks, the interface send function will not be called.
+ * \param signalPt \ref opt Signal to dispatch and send
  * \return \ref reterr
  */
-MCR_API int mcr_send(struct mcr_context *ctx, struct mcr_Signal *sigPt);
+MCR_API int mcr_send(struct mcr_context *ctx, struct mcr_Signal *signalPt);
 
-/*!
- * \brief \ref mcr_icpy, plus copying isignal reference and
- * \ref mcr_Signal.is_dispatch
+/*! \brief \ref mcr_Instance_copy, then copy \ref mcr_Signal.is_dispatch
  *
- * \param dstPt Destination to copy to
- * \param srcPt Source to copy from
+ * \param dstPt \ref mcr_Signal * Destination to copy to
+ * \param srcPt \ref opt \ref mcr_Signal * Source to copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Signal_copy(void *dstPt, void *srcPt);
-/*!
- * \brief Compare two signals
+/*! \brief Compare two signals
  *
- * \param lhsSigPt mcr_Signal *
- * \param rhsSigPt mcr_Signal *
+ * \param lhsSignalPt \ref opt mcr_Signal *
+ * \param rhsSignalPt \ref opt mcr_Signal *
  * \return \ref retcmp
  */
-MCR_API int mcr_Signal_compare(const void *lhsSigPt, const void *rhsSigPt);
-/*!
- * \brief Compare two signal references
+MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
+	const void *rhsSignalPt);
+/*! \brief Compare two signal references
  *
- * \param lhsPtPt mcr_Signal **
- * \param rhsPtPt mcr_Signal **
+ * \param lhsPtPt \ref opt \ref mcr_Signal **
+ * \param rhsPtPt \ref opt \ref mcr_Signal **
  * \return \ref retcmp
  */
 MCR_API int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt);

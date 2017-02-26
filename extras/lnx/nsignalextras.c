@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -28,13 +28,12 @@
 
 static int local_add_keys(struct mcr_context *ctx);
 
-int mcr_execvpe(const char *file, char *const *args, char *const *env)
+int mcr_execvp(const char *file, char *const *args)
 {
 	pid_t child = fork(), child2;
 	int err = 0;
 	dassert(file);
 	dassert(args);
-	dassert(env);
 	if (child == -1) {
 		err = errno;
 		if (!err)
@@ -64,10 +63,7 @@ int mcr_execvpe(const char *file, char *const *args, char *const *env)
 			/* Execution child
 			 * Do not exit when parent does */
 			signal(SIGHUP, SIG_IGN);
-			if (*env)
-				execvpe(file, args, env);
-			else
-				execvp(file, args);
+			execvp(file, args);
 			err = errno;
 			if (!err)
 				err = EINTR;
@@ -98,8 +94,8 @@ static inline int add(struct mcr_context *ctx, int character, bool shiftFlag,
 static inline int arange(struct mcr_context *ctx, int charMin, int charMax,
 	bool shiftFlag, const int keyVals[])
 {
-	int err = 0;
-	for (int i = charMin; i <= charMax; i++) {
+	int i, err = 0;
+	for (i = charMin; i <= charMax; i++) {
 		if ((err = add(ctx, i, shiftFlag, keyVals)))
 			return err;
 	}
@@ -119,7 +115,7 @@ static int local_add_keys(struct mcr_context *ctx)
 		0,		/*07    BEL             ^ G     \a      Bell */
 		KEY_BACKSPACE,	/*08    BS              ^ H     \b      Backspace [ d ][ e ] */
 		KEY_TAB,	/*09    HT              ^ I     \t      Horizontal Tab [ f ] */
-		KEY_LINEFEED,	/*0A    LF              ^ J     \n      Line feed */
+		KEY_ENTER,	/*0A    LF              ^ J     \n      Line feed */
 		0,		/*0B    VT              ^ K     \v      Vertical Tab */
 		0,		/*0C    FF              ^ L     \f      Form feed */
 		0,		/*0D    CR              ^ M     \r      Carriage return [ g ] */

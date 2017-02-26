@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -94,7 +94,7 @@ int mcr_HidEcho_set_name(struct mcr_context *ctx, int eventCode,
 		if (eventName)
 			return mcr_String_replace(&ctx->standard.echo_name_any,
 				eventName);
-		mcr_String_free(&ctx->standard.echo_name_any);
+		mcr_String_deinit(&ctx->standard.echo_name_any);
 		return 0;
 	}
 	if (eventName)
@@ -124,14 +124,14 @@ int mcr_HidEcho_map(struct mcr_context *ctx, int eventCode,
 
 int mcr_HidEcho_reecho(struct mcr_context *ctx, int eventCode, int newCode)
 {
-	int ret;
+	int err;
 	if (eventCode == newCode)
 		return 0;
-	ret = mcr_HidEcho_set_name(ctx, newCode,
+	err = mcr_HidEcho_set_name(ctx, newCode,
 		mcr_HidEcho_name(ctx, eventCode));
-	if (!ret)
+	if (!err)
 		return mcr_HidEcho_set_name(ctx, eventCode, NULL);
-	return ret;
+	return err;
 }
 
 int mcr_HidEcho_rename(struct mcr_context *ctx, const char *oldName,
@@ -161,11 +161,11 @@ int mcr_HidEcho_initialize(struct mcr_context *ctx)
 	return err;
 }
 
-void mcr_HidEcho_cleanup(struct mcr_context *ctx)
+int mcr_HidEcho_deinitialize(struct mcr_context *ctx)
 {
-	mcr_StringIndex_free(&ctx->standard.echo_name_index);
-	mcr_String_free(&ctx->standard.echo_name_any);
-
+	mcr_StringIndex_deinit(&ctx->standard.echo_name_index);
+	mcr_String_deinit(&ctx->standard.echo_name_any);
+	return 0;
 }
 
 struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx)

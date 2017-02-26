@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -30,13 +30,13 @@ struct mcr_Action {
 	int trigger_flags;
 };
 
-MCR_API void mcr_Action_init(void *actDataPt);
+MCR_API int mcr_Action_init(void *actDataPt);
 /* Default compare, copy, and free */
 MCR_API bool mcr_Action_receive(void *actTrigPt, struct mcr_Signal *sigPt,
 	unsigned int mods);
 
 MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
 #define mcr_Action_data(trigPt) \
-((struct mcr_Action *)mcr_inst_data(trigPt))
+((struct mcr_Action *)mcr_Instance_data(trigPt))
 
 #endif

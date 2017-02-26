@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ typedef struct mcr_MoveCursor mcr_MC;
  *
  * Native
  */
-MCR_API void mcr_MoveCursor_init(void *mcPt);
+MCR_API int mcr_MoveCursor_init(void *mcPt);
 /*! \brief Set both position and justification. */
 MCR_API void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
 	const mcr_SpacePosition pos, bool flagJustify);
@@ -98,7 +98,7 @@ MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt);
 MCR_API int mcr_MoveCursor_compare(const void *lhs, const void *rhs);
 /*! \brief Copy \ref mcr_MoveCursor */
 MCR_API int mcr_MoveCursor_copy(void *dstPt, void *srcPt);
-/* Default free */
+/* Default deinit */
 
 /*!
  * \brief Current cursor position
@@ -146,10 +146,10 @@ MCR_API struct mcr_ISignal *mcr_iMoveCursor(struct mcr_context *ctx);
 #define mcr_iMC mcr_iMoveCursor
 /*! \brief Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MoveCursor_data(sigPt) \
-((struct mcr_MoveCursor *)mcr_inst_data(sigPt))
+((struct mcr_MoveCursor *)mcr_Instance_data(sigPt))
 /*! \brief Signal data casted \ref mcr_MoveCursor * */
 #define MCR_MOVECURSOR_DATA(sig) \
-((struct mcr_MoveCursor *)(sig).inst.data.data)
+((struct mcr_MoveCursor *)(sig).instance.data.data)
 
 /*! \brief Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MC_data(sigPt) mcr_MoveCursor_data (sigPt)

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -26,12 +26,12 @@
 #include "mcr/signal/def.h"
 
 MCR_API int mcr_signal_initialize(struct mcr_context *ctx);
-MCR_API void mcr_signal_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_signal_deinitialize(struct mcr_context *ctx);
 MCR_API int mcr_signal_load_contract(struct mcr_context *ctx);
 MCR_API void mcr_signal_trim(struct mcr_context *ctx);
 
 MCR_API int mcr_dispatcher_initialize(struct mcr_context *ctx);
-MCR_API void mcr_dispatcher_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_dispatcher_deinitialize(struct mcr_context *ctx);
 
 MCR_API int mcr_mod_load_contract(struct mcr_context *ctx);
 

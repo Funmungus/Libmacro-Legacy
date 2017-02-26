@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -36,7 +36,8 @@ static int add_echo_names(struct mcr_context *context);
 
 void mcr_cursor_position(mcr_SpacePosition buffer)
 {
-	for (int i = MCR_DIMENSION_CNT; i--;)
+	int i;
+	for (i = MCR_DIMENSION_CNT; i--;)
 		buffer[i] = mcr_cursor[i];
 }
 
@@ -55,7 +56,7 @@ int mcr_Echo_set_key(int echoCode, struct mcr_Key *keyPt)
 	dassert(keyPt);
 	if (echoCode == MCR_ECHO_ANY) {
 		mset_error(EINVAL)
-			return -EINVAL;
+			return EINVAL;
 	}
 	mcr_Key_init(&initial);
 	if ((err = mcr_Array_minfill(&mcr_echoEvents, echoCode + 1, &initial))
@@ -66,55 +67,62 @@ int mcr_Echo_set_key(int echoCode, struct mcr_Key *keyPt)
 	return mcr_Map_map(mapPt, &kVal, &echoCode);
 }
 
-void mcr_HidEcho_init(void *echoPt)
+int mcr_HidEcho_init(void *echoPt)
 {
-	dassert(echoPt);
-	((struct mcr_HidEcho *)echoPt)->event = 0;
+	if (echoPt)
+		((struct mcr_HidEcho *)echoPt)->event = 0;
+	return 0;
 }
 
-void mcr_Key_init(void *keyPt)
+int mcr_Key_init(void *keyPt)
 {
 	struct mcr_Key *kPt = keyPt;
-	dassert(keyPt);
-	memset(kPt, 0, sizeof(struct mcr_Key));
-	kPt->events[0].type = EV_MSC;
-	kPt->events[0].code = MSC_SCAN;
-	kPt->events[1].type = EV_KEY;
-	kPt->events[2] = mcr_syncer;
-	kPt->up_type = MCR_BOTH;
+	if (keyPt) {
+		memset(kPt, 0, sizeof(struct mcr_Key));
+		kPt->events[0].type = EV_MSC;
+		kPt->events[0].code = MSC_SCAN;
+		kPt->events[1].type = EV_KEY;
+		kPt->events[2] = mcr_syncer;
+		kPt->up_type = MCR_BOTH;
+	}
+	return 0;
 }
 
-void mcr_MoveCursor_init(void *mcPt)
+int mcr_MoveCursor_init(void *mcPt)
 {
 	struct mcr_MoveCursor *mPt = mcPt;
-	dassert(mcPt);
-	memset(mPt, 0, sizeof(struct mcr_MoveCursor));
-	mPt->absvent[0].type = mPt->absvent[1].type =
-		mPt->absvent[2].type = EV_ABS;
-	mPt->relvent[0].type = mPt->relvent[1].type =
-		mPt->relvent[2].type = EV_REL;
-	mPt->absvent[MCR_X].code = ABS_X;
-	mPt->absvent[MCR_Y].code = ABS_Y;
-	mPt->absvent[MCR_Z].code = ABS_Z;
-	mPt->relvent[MCR_X].code = REL_X;
-	mPt->relvent[MCR_Y].code = REL_Y;
-	mPt->relvent[MCR_Z].code = REL_Z;
-	mPt->relvent[MCR_DIMENSION_CNT] =
-		mPt->absvent[MCR_DIMENSION_CNT] = mcr_syncer;
-	mPt->is_justify = true;
+	if (mcPt) {
+		memset(mPt, 0, sizeof(struct mcr_MoveCursor));
+		mPt->absvent[0].type = mPt->absvent[1].type =
+			mPt->absvent[2].type = EV_ABS;
+		mPt->relvent[0].type = mPt->relvent[1].type =
+			mPt->relvent[2].type = EV_REL;
+		mPt->absvent[MCR_X].code = ABS_X;
+		mPt->absvent[MCR_Y].code = ABS_Y;
+		mPt->absvent[MCR_Z].code = ABS_Z;
+		mPt->relvent[MCR_X].code = REL_X;
+		mPt->relvent[MCR_Y].code = REL_Y;
+		mPt->relvent[MCR_Z].code = REL_Z;
+		mPt->relvent[MCR_DIMENSION_CNT] =
+			mPt->absvent[MCR_DIMENSION_CNT] = mcr_syncer;
+		mPt->is_justify = true;
+	}
+	return 0;
 }
 
-void mcr_Scroll_init(void *scrollPt)
+int mcr_Scroll_init(void *scrollPt)
 {
 	struct mcr_Scroll *sPt = scrollPt;
-	dassert(scrollPt);
-	memset(sPt, 0, sizeof(struct mcr_Scroll));
-	sPt->events[0].type = sPt->events[1].type =
-		sPt->events[2].type = EV_REL;
-	sPt->events[MCR_X].code = REL_HWHEEL;
-	sPt->events[MCR_Y].code = REL_WHEEL;
-	sPt->events[MCR_Z].code = REL_DIAL;
-	sPt->events[MCR_DIMENSION_CNT] = mcr_syncer;
+	if (scrollPt) {
+		memset(sPt, 0, sizeof(struct mcr_Scroll));
+		sPt->events[0].type = sPt->events[1].type =
+			sPt->events[2].type = EV_REL;
+		sPt->events[MCR_X].code = REL_HWHEEL;
+		sPt->events[MCR_Y].code = REL_WHEEL;
+		sPt->events[MCR_Z].code = REL_DIAL;
+		sPt->events[MCR_DIMENSION_CNT] = mcr_syncer;
+	}
+	return 0;
 }
 
 int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
@@ -130,7 +138,7 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
 		}
 	} else {
 		mset_error(EFAULT);
-		return -EFAULT;
+		return EFAULT;
 	}
 	return 0;
 }
@@ -221,12 +229,13 @@ int mcr_HidEcho_load_contract(struct mcr_context *context)
 
 int mcr_standard_native_initialize(struct mcr_context *context)
 {
-	int ret;
+	int err;
 	UNUSED(context);
 	if (_initialize_count) {
 		++_initialize_count;
 		return 0;
 	}
+	++_initialize_count;
 	mcr_Array_init(&mcr_echoEvents);
 	mcr_echoEvents.element_size = sizeof(struct mcr_Key);
 	mcr_Map_init(mcr_keyToEcho);
@@ -235,21 +244,24 @@ int mcr_standard_native_initialize(struct mcr_context *context)
 	mcr_Map_init(mcr_keyToEcho + 1);
 	mcr_Map_set_all(mcr_keyToEcho + 1, sizeof(int), sizeof(int),
 		mcr_int_compare, NULL, NULL);
-	if ((ret = mcr_Device_initialize(context)))
-		return ret;
+	if ((err = mcr_Device_initialize(context)))
+		return err;
 	return mcr_Mods_load_key_contract(context);
 }
 
-void mcr_standard_native_cleanup(struct mcr_context *context)
+int mcr_standard_native_deinitialize(struct mcr_context *context)
 {
+	int err;
 	UNUSED(context);
 	/* Remove an initialized reference of internal modifiers */
 	if (!_initialize_count || --_initialize_count)
-		return;
-	mcr_Device_cleanup(context);
-	mcr_Array_free(&mcr_echoEvents);
-	mcr_Map_free(mcr_keyToEcho);
-	mcr_Map_free(mcr_keyToEcho + 1);
+		return 0;
+	if ((err = mcr_Device_deinitialize(context)))
+		return err;
+	mcr_Array_deinit(&mcr_echoEvents);
+	mcr_Map_deinit(mcr_keyToEcho);
+	mcr_Map_deinit(mcr_keyToEcho + 1);
+	return 0;
 }
 
 static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
@@ -290,7 +302,7 @@ static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
 static int add_key_names(struct mcr_context *context)
 {
 	const char *names[] = {
-		"None", "Esc", "1", "2", "3",
+		"Reserved", "Esc", "1", "2", "3",
 		"4", "5", "6", "7", "8",
 		"9", "0", "Minus", "Equal", "Backspace",
 		"Tab", "Q", "W", "E", "R",
@@ -349,9 +361,13 @@ static int add_key_names(struct mcr_context *context)
 		"", "", "", "", "", "",
 		"AT_KBD_Driver", "BTN_0", "BTN_1", "BTN_2", "BTN_3",
 		"BTN_4", "BTN_5", "BTN_6", "BTN_7", "BTN_8", "BTN_9",
+		/* 0x10a - 0x10f */
+		"", "", "", "", "", "",
 		"BTN_Left", "BTN_Right", "BTN_Middle", "BTN_Side", "BTN_Extra",
-		"BTN_Forward", "BTN_Back", "BTN_Task", "BTN_Trigger",
-		"BTN_Thumb",
+		"BTN_Forward", "BTN_Back", "BTN_Task",
+		/* 0x118 - 0x11f */
+		"", "", "", "", "", "", "", "",
+		"BTN_Trigger", "BTN_Thumb",
 		"BTN_Thumb2", "BTN_Top", "BTN_Top2", "BTN_Pinkie", "BTN_Base",
 		"BTN_Base2", "BTN_Base3", "BTN_Base4", "BTN_Base5", "BTN_Base6",
 		/* 0x12c - 0x12e */
@@ -603,6 +619,8 @@ static int add_echo_names(struct mcr_context *context)
 	int err, echoCode = 0;
 	size_t count = arrlen(names), i;
 	char setname[64];
+	char *addressor = setname;
+	const char **addressPt = (const char **)&addressor;
 	for (i = 0; i < count; i++) {
 		snprintf(setname, 63, "%s%s", names[i], "Down");
 		if ((err = mcr_HidEcho_set_name(context, echoCode, setname)))
@@ -610,16 +628,15 @@ static int add_echo_names(struct mcr_context *context)
 		if (addNames[i]) {
 			snprintf(setname, 63, "%s%s", addNames[i], "Down");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						(const char **)&setname, 1)))
+						addressPt, 1)))
 				return err;
 			snprintf(setname, 63, "%s %s", addNames[i], "Down");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						(const char **)&setname, 1)))
+						addressPt, 1)))
 				return err;
 		}
 		snprintf(setname, 63, "%s %s", names[i], "Down");
-		if ((err = mcr_HidEcho_add(context, echoCode++,
-					(const char **)&setname, 1)))
+		if ((err = mcr_HidEcho_add(context, echoCode++, addressPt, 1)))
 			return err;
 
 		snprintf(setname, 63, "%s%s", names[i], "Up");
@@ -628,16 +645,15 @@ static int add_echo_names(struct mcr_context *context)
 		if (addNames[i]) {
 			snprintf(setname, 63, "%s%s", addNames[i], "Up");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						(const char **)&setname, 1)))
+						addressPt, 1)))
 				return err;
 			snprintf(setname, 63, "%s %s", addNames[i], "Up");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						(const char **)&setname, 1)))
+						addressPt, 1)))
 				return err;
 		}
 		snprintf(setname, 63, "%s %s", names[i], "Up");
-		if ((err = mcr_HidEcho_add(context, echoCode++,
-					(const char **)&setname, 1)))
+		if ((err = mcr_HidEcho_add(context, echoCode++, addressPt, 1)))
 			return err;
 	}
 	return 0;

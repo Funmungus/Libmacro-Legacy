@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,9 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*! \file
+ * \brief Extra things not needed for macros to function
+ */
+
 #ifndef MCR_EXTRAS_H
 #define MCR_EXTRAS_H
 
-#include "mcr/extras/macro_set.h"
+#include "mcr/extras/signal_extras.h"
 
 #endif

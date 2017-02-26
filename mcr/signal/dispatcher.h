@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,8 @@
 */
 
 /*! \file
- * \brief Blocking dispatcher, intercept signals before sending.
+ * \brief \ref mcr_Dispatcher - Blocking dispatcher, intercept signals before
+ * sending.
  *
  * Dispatchers are the consumers of modifiers, so we define
  * them here.
@@ -26,64 +27,78 @@
 #ifndef MCR_DISPATCHER_H
 #define MCR_DISPATCHER_H
 
-#include "mcr/signal/dispatch_map.h"
+#include "mcr/signal/dispatch_pair.h"
+#include "mcr/signal/isignal.h"
 
 /*! \brief All modifiers known by Libmacro to be set. */
 MCR_API unsigned int mcr_modifiers(struct mcr_context *ctx);
+/*! \brief Change current modifiers
+ *
+ * \param setMods New modifiers to set
+ */
 MCR_API void mcr_set_modifiers(struct mcr_context *ctx, unsigned int setMods);
+/*! \brief Add modifiers to current
+ *
+ * \param addMods Modifiers to add
+ */
 MCR_API void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods);
+/*! \brief Remove modifiers from current
+ *
+ * \param remMods Modifiers to remove
+ */
 MCR_API void mcr_remove_modifiers(struct mcr_context *ctx,
 	unsigned int remMods);
-MCR_API struct timespec mcr_modifiers_timeout(struct mcr_context *ctx);
-MCR_API void mcr_modifiers_set_timeout(struct mcr_context *ctx,
-	struct timespec *setTime);
 
 /* Dispatcher instances are intended to inherit mcr_Dispatcher as the first member,
  * so we will ease casting with voids. */
-/*!
- * \brief Function on dispatcher with no arguments.
+/*! \brief Function on dispatcher with no arguments.
  *
- * Take some action on existing object and data.
+ * \param dispPt \ref mcr_Dispatcher *
+ * \return \ref reterr
  */
-typedef mcr_data_fnc mcr_Dispatcher_fnc;
-/*!
- * \brief Add dispatching receiver for the data of a signal.
+typedef int (*mcr_Dispatcher_fnc) (void *dispPt);
+/*! \brief Add dispatching receiver for a signal.
  *
- * \param dispatcher Object which registers dispatch logic, and dispatches
- * signals with modifiers
- * \param sigPt Signal-specific logic for what to intercept.
- * \param receiver (opt) If NULL the receiverFnc will be sent with
- * a NULL pointer
- * \param receiverFnc (opt) If NULL \ref mcr_Trigger_receive will be
+ * \param dispPt \ref mcr_Dispatcher * Object which registers dispatch
+ * logic, and dispatches signals with modifiers
+ * \param sigPt \ref opt Signal-specific logic for what to intercept
+ * \param receiver \ref opt If null the receiverFnc will be sent with
+ * a null pointer.  This must be set for null receiver function, or
+ * mcr_Trigger_receive
+ * \param receiverFnc \ref opt If null \ref mcr_Trigger_receive will be
  * used.  If receiver is not set, then this cannot be used with
  * \ref mcr_Trigger_receive.
  * \return \ref reterr
  */
-typedef int (*mcr_Dispatcher_add_fnc) (void *dispatcher,
+typedef int (*mcr_Dispatcher_add_fnc) (void *dispPt,
 	struct mcr_Signal * sigPt, void *receiver,
 	mcr_Dispatcher_receive_fnc receiverFnc);
-/*! \brief Remove receiver */
-typedef void (*mcr_Dispatcher_remove_fnc) (void *dispPt, void *remReceiver);
-/*!
- * \brief Dispatch signal and modifiers
+/*! \brief Remove receiver
  *
- * \param sigPt
- * \return true for blocking
+ * \param dispPt \ref mcr_Dispatcher *
+ * \param remReceiver \ref opt Receiver to remove
+ * \return \ref reterr
  */
-typedef bool(*mcr_Dispatcher_dispatch_fnc) (void *dispatcher,
-	struct mcr_Signal * sigPt, unsigned int mods);
-/*!
- * \brief Modify modifiers from given signal
+typedef int (*mcr_Dispatcher_remove_fnc) (void *dispPt, void *remReceiver);
+/*! \brief Dispatch signal and modifiers
  *
- * \param sigPt
+ * \param dispPt \ref mcr_Dispatcher *
+ * \param sigPt \ref opt Intercepted signal
+ * \param mods Intercepted modifiers
+ * \return true to block sending signal
+ */
+typedef bool(*mcr_Dispatcher_dispatch_fnc) (void *dispPt,
+	struct mcr_Signal * sigPt, unsigned int mods);
+/*! \brief Modify modifiers from given signal
+ *
+ * \param dispPt \ref mcr_Dispatcher *
+ * \param sigPt \ref opt Intercepted signal
  * \param modsPt The modifiers passed in will be modified directly.
  */
-typedef void (*mcr_Dispatcher_modify_fnc) (void *dispatcher,
+typedef void (*mcr_Dispatcher_modify_fnc) (void *dispPt,
 	struct mcr_Signal * sigPt, unsigned int *modsPt);
 
-/*!
- * \brief Blocking Dispatcher for any signal type,
- * dispatches into \ref mcr_DispatchPair.
+/*! \brief Blocking Dispatcher, dispatches into \ref mcr_DispatchPair.
  *
  * This is just the function table.  Other members are intended to exist
  * elsewhere.
@@ -95,110 +110,191 @@ struct mcr_Dispatcher {
 	mcr_Dispatcher_fnc clear;
 	/*! \brief Dispatch and return blocking status. */
 	mcr_Dispatcher_dispatch_fnc dispatch;
-	/*! \brief Free any resources for this dispatccher. */
-	mcr_Dispatcher_fnc free;
+	/*! \brief Deinitialize any resources for this dispatccher. */
+	mcr_Dispatcher_fnc deinit;
 	/*! \brief Change modifiers from the given signal. */
 	mcr_Dispatcher_modify_fnc modifier;
 	/*! \brief Remove given receiver. */
 	mcr_Dispatcher_remove_fnc remove;
-	/*! \brief \ref mcr_Array_trim for all receiver data. */
+	/*! \brief Minimize allocated data */
 	mcr_Dispatcher_fnc trim;
 };
 
-/*!
- * \brief Both \ref mcr_Dispatcher and corresponding \ref mcr_DispatchMap
- *
- * Paired together for convenience, since this is the most common form of
- * dispatcher.
- */
-struct mcr_MapDispatcher {
-	struct mcr_Dispatcher dispatcher;
-	struct mcr_DispatchMap map;
-};
-
-/*!
- * \brief Blocking signal intercept.
+/*! \pre \ref mcr_Dispatcher.dispatch must be set
+ * \brief Blocking signal intercept
  *
  * Dispatch with signal and known modifiers into
  * \ref mcr_Dispatcher.dispatch
  *
- * \param signalData Object to dispatch, and possibly block sending
+ * \param signalData \ref opt Object to dispatch, and possibly block sending
  * \return true to block
  */
 MCR_API bool mcr_dispatch(struct mcr_context *ctx,
 	struct mcr_Signal *signalData);
-MCR_API size_t mcr_Dispatcher_count(struct mcr_context *ctx);
-/*!
- * \brief 0 if dispatching is not enabled, otherwise it is enabled
+/*! \brief Get the number of registered dispatchers, including null values
  *
- * \param isigPt
- * \return bool
+ * \return \ref retind
+ */
+MCR_API size_t mcr_Dispatcher_count(struct mcr_context *ctx);
+/*! \brief Dispatching enabled for a signal type
+ *
+ * \param isigPt \ref opt Signal interface
+ * \return True if signal interface has a dispatcher
  */
 MCR_API bool mcr_Dispatcher_is_enabled(struct mcr_context *ctx,
 	struct mcr_ISignal *isigPt);
-/*! \brief Enable dispatching from the given signal type. */
+/*! \brief Enable dispatching from the given signal type.
+ *
+ * \param typePt \ref opt Signal interface to enable dispatch
+ * \param enable True to set the correct dispatcher for the signal interface.
+ * Otherwise set the signal interface dispatcher to null.
+ */
 MCR_API void mcr_Dispatcher_set_enabled(struct mcr_context *ctx,
 	struct mcr_ISignal *typePt, bool enable);
+/*! \brief Set dispatching enabled for all registered dispatchers
+ *
+ * \param enable True to set the correct dispatcher for all signal interfaces.
+ * Otherwise set the signal interface dispatchers are set to null.
+ */
 MCR_API void mcr_Dispatcher_set_enabled_all(struct mcr_context *ctx,
 	bool enable);
-/*! \brief Add trigger to the dispatch for given signal and modifiers */
+/*! \brief Add a receiver to the dispatch for given signal.
+ *
+ * \param interceptPt \ref opt Used for dispatch logic and to find the dispatcher
+ * to add to
+ * \param receiver \ref opt If null the receiverFnc will be sent with
+ * a null pointer.  This must be set for null receiver function, or
+ * mcr_Trigger_receive
+ * \param receiveFnc \ref opt If null \ref mcr_Trigger_receive will be
+ * used.  If receiver is not set, then this cannot be used with
+ * \ref mcr_Trigger_receive.
+ * \return \ref reterr
+ */
 MCR_API int mcr_Dispatcher_add(struct mcr_context *ctx,
 	struct mcr_Signal *interceptPt, void *receiver,
 	mcr_Dispatcher_receive_fnc receiveFnc);
-/*!
- * \brief Add a trigger to the dispatch for a set of modifiers.  If a
- * signal is provided, the address is also used for dispatch mapping.
+/*! \brief Add a receiver to the generic dispatcher
+ *
+ * The generic dispatcher is dispatched for all signals.  If a signal is
+ * provided the address will be used for dispatch logic.
+ * \param interceptPt \ref opt Used for dispatch logic
+ * \param receiver \ref opt If null the receiverFnc will be sent with
+ * a null pointer.  This must be set for null receiver function, or
+ * mcr_Trigger_receive
+ * \param receiveFnc \ref opt If null \ref mcr_Trigger_receive will be
+ * used.  If receiver is not set, then this cannot be used with
+ * \ref mcr_Trigger_receive.
+ * \return \ref reterr
  */
 MCR_API int mcr_Dispatcher_add_generic(struct mcr_context *ctx,
 	struct mcr_Signal *interceptPt,
 	void *receiver, mcr_Dispatcher_receive_fnc receiveFnc);
-MCR_API void mcr_Dispatcher_clear(struct mcr_context *ctx,
+/*! \brief Remove all receivers for a signal type
+ *
+ * \param isigPt \ref opt Signal type to remove receivers for
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_clear(struct mcr_context *ctx,
 	struct mcr_ISignal *isigPt);
-MCR_API void mcr_Dispatcher_clear_all(struct mcr_context *ctx);
-MCR_API void mcr_Dispatcher_free(struct mcr_context *ctx,
+/*! \brief Remove all receivers for all registered dispatchers
+ *
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_clear_all(struct mcr_context *ctx);
+/*! \brief Deallocate the dispatcher for a signal type
+ *
+ * \param isigPt \ref opt Signal type to remove receivers for
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_deinit(struct mcr_context *ctx,
 	struct mcr_ISignal *isigPt);
-MCR_API void mcr_Dispatcher_free_all(struct mcr_context *ctx);
+/*! \brief Deallocate all dispatchers
+ *
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_deinit_all(struct mcr_context *ctx);
+/*! \brief Use a signal to change modifiers
+ *
+ * \param interceptPt \ref opt Signal to use to change modifiers
+ * \param modsPt Modifiers to change
+ */
 MCR_API void mcr_Dispatcher_modify(struct mcr_context *ctx,
 	struct mcr_Signal *interceptPt, unsigned int *modsPt);
-/*!
- * \brief Remove a trigger callback for both unspecific and specific
- * trigger.
+/*! \brief Remove a receiver callback for a signal type.
  *
- * \param remTrigger The trigger callback to be removed
+ * \param typePt \ref opt Signal type to remove from
+ * \param remReceiver \ref opt The receiver callback to be removed
+ * \return \ref reterr
  */
-MCR_API void mcr_Dispatcher_remove(struct mcr_context *ctx,
+MCR_API int mcr_Dispatcher_remove(struct mcr_context *ctx,
 	struct mcr_ISignal *typePt, void *remReceiver);
-/*! \ref mcr_Dispatch_remove on all known dispatchers */
-MCR_API void mcr_Dispatcher_remove_all(struct mcr_context *ctx,
+/*! \brief Remove a receiver callback for all signal types.
+ *
+ * \param remReceiver \ref opt The receiver object to be removed
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_remove_all(struct mcr_context *ctx,
 	void *remReceiver);
-MCR_API void mcr_Dispatcher_trim(struct mcr_context *ctx,
+/*! \brief Minimize allocation for a signal type.
+ *
+ * \param isigPt \ref opt Signal type to minimize
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_trim(struct mcr_context *ctx,
 	struct mcr_ISignal *isigPt);
-MCR_API void mcr_Dispatcher_trim_all(struct mcr_context *ctx);
+/*! \brief Minimize allocation for all dispatchers.
+ *
+ * \return \ref reterr
+ */
+MCR_API int mcr_Dispatcher_trim_all(struct mcr_context *ctx);
 
 /*
  * Dispatcher development
  */
-/*!
- * \ref mcr_Dispatcher ctor
+/*! \brief \ref mcr_Dispatcher ctor */
+MCR_API int mcr_Dispatcher_init(void *dispPt);
+/*! \brief \ref mcr_Dispatcher_init and \ref mcr_Dispatcher_set_all
+ *
+ * \param add \ref opt \ref mcr_Dispatcher.add
+ * \param clear \ref opt \ref mcr_Dispatcher.clear
+ * \param dispatch \ref opt \ref mcr_Dispatcher.dispatch
+ * \param deinit \ref opt \ref mcr_Dispatcher.deinit
+ * \param modifier \ref opt \ref mcr_Dispatcher.modifier
+ * \param remove \ref opt \ref mcr_Dispatcher.remove
+ * \param trim \ref opt \ref mcr_Dispatcher.trim
+ * \return New dispatcher
  */
-MCR_API void mcr_Dispatcher_init(void *dispPt);
+MCR_API struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
+	mcr_Dispatcher_fnc clear, mcr_Dispatcher_dispatch_fnc dispatch,
+	mcr_Dispatcher_fnc deinit, mcr_Dispatcher_modify_fnc modifier,
+	mcr_Dispatcher_remove_fnc remove, mcr_Dispatcher_fnc trim);
+/*! \brief Set initial values
+ *
+ * \param add \ref opt \ref mcr_Dispatcher.add
+ * \param clear \ref opt \ref mcr_Dispatcher.clear
+ * \param dispatch \ref opt \ref mcr_Dispatcher.dispatch
+ * \param deinit \ref opt \ref mcr_Dispatcher.deinit
+ * \param modifier \ref opt \ref mcr_Dispatcher.modifier
+ * \param remove \ref opt \ref mcr_Dispatcher.remove
+ * \param trim \ref opt \ref mcr_Dispatcher.trim
+ */
 MCR_API void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
 	mcr_Dispatcher_add_fnc add, mcr_Dispatcher_fnc clear,
-	mcr_Dispatcher_dispatch_fnc dispatch, mcr_Dispatcher_fnc free,
+	mcr_Dispatcher_dispatch_fnc dispatch, mcr_Dispatcher_fnc deinit,
 	mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
 	mcr_Dispatcher_fnc trim);
-/*!
- * \brief Register a new dispatcher for a
+/*! \brief Register a new dispatcher for a
  * signal's type id.
  *
- * \param dispPt Dispatcher to copy
+ * \param dispPt \ref mcr_Dispatcher * Dispatcher to copy
  * \param signalTypeId Id of the associated signal
+ * \return reterr
  */
 MCR_API int mcr_Dispatcher_register(struct mcr_context *ctx,
 	void *dispPt, size_t signalTypeId);
-/*!
- * \brief Get a dispatcher from a signal id.
+/*! \brief Get a dispatcher from a signal id.
  *
+ * \param signalTypeId Id of the signal type
  * \return Reference to a dispatcher registered for
  * given signal type's id
  */

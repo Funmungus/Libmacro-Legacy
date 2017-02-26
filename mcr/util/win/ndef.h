@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,37 +16,26 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_WIN_UTIL_DEF_H
-#define MCR_WIN_UTIL_DEF_H
+#ifndef MCR_UTIL_WIN_DEF_H
+#define MCR_UTIL_WIN_DEF_H
 
 #include "mcr/util/def.h"
 
 /*# include <WinSDKVer.h> */
 
 /* Windows Version */
-/*# define _WIN32_WINNT _WIN32_WINNT_WINXP      /* 0x0501 */
+/*# define _WIN32_WINNT _WIN32_WINNT_WINXP      // 0x0501 */
 
 #include <SDKDDKVer.h>
 
 /* Exclude rarely-used stuff from Windows headers. */
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 
-/* MCR_API was defined in util/def.h include */
-#undef MCR_API
-#ifdef MCR_STATIC
-#define MCR_API
-#else
-#ifdef MCR_EXPORTS
-#define MCR_API __declspec ( dllexport )
-#else
-#define MCR_API __declspec ( dllimport )
-#endif
-#endif
-
-#define snprintf _snprintf
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
+#define mcr_snprintf _snprintf
+#define mcr_casecmp _stricmp
+#define mcr_ncasecmp _strnicmp
 
 #ifndef __timespec_defined
 #define __timespec_defined 1

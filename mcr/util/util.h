@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,38 +20,32 @@
  * \brief Utilities for Libmacro
  */
 
-#ifndef MCR_MOD_UTIL_H
-#define MCR_MOD_UTIL_H
+#ifndef MCR_UTIL_H
+#define MCR_UTIL_H
 
 #include "mcr/util/instance.h"
-#include "mcr/util/name_bimap.h"
+#include "mcr/util/map.h"
 #include "mcr/util/priv.h"
 #include "mcr/util/registry.h"
-#include "mcr/util/threads.h"
 #include "mcr/util/string_index.h"
 #include "mcr/util/error.h"
-/* no module struct associated with util */
 
-/*! \brief time(NULL) and ctime. */
+/*! \brief time(NULL) and ctime */
 MCR_API const char *mcr_timestamp();
-/*!
- * \brief For given bit return the corresponding array index.
+/*! \brief For given bit return the corresponding array index.
  * Requires at least one "on" bit
  *
  * See \ref mcr_index_bit
  * \return Array index of bit value
  */
 MCR_API unsigned int mcr_bit_index(unsigned int bitval);
-/*!
- * \brief For given array index return the corresponding bitwise value.
+/*! \brief For given array index return the corresponding bit value.
  *
  * See \ref mcr_bit_index
  * \return Bit value of array index
  */
 #define mcr_index_bit(index) (1 << index)
-/*!
- * \brief Get an \c errno.h code from a threading error number.
- */
+/*! \brief Get an \c errno.h code from a threading error number. */
 MCR_API int mcr_thrd_errno(int thrdError);
 
 #endif

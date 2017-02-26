@@ -1,29 +1,13 @@
-# README #
+<center>
+# Libmacro #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+A multi-platform, extendable macro and hotkey C library
 
-### What is this repository for? ###
+## Building source ##
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+### Style source ###
 
-### How do I get set up? ###
+Libmacro has a common style to help colaboration.  The program `indent` is required.
+To style source execute `./style` in the project base directory.
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+</center>

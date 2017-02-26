@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 
 static int local_add_keys(struct mcr_context *ctx);
 
-int mcr_execvpe(const char *file, char *const *args, char *const *env)
+int mcr_execvp(const char *file, char *const *args)
 {
 	int err = 0;
 	mcr_String cmdline;
@@ -36,8 +36,7 @@ int mcr_execvpe(const char *file, char *const *args, char *const *env)
 	PROCESS_INFORMATION pInfo = { 0 };
 	dassert(file);
 	dassert(args);
-	dassert(env);
-/* Replace with CreateThread + CreateProcess if CreateThread does not work */
+	/* Replace with CreateThread + CreateProcess if CreateProcess does not work */
 	mcr_String_init(&cmdline);
 	for (argPt = (char **)args; *argPt; argPt++) {
 		if (**argPt != '\0') {
@@ -45,12 +44,12 @@ int mcr_execvpe(const char *file, char *const *args, char *const *env)
 				(err = mcr_String_append(&cmdline, *argPt,
 						(size_t) ~ 0)) ||
 				(err = mcr_String_push(&cmdline, '"'))) {
-				mcr_String_free(&cmdline);
+				mcr_String_deinit(&cmdline);
 				return err;
 			}
 			if (*(argPt + 1)
 				&& (err = mcr_String_push(&cmdline, ' '))) {
-				mcr_String_free(&cmdline);
+				mcr_String_deinit(&cmdline);
 				return err;
 			}
 		}
@@ -60,7 +59,7 @@ int mcr_execvpe(const char *file, char *const *args, char *const *env)
 	fixme;
 	if (!CreateProcessA(NULL, cmdline.array, NULL, NULL, FALSE,
 			PROFILE_USER | DETACHED_PROCESS | NORMAL_PRIORITY_CLASS,
-			env[0] ? (LPVOID) env : NULL, NULL, &sInfo, &pInfo)) {
+			NULL, NULL, &sInfo, &pInfo)) {
 		winerr;
 		err = EINTR;
 		mset_error(EINTR);
@@ -75,7 +74,7 @@ int mcr_execvpe(const char *file, char *const *args, char *const *env)
 			winerr;
 		}
 	}
-	mcr_Array_free(&cmdline);
+	mcr_Array_deinit(&cmdline);
 	return err;
 }
 

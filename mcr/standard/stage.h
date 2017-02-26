@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -72,9 +72,7 @@ MCR_API void mcr_Stage_init(void *stageDataPt);
 MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
 	struct mcr_Stage *stagePt, int blocking, struct mcr_Signal *interceptPt,
 	unsigned int measurementError, unsigned int mods, int trigFlags);
-MCR_API void mcr_Stage_free(void *stageDataPt);
-#define mcr_Stage_free_foreach(sPt, ignore) \
-mcr_Stage_free(sPt)
+MCR_API void mcr_Stage_deinit(void *stageDataPt);
 MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
 	struct mcr_Signal *interceptPt, unsigned int mods);
 MCR_API bool mcr_Stage_resembles(struct mcr_Stage *stagePt,

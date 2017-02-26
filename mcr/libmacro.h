@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,12 +17,11 @@
 */
 
 /*! \file
- * \brief Include all Libmacro functionality.
+ * \brief Include all Libmacro functionality
  */
 
 /*! \namespace mcr
- * \brief Libmacro, by Jonathan Pelletier.  Alpha, not yet ready to open
- * source.
+ * \brief Libmacro, by Jonathan Pelletier 2013.  Alpha version.
  *
  * 1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using
  * \ref mcr_dispatch.\n
@@ -45,7 +44,7 @@ extern "C" {
 #endif
 
 #include "mcr/util/util.h"
-#include "mcr/signal/mod_signal.h"
+#include "mcr/signal/signal.h"
 #include "mcr/macro/macro.h"
 #include "mcr/standard/standard.h"
 #include "mcr/intercept/intercept.h"
@@ -53,25 +52,51 @@ extern "C" {
 #include "mcr/extras/extras.h"
 #endif
 
+/*! \brief Libmacro context, required for Libmacro functions */
 	struct mcr_context;
-	/*!
-	 * \brief Initialize all Libmacro modules
-	 *
-	 * \param flagLoadContracts If true, also load string contracts in
-	 * all modules.  Useful for string-mapped or scripted applications.
-	 * \param flagTrimFinish If true, \ref mcr_trim before returning.
-	 * \return initialized Libmacro structure
-	 */
-	MCR_API struct mcr_context *mcr_initialize(bool flagLoadContracts,
+/*! \brief \ref malloc and \ref mcr_initialize
+ *
+ * \param flagLoadContracts If true, also load string contracts in
+ * all modules.  Useful for string-mapped or scripted applications.
+ * \param flagTrimFinish If true, \ref mcr_trim after initializing.
+ * \return Initialized Libmacro context, or NULL on error
+ */
+	MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
 		bool flagTrimFinish);
-	/*! \brief Clean all resources used by Libmacro. */
-	MCR_API void mcr_cleanup(struct mcr_context *ctx);
+/*! \brief \ref mcr_deinitialize and \ref free
+ *
+ * \param ctx Libmacro context
+ */
+	MCR_API int mcr_deallocate(struct mcr_context *ctx);
+/*! \brief Initialize Libmacro resources
+ *
+ * \param ctx Libmacro context
+ * \return \ref reterr
+ */
+	MCR_API int mcr_initialize(struct mcr_context *ctx,
+		bool flagLoadContracts, bool flagTrimFinish);
+/*! \brief Clean all resources used by Libmacro.
+ *
+ * \param ctx Libmacro context
+ */
+	MCR_API int mcr_deinitialize(struct mcr_context *ctx);
+/*! \brief Load string contracts
+ *
+ * String contracts map string names or keys to types and instances.
+ * \param ctx Libmacro context
+ * \return \ref reterr
+ */
 	MCR_API int mcr_load_contracts(struct mcr_context *ctx);
-	/*! \brief Minimize allocation used by Libmacro. */
+/*! \brief Minimize allocation used by Libmacro.
+ * \param ctx Libmacro context
+ */
 	MCR_API void mcr_trim(struct mcr_context *ctx);
 
 #ifndef MCR_NATIVE_INC
-/*! \brief Include this file to access native declarations. */
+/*! \brief Include this file to access native declarations.
+ *
+ * In case of emergency break glass
+ */
 #define MCR_NATIVE_INC MCR_STR(mcr/MCR_NATIVE_DIR/nlibmacro.h)
 #endif
 

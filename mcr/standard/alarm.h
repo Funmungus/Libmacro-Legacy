@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@
  * tm_yday 0-365, tm_isdst (daylight savings)
  */
 typedef struct tm mcr_Alarm;
-MCR_API void mcr_Alarm_init(void *dataPt);
+MCR_API int mcr_Alarm_init(void *dataPt);
 /*! \brief Set second, minute, hour, day of month, month, and day of week. */
 MCR_API void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
 	int mday, int mon, int wday);
@@ -44,7 +44,7 @@ MCR_API void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
  * \return \ref reterr
  */
 MCR_API int mcr_Alarm_send(struct mcr_Signal *signalData);
-/*! \brief \ref mcr_Alarm_send */
+/*! \brief \ref std::this_thread::sleep_until defined in C++ */
 MCR_API int mcr_Alarm_send_data(mcr_Alarm * dataPt);
 /*! \brief \ref mcr_compare_fnc to compare \ref mcr_Alarm or struct tm */
 MCR_API int mcr_tm_compare(const void *lhs, const void *rhs);
@@ -62,9 +62,9 @@ MCR_API int mcr_tm_compare(const void *lhs, const void *rhs);
 MCR_API struct mcr_ISignal *mcr_iAlarm(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_Alarm * */
 #define mcr_Alarm_data(sigPt) \
-((mcr_Alarm *)mcr_inst_data (sigPt))
+((mcr_Alarm *)mcr_Instance_data (sigPt))
 /*! \brief Signal data casted \ref mcr_Alarm * */
 #define MCR_ALARM_DATA(sig) \
-((mcr_Alarm *)(sig).inst.data.data)
+((mcr_Alarm *)(sig).instance.data.data)
 
 #endif

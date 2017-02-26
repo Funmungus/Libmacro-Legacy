@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -29,10 +29,10 @@ static const struct mcr_Interface _MCR_ISTRING = {
 	.copy = mcr_String_copy,
 	.data_size = sizeof(mcr_String),
 	.init = mcr_String_init,
-	.free = mcr_String_free
+	.deinit = mcr_String_deinit
 };
 
-const struct mcr_Interface *mcr_String_iface()
+const struct mcr_Interface *mcr_String_interface()
 {
 	return &_MCR_ISTRING;
 }
@@ -42,8 +42,8 @@ int mcr_atob(const char *value, bool * retVal)
 	dassert(retVal);
 	if (value == NULL) {
 		*retVal = false;
-		mset_error(EINVAL)
-			return EINVAL;
+		mset_error(EINVAL);
+		return EINVAL;
 	}
 	while (isspace(*value))
 		++value;
@@ -69,22 +69,32 @@ int mcr_atob(const char *value, bool * retVal)
 			*retVal = false;
 		}
 	} else {
-		if (!strcasecmp(value, "true") || !strcasecmp(value, "yes")) {
+		if (!mcr_casecmp(value, "true") || !mcr_casecmp(value, "yes")) {
 			*retVal = true;
-		} else if (!strcasecmp(value, "false") ||
-			!strcasecmp(value, "no")) {
+		} else if (!mcr_casecmp(value, "false") ||
+			!mcr_casecmp(value, "no")) {
 			*retVal = false;
 		}
 	}
 	return 0;
 }
 
-/* Allow wchar_t */
+/* TODO: Allow wchar_t */
 fixme;
-void mcr_String_init(void *strPt)
+int mcr_String_init(void *strPt)
 {
-	mcr_Array_init(strPt);
-	mcr_Array_set_all(strPt, NULL, sizeof(char));
+	if (strPt) {
+		mcr_Array_init(strPt);
+		mcr_Array_set_all(strPt, NULL, sizeof(char));
+	}
+	return 0;
+}
+
+mcr_String mcr_String_new()
+{
+	mcr_String ret = { 0 };
+	ret.element_size = sizeof(char);
+	return ret;
 }
 
 int mcr_String_copy(void *dstPt, void *srcPt)
@@ -96,25 +106,27 @@ int mcr_String_copy(void *dstPt, void *srcPt)
 void mcr_String_clear(mcr_String * strPt)
 {
 	dassert(strPt);
-	MCR_STR_SET_EMPTY(*strPt);
+	MCR_STR_CLEAR(*strPt);
 }
 
 int mcr_String_insert(mcr_String * strPt, size_t index,
 	const char *str, size_t len)
 {
-	int ret;
+	int err;
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
 	if (!str || !len || !(len = strnlen(str, len)))
 		return 0;
-	if ((ret = mcr_String_smartlen(strPt, len)))
-		return ret;
+	if ((err = mcr_String_smartlen(strPt, len)))
+		return err;
 	if (!strPt->used) {
-		MCR_STR_SET_EMPTY(*strPt);
+		MCR_STR_CLEAR(*strPt);
 	}
-	/* If out of bounds, insert to last position. */
-	if (index >= strPt->used)
-		index = strPt->used - 1;
+	/* out of bounds, cannot insert after null terminator index */
+	if (index >= strPt->used) {
+		mset_error(EFAULT);
+		return EFAULT;
+	}
 	/* memmove will also copy null char */
 	memmove(strPt->array + index + len, strPt->array + index,
 		strPt->used - index);
@@ -128,17 +140,15 @@ void mcr_String_remove_index(mcr_String * strPt, size_t index, size_t count)
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
 	/* Index out of bounds.  Cannot remove null char, last element */
-	if (!strPt->used || index >= strPt->used - 1) {
+	if (!strPt->used || index >= strPt->used - 1)
 		return;
-	}
 	/* Nothing to move back, just null-terminate. */
 	if (index + count >= strPt->used - 1) {
 		strPt->array[index] = '\0';
 		strPt->used = index + 1;
-	}
-	/* Move into index, position at index + count, size is */
-	/* array size - source position. */
-	else {
+	} else {
+		/* Move into index, position at index + count, size is */
+		/* array size - source position. */
 		memmove(strPt->array + index, strPt->array + index + count,
 			strPt->used - index - count);
 		strPt->used -= count;
@@ -154,11 +164,11 @@ int mcr_String_append(mcr_String * strPt, const char *str, size_t len)
 
 int mcr_String_push(mcr_String * strPt, const char c)
 {
-	int ret;
+	int err;
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
-	if ((ret = mcr_String_smartlen(strPt, 1)))
-		return ret;
+	if ((err = mcr_String_smartlen(strPt, 1)))
+		return err;
 	if (!strPt->used)
 		++strPt->used;
 	strPt->array[strPt->used - 1] = c;
@@ -180,15 +190,16 @@ char mcr_String_pop(mcr_String * strPt)
 
 int mcr_String_nreplace(mcr_String * strPt, const char *str, size_t len)
 {
-	int ret;
+	int err;
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
-	if (!str || !len || !(len = strnlen(str, len))) {
-		mcr_String_free(strPt);
+	if (!str) {
+		mcr_String_deinit(strPt);
 		return 0;
 	}
-	if ((ret = mcr_Array_resize(strPt, len + 1)))
-		return ret;
+	len = strnlen(str, len);
+	if ((err = mcr_Array_resize(strPt, len + 1)))
+		return err;
 	memcpy(strPt->array, str, len);
 	strPt->array[len] = '\0';
 	strPt->used = len + 1;
@@ -198,7 +209,7 @@ int mcr_String_nreplace(mcr_String * strPt, const char *str, size_t len)
 int mcr_String_copy_str(mcr_String * strPt, size_t index,
 	const char *str, size_t len)
 {
-	int ret;
+	int err;
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
 	if (!str || !len || !(len = strnlen(str, len)))
@@ -207,8 +218,8 @@ int mcr_String_copy_str(mcr_String * strPt, size_t index,
 		index = 0;
 	else if (index >= strPt->used)
 		index = strPt->used - 1;
-	if ((ret = mcr_Array_minused(strPt, index + len + 1)))
-		return ret;
+	if ((err = mcr_Array_minused(strPt, index + len + 1)))
+		return err;
 	memcpy(strPt->array + index, str, len);
 	strPt->array[len] = '\0';
 	return 0;
@@ -227,15 +238,15 @@ int mcr_String_set(mcr_String * strPt, size_t index, char c)
 
 int mcr_String_fill(mcr_String * strPt, size_t index, size_t count, char c)
 {
-	int ret;
+	int err;
 	dassert(strPt);
 	dassert(strPt->element_size == 1);
 	if (!strPt->used)
 		index = 0;
 	else if (index >= strPt->used)
 		index = strPt->used - 1;
-	if ((ret = mcr_Array_minused(strPt, index + count + 1)))
-		return ret;
+	if ((err = mcr_Array_minused(strPt, index + count + 1)))
+		return err;
 	memset(strPt->array + index, c, count);
 	strPt->array[strPt->used - 1] = '\0';
 	return 0;
@@ -245,7 +256,7 @@ int mcr_String_move(mcr_String * dstPt, size_t dstPos,
 	mcr_String * srcPt, size_t srcPos, size_t count)
 {
 	size_t srcLastPos, dstLastPos;
-	int ret;
+	int err;
 	dassert(dstPt);
 	dassert(srcPt);
 	dassert(dstPt->element_size == 1);
@@ -259,8 +270,8 @@ int mcr_String_move(mcr_String * dstPt, size_t dstPos,
 		count = srcLastPos - srcPos;
 	if (dstPos > dstLastPos)
 		dstPos = dstLastPos;
-	if ((ret = mcr_Array_minused(dstPt, dstPos + count + 1)))
-		return ret;
+	if ((err = mcr_Array_minused(dstPt, dstPos + count + 1)))
+		return err;
 	void *copyDst = dstPt->array + dstPos, *copySrc = srcPt->array + srcPos;
 	if (dstPt->array == srcPt->array)
 		memmove(copyDst, copySrc, count);

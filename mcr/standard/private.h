@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -26,15 +26,15 @@
 #include "mcr/util/util.h"
 
 MCR_API int mcr_standard_initialize(struct mcr_context *ctx);
-MCR_API void mcr_standard_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_standard_deinitialize(struct mcr_context *ctx);
 MCR_API int mcr_standard_load_contract(struct mcr_context *ctx);
 MCR_API void mcr_standard_trim(struct mcr_context *ctx);
 /* Key-related, but not interface */
 MCR_API int mcr_Key_initialize(struct mcr_context *ctx);
-MCR_API void mcr_Key_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_Key_deinitialize(struct mcr_context *ctx);
 /* Echo-related, but not interface */
 MCR_API int mcr_HidEcho_initialize(struct mcr_context *ctx);
-MCR_API void mcr_HidEcho_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_HidEcho_deinitialize(struct mcr_context *ctx);
 
 /* Native directory */
 #define MCR_STANDARD_NATIVE_INC \
@@ -48,22 +48,22 @@ MCR_API int mcr_standard_native_initialize(struct mcr_context *ctx);
 /*!
  * \brief Clean up native requirements for standard signals.
  *
- * Called by \ref mcr_standard_cleanup
+ * Called by \ref mcr_standard_deinitialize
  */
-MCR_API void mcr_standard_native_cleanup(struct mcr_context *ctx);
+MCR_API int mcr_standard_native_deinitialize(struct mcr_context *ctx);
 /*! \brief Load native key names and key <=> modifier mapping. */
 MCR_API int mcr_Key_load_contract(struct mcr_context *ctx);
 /*! \brief Load native echo names. */
 MCR_API int mcr_HidEcho_load_contract(struct mcr_context *ctx);
 
 /* Native signal */
-MCR_API void mcr_HidEcho_init(void *dataPt);
+MCR_API int mcr_HidEcho_init(void *dataPt);
 MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
-MCR_API void mcr_Key_init(void *dataPt);
+MCR_API int mcr_Key_init(void *dataPt);
 MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
-MCR_API void mcr_MoveCursor_init(void *dataPt);
+MCR_API int mcr_MoveCursor_init(void *dataPt);
 MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt);
-MCR_API void mcr_Scroll_init(void *dataPt);
+MCR_API int mcr_Scroll_init(void *dataPt);
 MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 /*
  * Native signal data

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -25,16 +25,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int mcr_Key_gen_key = MCR_KEY_ANY;
+const unsigned int mcr_Key_gen_up = MCR_BOTH;
+static int mcr_Key_init_scan_map(void *mapPt);
 static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc);
-static void mcr_Key_Dispatcher_clear(void *dispDataPt);
+static int mcr_Key_Dispatcher_clear(void *dispDataPt);
 static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 	struct mcr_Signal *signalPt, unsigned int mods);
-static void mcr_Key_Dispatcher_free(void *dispDataPt);
+static int mcr_Key_Dispatcher_deinit(void *dispDataPt);
 static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	struct mcr_Signal *signalPt, unsigned int *modsPt);
-static void mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger);
-static void mcr_Key_Dispatcher_trim(void *dispDataPt);
+static int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger);
+static int mcr_Key_Dispatcher_trim(void *dispDataPt);
 
 void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 	enum mcr_KeyUpType keyUp)
@@ -154,7 +157,7 @@ int mcr_Key_set_name(struct mcr_context *ctx, int keyCode, const char *newName)
 		if (newName)
 			return mcr_String_replace(&ctx->standard.key_name_any,
 				newName);
-		mcr_String_free(&ctx->standard.key_name_any);
+		mcr_String_deinit(&ctx->standard.key_name_any);
 		return 0;
 	}
 	if (newName)
@@ -184,13 +187,13 @@ int mcr_Key_map(struct mcr_context *ctx, int keyCode,
 
 int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode)
 {
-	int ret;
+	int err;
 	if (keyCode == newCode)
 		return 0;
-	ret = mcr_Key_set_name(ctx, newCode, mcr_Key_name(ctx, keyCode));
-	if (!ret)
+	err = mcr_Key_set_name(ctx, newCode, mcr_Key_name(ctx, keyCode));
+	if (!err)
 		return mcr_Key_set_name(ctx, keyCode, NULL);
-	return ret;
+	return err;
 }
 
 int mcr_Key_rename(struct mcr_context *ctx, const char *oldName,
@@ -214,70 +217,79 @@ void mcr_Key_clear(struct mcr_context *ctx)
 unsigned int mcr_Key_mod(struct mcr_context *ctx, int key)
 {
 	unsigned int *found =
-		mcr_BiMap_first(&ctx->standard.key_modifiers, &key);
+		mcr_Map_value(&ctx->standard.map_key_modifier, &key);
 	return found ? *found : MCR_MOD_ANY;
 }
 
 int mcr_Key_mod_key(struct mcr_context *ctx, unsigned int modifier)
 {
-	int *found = mcr_BiMap_second(&ctx->standard.key_modifiers, &modifier);
+	int *found = mcr_Map_value(&ctx->standard.map_modifier_key, &modifier);
 	return found ? *found : MCR_KEY_ANY;
 }
 
 size_t mcr_Key_mod_count(struct mcr_context * ctx)
 {
-	return ctx->standard.key_modifiers.first.set.used;
+	return ctx->standard.map_key_modifier.set.used;
 }
 
 void mcr_Key_mod_all(struct mcr_context *ctx, unsigned int *modBuffer,
 	size_t bufferLength)
 {
-	size_t i = ctx->standard.key_modifiers.first.set.used;
+	size_t i = ctx->standard.map_key_modifier.set.used;
 	unsigned int *modPt;
 	if (!modBuffer)
 		return;
 	if (bufferLength < i)
 		i = bufferLength;
 	while (i--) {
-		modPt = MCR_ARR_ELEMENT(ctx->standard.key_modifiers.first.set,
-			i);
+		modPt = MCR_ARR_ELEMENT(ctx->standard.map_key_modifier.set, i);
 		modBuffer[i] = *modPt;
 	}
 }
 
 void mcr_Key_mod_clear(struct mcr_context *ctx)
 {
-	mcr_Map_clear(&ctx->standard.key_modifiers.first);
-	mcr_Map_clear(&ctx->standard.key_modifiers.second);
+	mcr_Map_clear(&ctx->standard.map_key_modifier);
+	mcr_Map_clear(&ctx->standard.map_modifier_key);
 }
 
 int mcr_Key_mod_set_key(struct mcr_context *ctx, unsigned int modifiers,
 	int key)
 {
-	return mcr_BiMap_map(&ctx->standard.key_modifiers, &modifiers, NULL,
-		0, &key, NULL, 0);
+	int err =
+		mcr_Map_map(&ctx->standard.map_key_modifier, &key, &modifiers);
+	if (!err)
+		err = mcr_Map_map(&ctx->standard.map_modifier_key, &modifiers,
+			&key);
+	return err;
 }
 
 int mcr_Key_mod_add(struct mcr_context *ctx, unsigned int modifiers, int key)
 {
-	return mcr_BiMap_addsecond(&ctx->standard.key_modifiers, &key,
-		&modifiers, 1);
+	return mcr_Map_map(&ctx->standard.map_modifier_key, &modifiers, &key);
 }
 
 int mcr_Key_mod_map(struct mcr_context *ctx, unsigned int modifiers,
-	int key, const int *addKeys, size_t bufferLen)
+	int key, int *addKeys, size_t bufferLen)
 {
-	return mcr_BiMap_map(&ctx->standard.key_modifiers, &modifiers, NULL,
-		0, &key, addKeys, bufferLen);
+	int err = mcr_Key_mod_set_key(ctx, modifiers, key);
+	if (!err)
+		err = mcr_Map_fill(&ctx->standard.map_key_modifier, addKeys,
+			bufferLen, &modifiers);
+	return err;
 }
 
 int mcr_Key_mod_rekey(struct mcr_context *ctx, int oldKey, int newKey)
 {
+	int err;
 	unsigned int *modPt =
-		mcr_BiMap_first(&ctx->standard.key_modifiers, &oldKey);
+		mcr_Map_value(&ctx->standard.map_key_modifier, &oldKey);
 	if (modPt) {
-		mcr_BiMap_remsecond(&ctx->standard.key_modifiers, &oldKey, 0);
-		return mcr_Key_mod_set_key(ctx, *modPt, newKey);
+		if ((err = mcr_Map_map(&ctx->standard.map_modifier_key, modPt,
+					&newKey)))
+			return err;
+		return mcr_Map_remap(&ctx->standard.map_key_modifier, &oldKey,
+			&newKey);
 	}
 	return 0;
 }
@@ -285,89 +297,187 @@ int mcr_Key_mod_rekey(struct mcr_context *ctx, int oldKey, int newKey)
 int mcr_Key_mod_remod(struct mcr_context *ctx, unsigned int modifiers,
 	unsigned int newMods)
 {
-	int *found = mcr_BiMap_second(&ctx->standard.key_modifiers, &modifiers);
+	int err;
+	int *found = mcr_Map_value(&ctx->standard.map_modifier_key, &modifiers);
 	if (found) {
-		mcr_BiMap_remfirst(&ctx->standard.key_modifiers, &modifiers, 0);
-		return mcr_Key_mod_set_key(ctx, newMods, *found);
+		if ((err = mcr_Map_map(&ctx->standard.map_key_modifier, found,
+					&newMods)))
+			return err;
+		return mcr_Map_remap(&ctx->standard.map_modifier_key,
+			&modifiers, &newMods);
 	}
 	return 0;
 }
 
 void mcr_Key_mod_trim(struct mcr_context *ctx)
 {
-	mcr_Map_trim(&ctx->standard.key_modifiers.first);
-	mcr_Map_trim(&ctx->standard.key_modifiers.second);
+	mcr_Map_trim(&ctx->standard.map_key_modifier);
+	mcr_Map_trim(&ctx->standard.map_modifier_key);
 }
 
-#define keyVals(keyPt, keyOut, scanOut, upOut) \
-keyOut = MCR_KEY_KEY(*keyPt); \
-scanOut = MCR_KEY_SCAN(*keyPt); \
-upOut = MCR_KEY_UP_TYPE(*keyPt);
+static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
+	int scan, void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
+{
+	/* first map int => map, second unsigned => dispatch array */
+	struct mcr_Map *scanMapPt;
+	struct mcr_Array *arrPt;
+	struct mcr_DispatchPair dispPair = { newTrigger, receiveFnc };
+	scanMapPt = mcr_Map_element_ensured(keyMap, &key);
+	if (!scanMapPt)
+		return mcr_error();	// Expect ENOMEM
+	scanMapPt = MCR_MAP_VALUEOF(*keyMap, scanMapPt);
+	arrPt = mcr_Map_element_ensured(scanMapPt, &scan);
+	if (!arrPt)
+		return mcr_error();	// Expect ENOMEM
+	if ((arrPt = MCR_MAP_VALUEOF(*scanMapPt, arrPt))) {
+		/* Multiple object references may exist */
+		return mcr_Array_add(arrPt, &dispPair, 1, false);
+	}
+	return mcr_error();	// Expect ENOMEM
+}
 
 /* Key */
 static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
 {
-	dassert(newTrigger);
-	struct mcr_DispatchMap *dispMapPt =
-		&((struct mcr_CtxDispatcher *)dispDataPt)->dispatcher.map;
-	int keys[] = {
-		MCR_KEY_ANY, MCR_KEY_ANY, MCR_BOTH
-	};
+	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Key *keyPt = mcr_Key_data(signalPt);
-	void *keyPtArr[] = {
-		keys + 0, keys + 1, keys + 2
-	};
+	unsigned int upType;
+	int err;
+	struct mcr_Map *dispMaps = dispPt->ctx->standard.key_dispatcher_maps;
+	/* mcr_Trigger_receive requires an object */
+	dassert(newTrigger || receiveFnc);
+	if (!receiveFnc)
+		receiveFnc = mcr_Trigger_receive;
 	if (keyPt) {
-		keyVals(keyPt, keys[0], keys[1], keys[2]);
+		upType = MCR_KEY_UP_TYPE(*keyPt);
+		if (upType < MCR_BOTH)
+			return mcr_Key_Dispatcher_add_keys(dispMaps + upType,
+				MCR_KEY_KEY(*keyPt), MCR_KEY_SCAN(*keyPt),
+				newTrigger, receiveFnc);
+		/* Generic up, add to both */
+		if ((err = mcr_Key_Dispatcher_add_keys(dispMaps,
+					MCR_KEY_KEY(*keyPt),
+					MCR_KEY_SCAN(*keyPt), newTrigger,
+					receiveFnc)))
+			return err;
+		return mcr_Key_Dispatcher_add_keys(dispMaps + 1,
+			MCR_KEY_KEY(*keyPt), MCR_KEY_SCAN(*keyPt), newTrigger,
+			receiveFnc);
 	}
-	return mcr_DispatchMap_add(dispMapPt, keyPtArr, newTrigger, receiveFnc);
+	/* Generic up, add to both */
+	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY,
+				MCR_KEY_ANY, newTrigger, receiveFnc)))
+		return err;
+	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY,
+		MCR_KEY_ANY, newTrigger, receiveFnc);
 }
 
-static void mcr_Key_Dispatcher_clear(void *dispDataPt)
+static int mcr_Key_Dispatcher_clear(void *dispDataPt)
 {
-	mcr_DispatchMap_clear(&((struct mcr_CtxDispatcher *)
-			dispDataPt)->dispatcher.map);
+	struct mcr_CtxDispatcher *dispPt = dispDataPt;
+	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
+	/* Down, up, and generic */
+	mcr_Map_clear(maps++);
+	mcr_Map_clear(maps++);
+	mcr_Map_clear(maps);
+	return 0;
 }
 
-static const int _genKeys[] = { MCR_KEY_ANY, MCR_KEY_ANY, MCR_BOTH };
-static const void *_genKeyPtArr[] =
-	{ _genKeys + 0, _genKeys + 1, _genKeys + 2 };
+/* Optimize this function as much as possible, TODO: iterator instead of
+ * "for each" */
 static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 	struct mcr_Signal *signalPt, unsigned int mods)
 {
-	struct mcr_DispatchMap *dispMapPt =
-		&((struct mcr_CtxDispatcher *)dispDataPt)->dispatcher.map;
-	struct mcr_Key *keyPt = mcr_Key_data(signalPt);
-	int keys[] = {
-		MCR_KEY_ANY, MCR_KEY_ANY, MCR_BOTH
-	};
-	const void *keyPtArr[] = {
-		keys + 0, keys + 1, keys + 2
-	};
-	struct mcr_Map *maps[] = { &dispMapPt->map, NULL, NULL };
-	bool isGen[] = { false, false, false };
-	bool isSpecHandled[3];
-	bool isGenHandled[3];
-	dassert(dispDataPt);
-	dassert(signalPt);
-	if (keyPt) {
-		keyVals(keyPt, keys[0], keys[1], keys[2]);
-		if (keys[0] != MCR_KEY_ANY)
-			isGen[0] = false;
-		if (keys[1] != MCR_KEY_ANY)
-			isGen[1] = false;
-		if (keys[2] != MCR_BOTH)
-			isGen[2] = false;
+#define localDispAll(itPt) \
+	if (((struct mcr_DispatchPair *)itPt)->dispatch(*(void **)itPt, signalPt, mods)) \
+		return true;
+#define localDispArrPt \
+	if (arrPt) { \
+		MCR_ARR_FOR_EACH(*arrPt, localDispAll); \
 	}
-	return mcr_DispatchMap_dispatch(dispMapPt, signalPt, mods, keyPtArr,
-		_genKeyPtArr, maps, isSpecHandled, isGenHandled, isGen);
+#define localDispScanMap(mapPt, scanKey) \
+	if (mapPt) { \
+		if (scanKey != MCR_KEY_ANY) { \
+			arrPt = mcr_Map_value(mapPt, \
+				&scanKey); \
+			localDispArrPt; \
+		} \
+		arrPt = mcr_Map_value(mapPt, \
+			&mcr_Key_gen_key); \
+		localDispArrPt; \
+	}
+
+	struct mcr_CtxDispatcher *dispMapPt = dispDataPt;
+	struct mcr_Key *keyPt = mcr_Key_data(signalPt);
+	struct mcr_Map *maps = dispMapPt->ctx->standard.key_dispatcher_maps;
+	struct mcr_Map *scanMapPt;
+	struct mcr_Array *arrPt;
+	int key;
+	unsigned int scan, upType;
+	dassert(dispDataPt);
+	if (keyPt) {
+		key = MCR_KEY_KEY(*keyPt);
+		scan = MCR_KEY_SCAN(*keyPt);
+		upType = MCR_KEY_UP_TYPE(*keyPt);
+		if (upType < MCR_BOTH) {
+			/* Specific up type */
+			if (key != MCR_KEY_ANY) {
+				/* specific: up, key, spec+gen: scan */
+				scanMapPt = mcr_Map_value(maps + upType, &key);
+				localDispScanMap(scanMapPt, scan);
+			}
+			/* specific: up, gen: key, spec+gen: scan */
+			scanMapPt =
+				mcr_Map_value(maps + upType, &mcr_Key_gen_key);
+			localDispScanMap(scanMapPt, scan);
+		} else {
+			/* Generic up type */
+			if (key != MCR_KEY_ANY) {
+				/* specific: key, spec+gen: scan */
+				/* down */
+				scanMapPt = mcr_Map_value(maps, &key);
+				localDispScanMap(scanMapPt, scan);
+				/* and up */
+				scanMapPt = mcr_Map_value(maps + 1, &key);
+				localDispScanMap(scanMapPt, scan);
+			}
+			/* gen: key, spec+gen: scan */
+			/* down */
+			scanMapPt = mcr_Map_value(maps, &mcr_Key_gen_key);
+			localDispScanMap(scanMapPt, scan);
+			/* and up */
+			scanMapPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);
+			localDispScanMap(scanMapPt, scan);
+			return false;
+		}
+	}
+	/* all generic, TODO: Generic receivers will receive twice */
+	scanMapPt = mcr_Map_value(maps, &mcr_Key_gen_key);
+	if (scanMapPt) {
+		arrPt = mcr_Map_value(scanMapPt, &mcr_Key_gen_key);
+		localDispArrPt;
+	}
+	scanMapPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);
+	if (scanMapPt) {
+		arrPt = mcr_Map_value(scanMapPt, &mcr_Key_gen_key);
+		localDispArrPt;
+	}
+	return false;
+#undef localDispScanMap
+#undef localDispArrPt
+#undef localDispAll
 }
 
-static void mcr_Key_Dispatcher_free(void *dispDataPt)
+static int mcr_Key_Dispatcher_deinit(void *dispDataPt)
 {
-	mcr_DispatchMap_free(&((struct mcr_CtxDispatcher *)
-			dispDataPt)->dispatcher.map);
+	struct mcr_CtxDispatcher *dispPt = dispDataPt;
+	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
+	/* Down, up, and generic */
+	mcr_Map_deinit(maps++);
+	mcr_Map_deinit(maps++);
+	mcr_Map_deinit(maps);
+	return 0;
 }
 
 static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
@@ -375,14 +485,13 @@ static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 {
 	dassert(dispDataPt);
 	dassert(modsPt);
-	struct mcr_context *ctx =
-		((struct mcr_CtxDispatcher *)dispDataPt)->mcr_pt;
+	struct mcr_context *ctx = ((struct mcr_CtxDispatcher *)dispDataPt)->ctx;
 	struct mcr_Key *keyPt = mcr_Key_data(sigPt);
 	int key;
 	unsigned int *found;
 	if (keyPt) {
 		key = MCR_KEY_KEY(*keyPt);
-		found = mcr_BiMap_first(&ctx->standard.key_modifiers, &key);
+		found = mcr_Map_value(&ctx->standard.map_key_modifier, &key);
 		if (found) {
 			switch (MCR_KEY_UP_TYPE(*keyPt)) {
 			case MCR_DOWN:
@@ -406,58 +515,118 @@ static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	}
 }
 
-static void mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger)
+static void mcr_Key_Dispatcher_scan_map_remove(struct mcr_Map *scanMap,
+	void *delTrigger)
 {
-	dassert(delTrigger);
-	mcr_DispatchMap_remove(&((struct mcr_CtxDispatcher *)
-			dispDataPt)->dispatcher.map, delTrigger);
+	struct mcr_Array *arrPt;
+#define localRemove(itPt) \
+	arrPt = (struct mcr_Array *)itPt; \
+	mcr_Array_remove(arrPt, &delTrigger);
+	MCR_MAP_FOR_EACH_VALUE(*scanMap, localRemove);
+#undef localRemove
 }
 
-static void mcr_Key_Dispatcher_trim(void *dispDataPt)
+static int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger)
 {
-	mcr_DispatchMap_remove_empties(&((struct mcr_CtxDispatcher *)
-			dispDataPt)->dispatcher.map, true);
+#define localRemove(itPt) \
+	mcr_Key_Dispatcher_scan_map_remove((struct mcr_Map *)itPt, delTrigger)
+	struct mcr_CtxDispatcher *dispPt = dispDataPt;
+	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
+	MCR_MAP_FOR_EACH_VALUE(maps[0], localRemove);
+	MCR_MAP_FOR_EACH_VALUE(maps[1], localRemove);
+	return 0;
+#undef localRemove
 }
 
-/* Library initializer and cleanup. */
+static void mcr_Key_Dispatcher_remove_empties(struct mcr_Map *mapPt)
+{
+	char *firstPt, *itPt;
+	size_t bytes, valSize = mapPt->value_size;
+	struct mcr_Array *arrPt;
+	struct mcr_Map *mapElement;
+	mcr_Map_iter_range(mapPt, &firstPt, &itPt, &bytes, 0, mapPt->set.used);
+	if (firstPt && itPt) {
+		while (itPt >= firstPt) {
+			if (valSize == sizeof(struct mcr_Map)) {
+				/* Values are maps, remove their mapped empties */
+				mapElement = MCR_MAP_VALUEOF(*mapPt, itPt);
+				mcr_Key_Dispatcher_remove_empties(mapElement);
+				if (!mapElement->set.used)
+					mcr_Map_unmap(mapPt, itPt);
+			} else {
+				arrPt = MCR_MAP_VALUEOF(*mapPt, itPt);
+				if (!arrPt->used)
+					mcr_Map_unmap(mapPt, itPt);
+			}
+			itPt -= bytes;
+		}
+	}
+}
+
+static int mcr_Key_Dispatcher_trim(void *dispDataPt)
+{
+	struct mcr_CtxDispatcher *dispPt = dispDataPt;
+	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
+	mcr_Key_Dispatcher_remove_empties(maps);
+	mcr_Key_Dispatcher_remove_empties(maps + 1);
+	return 0;
+}
+
+static int mcr_Key_init_scan_map(void *mapPt)
+{
+	if (mapPt) {
+		mcr_Map_init(mapPt);
+		mcr_Map_set_all(mapPt, sizeof(unsigned int), 0,
+			mcr_unsigned_compare, NULL,
+			mcr_Array_DispatchPair_interface());
+	}
+	return 0;
+}
+
+/* Library initializer and deinitialize. */
 int mcr_Key_initialize(struct mcr_context *ctx)
 {
-	struct mcr_CtxDispatcher *dispPt = &ctx->standard.key_dispatcher;
-	struct mcr_DispatchMap *mapPt = &dispPt->dispatcher.map;
-	struct mcr_Interface keyTriggers[3];
-	size_t i = 3;
+	struct mcr_mod_standard *standard = &ctx->standard;
 	int err = 0;
-	mcr_BiMap_init(&ctx->standard.key_modifiers);
-	mcr_BiMap_set_all(&ctx->standard.key_modifiers, sizeof(unsigned int),
-		sizeof(int), mcr_unsigned_compare, mcr_int_compare, NULL, NULL);
-	while (i--) {
-		mcr_iinit(keyTriggers + i);
-		mcr_iset_all(keyTriggers + i, mcr_int_compare, NULL,
-			sizeof(int), NULL, NULL);
-	}
-	mcr_Dispatcher_set_all((struct mcr_Dispatcher *)dispPt,
+	mcr_Dispatcher_set_all(&standard->key_dispatcher.dispatcher,
 		mcr_Key_Dispatcher_add, mcr_Key_Dispatcher_clear,
-		mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_free,
+		mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_deinit,
 		mcr_Key_Dispatcher_modifier, mcr_Key_Dispatcher_remove,
 		mcr_Key_Dispatcher_trim);
-	mcr_DispatchMap_init(mapPt);
-	dispPt->mcr_pt = ctx;
-	if ((err = mcr_DispatchMap_set_all(mapPt, keyTriggers, 3)))
+	standard->key_dispatcher.ctx = ctx;
+	standard->scan_map_interface =
+		mcr_Interface_new(sizeof(struct mcr_Map), mcr_Key_init_scan_map,
+		mcr_Map_deinit, NULL, NULL);
+	standard->key_dispatcher_maps[0] = standard->key_dispatcher_maps[1] =
+		mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
+		&standard->scan_map_interface);
+	standard->map_key_modifier = mcr_Map_new(sizeof(int),
+		sizeof(unsigned int), mcr_int_compare, NULL, NULL);
+	standard->map_modifier_key = mcr_Map_new(sizeof(unsigned int),
+		sizeof(int), mcr_unsigned_compare, NULL, NULL);
+	if ((err = mcr_Dispatcher_register(ctx, &standard->key_dispatcher,
+				mcr_iKey(ctx)->interface.id)))
 		return err;
-	mcr_StringIndex_init(&ctx->standard.key_name_index);
-	mcr_String_init(&ctx->standard.key_name_any);
-	if ((err = mcr_String_replace(&ctx->standard.key_name_any, "Any")))
+	mcr_StringIndex_init(&standard->key_name_index);
+	mcr_String_init(&standard->key_name_any);
+	if ((err = mcr_String_replace(&standard->key_name_any, "Any")))
 		return err;
 	return err;
 }
 
-void mcr_Key_cleanup(struct mcr_context *ctx)
+int mcr_Key_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_CtxDispatcher *dispPt = &ctx->standard.key_dispatcher;
-	mcr_StringIndex_free(&ctx->standard.key_name_index);
-	mcr_String_free(&ctx->standard.key_name_any);
-	mcr_DispatchMap_free(&dispPt->dispatcher);
-	mcr_BiMap_free(&ctx->standard.key_modifiers);
+	int err;
+	struct mcr_mod_standard *standard = &ctx->standard;
+	mcr_StringIndex_deinit(&standard->key_name_index);
+	mcr_String_deinit(&standard->key_name_any);
+	if ((err = mcr_Map_deinit(standard->key_dispatcher_maps)))
+		return err;
+	if ((err = mcr_Map_deinit(standard->key_dispatcher_maps + 1)))
+		return err;
+	if ((err = mcr_Map_deinit(&standard->map_key_modifier)))
+		return err;
+	return mcr_Map_deinit(&standard->map_modifier_key);
 }
 
 struct mcr_ISignal *mcr_iKey(struct mcr_context *ctx)

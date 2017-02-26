@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,8 +17,9 @@
 */
 
 /*! \file
- * \brief Interface for signals, and signal structure of
- * interface and data. Use signal with \ref mcr_send.
+ * \brief \ref mcr_ISignal - Interface for signals.
+ *
+ * Use signals with \ref mcr_send.
  */
 
 #ifndef MCR_ISIGNAL_H
@@ -29,26 +30,23 @@
 /* Types */
 struct mcr_Signal;
 struct mcr_Dispatcher;
-/*!
- * \brief Function to send or dispatch signal
+/*! \brief Function to send or dispatch signal
  *
- * \param signalData Signal to send
- * \return \ref reterr for actions with errors
+ * \param signalPt Signal to send
+ * \return \ref reterr for actions with errors, 0 for no error
  */
-typedef int (*mcr_signal_fnc) (struct mcr_Signal * signalData);
+typedef int (*mcr_signal_fnc) (struct mcr_Signal * signalPt);
 
-/*!
- * \brief Signal interface, common members for unique signal type
+/*! \brief Interface for signal types
  *
  * Logically a signal should be anything that can be dispatched
  * to another entity, or sent to cause an action.
  */
 struct mcr_ISignal {
 	/*! \brief Common members for interface registration */
-	struct mcr_Interface iface;
-	/* Internal */
-	/*!
-	 * \brief Intercept before sending. Returns 0
+	struct mcr_Interface interface;
+	/* Signal interface */
+	/*! \brief Intercept before sending. Returns false
 	 * to not block signals from sending, otherwise do block the signal.
 	 */
 	struct mcr_Dispatcher *dispatcher;
@@ -56,23 +54,56 @@ struct mcr_ISignal {
 	mcr_signal_fnc send;
 };
 
-/* Signal development: Add signal type to end, get signal type, */
-/*! ctor */
-MCR_API void mcr_ISignal_init(void *data);
-/*!
- * \brief Set all values of isignal.
+/*! \brief \ref mcr_ISignal ctor
+ *
+ * \param isigPt \ref opt \ref mcr_ISignal
+ * \return 0
+ */
+MCR_API int mcr_ISignal_init(void *isigPt);
+/*! \brief \ref mcr_ISignal_init and mcr_ISignal_set_all
+ *
+ * \param dispPt \ref opt \ref mcr_ISignal.dispatcher
+ * \param sender \ref opt \ref mcr_ISignal.send
+ * \return Newly created mcr_ISignal
+ */
+MCR_API struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
+	mcr_signal_fnc sender);
+/*! \brief Set initial values
  *
  * Please use \ref mcr_iset_all for interface values.
- * \param dispPt \ref mcr_ISignal.dispatcher (opt)
- * \param libmacro \ref mcr_ISignal.libmacro
- * \param sender \ref mcr_ISignal.send (opt)
+ * \param dispPt \ref opt \ref mcr_ISignal.dispatcher
+ * \param sender \ref opt \ref mcr_ISignal.send
  */
-MCR_API void mcr_ISignal_set_all(struct mcr_ISignal *newType,
+MCR_API void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
 	struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
 
+/*! \brief Get the \ref mcr_IRegistry of \ref mcr_ISignal */
 MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
+/*! \brief Get the id of a mcr_ISignal.
+ *
+ * \param isigPt \ref opt \ref mcr_ISignal *
+ * \return \ref retid
+ */
+#define mcr_ISignal_id(isigPt) mcr_iid(isigPt)
+/*! \brief Get the name of a mcr_ISignal.
+ *
+ * \param isigPt \ref opt
+ * \return Name of the mcr_ISignal, or null if not found
+ */
+MCR_API const char *mcr_ISignal_name(struct mcr_context *ctx,
+	struct mcr_ISignal *isigPt);
+/*! \brief Get a \ref mcr_ISignal from its id
+ *
+ * \param id Id of the signal interface
+ * \return Signal interface, or null if not found
+ */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_id(struct mcr_context *ctx,
 	size_t id);
+/*! \brief Get a \ref mcr_ISignal from its name
+ *
+ * \param name \ref opt Name of the signal interface
+ * \return Signal interface, or null if not found
+ */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_name(struct mcr_context *ctx,
 	const char *name);
 

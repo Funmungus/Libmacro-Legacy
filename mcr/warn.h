@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,13 @@
 */
 
 /*! \file
- * Raise warning in linux/gcc
+ * Raise a compiler warning
  */
 
-#warning Warning message below:
+#ifdef __GNUC__
+#warning Warning!
+#elif __clang__
+#pragma GCC warning "Warning!"
+#else
+#pragma message "Warning Msg: Warning!"
+#endif

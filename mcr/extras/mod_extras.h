@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,14 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*! \file
+ * \brief \ref mcr_mod_extras - Extras module
+ */
+
 #ifndef MCR_MOD_EXTRAS_H
 #define MCR_MOD_EXTRAS_H
 
 #include "mcr/standard/mod_standard.h"
 
+/*! \brief Extras module */
 struct mcr_mod_extras {
+	/*! \brief Signal interface for \ref mcr_Command */
 	struct mcr_ISignal icommand;
+	/*! \brief Signal interface for \ref mcr_StringKey */
 	struct mcr_CtxISignal istring_key;
+	/*! \brief Each element is an array of \ref mcr_Signal.
+	 *
+	 * This defines the behaviour of each character found in a
+	 * \ref mcr_StringKey */
 	struct mcr_Array key_chars;
 };
 

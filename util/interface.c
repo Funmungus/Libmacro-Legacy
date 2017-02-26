@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -22,99 +22,199 @@
 #include <stdlib.h>
 #include <string.h>
 
-void mcr_iinit(void *ifaceDataPt)
+struct mcr_Data mcr_Data_new(void *dataPt, void (*deallocate) (void *))
 {
-	if (ifaceDataPt) {
-		memset(ifaceDataPt, 0, sizeof(struct mcr_Interface));
-		((struct mcr_Interface *)ifaceDataPt)->id = ~0;
-	}
+	struct mcr_Data ret = { 0 };
+	if (dataPt)
+		ret.data = dataPt;
+	if (deallocate)
+		ret.deallocate = deallocate;
+	return ret;
 }
 
-void mcr_iset_all(void *ifaceDataPt,
-	mcr_compare_fnc compare,
-	mcr_copy_fnc copy,
-	size_t dataSize, mcr_data_fnc init, mcr_data_fnc free)
+int mcr_Interface_init(void *interfacePt)
 {
-	struct mcr_Interface *iPt = ifaceDataPt;
-	dassert(ifaceDataPt);
-	iPt->compare = compare;
-	iPt->copy = copy;
-	iPt->data_size = dataSize;
-	iPt->init = init;
-	iPt->free = free;
-}
-
-struct mcr_Data mcr_imkdata(const void *ifaceDataPt)
-{
-	const struct mcr_Interface *iPt = ifaceDataPt;
-	struct mcr_Data data = { 0 };
-	if (iPt) {
-		MCR_IMKDATA(*iPt, data);
-	}
-	return data;
-}
-
-struct mcr_Data mcr_iref_mkdata(const void *const *ifaceDataPtPt)
-{
-	return ifaceDataPtPt ? mcr_imkdata(*ifaceDataPtPt) : mcr_imkdata(NULL);
-}
-
-void mcr_ifree(const void *ifaceDataPt, struct mcr_Data *dataPt)
-{
-	const struct mcr_Interface *iPt = ifaceDataPt;
-	if (iPt && dataPt) {
-		MCR_IFREE(*iPt, *dataPt);
-		dataPt->data = NULL;
-	}
-}
-
-int mcr_icpy(const void *ifaceDataPt, struct mcr_Data *dstPt,
-	struct mcr_Data *srcPt)
-{
-	const struct mcr_Interface *iPt = ifaceDataPt;
-	dassert(iPt);
-	dassert(dstPt);
-	if (srcPt->data == dstPt->data)
-		return 0;
-	if (srcPt && srcPt->data) {
-		if (!dstPt->data) {
-			MCR_IMKDATA(*iPt, *dstPt);
-			if (!dstPt->data) {
-				mset_error(ENOMEM);
-				return -ENOMEM;
-			}
-		}
-		if (iPt->copy)
-			return iPt->copy(dstPt->data, srcPt->data);
-		else
-			memcpy(dstPt->data, srcPt->data, iPt->data_size);
-	} else {
-		MCR_IFREE(*iPt, *dstPt);
-		dstPt->data = NULL;
+	if (interfacePt) {
+		memset(interfacePt, 0, sizeof(struct mcr_Interface));
+		((struct mcr_Interface *)interfacePt)->id = ~0;
 	}
 	return 0;
 }
 
-int mcr_icmp(const void *ifaceDataPt, const struct mcr_Data *lhs,
+struct mcr_Interface mcr_Interface_new(size_t dataSize,
+	mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
+	mcr_copy_fnc copy)
+{
+	struct mcr_Interface ret = { 0 };
+	ret.data_size = dataSize;
+	if (init)
+		ret.init = init;
+	if (deinit)
+		ret.deinit = deinit;
+	if (compare)
+		ret.compare = compare;
+	if (copy)
+		ret.copy = copy;
+	return ret;
+}
+
+void mcr_Interface_set_all(void *interfacePt, size_t dataSize,
+	mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
+	mcr_copy_fnc copy)
+{
+	struct mcr_Interface *iPt = interfacePt;
+	dassert(interfacePt);
+	iPt->data_size = dataSize;
+	iPt->init = init;
+	iPt->deinit = deinit;
+	iPt->compare = compare;
+	iPt->copy = copy;
+}
+
+int mcr_iinit(const void *interfacePt, struct mcr_Data *dataPt)
+{
+	const struct mcr_Interface *iPt = interfacePt;
+	int err;
+	if (!dataPt)
+		return 0;
+	if (!iPt) {
+		dataPt->data = dataPt->deallocate = NULL;
+		return 0;
+	}
+	if ((dataPt->data = malloc(iPt->data_size))) {
+		dataPt->deallocate = free;
+		if (iPt->init) {
+			if ((err = iPt->init(dataPt->data))) {
+				mset_error(err);
+				return err;
+			}
+		} else {
+			memset(dataPt->data, 0, iPt->data_size);
+		}
+	} else {
+		mset_error(ENOMEM);
+		return ENOMEM;
+	}
+	return 0;
+}
+
+int mcr_iref_init(const void *const *interfacePtPt, struct mcr_Data *dataPt)
+{
+	return interfacePtPt ? mcr_iinit(*interfacePtPt, dataPt) :
+		mcr_iinit(NULL, dataPt);
+}
+
+int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt)
+{
+	const struct mcr_Interface *iPt = interfacePt;
+	int err;
+	if (!dataPt)
+		return 0;
+	if (iPt) {
+		if (dataPt->data) {
+			if (iPt->deinit && (err = iPt->deinit(dataPt->data))) {
+				mset_error(err);
+				return err;
+			}
+			/* Set data null */
+			MCR_DATA_FREE(*dataPt);
+		}
+	} else {
+		MCR_DATA_FREE(*dataPt);
+	}
+	return 0;
+}
+
+int mcr_icmp(const void *interfacePt, const struct mcr_Data *lhs,
 	const struct mcr_Data *rhs)
 {
-	const struct mcr_Interface *iPt = ifaceDataPt;
+	const struct mcr_Interface *iPt = interfacePt;
 	dassert(iPt);
-	if (rhs) {
-		if (lhs) {
-			return MCR_ICMP(*iPt, *lhs, *rhs);
+	if (rhs && rhs->data) {
+		if (lhs && lhs->data) {
+			if (iPt->compare)
+				return iPt->compare(lhs->data, rhs->data);
+			return memcmp(lhs->data, rhs->data, iPt->data_size);
 		}
 		return -1;
 	}
-	return ! !lhs;
+	return lhs && lhs->data;
 }
 
-void mcr_iset_data(const void *ifaceDataPt, struct mcr_Data *dataPt,
-	void *data, mcr_data_fnc deallocate)
+int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
+	struct mcr_Data *srcPt)
 {
-	const struct mcr_Interface *iPt = ifaceDataPt;
+	const struct mcr_Interface *iPt = interfacePt;
+	int err;
 	dassert(iPt);
-	if (dataPt) {
-		MCR_ISET_DATA(*iPt, *dataPt, data, deallocate);
+	dassert(dstPt);
+	/* Same object */
+	if (srcPt->data == dstPt->data)
+		return 0;
+	/* Nothing to copy if data size is 0 */
+	if (!iPt->data_size)
+		return 0;
+	if (srcPt && srcPt->data) {
+		/* Create an object to copy into, if it does not exist */
+		if (!dstPt->data && (err = mcr_iinit(iPt, dstPt))) {
+			mset_error(err);
+			return err;
+		}
+		if (iPt->copy)
+			return iPt->copy(dstPt->data, srcPt->data);
+		memcpy(dstPt->data, srcPt->data, iPt->data_size);
+		return 0;
 	}
+	/* No source, only free */
+	return mcr_ideinit(iPt, dstPt);
+}
+
+int mcr_iset_data(const void *interfacePt, struct mcr_Data *dataPt,
+	void *data, void (*deallocate) (void *))
+{
+	const struct mcr_Interface *iPt = interfacePt;
+	int err;
+	dassert(iPt);
+	if (!dataPt)
+		return 0;
+	/* Set new data */
+	if (dataPt->data != data) {
+		/* Free existing date */
+		if (dataPt->data && iPt->deinit &&
+			(err = iPt->deinit(dataPt->data))) {
+			mset_error(err);
+			return err;
+		}
+		MCR_DATA_FREE(*dataPt);
+		/* Set new */
+		MCR_DATA_SET_ALL(*dataPt, data, deallocate);
+	}
+	return 0;
+}
+
+int mcr_ireset(const void *interfacePt, struct mcr_Data *dataPt)
+{
+	const struct mcr_Interface *iPt = interfacePt;
+	int err;
+	dassert(iPt);
+	if (!dataPt)
+		return 0;
+	if (dataPt->data) {
+		if (iPt->deinit && (err = iPt->deinit(dataPt->data))) {
+			mset_error(err);
+			return err;
+		}
+		if (iPt->init) {
+			if ((err = iPt->init(dataPt->data))) {
+				mset_error(err);
+				return err;
+			}
+		} else {
+			memset(dataPt->data, 0, iPt->data_size);
+		}
+	} else if ((err = mcr_iinit(interfacePt, dataPt))) {
+		mset_error(err);
+		return err;
+	}
+	return 0;
 }

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+#include "mcr/util/c11threads.h"
 #include <errno.h>
 
 unsigned int mcr_bit_index(unsigned int bitval)
@@ -48,7 +49,7 @@ int mcr_thrd_errno(int thrdError)
 		return ENOMEM;
 	case thrd_busy:
 		return EBUSY;
-	case thrd_timeout:
+	case thrd_timedout:
 	case thrd_error:
 		break;
 	}

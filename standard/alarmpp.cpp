@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,8 +16,17 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * Raise warning on Windows
- */
+extern "C" {
+#include "mcr/standard/standard.h"
+}
+#include <thread>
 
-#pragma message("Warning message below:")
+int mcr_Alarm_send_data(mcr_Alarm * dataPt)
+{
+	if (!dataPt)
+		return 0;
+	std::chrono::system_clock::time_point until_time =
+		 std::chrono::system_clock::from_time_t(std::mktime(dataPt));
+	std::this_thread::sleep_until(until_time);
+	return 0;
+}

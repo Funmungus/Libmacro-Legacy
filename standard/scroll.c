@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -35,7 +35,8 @@ void mcr_Scroll_set_dimensions(struct mcr_Scroll *scrollPt,
 	MCR_SCROLL_SET_DIMENSIONS(*scrollPt, pos);
 }
 
-long long mcr_Scroll_coordinate(struct mcr_Scroll *scrollPt, int coordinate)
+long long mcr_Scroll_coordinate(const struct mcr_Scroll *scrollPt,
+	int coordinate)
 {
 	dassert(scrollPt);
 	return MCR_SCROLL_COORDINATE(*scrollPt, coordinate);
@@ -58,11 +59,11 @@ int mcr_Scroll_send(struct mcr_Signal *signalData)
 int mcr_Scroll_compare(const void *lhs, const void *rhs)
 {
 	long long l, r;
-	int ret;
+	int ret, i;
 	if (rhs) {
 		if (lhs) {
 			const struct mcr_Scroll *lPt = lhs, *rPt = rhs;
-			for (int i = MCR_DIMENSION_CNT; i--;) {
+			for (i = MCR_DIMENSION_CNT; i--;) {
 				l = MCR_SCROLL_COORDINATE(*lPt, i);
 				r = MCR_SCROLL_COORDINATE(*rPt, i);
 				if ((ret = MCR_CMP_INTEGRAL(l, r)))
@@ -79,13 +80,14 @@ int mcr_Scroll_copy(void *dstPt, void *srcPt)
 {
 	dassert(dstPt);
 	struct mcr_Scroll *dPt = dstPt, *sPt = srcPt;
+	int i;
 	if (sPt) {
-		for (int i = MCR_DIMENSION_CNT; i--;) {
+		for (i = MCR_DIMENSION_CNT; i--;) {
 			MCR_SCROLL_SET_COORDINATE(*dPt, i,
 				MCR_SCROLL_COORDINATE(*sPt, i));
 		}
 	} else {
-		for (int i = MCR_DIMENSION_CNT; i--;) {
+		for (i = MCR_DIMENSION_CNT; i--;) {
 			MCR_SCROLL_SET_COORDINATE(*dPt, i, 0);
 		}
 	}

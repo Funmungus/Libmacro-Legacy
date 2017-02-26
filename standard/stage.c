@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -50,10 +50,11 @@ int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
 	return mcr_Stage_set_intercept(ctx, stagePt, interceptPt);
 }
 
-void mcr_Stage_free(void *stageDataPt)
+void mcr_Stage_deinit(void *stageDataPt)
 {
 	if (stageDataPt)
-		mcr_Signal_free(&((struct mcr_Stage *)stageDataPt)->intercept);
+		mcr_Signal_deinit(&((struct mcr_Stage *)
+				stageDataPt)->intercept);
 }
 
 bool mcr_Stage_equals(struct mcr_Stage *stagePt,
@@ -77,7 +78,7 @@ bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
 	dassert(interceptPt);
 	return stagePt->matcher.resembles ?
 		stagePt->matcher.resembles(stagePt, interceptPt) :
-		stagePt->intercept.isig == interceptPt->isig;
+		stagePt->intercept.isignal == interceptPt->isignal;
 }
 
 int mcr_Stage_set_intercept(struct mcr_context *ctx,
@@ -87,8 +88,8 @@ int mcr_Stage_set_intercept(struct mcr_context *ctx,
 	struct mcr_IsStage *matchPt;
 	int err;
 	dassert(stagePt);
-	if (interceptPt && interceptPt->isig) {
-		id = mcr_inst_id(interceptPt);
+	if (interceptPt && interceptPt->isignal) {
+		id = mcr_Instance_id(interceptPt);
 		if ((err = mcr_Signal_copy(&stagePt->intercept, interceptPt)))
 			return err;
 		matchPt = mcr_Stage_from_id(ctx, id);
@@ -105,9 +106,9 @@ int mcr_Stage_set_intercept_generic(struct mcr_context *ctx,
 {
 	struct mcr_IsStage *matchPt = ctx->standard.stage_generic;
 	dassert(stagePt);
-	mcr_Signal_free(&stagePt->intercept);
-	stagePt->intercept.isig = NULL;
-	stagePt->intercept.inst.data.data = interceptPt;
+	mcr_Signal_deinit(&stagePt->intercept);
+	stagePt->intercept.isignal = NULL;
+	stagePt->intercept.instance.data.data = interceptPt;
 	set_matcher(stagePt, matchPt);
 	return 0;
 }
@@ -146,7 +147,7 @@ int mcr_Stage_copy(void *dstPt, void *srcPt)
 	dassert(sPt);
 	if (dPt == sPt)
 		return 1;
-	mcr_Signal_free(&dPt->intercept);
+	mcr_Signal_deinit(&dPt->intercept);
 	memcpy(dstPt, srcPt, sizeof(struct mcr_Stage));
 	memset(&dPt->intercept, 0, sizeof(struct mcr_Signal));
 	return mcr_Signal_copy(&dPt->intercept, &sPt->intercept);

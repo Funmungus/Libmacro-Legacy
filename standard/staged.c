@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #include "mcr/modules.h"
 #include <string.h>
 
-void mcr_Staged_init(void *stagedDataPt)
+int mcr_Staged_init(void *stagedDataPt)
 {
 	struct mcr_Staged *stagedPt = stagedDataPt;
 	if (stagedPt) {
@@ -30,6 +30,7 @@ void mcr_Staged_init(void *stagedDataPt)
 		stagedPt->stages.element_size = sizeof(struct mcr_Stage);
 		stagedPt->style = MCR_BS_UNMANAGED;
 	}
+	return 0;
 }
 
 void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
@@ -40,14 +41,14 @@ void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
 	mcr_Staged_set_style(stagedPt, style);
 }
 
-void mcr_Staged_free(void *stagedDataPt)
+int mcr_Staged_deinit(void *stagedDataPt)
 {
 	struct mcr_Staged *stagedPt = stagedDataPt;
 	if (stagedPt) {
-		MCR_ARR_FOR_EACH(stagedPt->stages,
-			MCR_EXP(mcr_Stage_free_foreach),);
-		mcr_Array_free(&stagedPt->stages);
+		MCR_ARR_FOR_EACH(stagedPt->stages, mcr_Stage_deinit);
+		mcr_Array_deinit(&stagedPt->stages);
 	}
+	return 0;
 }
 
 int mcr_Staged_compare(const void *lhs, const void *rhs)
@@ -128,11 +129,11 @@ isToBlock)
 	stages = &stagedPt->stages;
 	if (!stages->used)
 		return localOnComplete;
-	first = MCR_ARR_FIRST(*stages);
+	first = mcr_Array_first(stages);
 	/* At last element. */
-	rit = MCR_ARR_PREV(*stages, MCR_ARR_END(*stages));
+	rit = mcr_Array_prev(stages, mcr_Array_end(stages));
 	/* One before last. */
-	prev = MCR_ARR_PREV(*stages, rit);
+	prev = mcr_Array_prev(stages, rit);
 	/* One element or previous activated, this may complete. */
 	if (stages->used == 1 || prev->activated) {
 		if (mcr_Stage_equals(rit, interceptPt, mods)) {
@@ -144,7 +145,7 @@ isToBlock)
 		if (stages->used == 1)
 			return false;
 		rit = prev;
-		prev = MCR_ARR_PREV(*stages, prev);
+		prev = mcr_Array_prev(stages, prev);
 	}
 	/* Do not check first item for conditional activation, but
 	 *always check it at the end. */
@@ -164,7 +165,7 @@ isToBlock)
 			}
 		}
 		rit = prev;
-		prev = MCR_ARR_PREV(*stages, prev);
+		prev = mcr_Array_prev(stages, prev);
 	}
 	/* Assert: At first element, always reset current activated state */
 	dassert(rit == first);
@@ -191,7 +192,7 @@ void mcr_Staged_set_style(struct mcr_Staged *stagedPt,
 		mcr_Staged_set_blocking(stagedPt, true);
 }
 
-bool mcr_Staged_is_blocking(struct mcr_Staged *stagedPt)
+bool mcr_Staged_is_blocking(const struct mcr_Staged *stagedPt)
 {
 	dassert(stagedPt);
 	return stagedPt->block;
@@ -234,16 +235,16 @@ for (; it < end; it = MCR_ARR_NEXT(stagedPt->stages, it)) \
 
 void mcr_Staged_deactivate(struct mcr_Staged *stagedPt)
 {
-#define localDeactivate(stageIt, ignore) \
+#define localDeactivate(stageIt) \
 ((struct mcr_Stage *)stageIt)->activated = false;
-	MCR_ARR_FOR_EACH(stagedPt->stages, MCR_EXP(localDeactivate),);
+	MCR_ARR_FOR_EACH(stagedPt->stages, localDeactivate);
 #undef localDeactivate
 }
 
 void mcr_Staged_clear(struct mcr_Staged *stagedPt)
 {
 	dassert(stagedPt);
-	MCR_ARR_FOR_EACH(stagedPt->stages, MCR_EXP(mcr_Stage_free_foreach),);
+	MCR_ARR_FOR_EACH(stagedPt->stages, mcr_Stage_deinit);
 	mcr_Array_clear(&stagedPt->stages);
 }
 

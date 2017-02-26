@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -23,9 +23,11 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <string.h>
 
 int mcr_extras_native_initialize(struct mcr_context *ctx)
 {
+	UNUSED(ctx);
 	int err = 0;
 	ERR_load_CRYPTO_strings();
 	OpenSSL_add_all_ciphers();
@@ -42,11 +44,13 @@ int mcr_extras_native_initialize(struct mcr_context *ctx)
 	return 0;
 }
 
-void mcr_extras_native_cleanup(struct mcr_context *ctx)
+int mcr_extras_native_deinitialize(struct mcr_context *ctx)
 {
+	UNUSED(ctx);
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
 	ERR_free_strings();
 
 	RAND_cleanup();
+	return 0;
 }

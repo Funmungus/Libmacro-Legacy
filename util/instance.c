@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,84 +20,98 @@
 #include <stdlib.h>
 #include <string.h>
 
-void mcr_inst_init(void *instDataPt)
+int mcr_Instance_init(void *instPt)
 {
-	memset(instDataPt, 0, sizeof(struct mcr_Instance));
+	if (instPt)
+		memset(instPt, 0, sizeof(struct mcr_Instance));
+	return 0;
 }
 
-void mcr_inst_free(void *instDataPt)
+int mcr_Instance_deinit(void *instPt)
 {
-	struct mcr_Instance *instPt = instDataPt;
-	if (instPt) {
-		MCR_INST_FREE(*instPt);
+	struct mcr_Instance *localPt = instPt;
+	if (localPt)
+		return mcr_ideinit(localPt->interface, &localPt->data);
+	return 0;
+}
+
+int mcr_Instance_set_all(void *instPt, const void *iPt, void *dataPt,
+	void (*deallocate) (void *))
+{
+	struct mcr_Instance *localPt = instPt;
+	int err;
+	dassert(localPt);
+	if ((err = mcr_Instance_set_interface(localPt, iPt)))
+		return err;
+	return mcr_Instance_set_data(instPt, dataPt, deallocate);
+}
+
+int mcr_Instance_set_interface(void *instPt, const void *iPt)
+{
+	struct mcr_Instance *localPt = instPt;
+	int err;
+	dassert(localPt);
+	if ((err = mcr_Instance_deinit(localPt)))
+		return err;
+	localPt->interface = iPt;
+	return 0;
+}
+
+int mcr_Instance_set_data(void *instPt, void *dataPt,
+	void (*deallocate) (void *))
+{
+	struct mcr_Instance *localPt = instPt;
+	dassert(localPt);
+	if (localPt->interface) {
+		return mcr_iset_data(localPt->interface, &localPt->data, dataPt,
+			deallocate);
+	} else {
+		if (mcr_Instance_data(localPt)) {
+			MCR_DATA_FREE(localPt->data);
+		}
+		MCR_DATA_SET_ALL(localPt->data, dataPt, deallocate);
 	}
+	return 0;
 }
 
-void mcr_inst_set_all(void *instDataPt, void *iDataPt, void *dataPt,
-	mcr_data_fnc deallocate)
-{
-	struct mcr_Instance *instPt = instDataPt;
-	if (instPt) {
-		mcr_inst_free(instDataPt);
-		instPt->iface = iDataPt;
-		MCR_DATA_SET_ALL(instPt->data, dataPt, deallocate);
-	}
-}
-
-void mcr_inst_set_iface(void *instDataPt, void *iDataPt)
-{
-	struct mcr_Instance *instPt = instDataPt;
-	if (instPt) {
-		mcr_inst_free(instDataPt);
-		instPt->iface = iDataPt;
-	}
-}
-
-void mcr_inst_set_data(void *instDataPt, void *dataPt, mcr_data_fnc deallocate)
-{
-	struct mcr_Instance *instPt = instDataPt;
-	if (instPt) {
-		MCR_INST_SET_DATA(*instPt, dataPt, deallocate);
-	}
-}
-
-void mcr_inst_reset(void *instDataPt)
-{
-	struct mcr_Instance *instPt = instDataPt;
-	if (instPt) {
-		MCR_INST_RESET(*instPt);
-	}
-}
-
-int mcr_inst_compare(const void *lhsPt, const void *rhsPt)
+int mcr_Instance_compare(const void *lhsPt, const void *rhsPt)
 {
 	const struct mcr_Instance *lhsInst = lhsPt, *rhsInst = rhsPt;
-	if (rhsInst) {
-		if (lhsInst) {
-			if (lhsInst == rhsInst)
-				return 0;
-			return MCR_INST_CMP(*lhsInst, *rhsInst);
+	if (rhsInst && rhsInst->interface) {
+		if (lhsInst && lhsInst->interface) {
+			if (lhsInst->interface == rhsInst->interface)
+				return mcr_icmp(lhsInst->interface, lhsPt,
+					rhsPt);
+			return MCR_CMP_INTEGRAL(mcr_iid(lhsInst->interface),
+				mcr_iid(rhsInst->interface));
 		}
 		return -1;
 	}
-	return ! !lhsInst;
+	return lhsInst && lhsInst->interface;
 }
 
-int mcr_inst_copy(void *dstPt, void *srcPt)
+int mcr_Instance_copy(void *dstPt, void *srcPt)
 {
 	struct mcr_Instance *dstInst = dstPt, *srcInst = srcPt;
+	int err;
 	dassert(dstInst);
 	if (dstInst == srcInst)
 		return 0;
-	if (!srcInst || !srcInst->iface) {
-		MCR_INST_FREE(*dstInst);
-		dstInst->iface = NULL;
-		return 0;
-	}
-	if (dstInst->iface != srcInst->iface) {
-		MCR_INST_FREE(*dstInst);
-		dstInst->iface = srcInst->iface;
-	}
-	dassert(dstInst->iface == srcInst->iface);
-	return mcr_icpy(srcInst->iface, &dstInst->data, &srcInst->data);
+	if (!srcInst || !srcInst->interface)
+		return mcr_Instance_deinit(dstPt);
+	/* Interface exists, make sure it is the same one */
+	if ((err = mcr_Instance_set_interface(dstPt, srcInst->interface)))
+		return err;
+	dassert(dstInst->interface == srcInst->interface);
+	return mcr_icpy(srcInst->interface, &dstInst->data, &srcInst->data);
+}
+
+int mcr_Instance_reset(void *instPt)
+{
+	struct mcr_Instance *localPt = instPt;
+	dassert(localPt);
+	if (localPt->interface)
+		return mcr_ireset(localPt->interface, &localPt->data);
+	MCR_DATA_FREE(localPt->data);
+	return 0;
 }

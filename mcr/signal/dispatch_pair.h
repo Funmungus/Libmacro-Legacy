@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,27 +17,28 @@
 */
 
 /*! \file
- * \brief Receiver and receiving function pair
+ * \brief \ref mcr_DispatchPair - Receiver and receiving function pair which
+ * intercepts signals before they are sent
  */
 
-#ifndef MCR_DISPATCHPAIR_H
-#define MCR_DISPATCHPAIR_H
+#ifndef MCR_DISPATCH_PAIR_H
+#define MCR_DISPATCH_PAIR_H
 
 #include "mcr/signal/def.h"
 
 struct mcr_Signal;
-/*!
- * \brief Receive dispatch before signal is sent
+/*! \brief Receive dispatch before signal is sent
  *
- * \param receiver Object to receive signal
+ * \param receiver Object to receive signal.  The receiver might
+ * be optional for some receiving functions.
  * \param dispatchSignal Intercepted signal
  * \param mods Intercepted modifiers
  * \return true to block sending
  */
 typedef bool(*mcr_Dispatcher_receive_fnc) (void *receiver,
 	struct mcr_Signal * dispatchSignal, unsigned int mods);
-/*!
- * \brief Generic receiver and function that may block or intercept a sending signal
+/*! \brief Generic receiver and function that may block or intercept a sending
+ * signal
  *
  * Receiver is first, to compare with \ref mcr_ref_compare.
  */
@@ -47,15 +48,21 @@ struct mcr_DispatchPair {
 	/*! \brief Function to act on receiver */
 	mcr_Dispatcher_receive_fnc dispatch;
 };
-/*! Compare \ref mcr_DispatchPair, only compare receivers. */
+/*! \brief Create new \ref mcr_DispatchPair
+ *
+ * \param receiver \ref opt \ref mcr_DispatchPair.receiver
+ * \param dispatch \ref opt \ref mcr_DispatchPair.dispatch
+ * \return New \ref mcr_DispatchPair
+ */
+MCR_API struct mcr_DispatchPair mcr_DispatchPar_new(void *receiver,
+	mcr_Dispatcher_receive_fnc dispatch);
+/*! \brief Compare \ref mcr_DispatchPair, only compare receivers. */
 #define mcr_DispatchPair_compare mcr_ref_compare
 
-/*!
- * \brief Helper interface to create \ref mcr_Array
- * of \ref mcr_DispatchPair structures.
+/*! \brief Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
  *
  * Dispatch maps should always end with this array.
  */
-MCR_API const struct mcr_Interface *mcr_Array_DispatchPair_iface();
+MCR_API const struct mcr_Interface *mcr_Array_DispatchPair_interface();
 
 #endif

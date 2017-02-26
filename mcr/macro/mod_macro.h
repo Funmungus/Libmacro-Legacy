@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_mod_macro
+ * \brief \ref mcr_mod_macro - Macro module
  */
 
 #ifndef MCR_MOD_MACRO_H
@@ -25,7 +25,9 @@
 
 #include "mcr/util/util.h"
 
+/*! \brief Macro module */
 struct mcr_mod_macro {
+	/*! \brief \ref mcr_ITrigger registry */
 	struct mcr_IRegistry itriggers;
 };
 

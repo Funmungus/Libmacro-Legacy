@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -22,16 +22,20 @@
 
 int mcr_signal_initialize(struct mcr_context *ctx)
 {
+	int err = mcr_reg_init(mcr_ISignal_reg(ctx));
 	dassert(ctx);
-	mcr_reg_init(mcr_ISignal_reg(ctx));
+	if (err)
+		return err;
 	return mcr_dispatcher_initialize(ctx);
 }
 
-void mcr_signal_cleanup(struct mcr_context *ctx)
+int mcr_signal_deinitialize(struct mcr_context *ctx)
 {
+	int err = mcr_dispatcher_deinitialize(ctx);
 	dassert(ctx);
-	mcr_dispatcher_cleanup(ctx);
-	mcr_reg_free(mcr_ISignal_reg(ctx));
+	if (err)
+		return err;
+	return mcr_reg_deinit(mcr_ISignal_reg(ctx));
 }
 
 int mcr_signal_load_contract(struct mcr_context *ctx)
@@ -41,7 +45,10 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 
 void mcr_signal_trim(struct mcr_context *ctx)
 {
+	struct mcr_Map *modNamesPt, *namesModPt;
 	mcr_reg_trim(mcr_ISignal_reg(ctx));
 	mcr_Dispatcher_trim_all(ctx);
-	mcr_mod_names_trim(ctx);
+	mcr_ModFlags_maps(ctx, &modNamesPt, &namesModPt);
+	mcr_Map_trim(modNamesPt);
+	mcr_Map_trim(namesModPt);
 }

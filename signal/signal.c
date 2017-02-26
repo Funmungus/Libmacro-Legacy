@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
 */
 
 #include "mcr/signal/signal.h"
+#include "mcr/modules.h"
 #include <string.h>
 
 static const struct mcr_Interface _MCR_SIGNAL_IFACE = {
@@ -25,37 +26,61 @@ static const struct mcr_Interface _MCR_SIGNAL_IFACE = {
 	.copy = mcr_Signal_copy,
 	.data_size = sizeof(struct mcr_Signal),
 	.init = mcr_Signal_init,
-	.free = mcr_Signal_free
+	.deinit = mcr_Signal_deinit
 };
 
-const struct mcr_Interface *mcr_Signal_iface()
+const struct mcr_Interface *mcr_Signal_interface()
 {
 	return &_MCR_SIGNAL_IFACE;
 }
 
-void mcr_Signal_init(void *sigDataPt)
+int mcr_Signal_init(void *signalPt)
 {
-	dassert(sigDataPt);
-	memset(sigDataPt, 0, sizeof(struct mcr_Signal));
+	if (signalPt)
+		memset(signalPt, 0, sizeof(struct mcr_Signal));
+	return 0;
 }
 
-void mcr_Signal_free(void *sigDataPt)
+int mcr_Signal_deinit(void *signalPt)
 {
-	dassert(sigDataPt);
-	mcr_inst_free(sigDataPt);
+	if (signalPt)
+		mcr_Instance_deinit(signalPt);
+	return 0;
 }
 
 int mcr_send(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 {
+	/* sync this code with mcr_dispatch */
 	/* if no interface, or is blocked by dispatch, return success */
-	return sigPt->isig ? sigPt->is_dispatch
-		&& mcr_dispatch(ctx, sigPt) ? 0 : sigPt->isig->send(sigPt) : 0;
+	struct mcr_mod_signal *modSignal = &ctx->signal;
+	struct mcr_Dispatcher *dispPt =
+		sigPt ? sigPt->isignal->dispatcher : NULL, *genPt =
+		modSignal->dispatcher_generic_pt;
+	bool isGen = genPt && modSignal->dispatcher_generic_enabled;
+	unsigned int mods = modSignal->internal_mods;
+	if (dispPt) {
+		if (dispPt->dispatch(dispPt, sigPt, mods))
+			return 0;
+	}
+	if (isGen) {
+		if (genPt->dispatch(genPt, sigPt, mods))
+			return 0;
+	}
+	if (dispPt && dispPt->modifier) {
+		dispPt->modifier(dispPt, sigPt, &modSignal->internal_mods);
+	}
+	if (isGen && genPt->modifier) {
+		genPt->modifier(genPt, sigPt, &modSignal->internal_mods);
+	}
+	return sigPt->isignal ? sigPt->is_dispatch
+		&& mcr_dispatch(ctx,
+		sigPt) ? 0 : sigPt->isignal->send(sigPt) : 0;
 }
 
 int mcr_Signal_copy(void *dstPt, void *srcPt)
 {
 	struct mcr_Signal *dstSig = dstPt, *srcSig = srcPt;
-	int err = mcr_inst_copy(dstPt, srcPt);
+	int err = mcr_Instance_copy(dstPt, srcPt);
 	if (err)
 		return err;
 	if (dstSig)
@@ -63,22 +88,23 @@ int mcr_Signal_copy(void *dstPt, void *srcPt)
 	return 0;
 }
 
-int mcr_Signal_compare(const void *lhsSigPt, const void *rhsSigPt)
+int mcr_Signal_compare(const void *lhsSignalPt, const void *rhsSignalPt)
 {
-	if (rhsSigPt) {
-		if (lhsSigPt) {
-			if (lhsSigPt == rhsSigPt)
+	if (rhsSignalPt) {
+		if (lhsSignalPt) {
+			if (lhsSignalPt == rhsSignalPt)
 				return 0;
-			const struct mcr_Signal *lSigPt = lhsSigPt, *rSigPt =
-				rhsSigPt;
-			int valHolder = mcr_inst_compare(lhsSigPt, rhsSigPt);
+			const struct mcr_Signal *lSigPt = lhsSignalPt, *rSigPt =
+				rhsSignalPt;
+			int valHolder =
+				mcr_Instance_compare(lhsSignalPt, rhsSignalPt);
 			return valHolder ? valHolder :
 				MCR_CMP_INTEGRAL(lSigPt->is_dispatch,
 				rSigPt->is_dispatch);
 		}
 		return -1;
 	}
-	return ! !lhsSigPt;
+	return ! !lhsSignalPt;
 }
 
 int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt)

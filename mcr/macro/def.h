@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -18,24 +18,32 @@
 
 /*! \file
  * \brief Definitions for macros
-*/
+ */
 
 #ifndef MCR_MACRO_DEFINES_H
 #define MCR_MACRO_DEFINES_H
 
 #include "mcr/signal/signal.h"
 
-/* For better security no macro thread count will ever
- * be greater than this number, EVER!!! */
 #ifndef MCR_THREAD_MAX
+/*! \brief Maximum thread count for macros
+ *
+ * For better security macros will never create more than this number of
+ * threads
+ */
 #define MCR_THREAD_MAX 0x10
 #endif
 
 #ifndef MCR_MACRO_JOIN_TIMEOUT
+/*! \brief Seconds to wait for macros to respond when they are being
+ * interrupted or paused
+ */
 #define MCR_MACRO_JOIN_TIMEOUT 2
 #endif
 
 #ifndef MCR_MAX_PAUSE_COUNT
+/*! \brief The number of times a macro will wait while paused until it resumes
+ */
 #define MCR_MAX_PAUSE_COUNT 5
 #endif
 

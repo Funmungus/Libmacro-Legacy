@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -27,20 +27,17 @@ int mcr_extras_initialize(struct mcr_context *ctx)
 		return err;
 	if ((err = mcr_signal_extras_initialize(ctx)))
 		return err;
-	if ((err = mcr_extras_native_initialize(ctx)))
-		return err;
-	return err;
-/*      mcr_script_initialize ( ) ; */
-/*      mcr_macroset_initialize ( ) ; */
+	return mcr_extras_native_initialize(ctx);
 }
 
-void mcr_extras_cleanup(struct mcr_context *ctx)
+int mcr_extras_deinitialize(struct mcr_context *ctx)
 {
-	mcr_extras_native_cleanup(ctx);
-/*      mcr_macroset_cleanup ( ) ; */
-/*      mcr_script_cleanup ( ) ; */
-	mcr_signal_extras_cleanup(ctx);
-	mcr_safe_string_cleanup(ctx);
+	int err = mcr_extras_native_deinitialize(ctx);
+	if (err)
+		return err;
+	if ((err = mcr_signal_extras_deinitialize(ctx)))
+		return err;
+	return mcr_safe_string_deinitialize(ctx);
 }
 
 int mcr_extras_load_contract(struct mcr_context *ctx)

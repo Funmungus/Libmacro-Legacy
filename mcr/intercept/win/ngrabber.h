@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ struct mcr_Grabber {
 };
 
 MCR_API void mcr_Grabber_init(void *grabDataPt);
-MCR_API void mcr_Grabber_free(void *grabDataPt);
+MCR_API void mcr_Grabber_deinit(void *grabDataPt);
 MCR_API int mcr_Grabber_set_all(struct mcr_Grabber *grabPt, int type,
 	HOOKPROC proc);
 MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);

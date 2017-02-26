@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -40,38 +40,39 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	while (i--)
 		mcr_ISignal_init(sigs[i]);
 	isigPt = mcr_iAlarm(ctx);
-	mcr_iset_all(isigPt, mcr_Alarm_compare, NULL, sizeof(mcr_Alarm),
-		mcr_Alarm_init, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(mcr_Alarm), mcr_Alarm_init, NULL,
+		mcr_Alarm_compare, NULL);
 	isigPt->send = mcr_Alarm_send;
 
 	isigPt = mcr_iEcho(ctx);
-	mcr_iset_all(isigPt, mcr_HidEcho_compare, mcr_HidEcho_copy,
-		sizeof(struct mcr_HidEcho), mcr_HidEcho_init, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_HidEcho),
+		mcr_HidEcho_init, NULL, mcr_HidEcho_compare, mcr_HidEcho_copy);
 	isigPt->send = mcr_HidEcho_send;
 
 	isigPt = mcr_iKey(ctx);
-	mcr_iset_all(isigPt, mcr_Key_compare, mcr_Key_copy,
-		sizeof(struct mcr_Key), mcr_Key_init, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Key), mcr_Key_init,
+		NULL, mcr_Key_compare, mcr_Key_copy);
 	isigPt->send = mcr_Key_send;
 
 	isigPt = mcr_iMods(ctx);
-	mcr_iset_all(isigPt, mcr_Mods_compare, NULL,
-		sizeof(struct mcr_Mods), NULL, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Mods), NULL, NULL,
+		mcr_Mods_compare, NULL);
 	isigPt->send = mcr_Mods_send;
 	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
 
 	isigPt = mcr_iMC(ctx);
-	mcr_iset_all(isigPt, mcr_MoveCursor_compare, mcr_MoveCursor_copy,
-		sizeof(struct mcr_MoveCursor), mcr_MoveCursor_init, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_MoveCursor),
+		mcr_MoveCursor_init, NULL, mcr_MoveCursor_compare,
+		mcr_MoveCursor_copy);
 	isigPt->send = mcr_MoveCursor_send;
 
 	isigPt = mcr_iNoOp(ctx);
-	mcr_iset_all(isigPt, NULL, NULL, sizeof(mcr_NoOp), NULL, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(mcr_NoOp), NULL, NULL, NULL, NULL);
 	isigPt->send = mcr_NoOp_send;
 
 	isigPt = mcr_iScroll(ctx);
-	mcr_iset_all(isigPt, mcr_Scroll_compare, mcr_Scroll_copy,
-		sizeof(struct mcr_Scroll), mcr_Scroll_init, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Scroll),
+		mcr_Scroll_init, NULL, mcr_Scroll_compare, mcr_Scroll_copy);
 	isigPt->send = mcr_Scroll_send;
 
 	count = arrlen(sigs);
@@ -85,13 +86,14 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	while (i--)
 		mcr_ITrigger_init(trigs[i]);
 	itrigPt = mcr_iAction(ctx);
-	mcr_iset_all(itrigPt, NULL, NULL, sizeof(struct mcr_Action),
-		mcr_Action_init, NULL);
+	mcr_Interface_set_all(itrigPt, sizeof(struct mcr_Action),
+		mcr_Action_init, NULL, NULL, NULL);
 	itrigPt->receive = mcr_Action_receive;
 
 	itrigPt = mcr_iStaged(ctx);
-	mcr_iset_all(itrigPt, mcr_Staged_compare, mcr_Staged_copy,
-		sizeof(struct mcr_Staged), mcr_Staged_init, mcr_Staged_free);
+	mcr_Interface_set_all(itrigPt, sizeof(struct mcr_Staged),
+		mcr_Staged_init, mcr_Staged_deinit, mcr_Staged_compare,
+		mcr_Staged_copy);
 	itrigPt->receive = mcr_Staged_receive;
 
 	count = arrlen(trigs);
@@ -108,11 +110,14 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	return err;
 }
 
-void mcr_standard_cleanup(struct mcr_context *ctx)
+int mcr_standard_deinitialize(struct mcr_context *ctx)
 {
-	mcr_standard_native_cleanup(ctx);
-	mcr_HidEcho_cleanup(ctx);
-	mcr_Key_cleanup(ctx);
+	int err = mcr_standard_native_deinitialize(ctx);
+	if (err)
+		return err;
+	if ((err = mcr_HidEcho_deinitialize(ctx)))
+		return err;
+	return mcr_Key_deinitialize(ctx);
 }
 
 int mcr_standard_load_contract(struct mcr_context *ctx)
@@ -144,18 +149,18 @@ int mcr_standard_load_contract(struct mcr_context *ctx)
 		if ((err = mcr_reg_set_name(regPt, sigs[i], names[i])))
 			return err;
 	}
-	i = arrlen(trigs);
-	regPt = mcr_ITrigger_reg(ctx);
-	while (i--) {
-		if ((err = mcr_reg_set_name(regPt, trigs[i], trigNames[i])))
-			return err;
-	}
 	if ((err = mcr_reg_add_names(regPt, mcr_iEcho(ctx), echoAdd,
 				arrlen(echoAdd))))
 		return err;
 	if ((err = mcr_reg_add_names(regPt, mcr_iMC(ctx), mcAdd,
 				arrlen(mcAdd))))
 		return err;
+	i = arrlen(trigs);
+	regPt = mcr_ITrigger_reg(ctx);
+	while (i--) {
+		if ((err = mcr_reg_set_name(regPt, trigs[i], trigNames[i])))
+			return err;
+	}
 	if ((err = mcr_Key_load_contract(ctx)))
 		return err;
 	return mcr_HidEcho_load_contract(ctx);

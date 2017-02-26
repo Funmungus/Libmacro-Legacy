@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -26,113 +26,131 @@ static const struct mcr_Interface _MCR_IARRAY_REF = {
 	.id = ~0,
 	.data_size = sizeof(struct mcr_Array),
 	.init = mcr_Array_init_ref,
-	.free = mcr_Array_free
+	.deinit = mcr_Array_deinit
 };
 
-const struct mcr_Interface *mcr_Array_ref_iface()
+static void mcr_Array_sort_memcmp(struct mcr_Array *arrPt);
+static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
+	const void *elementPt);
+
+const struct mcr_Interface *mcr_Array_ref_interface()
 {
 	return &_MCR_IARRAY_REF;
 }
 
-void mcr_Array_init(void *dataPt)
+int mcr_Array_init(void *arrPt)
 {
-	struct mcr_Array *arrPt = dataPt;
-	if (!dataPt)
-		return;
-	memset(dataPt, 0, sizeof(struct mcr_Array));
-	arrPt->element_size = 1;
-}
-
-void mcr_Array_init_ref(void *data)
-{
-	if (!data)
-		return;
-	mcr_Array_init(data);
-	mcr_Array_set_all(data, mcr_ref_compare, sizeof(void *));
-}
-
-void mcr_Array_free(void *dataPt)
-{
-	struct mcr_Array *arrPt = dataPt;
-	if (!dataPt)
-		return;
-	if (arrPt->array) {
-		free(arrPt->array);
-		arrPt->array = NULL;
+	struct mcr_Array *localPt = arrPt;
+	if (localPt) {
+		memset(localPt, 0, sizeof(struct mcr_Array));
+		localPt->element_size = 1;
 	}
-	arrPt->used = arrPt->size = 0;
+	return 0;
+}
+
+struct mcr_Array mcr_Array_new(mcr_compare_fnc compare, size_t elementSize)
+{
+	struct mcr_Array ret;
+	memset(&ret, 0, sizeof(struct mcr_Array));
+	ret.element_size = elementSize;
+	if (compare)
+		ret.compare = compare;
+	return ret;
+}
+
+int mcr_Array_init_ref(void *arrPt)
+{
+	if (arrPt) {
+		mcr_Array_init(arrPt);
+		mcr_Array_set_all(arrPt, mcr_ref_compare, sizeof(void *));
+	}
+	return 0;
+}
+
+int mcr_Array_deinit(void *arrPt)
+{
+	struct mcr_Array *localPt = arrPt;
+	if (arrPt) {
+		if (localPt->array) {
+			free(localPt->array);
+			localPt->array = NULL;
+		}
+		localPt->used = localPt->size = 0;
+	}
+	return 0;
 }
 
 void mcr_Array_set_all(struct mcr_Array *arrPt, mcr_compare_fnc compare,
 	size_t elementSize)
 {
 	dassert(arrPt);
-	if (arrPt->size)
-		mcr_Array_free(arrPt);
+	if (arrPt->array)
+		mcr_Array_deinit(arrPt);
 	arrPt->compare = compare;
 	arrPt->element_size = elementSize;
 }
 
 /* Allocation control */
-int mcr_Array_minused(struct mcr_Array *arrPt, size_t minimumUsed)
+int mcr_Array_minused(struct mcr_Array *arrPt, size_t minUsed)
 {
 	size_t prevUsed = arrPt->used;
-	int ret;
+	int err;
 	dassert(arrPt);
-	if (prevUsed < minimumUsed) {
-		if ((ret = mcr_Array_resize(arrPt, minimumUsed)))
-			return ret;
-		arrPt->used = minimumUsed;
+	if (prevUsed < minUsed) {
+		if ((err = mcr_Array_resize(arrPt, minUsed)))
+			return err;
+		arrPt->used = minUsed;
 	}
 	return 0;
 }
 
-int mcr_Array_minsize(struct mcr_Array *arrPt, size_t minimumSize)
+int mcr_Array_minsize(struct mcr_Array *arrPt, size_t minSize)
 {
 	dassert(arrPt);
-	if (arrPt->size < minimumSize)
-		return mcr_Array_resize(arrPt, minimumSize);
+	if (arrPt->size < minSize)
+		return mcr_Array_resize(arrPt, minSize);
 	return 0;
 }
 
 int mcr_Array_smartsize(struct mcr_Array *arrPt, size_t increasingCount)
 {
-	int ret;
 	dassert(arrPt);
+	if (!increasingCount)
+		return 0;
 	if (increasingCount == 1) {
-		if (arrPt->used == arrPt->size) {
-			if ((ret = mcr_Array_resize(arrPt, arrPt->size ?
-						arrPt->size << 1 : 8)))
-				return ret;
-		}
-	} else if (increasingCount) {
-		if ((ret = mcr_Array_resize(arrPt,
-					arrPt->used + increasingCount)))
-			return ret;
+		/* Double size if no space left */
+		if (arrPt->used == arrPt->size)
+			return mcr_Array_resize(arrPt, arrPt->size ?
+				arrPt->size << 1 : 8);
 	}
+	/* New size = increasing + current used */
+	increasingCount += arrPt->used;
+	/* Resize to new value if we do not already have space */
+	if (increasingCount > arrPt->size)
+		return mcr_Array_resize(arrPt, increasingCount);
 	return 0;
 }
 
-int mcr_Array_minfill(struct mcr_Array *arrPt, size_t minimumUsed,
+int mcr_Array_minfill(struct mcr_Array *arrPt, size_t minUsed,
 	const void *fillerElementPt)
 {
 	size_t prevUsed = arrPt->used;
-	int ret;
+	int err;
 	dassert(arrPt);
-	if (prevUsed < minimumUsed) {
-		if ((ret = mcr_Array_resize(arrPt, minimumUsed)))
-			return ret;
-		arrPt->used = minimumUsed;
-		return mcr_Array_fill(arrPt, prevUsed, minimumUsed - prevUsed,
-			fillerElementPt);
+	if (prevUsed < minUsed) {
+		if ((err = mcr_Array_resize(arrPt, minUsed)))
+			return err;
+		arrPt->used = minUsed;
+		return mcr_Array_fill(arrPt, prevUsed, fillerElementPt,
+			minUsed - prevUsed);
 	}
 	return 0;
 }
 
 void mcr_Array_trim(struct mcr_Array *arrPt)
 {
-	if (arrPt)
-		mcr_Array_resize(arrPt, arrPt->used);
+	dassert(arrPt);
+	mcr_Array_resize(arrPt, arrPt->used);
 }
 
 int mcr_Array_resize(struct mcr_Array *arrPt, size_t newSize)
@@ -143,7 +161,7 @@ int mcr_Array_resize(struct mcr_Array *arrPt, size_t newSize)
 	if (arrPt->size == newSize || !arrPt->element_size)
 		return 0;
 	if (!newSize) {
-		mcr_Array_free(arrPt);
+		mcr_Array_deinit(arrPt);
 		return 0;
 	}
 	/* Free removed elements */
@@ -161,40 +179,17 @@ int mcr_Array_resize(struct mcr_Array *arrPt, size_t newSize)
 
 void mcr_Array_clear(struct mcr_Array *arrPt)
 {
-	if (arrPt)
-		arrPt->used = 0;
+	dassert(arrPt);
+	arrPt->used = 0;
 }
 
 /* Position */
 void *mcr_Array_element(const struct mcr_Array *arrPt, size_t pos)
 {
-	dassert(arrPt);
-	/* Not allocated or position invalid */
-	if (pos >= arrPt->used) {
-		mset_error(EFAULT);
-		return NULL;
-	}
-	return MCR_ARR_ELEMENT(*arrPt, pos);
-}
-
-void *mcr_Array_next(const struct mcr_Array *arrPt, const void *posPt)
-{
-	dassert(arrPt);
-	return posPt < MCR_ARR_LAST(*arrPt) ? MCR_ARR_NEXT(*arrPt,
-		posPt) : NULL;
-}
-
-void *mcr_Array_prev(const struct mcr_Array *arrPt, const void *posPt)
-{
-	dassert(arrPt);
-	return posPt > (const void *)arrPt->array ? MCR_ARR_PREV(*arrPt,
-		posPt) : NULL;
-}
-
-void *mcr_Array_end(const struct mcr_Array *arrPt)
-{
-	dassert(arrPt);
-	return arrPt ? MCR_ARR_END(*arrPt) : NULL;
+	/* pos >= used is out of bounds */
+	if (arrPt && pos < arrPt->used)
+		return MCR_ARR_ELEMENT(*arrPt, pos);
+	return NULL;
 }
 
 void *mcr_Array_first(const struct mcr_Array *arrPt)
@@ -207,15 +202,60 @@ void *mcr_Array_last(const struct mcr_Array *arrPt)
 	return arrPt ? MCR_ARR_LAST(*arrPt) : NULL;
 }
 
-size_t mcr_Array_last_index(const struct mcr_Array * arrPt)
+void *mcr_Array_end(const struct mcr_Array *arrPt)
 {
-	return arrPt ? arrPt->used - 1 : (size_t) ~ 0;
+	return arrPt ? MCR_ARR_END(*arrPt) : NULL;
+}
+
+void *mcr_Array_next(const struct mcr_Array *arrPt, void *posPt)
+{
+	/* If last, next is out of bounds */
+	if (arrPt && posPt < mcr_Array_last(arrPt))
+		return MCR_ARR_NEXT(*arrPt, posPt);
+	return NULL;
+}
+
+void *mcr_Array_prev(const struct mcr_Array *arrPt, void *posPt)
+{
+	/* If first, previous is out of bounds */
+	if (arrPt && posPt > (const void *)arrPt->array)
+		return MCR_ARR_PREV(*arrPt, posPt);
+	return NULL;
 }
 
 size_t mcr_Array_index(const struct mcr_Array * arrPt, const void *elPt)
 {
-	dassert(arrPt);
-	return MCR_ARR_INDEX(*arrPt, elPt);
+	/* element - array = offset, offset / element size will be the index */
+	if (arrPt && (const char *)elPt >= arrPt->array)
+		return MCR_ARR_INDEX(*arrPt, elPt);
+	return -1;
+}
+
+size_t mcr_Array_last_index(const struct mcr_Array * arrPt)
+{
+	return arrPt ? arrPt->used - 1 : (size_t) - 1;
+}
+
+void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
+	char **endPt, size_t * bytesPt)
+{
+	if (iterPt)
+		*iterPt = mcr_Array_first(arrPt);
+	if (endPt)
+		*endPt = mcr_Array_end(arrPt);
+	if (bytesPt)
+		*bytesPt = arrPt ? arrPt->element_size : 0;
+}
+
+void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
+	char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex)
+{
+	if (iterPt)
+		*iterPt = mcr_Array_element(arrPt, firstIndex);
+	if (lastPt)
+		*lastPt = mcr_Array_element(arrPt, lastIndex);
+	if (bytesPt)
+		*bytesPt = arrPt ? arrPt->element_size : 0;
 }
 
 /* Add/remove */
@@ -223,38 +263,26 @@ int mcr_Array_insert(struct mcr_Array *arrPt, size_t pos,
 	const void *elementArr, size_t count)
 {
 	size_t prevUsed = arrPt->used;
-	int ret;
+	int err;
 	dassert(arrPt);
 	if (!count)
 		return 0;
-	/* Insert after used, fill empty space */
 	if (pos > prevUsed) {
 		mset_error(EFAULT);
-		return -EFAULT;
+		return EFAULT;
 	}
 	/* Insert in-between, need to move previous items */
 	if (pos < prevUsed) {
-		if ((ret = mcr_Array_smartsize(arrPt, count)))
-			return ret;
+		if ((err = mcr_Array_smartsize(arrPt, count)))
+			return err;
 		/* Avoid fillers during move */
 		arrPt->used += count;
-		if ((ret = !mcr_Array_move(arrPt, pos + count, arrPt, pos,
+		if ((err = mcr_Array_move(arrPt, pos + count, arrPt, pos,
 					prevUsed - pos)))
-			return ret;
+			return err;
 	}
 	/* Copy inserting elements */
 	return mcr_Array_copy(arrPt, pos, elementArr, count);
-}
-
-int mcr_Array_insert_filled(struct mcr_Array *arrPt, size_t pos,
-	const void *elementArr, size_t count, const void *fillerPt)
-{
-	int ret = mcr_Array_minsize(arrPt, pos + count);
-	if (!ret)
-		ret = mcr_Array_minfill(arrPt, pos, fillerPt);
-	if (!ret)
-		return mcr_Array_insert(arrPt, pos, elementArr, count);
-	return ret;
 }
 
 void mcr_Array_remove_index(struct mcr_Array *arrPt, size_t pos, size_t count)
@@ -275,40 +303,21 @@ void mcr_Array_remove_index(struct mcr_Array *arrPt, size_t pos, size_t count)
 }
 
 int mcr_Array_append(struct mcr_Array *arrPt, const void *elementArr,
-	size_t len, bool flagUnique)
+	size_t count)
 {
-	int ret;
-	char *it = (char *)elementArr;
-	void *found;
+	int err;
 	dassert(arrPt);
-	if (!len)
+	if (!count)
 		return 0;
-	if ((ret = mcr_Array_smartsize(arrPt, len)))
-		return ret;
-	dassert(arrPt->size >= arrPt->used + len);
-	if (flagUnique) {
-		dassert(elementArr);
-		while (len) {
-			if (!(found = mcr_Array_find(arrPt, it))) {
-				if ((ret = mcr_Array_set(arrPt, arrPt->used,
-							it)))
-					return ret;
-			}
-			if (arrPt->compare)
-				mcr_Array_sort(arrPt);
-			it += arrPt->element_size;
-			--len;
-		}
-	} else {
-		return mcr_Array_copy(arrPt, arrPt->used, elementArr, len);
-	}
-	return 0;
+	if ((err = mcr_Array_smartsize(arrPt, count)))
+		return err;
+	dassert(arrPt->size >= arrPt->used + count);
+	return mcr_Array_copy(arrPt, arrPt->used, elementArr, count);
 }
 
-int mcr_Array_push(struct mcr_Array *arrPt, const void *elementPt,
-	bool flagUnique)
+int mcr_Array_push(struct mcr_Array *arrPt, const void *elementPt)
 {
-	return mcr_Array_append(arrPt, elementPt, 1, flagUnique);
+	return mcr_Array_append(arrPt, elementPt, 1);
 }
 
 void mcr_Array_pop(struct mcr_Array *arrPt)
@@ -321,32 +330,32 @@ void mcr_Array_pop(struct mcr_Array *arrPt)
 int mcr_Array_replace(struct mcr_Array *arrPt, const void *arraySource,
 	size_t count)
 {
-	int ret;
+	int err;
 	dassert(arrPt);
 	if (!count) {
-		mcr_Array_free(arrPt);
+		mcr_Array_deinit(arrPt);
 		return 0;
 	}
-	if ((ret = mcr_Array_resize(arrPt, count)))
-		return ret;
+	if ((err = mcr_Array_resize(arrPt, count)))
+		return err;
 	return mcr_Array_copy(arrPt, 0, arraySource, count);
 }
 
 int mcr_Array_copy(struct mcr_Array *dstPt, size_t dstPos,
 	const void *srcArray, size_t count)
 {
-	int ret;
+	int err;
 	void *copyDst;
 	dassert(dstPt);
 	if (!count)
 		return 0;
 	if (dstPos > dstPt->used) {
 		mset_error(EFAULT);
-		return -EFAULT;
+		return EFAULT;
 	}
-	if ((ret = mcr_Array_minused(dstPt, dstPos + count)))
-		return ret;
-	copyDst = MCR_ARR_ELEMENT(*dstPt, dstPos);
+	if ((err = mcr_Array_minused(dstPt, dstPos + count)))
+		return err;
+	copyDst = mcr_Array_element(dstPt, dstPos);
 	dassert(copyDst);
 	if (srcArray)
 		memcpy(copyDst, srcArray, dstPt->element_size * count);
@@ -360,23 +369,23 @@ int mcr_Array_set(struct mcr_Array *arrPt, size_t pos, const void *elementPt)
 	return mcr_Array_copy(arrPt, pos, elementPt, 1);
 }
 
-int mcr_Array_fill(struct mcr_Array *arrPt, size_t pos,
-	size_t count, const void *copyElementPt)
+int mcr_Array_fill(struct mcr_Array *arrPt, size_t dstPos,
+	const void *copyElementPt, size_t count)
 {
-	int ret;
+	int err;
 	char *itPt, *endPt;
 	size_t bytes, diff;
 	dassert(arrPt);
 	bytes = arrPt->element_size;
 	/* If creating empty elements, fill them also. */
-	if (pos > arrPt->used) {
-		diff = pos - arrPt->used;
-		pos -= diff;
+	if (dstPos > arrPt->used) {
+		diff = dstPos - arrPt->used;
+		dstPos -= diff;
 		count += diff;
 	}
-	if ((ret = mcr_Array_minused(arrPt, pos + count)))
-		return ret;
-	itPt = MCR_ARR_ELEMENT(*arrPt, pos);
+	if ((err = mcr_Array_minused(arrPt, dstPos + count)))
+		return err;
+	itPt = mcr_Array_element(arrPt, dstPos);
 	dassert(itPt);
 	if (copyElementPt) {
 		endPt = MCR_ARR_END(*arrPt);
@@ -393,7 +402,7 @@ int mcr_Array_fill(struct mcr_Array *arrPt, size_t pos,
 int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
 	const struct mcr_Array *srcPt, size_t srcPos, size_t count)
 {
-	int ret;
+	int err;
 	void *copyDst, *copySrc;
 	dassert(dstPt);
 	dassert(srcPt);
@@ -403,19 +412,19 @@ int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
 		return 0;
 	if (srcPos >= srcPt->used) {
 		mset_error(EFAULT);
-		return -EFAULT;
+		return EFAULT;
 	}
 	if (count > srcPt->used || srcPos + count > srcPt->used)
 		count = srcPt->used - srcPos;
 	if (dstPos > dstPt->used) {
-		if ((ret = mcr_Array_fill(dstPt, dstPt->used,
-					dstPos - dstPt->used, NULL)))
-			return ret;
+		if ((err = mcr_Array_fill(dstPt, dstPt->used, NULL,
+					dstPos - dstPt->used)))
+			return err;
 	}
-	if ((ret = mcr_Array_minused(dstPt, dstPos + count)))
-		return ret;
-	copyDst = MCR_ARR_ELEMENT(*dstPt, dstPos);
-	copySrc = MCR_ARR_ELEMENT(*srcPt, srcPos);
+	if ((err = mcr_Array_minused(dstPt, dstPos + count)))
+		return err;
+	copyDst = mcr_Array_element(dstPt, dstPos);
+	copySrc = mcr_Array_element(srcPt, srcPos);
 	dassert(copyDst);
 	dassert(copySrc);
 	if (dstPt->array == srcPt->array)
@@ -425,68 +434,81 @@ int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
 	return 0;
 }
 
-/* */
-/* Sortable functions: If no compare function available, memcmp will be */
-/* used on an unsorted array, with a slow iteration. */
-/* */
+/* Sorted functions */
 void mcr_Array_sort(struct mcr_Array *arrPt)
 {
-	if (!arrPt)
-		return;
-	if (arrPt->compare) {
-		MCR_ARR_SORT(*arrPt);
+	dassert(arrPt);
+	/* No need to sort 0 - 1 elements */
+	if (arrPt->used > 1) {
+		if (arrPt->compare)
+			qsort(arrPt->array, arrPt->used, arrPt->element_size,
+				arrPt->compare);
+		else
+			mcr_Array_sort_memcmp(arrPt);
 	}
-	/* TODO memcmp sort */
 }
 
 void *mcr_Array_find(const struct mcr_Array *arrPt, const void *elementPt)
 {
-	char *it, *end;
-	dassert(arrPt);
-	size_t bytes = arrPt->element_size;
-	dassert(elementPt);
-	if (arrPt->compare)
-		return MCR_ARR_FIND(*arrPt, elementPt);
-	for (it = MCR_ARR_FIRST(*arrPt), end = MCR_ARR_END(*arrPt); it < end;
-		it += bytes) {
-		if (!memcmp(it, elementPt, bytes))
-			return it;
+	void *ret = NULL, *elHolder;
+	/* No need to sort 0 - 1 elements */
+	if (!arrPt)
+		return NULL;
+	if (elementPt) {
+		elHolder = (void *)elementPt;
+	} else {
+		if (!(elHolder = malloc(arrPt->element_size))) {
+			mset_error(ENOMEM);
+			return NULL;
+		}
+		memset(elHolder, 0, arrPt->element_size);
 	}
-	return NULL;
+	if (arrPt->compare)
+		ret = bsearch(elHolder, arrPt->array, arrPt->used,
+			arrPt->element_size, arrPt->compare);
+	else
+		ret = mcr_Array_find_memcmp(arrPt, elHolder);
+	if (!elementPt)
+		free(elHolder);
+	return ret;
 }
 
 int mcr_Array_add(struct mcr_Array *arrPt,
-	const void *elementArr, size_t len, bool flagUnique)
+	const void *elementArr, size_t count, bool flagUnique)
 {
-	int ret;
-	char *it;
-	dassert(arrPt);
+	int err;
+	char *itPt;
 	size_t bytes = arrPt->element_size;
-	if (!len)
+	dassert(arrPt);
+	if (!count)
 		return 0;
-	if ((ret = mcr_Array_smartsize(arrPt, len)))
-		return ret;
-	/* Comparable and unique, add elements only if they do not exist */
-	if (arrPt->compare && flagUnique) {
-		dassert(elementArr);
-		it = (char *)elementArr;
-		while (len) {
-			if (!bsearch(it, arrPt->array, arrPt->used,
-					bytes, arrPt->compare)) {
-				if ((ret = mcr_Array_set(arrPt, arrPt->used,
-							it)))
-					return ret;
-				MCR_ARR_SORT(*arrPt);
+	if ((err = mcr_Array_smartsize(arrPt, count)))
+		return err;
+	if (flagUnique) {
+		/* Unique but no array, only one empty item is possible to
+		 * add */
+		if (!elementArr) {
+			if (!mcr_Array_find(arrPt, NULL)) {
+				mcr_Array_push(arrPt, NULL);
+				mcr_Array_sort(arrPt);
 			}
-			it += bytes;
-			--len;
+			return 0;
+		}
+		itPt = (char *)elementArr;
+		while (count--) {
+			if (!mcr_Array_find(arrPt, itPt)) {
+				if ((err = mcr_Array_push(arrPt, itPt)))
+					return err;
+				mcr_Array_sort(arrPt);
+			}
+			itPt += bytes;
 		}
 		return 0;
 	}
 	/* Not unique, just throw it in and sort it out */
-	if ((ret = mcr_Array_append(arrPt, elementArr, len, flagUnique)))
-		return ret;
-	MCR_ARR_SORT(*arrPt);
+	if ((err = mcr_Array_append(arrPt, elementArr, count)))
+		return err;
+	mcr_Array_sort(arrPt);
 	return 0;
 }
 
@@ -497,5 +519,59 @@ void mcr_Array_remove(struct mcr_Array *arrPt, const void *removeElementPt)
 	dassert(removeElementPt);
 	/* Loop in case elements are not unique */
 	while ((found = mcr_Array_find(arrPt, removeElementPt)))
-		mcr_Array_remove_index(arrPt, MCR_ARR_INDEX(*arrPt, found), 1);
+		mcr_Array_remove_index(arrPt, mcr_Array_index(arrPt, found), 1);
+}
+
+static void mcr_Array_sort_memcmp(struct mcr_Array *arrPt)
+{
+	bool hasSwap = true;
+	char *firstPt, *prevPt, *ritPt, *elHolder;
+	size_t bytes = arrPt->element_size;
+	dassert(arrPt);
+	dassert(arrPt->used > 1);
+	if (!(elHolder = malloc(arrPt->element_size))) {
+		mset_error(ENOMEM);
+		return;
+	}
+	fixme;
+	/* TODO: quicksort */
+	/* Bubble sort backwards to optimize sorted arrays with new values */
+	while (hasSwap) {
+		hasSwap = false;
+		/* Bytes set above */
+		firstPt = MCR_ARR_FIRST(*arrPt);
+		ritPt = MCR_ARR_LAST(*arrPt);
+		prevPt = MCR_ARR_PREV(*arrPt, ritPt);
+		while (prevPt >= firstPt) {
+			/* Sorted pairs will always be prev < current */
+			/* If prev > current, then swap prev and current */
+			if (memcmp(prevPt, ritPt, bytes) > 0) {
+				hasSwap = true;
+				memcpy(elHolder, prevPt, bytes);
+				memcpy(prevPt, ritPt, bytes);
+				memcpy(ritPt, elHolder, bytes);
+			}
+			/* Move to next pair */
+			ritPt -= bytes;
+			prevPt -= bytes;
+		}
+	}
+	free(elHolder);
+}
+
+static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
+	const void *elementPt)
+{
+	char *itPt, *endPt;
+	size_t bytes;
+	dassert(arrPt);
+	dassert(elementPt);
+	fixme;
+	/* TODO: quicksort */
+	for (mcr_Array_iter(arrPt, &itPt, &endPt, &bytes);
+		itPt < endPt; itPt += bytes) {
+		if (!memcmp(itPt, elementPt, bytes))
+			return itPt;
+	}
+	return NULL;
 }

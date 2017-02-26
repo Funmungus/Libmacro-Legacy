@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -58,12 +58,10 @@ struct mcr_Staged {
 	enum mcr_BlockStyle style;
 };
 
-MCR_API void mcr_Staged_init(void *stagedDataPt);
+MCR_API int mcr_Staged_init(void *stagedDataPt);
 MCR_API void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
 	enum mcr_BlockStyle style);
-MCR_API void mcr_Staged_free(void *trigPt);
-#define mcr_Staged_free_foreach(trigPt, ignore) \
-mcr_Staged_free(trigPt)
+MCR_API int mcr_Staged_deinit(void *trigPt);
 MCR_API int mcr_Staged_compare(const void *lhs, const void *rhs);
 MCR_API int mcr_Staged_copy(void *dstPt, void *srcPt);
 /*!
@@ -78,13 +76,13 @@ MCR_API bool mcr_Staged_receive(void *trigDataPt,
 /* Stage manipulation */
 MCR_API void mcr_Staged_set_style(struct mcr_Staged *trigPt,
 	enum mcr_BlockStyle style);
-MCR_API bool mcr_Staged_is_blocking(struct mcr_Staged *trigPt);
+MCR_API bool mcr_Staged_is_blocking(const struct mcr_Staged *trigPt);
 MCR_API void mcr_Staged_set_blocking(struct mcr_Staged *trigPt, bool blocking);
 MCR_API void mcr_Staged_deactivate(struct mcr_Staged *trigPt);
 MCR_API void mcr_Staged_clear(struct mcr_Staged *trigPt);
 
 MCR_API struct mcr_ITrigger *mcr_iStaged(struct mcr_context *ctx);
 #define mcr_Staged_data(trigPt) \
-((struct mcr_Staged *)mcr_inst_data(trigPt))
+((struct mcr_Staged *)mcr_Instance_data(trigPt))
 
 #endif

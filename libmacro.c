@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,9 @@
 #include "mcr/macro/private.h"
 #include "mcr/standard/private.h"
 #include "mcr/intercept/private.h"
+#ifdef MCR_EXTRAS
 #include "mcr/extras/private.h"
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,59 +30,100 @@
 #pragma message("TODO: Optimize for intercept, dispatch, and send." \
 	" SIMPLIFY(function instead of inline) everywhere else.")
 
-struct mcr_context *mcr_initialize(bool flagLoadContracts, bool flagTrimFinish)
+struct mcr_context *mcr_allocate(bool flagLoadContracts, bool flagTrimFinish)
 {
 	struct mcr_context *ctx = malloc(sizeof(struct mcr_context));
 	if (!ctx) {
 		mset_error(ENOMEM);
 		return NULL;
 	}
+	if (mcr_initialize(ctx, flagLoadContracts, flagTrimFinish))
+		return NULL;
+	return ctx;
+}
+
+int mcr_deallocate(struct mcr_context *ctx)
+{
+	int err;
+	if (!ctx) {
+		mset_error(EINVAL);
+		return EINVAL;
+	}
+	err = mcr_deinitialize(ctx);
+	free(ctx);
+	return err;
+}
+
+int mcr_initialize(struct mcr_context *ctx,
+	bool flagLoadContracts, bool flagTrimFinish)
+{
+	int err = 0;
+	if (!ctx) {
+		mset_error(EINVAL);
+		return EINVAL;
+	}
 	memset(ctx, 0, sizeof(struct mcr_context));
 	dprint("Loading signal module\n");
-	if (mcr_signal_initialize(ctx))
-		goto onError;
+	if ((err = mcr_signal_initialize(ctx)))
+		goto onSignalErr;
 	dprint("Loading trigger module\n");
-	if (mcr_macro_initialize(ctx))
-		goto onError;
+	if ((err = mcr_macro_initialize(ctx)))
+		goto onMacroErr;
+	dprint("Loading standard types\n");
+	if ((err = mcr_standard_initialize(ctx)))
+		goto onStandardErr;
 	dprint("Loading intercept module\n");
-	if (mcr_intercept_initialize(ctx))
-		goto onError;
+	if ((err = mcr_intercept_initialize(ctx)))
+		goto onInterceptErr;
 #ifdef MCR_EXTRAS
 	dprint("Loading extras module\n");
-	if (mcr_extras_initialize(ctx))
-		goto onError;
+	if ((err = mcr_extras_initialize(ctx)))
+		goto onExtrasErr;
 #endif
 	if (flagLoadContracts) {
 		dprint("Loading contracts\n");
-		if (mcr_load_contracts(ctx))
-			goto onError;
+		if ((err = mcr_load_contracts(ctx)))
+			goto onContractFail;
 	}
 	if (flagTrimFinish) {
 		dprint("Trimming allocation\n");
 		mcr_trim(ctx);
 	}
 	dprint("Initialization complete\n");
- onError:
-	mcr_cleanup(ctx);
-	free(ctx);
-	return NULL;
+	return 0;
+ onContractFail:
+#ifdef MCR_EXTRAS
+	mcr_extras_deinitialize(ctx);
+#endif
+ onExtrasErr:
+	mcr_intercept_deinitialize(ctx);
+ onInterceptErr:
+	mcr_standard_deinitialize(ctx);
+ onStandardErr:
+	mcr_macro_deinitialize(ctx);
+ onMacroErr:
+	mcr_signal_deinitialize(ctx);
+ onSignalErr:
+	return err;
 }
 
-void mcr_cleanup(struct mcr_context *ctx)
+int mcr_deinitialize(struct mcr_context *ctx)
 {
+	mcr_set_error(0);
 #ifdef MCR_EXTRAS
 	dprint("Cleaning extras module\n");
-	mcr_extras_cleanup(ctx);
+	mcr_extras_deinitialize(ctx);
 #endif
 	dprint("Cleaning intercept module\n");
-	mcr_intercept_cleanup(ctx);
+	mcr_intercept_deinitialize(ctx);
 	dprint("Cleaning standard module\n");
-	mcr_standard_cleanup(ctx);
+	mcr_standard_deinitialize(ctx);
 	dprint("Cleaning macro module\n");
-	mcr_macro_cleanup(ctx);
+	mcr_macro_deinitialize(ctx);
 	dprint("Cleaning signal module\n");
-	mcr_signal_cleanup(ctx);
+	mcr_signal_deinitialize(ctx);
 	dprint("Cleaning complete\n");
+	return mcr_error();
 }
 
 int mcr_load_contracts(struct mcr_context *ctx)
@@ -90,8 +133,10 @@ int mcr_load_contracts(struct mcr_context *ctx)
 		return err;
 	if ((err = mcr_standard_load_contract(ctx)))
 		return err;
+#ifdef MCR_EXTRAS
 	if ((err = mcr_extras_load_contract(ctx)))
 		return err;
+#endif
 	return err;
 }
 

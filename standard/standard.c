@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -23,7 +23,8 @@ bool mcr_resembles_justified(const mcr_Dimensions first,
 {
 	dassert(first);
 	dassert(second);
-	for (int i = MCR_DIMENSION_CNT; i--;) {
+	int i;
+	for (i = MCR_DIMENSION_CNT; i--;) {
 		if (first[i] == 0 || second[i] == 0)
 			continue;
 		if ((first[i] > 0) != (second[i] > 0))
@@ -38,7 +39,8 @@ bool mcr_resembles_absolute(const mcr_Dimensions first,
 	dassert(first);
 	dassert(second);
 	long long err;
-	for (int i = MCR_DIMENSION_CNT; i--;) {
+	int i;
+	for (i = MCR_DIMENSION_CNT; i--;) {
 		err = first[i] - second[i];
 		if (err < 0)
 			err *= -1;

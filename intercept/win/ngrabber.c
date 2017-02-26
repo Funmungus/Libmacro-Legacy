@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ void mcr_Grabber_init(void *grabDataPt)
 	}
 }
 
-void mcr_Grabber_free(void *grabDataPt)
+void mcr_Grabber_deinit(void *grabDataPt)
 {
 	int err = 0;
 	struct mcr_Grabber *grabPt = grabDataPt;
@@ -188,6 +188,7 @@ static int grab_hook(struct mcr_Grabber *grabPt)
 			return EPERM;
 		}
 		if (!(grabPt->hModule = GetModuleHandle(NULL))) {
+			winerr;
 			mset_error(EINTR);
 			return EINTR;
 		}
@@ -195,6 +196,7 @@ static int grab_hook(struct mcr_Grabber *grabPt)
 		if (!(grabPt->id = SetWindowsHookEx(grabPt->type,
 					grabPt->proc, grabPt->hModule,
 					grabPt->dwThread))) {
+			winerr;
 			mset_error(EINTR);
 			return EINTR;
 		}
@@ -224,15 +226,17 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 {
 	struct mcr_Grabber *me = (struct mcr_Grabber *)lpParam;
 	int err = 0;
-	if (!MCR_GRABBER_IS_ENABLED(*me)) {
-		mset_error(EPERM);
-		return EPERM;
-	}
-
 	MSG message;
-	while (MCR_GRABBER_IS_ENABLED(*me) && GetMessage(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessage(&message);
+	memset(&message, 0, sizeof(message));
+	while (MCR_GRABBER_IS_ENABLED(*me)) {
+		if (MsgWaitForMultipleObjects(0, NULL, FALSE,
+				MCR_INTERCEPT_WAIT_MILLIS, QS_ALLINPUT)
+			== WAIT_OBJECT_0) {
+			while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&message);
+				DispatchMessage(&message);
+			}
+		}
 	}
 
 	bool locked = WaitForSingleObject(me->hMutex,

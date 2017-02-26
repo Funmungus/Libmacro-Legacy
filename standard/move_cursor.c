@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -81,7 +81,7 @@ int mcr_MoveCursor_send(struct mcr_Signal *signalData)
 int mcr_MoveCursor_compare(const void *lhs, const void *rhs)
 {
 	long long l, r;
-	int ret;
+	int ret, i;
 	if (rhs) {
 		if (lhs) {
 			const struct mcr_MoveCursor *lPt = lhs, *rPt = rhs;
@@ -89,7 +89,7 @@ int mcr_MoveCursor_compare(const void *lhs, const void *rhs)
 			r = MCR_MOVECURSOR_IS_JUSTIFY(*rPt);
 			if ((ret = MCR_CMP_INTEGRAL(l, r)))
 				return ret;
-			for (int i = MCR_DIMENSION_CNT; i--;) {
+			for (i = MCR_DIMENSION_CNT; i--;) {
 				l = MCR_MOVECURSOR_COORDINATE(*lPt, i);
 				r = MCR_MOVECURSOR_COORDINATE(*rPt, i);
 				if ((ret = MCR_CMP_INTEGRAL(l, r)))
@@ -106,16 +106,17 @@ int mcr_MoveCursor_copy(void *dstPt, void *srcPt)
 {
 	dassert(dstPt);
 	struct mcr_MoveCursor *dPt = dstPt, *sPt = srcPt;
+	int i;
 	if (sPt) {
 		MCR_MOVECURSOR_SET_JUSTIFY(*dPt,
 			MCR_MOVECURSOR_IS_JUSTIFY(*sPt));
-		for (int i = MCR_DIMENSION_CNT; i--;) {
+		for (i = MCR_DIMENSION_CNT; i--;) {
 			MCR_MOVECURSOR_SET_COORDINATE(*dPt, i,
 				MCR_MOVECURSOR_COORDINATE(*sPt, i));
 		}
 	} else {
 		MCR_MOVECURSOR_SET_JUSTIFY(*dPt, 0);
-		for (int i = MCR_DIMENSION_CNT; i--;) {
+		for (i = MCR_DIMENSION_CNT; i--;) {
 			MCR_MOVECURSOR_SET_COORDINATE(*dPt, i, 0);
 		}
 	}

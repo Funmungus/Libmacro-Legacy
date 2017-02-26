@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -68,24 +68,27 @@ static int device_create(struct mcr_Device *devPt);
 static int genDevice_init();
 static int absDevice_init();
 
-static void init_IntArray(void *data)
+static int init_IntArray(void *data)
 {
-	mcr_Array_init(data);
-	((struct mcr_Array *)data)->element_size = sizeof(int);
+	if (data) {
+		mcr_Array_init(data);
+		((struct mcr_Array *)data)->element_size = sizeof(int);
+	}
+	return 0;
 }
 
-/* Initialize and free array of integers */
+/* Initialize and deinit array of integers */
 static const struct mcr_Interface _iIntArray = {
 	.data_size = sizeof(struct mcr_Array),
 	.init = init_IntArray,
-	.free = mcr_Array_free
+	.deinit = mcr_Array_deinit
 };
 
 int mcr_Device_set_uinput_path(const char *path)
 {
 	dassert(path);
 	if (path[0] == '\0')
-		return -EINVAL;
+		return EINVAL;
 	return mcr_String_replace(&_uinputPath, path);
 }
 
@@ -93,7 +96,7 @@ int mcr_Device_set_event_path(const char *directoryPath)
 {
 	dassert(directoryPath);
 	if (directoryPath[0] == '\0')
-		return -EINVAL;
+		return EINVAL;
 	return mcr_String_replace(&_eventPath, directoryPath);
 }
 
@@ -102,7 +105,7 @@ int mcr_Device_set_absolute_resolution(__s32 resolution)
 	bool wasEnabled = mcr_absDev.enabled;
 	int err = 0;
 	mcr_abs_resolution = resolution;
-	mcr_Device_free(&mcr_absDev);
+	mcr_Device_deinit(&mcr_absDev);
 	if ((err = absDevice_init()))
 		return err;
 	if (wasEnabled)
@@ -110,31 +113,36 @@ int mcr_Device_set_absolute_resolution(__s32 resolution)
 	return err;
 /*      if ( mcr_relDev.enabled ) */
 /*              wasEnabled = 1 ; */
-/*      mcr_Device_free ( & mcr_relDev ) ; */
+/*      mcr_Device_deinit ( & mcr_relDev ) ; */
 /*      relDevice_init ( ) ; */
 /*      if ( wasEnabled ) */
 /*              mcr_Device_enable ( & mcr_relDev, 1 ) ; */
 }
 
-void mcr_Device_init(void *dataPt)
+int mcr_Device_init(void *dataPt)
 {
-	struct mcr_Device *devPt = dataPt;
-	dassert(devPt);
-	memset(dataPt, 0, sizeof(struct mcr_Device));
-	devPt->fd = -1;
-	devPt->event_fd = -1;
-	mcr_Map_init(&devPt->type_value_map);
-	mcr_Map_set_all(&devPt->type_value_map, sizeof(int),
-		sizeof(struct mcr_Array), mcr_int_compare, NULL, &_iIntArray);
+	struct mcr_Device *localPt = dataPt;
+	if (localPt) {
+		memset(dataPt, 0, sizeof(struct mcr_Device));
+		localPt->fd = -1;
+		localPt->event_fd = -1;
+		mcr_Map_init(&localPt->type_value_map);
+		mcr_Map_set_all(&localPt->type_value_map, sizeof(int),
+			sizeof(struct mcr_Array), mcr_int_compare, NULL,
+			&_iIntArray);
+	}
+	return 0;
 }
 
-void mcr_Device_free(void *dataPt)
+int mcr_Device_deinit(void *dataPt)
 {
 	struct mcr_Device *devPt = dataPt;
-	dassert(devPt);
-	mcr_Device_enable(devPt, false);
-	mcr_Map_free(&devPt->type_value_map);
-	mcr_Device_init(devPt);
+	if (devPt) {
+		mcr_Device_enable(devPt, false);
+		mcr_Map_deinit(&devPt->type_value_map);
+		mcr_Device_init(devPt);
+	}
+	return 0;
 }
 
 static inline int mtx_unlock_error(int mtxError, int retErr)
@@ -190,13 +198,13 @@ int mcr_Device_enable(struct mcr_Device *devPt, bool enable)
 
 int mcr_Device_enable_all(bool enable)
 {
-	int ret = mcr_Device_enable(&mcr_genDev, enable);
-	if (!ret)
-		ret = mcr_Device_enable(&mcr_absDev, enable);
-/*	if (!ret)
- *		ret = mcr_Device_enable (&mcr_relDev, enable);
+	int err = mcr_Device_enable(&mcr_genDev, enable);
+	if (!err)
+		err = mcr_Device_enable(&mcr_absDev, enable);
+/*	if (!err)
+ *		err = mcr_Device_enable (&mcr_relDev, enable);
  */
-	return ret;
+	return err;
 }
 
 int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType, int *bits,
@@ -205,6 +213,8 @@ int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType, int *bits,
 	struct mcr_Array *element =
 		mcr_Map_element_ensured(&devPt->type_value_map,
 		&bitType);
+	if (element)
+		element = mcr_Map_valueof(&devPt->type_value_map, element);
 	dassert(devPt);
 	dassert(bits);
 	dassert(bitLen != (size_t) ~ 0);
@@ -218,7 +228,7 @@ struct mcr_Array *mcr_Device_bits(struct mcr_Device *devPt, int bitType)
 	return MCR_MAP_VALUEOF(devPt->type_value_map, ret);
 }
 
-int mcr_Device_has_evbit(struct mcr_Device *devPt)
+bool mcr_Device_has_evbit(struct mcr_Device * devPt)
 {
 	int evbit = UI_SET_EVBIT;
 	struct mcr_Array *evbit_arr = MCR_MAP_ELEMENT(devPt->type_value_map,
@@ -275,7 +285,7 @@ static int device_open_event(struct mcr_Device *devPt)
 	wd = malloc(size);
 	if (!wd) {
 		mset_error(ENOMEM);
-		return -ENOMEM;
+		return ENOMEM;
 	}
 	/* Get the current working directory to return to later. */
 	ptr = getcwd(wd, size);
@@ -424,7 +434,7 @@ static int device_write_bits(struct mcr_Device *devPt, int setBit,
 	dassert(bits);
 	if (!bits->used)
 		return err;
-	MCR_ARR_ITER(*bits, itPt, end, bytes);
+	mcr_Array_iter(bits, &itPt, &end, &bytes);
 	while (itPt < end) {
 		if (ioctl(fd, setBit, *(int *)itPt) < 0) {
 			err = errno;
@@ -461,9 +471,9 @@ static int device_write_non_evbit(struct mcr_Device *devPt)
 	/* All non-evbits. */
 	if (!devPt->type_value_map.set.used) {
 		mset_error(EINVAL);
-		return -EINVAL;
+		return EINVAL;
 	}
-	MCR_MAP_ITER(devPt->type_value_map, itPt, end, bytes);
+	mcr_Map_iter(&devPt->type_value_map, &itPt, &end, &bytes);
 	while (itPt < end) {
 		evBit = *(int *)itPt;
 		if (evBit != UI_SET_EVBIT) {
@@ -513,7 +523,7 @@ static int genDevice_init()
 		if (i != EV_ABS)
 			evbits[j++] = i;
 	}
-	if ((err = gen_dev_set(evbits, EV_CNT - 1, UI_SET_EVBIT)))
+	if ((err = gen_dev_set(evbits, j - 1, UI_SET_EVBIT)))
 		return err;
 	for (i = KEY_CNT; i--;) {
 		evbits[i] = i;
@@ -603,12 +613,13 @@ int mcr_Device_initialize(struct mcr_context *context)
 	return err;
 }
 
-void mcr_Device_cleanup(struct mcr_context *context)
+int mcr_Device_deinitialize(struct mcr_context *context)
 {
 	UNUSED(context);
-	mcr_Device_free(&mcr_genDev);
-	mcr_Device_free(&mcr_absDev);
-	mcr_Array_free(&_uinputPath);
-	mcr_Array_free(&_eventPath);
+	mcr_Device_deinit(&mcr_genDev);
+	mcr_Device_deinit(&mcr_absDev);
+	mcr_Array_deinit(&_uinputPath);
+	mcr_Array_deinit(&_eventPath);
 	mtx_destroy(&_deviceLock);
+	return 0;
 }

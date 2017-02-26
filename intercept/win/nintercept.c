@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -30,11 +30,16 @@
 		MCR_UP : MCR_DOWN)
 
 static struct mcr_context *_hook_context = NULL;
-static struct mcr_HidEcho _echo;
-static struct mcr_Key _key;
-static struct mcr_MoveCursor _mc;
-static struct mcr_Scroll _scr;
-static struct mcr_Signal _echoSig, _keySig, _mcSig, _scrSig;
+/* TODO: Move these to context */
+static struct mcr_HidEcho _echo = { 0 };
+static struct mcr_Key _key = { 0 };
+static struct mcr_MoveCursor _mc = { 0 };
+static struct mcr_Scroll _scr = { 0 };
+static struct mcr_Signal _echoSig = { 0 }, _keySig = {
+0}, _mcSig = {
+0}, _scrSig = {
+0};
+
 static struct mcr_Signal *_signal_set[] = { &_echoSig, &_keySig, &_mcSig,
 	&_scrSig
 };
@@ -76,7 +81,7 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 {
 	unsigned int values = 0;
 	BYTE keyState[0x100];
-	int err = 0, key;
+	int key;
 	size_t modlen = mcr_Key_mod_count(ctx);
 	size_t i = modlen;
 	unsigned int *modBuffer;
@@ -229,20 +234,25 @@ static int verify_key_state(PBYTE keyState, size_t keyState_size)
 int mcr_intercept_native_initialize(struct mcr_context *ctx)
 {
 	int i;
-	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
-	if (_hook_context) {
-		mcr_intercept_set_enabled(_hook_context, false);
+	struct mcr_mod_intercept_native *nPt =
+		malloc(sizeof(struct mcr_mod_intercept_native));
+	if (!nPt) {
+		mset_error(ENOMEM);
+		return ENOMEM;
 	}
+	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
 	_hook_context = ctx;
+	ctx->intercept.native = nPt;
 	for (i = arrlen(_signal_set); i--;) {
+		mcr_Signal_deinit(_signal_set[i]);
 		mcr_Signal_init(_signal_set[i]);
 		_signal_set[i]->is_dispatch = true;
 	}
 
-	mcr_inst_set_all(&_echoSig, mcr_iHidEcho(ctx), &_echo, NULL);
-	mcr_inst_set_all(&_keySig, mcr_iKey(ctx), &_key, NULL);
-	mcr_inst_set_all(&_mcSig, mcr_iMoveCursor(ctx), &_mc, NULL);
-	mcr_inst_set_all(&_scrSig, mcr_iScroll(ctx), &_scr, NULL);
+	mcr_Instance_set_all(&_echoSig, mcr_iHidEcho(ctx), &_echo, NULL);
+	mcr_Instance_set_all(&_keySig, mcr_iKey(ctx), &_key, NULL);
+	mcr_Instance_set_all(&_mcSig, mcr_iMoveCursor(ctx), &_mc, NULL);
+	mcr_Instance_set_all(&_scrSig, mcr_iScroll(ctx), &_scr, NULL);
 	/* Grabber implementation assumes it is heap-allocated for
 	   threading without errors */
 	fixme;
@@ -262,7 +272,7 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	i = 0;
 	nPt->grab_key = nPt->all_grabbers[i++];
 	nPt->grab_move = nPt->all_grabbers[i++];
-	nPt->grab_scroll = nPt->all_grabbers[i++];
+	nPt->grab_scroll = nPt->all_grabbers[i];
 	mcr_Grabber_init(nPt->grab_key);
 	if ((i = mcr_Grabber_set_all(nPt->grab_key, WH_KEYBOARD_LL, key_proc)))
 		return i;
@@ -270,7 +280,7 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	if ((i = mcr_Grabber_set_all(nPt->grab_move, WH_MOUSE_LL, move_proc)))
 		return i;
 	mcr_Grabber_init(nPt->grab_scroll);
-	if ((i = mcr_Grabber_set_all(nPt->grab_scroll, WM_MOUSEWHEEL,
+	if ((i = mcr_Grabber_set_all(nPt->grab_scroll, WH_MOUSEWHEEL_LL,
 				scroll_proc)))
 		return i;
 
@@ -281,13 +291,15 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	return 0;
 }
 
-void mcr_intercept_native_cleanup(struct mcr_context *ctx)
+int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
+	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		/* Will block while waiting to finish. */
-		mcr_Grabber_free(nPt->all_grabbers[i]);
+		mcr_Grabber_deinit(nPt->all_grabbers[i]);
 		free(nPt->all_grabbers[i]);
 	}
 	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
+	free(nPt);
+	return 0;
 }

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ typedef struct mcr_HidEcho mcr_Echo;
  *
  * Native
  */
-MCR_API void mcr_HidEcho_init(void *echoPt);
+MCR_API int mcr_HidEcho_init(void *echoPt);
 /*!
  * \brief Get echo code
  * \return Echo event code
@@ -65,7 +65,7 @@ MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
 MCR_API int mcr_HidEcho_compare(const void *lhs, const void *rhs);
 /*! \brief Copy \ref mcr_HidEcho */
 MCR_API int mcr_HidEcho_copy(void *dstPt, void *srcPt);
-/* Default free */
+/* Default deinit */
 
 /* Echo names */
 /*!
@@ -153,10 +153,10 @@ MCR_API struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx);
 #define mcr_iEcho mcr_iHidEcho
 /*! \brief Signal data casted \ref mcr_HidEcho * */
 #define mcr_HidEcho_data(sigPt) \
-((struct mcr_HidEcho *)mcr_inst_data(sigPt))
+((struct mcr_HidEcho *)mcr_Instance_data(sigPt))
 /*! \brief Signal data casted \ref mcr_HidEcho * */
 #define MCR_HIDECHO_DATA(sig) \
-((struct mcr_HidEcho *)(sig).inst.data.data)
+((struct mcr_HidEcho *)(sig).instance.data.data)
 
 /*! \brief Signal data casted \ref mcr_HidEcho * */
 #define mcr_Echo_data(sigPt) mcr_HidEcho_data(sigPt)

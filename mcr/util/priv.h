@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -25,19 +25,21 @@
 
 #include "mcr/util/def.h"
 
-/* */
-/* Defined natively per OS */
-/* */
-/*!
- * \brief Disable privileges, and remove the ability to
+/*
+ * Defined natively per OS
+ */
+/*! \brief Disable privileges, and remove the ability to
  * enable them.
+ *
+ * \return \ref reterr
  */
 MCR_API int mcr_privilege_deactivate();
-/*! \return 0 for unprivileged, otherwise application has
- * privileges */
+/*! \return If false, this application is not privileged, otherwise the
+ * application has privileges */
 MCR_API bool mcr_is_privileged();
-/*!
- * \brief Enable privileges
+/*! \brief Enable privileges
+ *
+ * \return \ref reterr
  */
 MCR_API int mcr_set_privileged(bool enable);
 

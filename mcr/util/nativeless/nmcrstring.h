@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -22,9 +22,8 @@
 #include "mcr/util/nativeless/ndef.h"
 
 /* case functions implemented in util/nativeless/mcrstring.c */
-MCR_API int strcasecmp(const char *s1, const char *s2);
-MCR_API int strncasecmp(const char *s1, const char *s2, size_t n);
-MCR_API int stricmp(const char *lhs, const char *rhs);
-MCR_API int strnicmp(const char *lhs, const char *rhs, size_t count);
+#define mcr_snprintf snprintf
+MCR_API int mcr_casecmp(const char *s1, const char *s2);
+MCR_API int mcr_ncasecmp(const char *s1, const char *s2, size_t n);
 
 #endif

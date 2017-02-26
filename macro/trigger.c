@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,58 +20,79 @@
 #include "mcr/macro/private.h"
 #include <string.h>
 
-fixme;
-#pragma message("Add function to add trigger to dispatchers")
-
 static const struct mcr_Interface _MCR_TRIGGER_IFACE = {
 	.id = ~0,
 	.compare = mcr_Trigger_compare,
 	.copy = mcr_Trigger_copy,
 	.data_size = sizeof(struct mcr_Trigger),
 	.init = mcr_Trigger_init,
-	.free = mcr_Trigger_free
+	.deinit = mcr_Trigger_deinit
 };
 
-bool mcr_Trigger_receive(void *trigReceiverPt,
+bool mcr_Trigger_receive(void *triggerPt,
 	struct mcr_Signal *dispatchSignal, unsigned int mods)
 {
-	struct mcr_Trigger *trigPt = trigReceiverPt;
-	if (trigPt && trigPt->itrig && trigPt->itrig->receive) {
-		return trigPt->itrig->receive(trigReceiverPt,
-			dispatchSignal, mods);
+	struct mcr_Trigger *localPt = triggerPt;
+	if (localPt && localPt->itrigger && localPt->itrigger->receive
+		&& localPt->trigger) {
+		return localPt->itrigger->receive(localPt, dispatchSignal,
+			mods);
 	}
 	return false;
 }
 
-const struct mcr_Interface *mcr_Trigger_iface()
+const struct mcr_Interface *mcr_Trigger_interface()
 {
 	return &_MCR_TRIGGER_IFACE;
 }
 
-void mcr_Trigger_init(void *trigDataPt)
+int mcr_Trigger_init(void *triggerPt)
 {
-	if (trigDataPt) {
-		memset(trigDataPt, 0, sizeof(struct mcr_Trigger));
+	if (triggerPt) {
+		memset(triggerPt, 0, sizeof(struct mcr_Trigger));
 	}
+	return 0;
 }
 
-void mcr_Trigger_set_all(struct mcr_Trigger *trigPt,
+struct mcr_Trigger mcr_Trigger_new(mcr_Dispatcher_receive_fnc trigger,
+	void *actor)
+{
+	struct mcr_Trigger ret;
+	mcr_Trigger_init(&ret);
+	ret.trigger = trigger;
+	ret.actor = actor;
+	return ret;
+}
+
+int mcr_Trigger_deinit(void *trigPt)
+{
+	return mcr_Instance_deinit(trigPt);
+}
+
+void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
 	mcr_Dispatcher_receive_fnc trigger, void *actor)
 {
-	dassert(trigPt);
-	trigPt->trigger = trigger;
-	trigPt->actor = actor;
+	dassert(triggerPt);
+	triggerPt->trigger = trigger;
+	triggerPt->actor = actor;
 }
 
-void mcr_Trigger_free(void *trigDataPt)
+void mcr_Trigger_set_macro(struct mcr_Trigger *triggerPt,
+	struct mcr_Macro *mcrPt)
 {
-	mcr_inst_free(trigDataPt);
+	dassert(triggerPt);
+	if (mcrPt) {
+		triggerPt->trigger = mcr_Macro_trigger;
+		triggerPt->actor = mcrPt;
+	} else {
+		triggerPt->trigger = triggerPt->actor = NULL;
+	}
 }
 
 int mcr_Trigger_copy(void *dstPt, void *srcPt)
 {
 	struct mcr_Trigger *dstTrig = dstPt, *srcTrig = srcPt;
-	int err = mcr_inst_copy(dstPt, srcPt);
+	int err = mcr_Instance_copy(dstPt, srcPt);
 	if (err)
 		return err;
 	if (dstTrig) {
@@ -79,22 +100,22 @@ int mcr_Trigger_copy(void *dstPt, void *srcPt)
 			dstTrig->trigger = srcTrig->trigger;
 			dstTrig->actor = srcTrig->actor;
 		} else {
-			dstTrig->trigger = NULL;
-			dstTrig->actor = NULL;
+			dstTrig->trigger = dstTrig->actor = NULL;
 		}
 	}
 	return 0;
 }
 
-int mcr_Trigger_compare(const void *lhsTrigPt, const void *rhsTrigPt)
+int mcr_Trigger_compare(const void *lhsTriggerPt, const void *rhsTriggerPt)
 {
-	const struct mcr_Trigger *lTrigPt = lhsTrigPt, *rTrigPt = rhsTrigPt;
+	const struct mcr_Trigger *lTrigPt = lhsTriggerPt, *rTrigPt =
+		rhsTriggerPt;
 	int valHolder;
-	if (rhsTrigPt) {
-		if (lhsTrigPt) {
-			if (lhsTrigPt == rhsTrigPt)
+	if (rTrigPt) {
+		if (lTrigPt) {
+			if (lTrigPt == rTrigPt)
 				return 0;
-			valHolder = mcr_inst_compare(lhsTrigPt, rhsTrigPt);
+			valHolder = mcr_Instance_compare(lTrigPt, rTrigPt);
 			if (valHolder)
 				return valHolder;
 			if ((valHolder = MCR_CMP_INTEGRAL(lTrigPt->trigger,
@@ -104,7 +125,7 @@ int mcr_Trigger_compare(const void *lhsTrigPt, const void *rhsTrigPt)
 		}
 		return -1;
 	}
-	return ! !lhsTrigPt;
+	return ! !lTrigPt;
 }
 
 int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt)
@@ -128,8 +149,21 @@ int mcr_trigger_initialize(struct mcr_context *ctx)
 	return 0;
 }
 
-void mcr_trigger_cleanup(struct mcr_context *ctx)
+int mcr_trigger_deinitialize(struct mcr_context *ctx)
 {
 	dassert(ctx);
-	mcr_reg_free(mcr_ITrigger_reg(ctx));
+	return mcr_reg_deinit(mcr_ITrigger_reg(ctx));
+}
+
+int mcr_Trigger_add_dispatch(struct mcr_context *ctx,
+	struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt)
+{
+	return mcr_Dispatcher_add(ctx, interceptPt, trigPt,
+		mcr_Trigger_receive);
+}
+
+int mcr_Trigger_remove_dispatch(struct mcr_context *ctx,
+	struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
+{
+	return mcr_Dispatcher_remove(ctx, isigPt, trigPt);
 }

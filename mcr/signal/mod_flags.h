@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_ModFlags flag enumeration for modifiers.
+ * \brief \ref mcr_ModFlags - Flag enumeration for modifiers
  */
 
 #ifndef MCR_MOD_FLAGS_H
@@ -25,21 +25,18 @@
 
 #include "mcr/signal/def.h"
 
-/*!
- * \brief Enumeration for known and historical modifiers.
+/*! \brief Enumeration for known and historical modifiers.
  *
  * To emulate how an operating system combines the names of some
- * modifiers, the names of those modifiers will map to the same value.
- * <br>
+ * modifiers, the names of those modifiers will map to the same value.\n
  * Some of these are actually hardware switches, depending on the
  * keyboard. If relying on keyboard or key codes to set modifiers, some
- * may never be used.
- * <br>
+ * may never be used.\n
  * These values may change. Other values may also be
  * defined in other modules.
  */
 enum mcr_ModFlags {
-	/*! Interpreted as no modifiers */
+	/*! \brief Interpreted as no modifiers */
 	MCR_MF_NONE = 0,
 	/* Alt and option are always the same here. */
 	MCR_ALT = 1,
@@ -63,38 +60,74 @@ enum mcr_ModFlags {
 	MCR_MF_USER = MCR_WIN << 1
 };
 
-MCR_API unsigned int mcr_mod_names_mod(struct mcr_context *ctx,
+/*! \brief Get the modifier from its name
+ *
+ * \param name \ref opt
+ * \return Modifiers
+ */
+MCR_API unsigned int mcr_ModFlags_mod(struct mcr_context *ctx,
 	const char *name);
-MCR_API const char *mcr_mod_names_name(struct mcr_context *ctx,
+/*! \brief Get the name of a modifier
+ *
+ * \param modifier Modifiers
+ * \return Name of the modifier, or null if not found
+ */
+MCR_API const char *mcr_ModFlags_name(struct mcr_context *ctx,
 	unsigned int modifier);
-MCR_API size_t mcr_mod_names_count(struct mcr_context *ctx);
-
-MCR_API void mcr_mod_names_all(struct mcr_context *ctx,
-	unsigned int *modBuffer, size_t bufferLength);
-MCR_API void mcr_mod_names_clear(struct mcr_context *ctx);
-MCR_API int mcr_mod_names_set_name(struct mcr_context *ctx,
-	unsigned int modifier, const char *name);
-MCR_API int mcr_mod_names_add(struct mcr_context *ctx, unsigned int modifier,
-	const char *name);
-MCR_API int mcr_mod_names_map(struct mcr_context *ctx, unsigned int modifier,
-	const char *name, const char **addNames, size_t bufferLen);
-MCR_API int mcr_mod_names_remod(struct mcr_context *ctx,
-	unsigned int modifier, unsigned int newMod);
-MCR_API int mcr_mod_names_rename(struct mcr_context *ctx,
-	const char *oldName, const char *newName);
-MCR_API void mcr_mod_names_trim(struct mcr_context *ctx);
+/*! \brief Get the number of modifiers that are mapped to a name
+ *
+ * \param \ref retind
+ */
+MCR_API size_t mcr_ModFlags_count(struct mcr_context *ctx);
 
 /* Modify modifiers */
-MCR_API unsigned int mcr_mod_combine(const unsigned int *modsArray,
+/*! \brief Combine an array of flags
+ *
+ * \param modsArray \ref opt Array of flags
+ * \param length Number of flags to combine
+ * \return Combined flags
+ */
+MCR_API unsigned int mcr_ModFlags_combine(const unsigned int *modsArray,
 	size_t length);
-MCR_API unsigned int mcr_mod_add(unsigned int mods, unsigned int newMod);
-MCR_API bool mcr_mod_has(unsigned int mods, unsigned int modVal);
-MCR_API unsigned int mcr_mod_remove(unsigned int mods, unsigned int delMod);
+/*! \brief Combine two flags
+ *
+ * \param mods First set of flags
+ * \param newMod Additional set of flags
+ * \return Combined flags
+ */
+MCR_API unsigned int mcr_ModFlags_add(unsigned int mods, unsigned int newMod);
+/*! \brief True if flags contain a set of other flags
+ *
+ * \param mods Current set of flags
+ * \param modVal Flags to be contained or not
+ * \return True if flags contain a set of other flags
+ */
+MCR_API bool mcr_ModFlags_has(unsigned int mods, unsigned int modVal);
+/*! \brief Remove one set of flags from another
+ *
+ * \param mods Current set of flags
+ * \param delMod Flags to remove
+ * \return Current mods with the others removed
+ */
+MCR_API unsigned int mcr_ModFlags_remove(unsigned int mods,
+	unsigned int delMod);
 
+/*! \brief Get the naming maps for modifiers and names.
+ *
+ * Mostly for internal use
+ * \param mapModName \ref opt Map from modifiers to names
+ * \param mapNameMod \ref opt Map from names to modifiers
+ */
+MCR_API void mcr_ModFlags_maps(struct mcr_context *ctx,
+	struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
+
+/*! \brief See \ref mcr_ModFlags_add */
 #define MCR_MOD_ADD( toModify, modifiers ) \
 ((toModify) | (modifiers))
+/*! \brief See \ref mcr_ModFlags_has */
 #define MCR_MOD_HAS( modifiers, hasMod ) \
 ((modifiers & hasMod) == hasMod)
+/*! \brief See \ref mcr_ModFlags_remove */
 #define MCR_MOD_REMOVE( toModify, modifiers ) \
 ((toModify) & (~(modifiers)))
 

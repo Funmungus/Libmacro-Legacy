@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -22,145 +22,164 @@
 #include <stdlib.h>
 #include <string.h>
 
-void mcr_reg_init(void *dataPt)
+int mcr_reg_init(void *regPt)
 {
-	struct mcr_IRegistry *iRegPt = dataPt;
-	dassert(iRegPt);
-	mcr_Array_init(&iRegPt->iset);
-	mcr_Array_init(&iRegPt->names);
-	mcr_StringMap_init(&iRegPt->name_map);
-	iRegPt->iset.element_size = sizeof(void *);
-	iRegPt->names.element_size = sizeof(mcr_String);
-	iRegPt->name_map.value_size = sizeof(void *);
+	struct mcr_IRegistry *iRegPt = regPt;
+	if (iRegPt) {
+		mcr_Array_init(&iRegPt->iset);
+		mcr_StringSet_init(&iRegPt->names);
+		mcr_Map_init(&iRegPt->name_map);
+		iRegPt->iset.element_size = sizeof(void *);
+		mcr_Map_set_all(&iRegPt->name_map, sizeof(mcr_String),
+			sizeof(void *), NULL, mcr_String_interface(), NULL);
+	}
+	return 0;
 }
 
-void mcr_reg_free(void *dataPt)
+struct mcr_IRegistry mcr_reg_new()
 {
-	struct mcr_IRegistry *iRegPt = dataPt;
-	dassert(iRegPt);
-	mcr_Array_free(&iRegPt->iset);
-	MCR_ARR_FOR_EACH(iRegPt->names, MCR_EXP(mcr_Array_free_foreach),);
-	mcr_Array_free(&iRegPt->names);
-	mcr_StringMap_free(&iRegPt->name_map);
+	struct mcr_IRegistry ret;
+	mcr_reg_init(&ret);
+	return ret;
 }
 
-int mcr_register(struct mcr_IRegistry *iRegPt, void *ifacePt,
+int mcr_reg_deinit(void *regPt)
+{
+	struct mcr_IRegistry *iRegPt = regPt;
+	if (iRegPt) {
+		mcr_Array_deinit(&iRegPt->iset);
+		mcr_StringSet_deinit(&iRegPt->names);
+		mcr_Map_deinit(&iRegPt->name_map);
+	}
+	return 0;
+}
+
+int mcr_register(struct mcr_IRegistry *iRegPt, void *interfacePt,
 	const char *name, const char **addNames, size_t bufferLen)
 {
 	size_t id = iRegPt->iset.used;
 	int err;
 	dassert(iRegPt);
-	dassert(ifacePt);
-	if ((err = mcr_Array_append(&iRegPt->iset, &ifacePt, 1, 0)))
+	dassert(interfacePt);
+	if ((err = mcr_Array_append(&iRegPt->iset, &interfacePt, 1)))
 		return err;
 	/* If successful, we can set the id. */
-	((struct mcr_Interface *)ifacePt)->id = id;
-	if ((err = mcr_reg_set_names(iRegPt, ifacePt, name, addNames,
-				bufferLen)))
-		return err;
-	return 0;
+	((struct mcr_Interface *)interfacePt)->id = id;
+	return mcr_reg_set_names(iRegPt, interfacePt, name, addNames,
+		bufferLen);
 }
 
 void *mcr_reg_from_id(const struct mcr_IRegistry *iRegPt, size_t typeId)
 {
-	void **ifacePtPt;
-	dassert(iRegPt);
+	void **interfacePtPt;
+	if (!iRegPt || typeId == (size_t) - 1)
+		return NULL;
 	if (typeId >= iRegPt->iset.used) {
 		mset_error(EFAULT);
 		return NULL;
 	}
-	ifacePtPt = MCR_ARR_ELEMENT(iRegPt->iset, typeId);
-	return ifacePtPt ? *ifacePtPt : NULL;
+	interfacePtPt = MCR_ARR_ELEMENT(iRegPt->iset, typeId);
+	return interfacePtPt ? *interfacePtPt : NULL;
 }
 
 void *mcr_reg_from_name(const struct mcr_IRegistry *iRegPt,
 	const char *typeName)
 {
 	void *retPt;
-	dassert(iRegPt);
-	if (!typeName) {
-		mset_error(EINVAL);
+	if (!iRegPt || !typeName)
 		return NULL;
-	}
-	retPt = MCR_STRINGMAP_ELEMENT((iRegPt)->name_map, typeName);
-	retPt = MCR_STRINGMAP_VALUEOF((iRegPt)->name_map, retPt);
+	retPt = MCR_MAP_ELEMENT((iRegPt)->name_map, &typeName);
+	retPt = MCR_MAP_VALUEOF((iRegPt)->name_map, retPt);
 	return retPt ? *(void **)retPt : NULL;
 }
 
 const char *mcr_reg_name(const struct mcr_IRegistry *iRegPt, size_t id)
 {
 	return iRegPt ? iRegPt->names.used ?
-		((mcr_String *) MCR_ARR_ELEMENT(iRegPt->names, id))->array :
-		NULL : NULL;
+		mcr_StringSet_element(&iRegPt->names, id)->array : NULL : NULL;
 }
 
 int mcr_reg_set_name(struct mcr_IRegistry *iRegPt,
-	const void *ifacePt, const char *name)
+	void *interfacePt, const char *name)
 {
-	const struct mcr_Interface *iPt = ifacePt;
-	int ret;
-	struct mcr_Array initial, *namePt;
+	struct mcr_Interface *iPt = interfacePt;
+	int err;
+	mcr_String *namePt;
 	dassert(iRegPt);
-	dassert(ifacePt);
+	dassert(interfacePt);
 	dassert(iPt->id != (size_t) ~ 0);
-	if (iPt->id >= iRegPt->names.used) {
-		mcr_String_init(&initial);
-		if ((ret = mcr_Array_minfill(&iRegPt->names, iPt->id + 1,
-					&initial)))
-			return ret;
-	}
-	namePt = MCR_ARR_ELEMENT(iRegPt->names, iPt->id);
-	if ((ret = mcr_String_replace(namePt, name)))
-		return ret;
-	return mcr_reg_add_name(iRegPt, ifacePt, name);
-}
-
-int mcr_reg_add_name(struct mcr_IRegistry *iRegPt, const void *ifacePt,
-	const char *name)
-{
-	int ret;
-	dassert(iRegPt);
-	dassert(ifacePt);
 	if (!name)
 		return 0;
-	if ((ret = mcr_StringMap_map(&iRegPt->name_map, name, &ifacePt)))
-		return ret;
+	if (iPt->id >= iRegPt->names.used) {
+		if ((err = mcr_StringSet_minused(&iRegPt->names, iPt->id + 1)))
+			return err;
+	}
+	namePt = mcr_StringSet_element(&iRegPt->names, iPt->id);
+	if ((err = mcr_String_replace(namePt, name)))
+		return err;
+	return mcr_reg_add_name(iRegPt, interfacePt, name);
+}
+
+int mcr_reg_add_name(struct mcr_IRegistry *iRegPt, void *interfacePt,
+	const char *name)
+{
+	dassert(iRegPt);
+	dassert(interfacePt);
+	if (!name)
+		return 0;
+	return mcr_Map_map(&iRegPt->name_map, &name, &interfacePt);
+}
+
+int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, void *interfacePt,
+	const char **names, size_t bufferLen)
+{
+	int err;
+	size_t i;
+	dassert(iRegPt);
+	dassert(interfacePt);
+	if (!names || !bufferLen)
+		return 0;
+	for (i = 0; i < bufferLen; i++) {
+		if ((err = mcr_Map_map(&iRegPt->name_map, names + i,
+					&interfacePt)))
+			return err;
+	}
 	return 0;
 }
 
-int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, const void *ifacePt,
-	const char **names, size_t bufferLen)
-{
-	dassert(iRegPt);
-	dassert(ifacePt);
-	if (!names || !bufferLen)
-		return 0;
-	return mcr_StringMap_fill(&iRegPt->name_map, names, bufferLen,
-		&ifacePt);
-}
-
 int mcr_reg_set_names(struct mcr_IRegistry *iRegPt,
-	const void *ifacePt, const char *name, const char **names,
+	void *interfacePt, const char *name, const char **names,
 	size_t bufferLen)
 {
-	int ret = mcr_reg_set_name(iRegPt, ifacePt, name);
-	if (!ret)
-		ret = mcr_reg_add_names(iRegPt, ifacePt, names, bufferLen);
-	return ret;
+	int err = mcr_reg_set_name(iRegPt, interfacePt, name);
+	if (!err)
+		err = mcr_reg_add_names(iRegPt, interfacePt, names, bufferLen);
+	return err;
 }
 
 int mcr_reg_rename(struct mcr_IRegistry *iRegPt, const char *oldName,
 	const char *newName)
 {
-	void *ifacePt = mcr_reg_from_name(iRegPt, oldName);
+	int err;
+	void *interfacePt;
 	dassert(iRegPt);
-	dassert(oldName);
-	/* Not an error, just nothing to rename */
-	if (!ifacePt)
+	if (oldName == newName)
 		return 0;
-	/* Remove old name, set new. */
-	mcr_StringMap_unmap(&iRegPt->name_map, oldName);
-	return mcr_reg_set_name(iRegPt, ifacePt, newName);
+	if (newName) {
+		if (!(interfacePt = mcr_reg_from_name(iRegPt, oldName))) {
+			interfacePt = mcr_reg_from_name(iRegPt, newName);
+			if (interfacePt)
+				return mcr_reg_set_name(iRegPt, interfacePt,
+					NULL);
+			return 0;
+		}
+		if ((err = mcr_reg_set_name(iRegPt, interfacePt, newName)))
+			return err;
+	}
+	interfacePt = mcr_reg_from_name(iRegPt, oldName);
+	if (interfacePt)
+		return mcr_reg_set_name(iRegPt, interfacePt, NULL);
+	return 0;
 }
 
 size_t mcr_reg_count(const struct mcr_IRegistry * iRegPt)
@@ -168,31 +187,18 @@ size_t mcr_reg_count(const struct mcr_IRegistry * iRegPt)
 	return iRegPt ? iRegPt->iset.used : 0;
 }
 
-void mcr_reg_all(struct mcr_IRegistry *iRegPt, void **ifacePtBuffer,
-	size_t bufferLength)
-{
-	size_t avail = iRegPt->iset.used;
-	dassert(iRegPt);
-	dassert(ifacePtBuffer);
-	if (avail)
-		memcpy(ifacePtBuffer, iRegPt->iset.array,
-			bufferLength < avail ? bufferLength * sizeof(void *) :
-			avail * sizeof(void *));
-}
-
 void mcr_reg_trim(struct mcr_IRegistry *iRegPt)
 {
 	dassert(iRegPt);
 	mcr_Array_trim(&iRegPt->iset);
-	mcr_Array_trim(&iRegPt->names);
-	mcr_StringMap_trim(&iRegPt->name_map);
+	mcr_StringSet_trim(&iRegPt->names);
+	mcr_Map_trim(&iRegPt->name_map);
 }
 
 void mcr_reg_clear(struct mcr_IRegistry *iRegPt)
 {
 	dassert(iRegPt);
 	mcr_Array_clear(&iRegPt->iset);
-	MCR_ARR_FOR_EACH(iRegPt->names, mcr_String_free_foreach,);
-	mcr_Array_clear(&iRegPt->names);
-	mcr_StringMap_clear(&iRegPt->name_map);
+	mcr_StringSet_clear(&iRegPt->names);
+	mcr_Map_clear(&iRegPt->name_map);
 }

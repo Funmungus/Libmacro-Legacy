@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include "mcr/util/nativeless/nutil.h"
 #include "mcr/util/util.h"
 
-int strcasecmp(const char *s1, const char *s2)
+int mcr_casecmp(const char *s1, const char *s2)
 {
 	while (*s1 != '\0' && *s2 != '\0') {
 		if (tolower(*s1) != tolower(*s2))
@@ -36,7 +36,7 @@ int strcasecmp(const char *s1, const char *s2)
 	return (*s1 == '\0') ? -1 : 1;
 }
 
-int strncasecmp(const char *s1, const char *s2, size_t n)
+int mcr_ncasecmp(const char *s1, const char *s2, size_t n)
 {
 	size_t i = 0;
 	while (s1[i] != '\0' && s2[i] != '\0' && i < count) {
@@ -50,14 +50,4 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 		return 0;
 	/* One is lesser than the other. */
 	return (s1[i] == '\0') ? -1 : 1;
-}
-
-int stricmp(const char *lhs, const char *rhs)
-{
-	return strcasecmp(lhs, rhs);
-}
-
-int strnicmp(const char *lhs, const char *rhs, size_t count)
-{
-	return strncasecmp(lhs, rhs, count);
 }

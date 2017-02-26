@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,6 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*! \file
+ * \brief Standard module definitions
+ */
+
 #ifndef MCR_LNX_STANDARD_DEF_H
 #define MCR_LNX_STANDARD_DEF_H
 
@@ -24,20 +28,15 @@
 #include <linux/input.h>	/* input_event */
 #include <linux/uinput.h>	/* uinput_user_dev */
 
-/*! \def MCR_UINPUT_PATH
- * Default value for uinput node when library is built.
- */
 #ifndef MCR_UINPUT_PATH
+/*! \brief Default value for uinput node when library is built. */
 #define MCR_UINPUT_PATH /dev/uinput
 #endif
-/*! \def MCR_EVENT_PATH
- * Default value for device input event path when library is built.
- */
 #ifndef MCR_EVENT_PATH
+/*! \brief Default value for device input event path when library is built. */
 #define MCR_EVENT_PATH /dev/input
 #endif
-/*! \def MCR_ABS_RESOLUTION
- * Default value for \ref mcr_AbsDev resolution when library is built.
+/*! \brief Default value for \ref mcr_AbsDev resolution when library is built.
  * Default is 4095, or 0x0FFF
  */
 #ifndef MCR_ABS_RESOLUTION

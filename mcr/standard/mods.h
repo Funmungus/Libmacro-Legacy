@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -46,15 +46,15 @@ MCR_API void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
 	enum mcr_KeyUpType upType);
 MCR_API int mcr_Mods_send(struct mcr_Signal *sigPt);
 MCR_API int mcr_Mods_compare(const void *lhs, const void *rhs);
-/* Default init, free, and copy */
+/* Default init, deinit, and copy */
 
 MCR_API void mcr_Mods_modify(struct mcr_Mods *modPt,
 	unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);
 
 MCR_API struct mcr_ISignal *mcr_iMods(struct mcr_context *ctx);
 #define mcr_Mods_data( sigPt ) \
-((struct mcr_Mods *)mcr_inst_data(sigPt))
+((struct mcr_Mods *)mcr_Instance_data(sigPt))
 #define MCR_MODS_DATA(signal) \
-((struct mcr_Mods *)(signal).inst.data->data)
+((struct mcr_Mods *)(signal).instance.data->data)
 
 #endif

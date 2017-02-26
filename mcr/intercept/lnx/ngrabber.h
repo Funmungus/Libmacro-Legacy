@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -27,8 +27,6 @@
 
 /*! \brief Take exclusive access to a /dev/input event. */
 struct mcr_Grabber {
-	/*! \brief Current grabbing state of input device. */
-	bool is_grabbing;
 	/*! \brief File of the created input event */
 	int fd;
 	/*! \brief File path of input event */
@@ -37,9 +35,7 @@ struct mcr_Grabber {
 
 /*! ctor */
 MCR_API void mcr_Grabber_init(void *grabDataPt);
-MCR_API void mcr_Grabber_free(void *grabDataPt);
-#define mcr_Grabber_free_foreach(grabPt, ignore) \
-mcr_Grabber_free((mcr_Grabber *)grabPt)
+MCR_API void mcr_Grabber_deinit(void *grabDataPt);
 
 MCR_API const char *mcr_Grabber_path(struct mcr_Grabber *grabPt);
 MCR_API int mcr_Grabber_set_path(struct mcr_Grabber *grabPt, const char *path);
@@ -54,13 +50,6 @@ MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
-MCR_API bool mcr_Grabber_is_grabbing(struct mcr_Grabber *grabPt);
-/*!
- * \brief Set the current grabbing state of input device.
- *
- * \return \ref reterr
- */
-MCR_API int mcr_Grabber_set_grabbing(struct mcr_Grabber *grabPt, bool grab);
 /*!
  * \brief Obtain the current key state of this device.
  *

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,26 +20,46 @@
 #include "mcr/modules.h"
 #include <string.h>
 
-void mcr_ISignal_init(void *dataPt)
+int mcr_ISignal_init(void *isigPt)
 {
-	if (dataPt) {
-		memset(dataPt, 0, sizeof(struct mcr_ISignal));
-		mcr_iinit(dataPt);
+	if (isigPt) {
+		memset(isigPt, 0, sizeof(struct mcr_ISignal));
+		mcr_Interface_init(isigPt);
 	}
+	return 0;
 }
 
-void mcr_ISignal_set_all(struct mcr_ISignal *newType,
+struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
+	mcr_signal_fnc sender)
+{
+	struct mcr_ISignal ret = { 0 };
+	mcr_Interface_init(&ret);
+	if (dispPt)
+		ret.dispatcher = dispPt;
+	if (sender)
+		ret.send = sender;
+	return ret;
+}
+
+void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
 	struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender)
 {
-	dassert(newType);
-	newType->dispatcher = dispPt;
-	newType->send = sender;
+	dassert(isigPt);
+	isigPt->dispatcher = dispPt;
+	isigPt->send = sender;
 }
 
 struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx)
 {
 	dassert(ctx);
 	return &ctx->signal.isignals;
+}
+
+const char *mcr_ISignal_name(struct mcr_context *ctx,
+	struct mcr_ISignal *isigPt)
+{
+	dassert(ctx);
+	return mcr_reg_name(mcr_ISignal_reg(ctx), mcr_ISignal_id(isigPt));
 }
 
 struct mcr_ISignal *mcr_ISignal_from_id(struct mcr_context *ctx, size_t id)

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,14 +17,17 @@
 */
 
 /*! \file
- * \brief Structure of of everything used by the known Libmacro.
+ * \brief Structures used by Libmacro
  */
 
 #ifndef MCR_MODULES_H
 #define MCR_MODULES_H
 
-/* Each module header is the main header of that module */
-#include "mcr/util/util.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Define all module structures */
 #include "mcr/signal/mod_signal.h"
 #include "mcr/macro/mod_macro.h"
 #include "mcr/standard/mod_standard.h"
@@ -33,15 +36,19 @@
 #include "mcr/extras/mod_extras.h"
 #endif
 
-struct mcr_context {
-	struct mcr_mod_signal signal;
-	struct mcr_mod_macro macro;
-	struct mcr_mod_standard standard;
-	struct mcr_mod_intercept intercept;
-	/* Optional modules must be last */
+/*! \brief Required for Libmacro functions */
+	struct mcr_context {
+		struct mcr_mod_signal signal;
+		struct mcr_mod_macro macro;
+		struct mcr_mod_standard standard;
+		struct mcr_mod_intercept intercept;
+		/* Optional modules last to avoid offset errors */
 #ifdef MCR_EXTRAS
-	struct mcr_mod_extras extras;
+		struct mcr_mod_extras extras;
 #endif
-};
+	};
 
+#ifdef __cplusplus
+}
+#endif
 #endif

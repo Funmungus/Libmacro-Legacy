@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,13 +17,15 @@
 */
 
 /*! \file
- * \brief
+ * \brief \ref mcr_mod_intercept - Intercept module
  */
 
 #ifndef MCR_MOD_INTERCEPT_H
 #define MCR_MOD_INTERCEPT_H
 
+/*! \brief Intercept module */
 struct mcr_mod_intercept {
+	/*! All data reserved for native definitions */
 	void *native;
 };
 

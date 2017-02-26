@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -33,8 +33,8 @@ struct mcr_CtxISignal {
 
 /*! \brief \ref mcr_FlagDispatcher with \ref mcr_libmacro reference */
 struct mcr_CtxDispatcher {
-	struct mcr_MapDispatcher dispatcher;
-	struct mcr_context *mcr_pt;
+	struct mcr_Dispatcher dispatcher;
+	struct mcr_context *ctx;
 };
 
 struct mcr_IsStage;
@@ -43,12 +43,18 @@ struct mcr_mod_standard {
 	struct mcr_ISignal ialarm;
 	struct mcr_ISignal ihid_echo;
 	struct mcr_ISignal ikey;
-	struct mcr_CtxDispatcher key_dispatcher;
-	struct mcr_BiMap key_modifiers;
 	struct mcr_CtxISignal imods;
 	struct mcr_ISignal imove_cursor;
 	struct mcr_ISignal inoop;
 	struct mcr_ISignal iscroll;
+	/* Key dispatch */
+	struct mcr_CtxDispatcher key_dispatcher;
+	/* down, up, generic is set into both */
+	struct mcr_Map key_dispatcher_maps[2];
+	struct mcr_Interface scan_map_interface;
+	/* modifier <=> key */
+	struct mcr_Map map_key_modifier;
+	struct mcr_Map map_modifier_key;
 	/* Trigger types */
 	struct mcr_ITrigger iaction;
 	struct mcr_ITrigger istaged;

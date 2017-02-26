@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ MCR_API void mcr_NoOp_set_all(mcr_NoOp * noopPt, int sec, int nsec);
 MCR_API int mcr_NoOp_send(struct mcr_Signal *signalData);
 /*! \brief \ref mcr_NoOp_send */
 MCR_API int mcr_NoOp_send_data(mcr_NoOp * dataPt);
-/* Default init, free, copy, and compare */
+/* Default init, deinit, copy, and compare */
 
 #define MCR_NOOP_SET_ALL(noop, sec, nsec) \
 (noop).tv_sec = sec; \
@@ -53,9 +53,9 @@ MCR_API int mcr_NoOp_send_data(mcr_NoOp * dataPt);
 MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_NoOp * */
 #define mcr_NoOp_data(sigPt) \
-((mcr_NoOp *)mcr_inst_data(sigPt))
+((mcr_NoOp *)mcr_Instance_data(sigPt))
 /*! \brief Signal data casted \ref mcr_NoOp * */
 #define MCR_NOOP_DATA(sig) \
-((mcr_NoOp *)(sig).inst.data.data)
+((mcr_NoOp *)(sig).instance.data.data)
 
 #endif

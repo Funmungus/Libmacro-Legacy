@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -37,10 +37,9 @@ int mcr_NoOp_send(struct mcr_Signal *signalData)
 int mcr_NoOp_send_data(mcr_NoOp * dataPt)
 {
 	dassert(dataPt);
-	if (thrd_sleep(dataPt, NULL) == thrd_success)
-		return 0;
-	int ret = errno;
-	return ret ? ret : -1;
+	thrd_sleep(dataPt, NULL);
+	int err = errno;
+	return err ? err : 0;
 }
 
 struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx)

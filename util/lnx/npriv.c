@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -67,9 +67,9 @@ int mcr_privilege_deactivate()
 static inline int privswap()
 {
 	if (setreuid(geteuid(), getuid()) == -1) {
-		int ret = errno;
+		int err = errno;
 		dmsg;
-		return ret;
+		return err;
 	}
 	return 0;
 }

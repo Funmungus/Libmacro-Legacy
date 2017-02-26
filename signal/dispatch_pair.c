@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -19,23 +19,35 @@
 #include "mcr/signal/signal.h"
 
 /* Init mcr_Array of mcr_DispatchPair */
-static void mcr_Array_DispatchPair_init(void *dataPt);
+static int mcr_Array_DispatchPair_init(void *arrPt);
 static const struct mcr_Interface _MCR_ARR_DISPATCHPAIR_IFACE = {
 	.id = ~0,
 	/* 0 compare, copy */
 	.data_size = sizeof(struct mcr_Array),
 	.init = mcr_Array_DispatchPair_init,
-	.free = mcr_Array_free
+	.deinit = mcr_Array_deinit
 };
 
-const struct mcr_Interface *mcr_Array_DispatchPair_iface()
+struct mcr_DispatchPair mcr_DispatchPar_new(void *receiver,
+	mcr_Dispatcher_receive_fnc dispatch)
+{
+	struct mcr_DispatchPair ret;
+	if (receiver)
+		ret.receiver = receiver;
+	if (dispatch)
+		ret.dispatch = dispatch;
+	return ret;
+}
+
+const struct mcr_Interface *mcr_Array_DispatchPair_interface()
 {
 	return &_MCR_ARR_DISPATCHPAIR_IFACE;
 }
 
-static void mcr_Array_DispatchPair_init(void *dataPt)
+static int mcr_Array_DispatchPair_init(void *arrPt)
 {
-	mcr_Array_init(dataPt);
-	mcr_Array_set_all(dataPt, mcr_DispatchPair_compare,
+	mcr_Array_init(arrPt);
+	mcr_Array_set_all(arrPt, mcr_DispatchPair_compare,
 		sizeof(struct mcr_DispatchPair));
+	return 0;
 }

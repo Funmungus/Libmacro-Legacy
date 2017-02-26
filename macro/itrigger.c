@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,27 +20,47 @@
 #include "mcr/modules.h"
 #include <string.h>
 
-void mcr_ITrigger_init(void *itrigDataPt)
+int mcr_ITrigger_init(void *itrigPt)
 {
-	struct mcr_ITrigger *itrigPt = itrigDataPt;
-	if (itrigPt) {
-		memset(itrigPt, 0, sizeof(struct mcr_ITrigger));
-		mcr_iinit(&itrigPt->iface);
+	struct mcr_ITrigger *localPt = itrigPt;
+	if (localPt) {
+		memset(localPt, 0, sizeof(struct mcr_ITrigger));
+		mcr_Interface_init(&localPt->interface);
 	}
+	return 0;
+}
+
+struct mcr_ITrigger mcr_ITrigger_new(mcr_Dispatcher_receive_fnc receiveFnc)
+{
+	struct mcr_ITrigger ret;
+	dassert(receiveFnc);
+	mcr_Interface_init(&ret.interface);
+	ret.receive = receiveFnc;
+	return ret;
 }
 
 struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx)
 {
+	dassert(ctx);
 	return &ctx->macro.itriggers;
+}
+
+const char *mcr_ITrigger_name(struct mcr_context *ctx,
+	struct mcr_ITrigger *itrigPt)
+{
+	dassert(ctx);
+	return mcr_reg_name(mcr_ITrigger_reg(ctx), mcr_ITrigger_id(itrigPt));
 }
 
 struct mcr_ITrigger *mcr_ITrigger_from_id(struct mcr_context *ctx, size_t id)
 {
+	dassert(ctx);
 	return mcr_reg_from_id(mcr_ITrigger_reg(ctx), id);
 }
 
 struct mcr_ITrigger *mcr_ITrigger_from_name(struct mcr_context *ctx,
 	const char *name)
 {
+	dassert(ctx);
 	return mcr_reg_from_name(mcr_ITrigger_reg(ctx), name);
 }

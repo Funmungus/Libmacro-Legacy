@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -20,37 +20,47 @@
 #include <stdlib.h>
 #include <string.h>
 
-void mcr_StringIndex_init(void *dataPt)
+int mcr_StringIndex_init(void *indexPt)
 {
-	struct mcr_StringIndex *indexPt = dataPt;
-	dassert(indexPt);
-	memset(indexPt, 0, sizeof(struct mcr_StringIndex));
-	mcr_StringMap_init(&indexPt->map);
-	mcr_StringSet_init(&indexPt->set);
-	indexPt->map.value_size = sizeof(size_t);
+	struct mcr_StringIndex *localPt = indexPt;
+	if (localPt) {
+		memset(localPt, 0, sizeof(struct mcr_StringIndex));
+		mcr_Map_init(&localPt->map);
+		mcr_StringSet_init(&localPt->set);
+		mcr_Map_set_all(&localPt->map, sizeof(mcr_String),
+			sizeof(size_t), NULL, mcr_String_interface(), NULL);
+	}
+	return 0;
 }
 
-void mcr_StringIndex_free(void *dataPt)
+struct mcr_StringIndex mcr_StringIndex_new()
 {
-	struct mcr_StringIndex *indexPt = dataPt;
-	dassert(indexPt);
-	mcr_StringMap_free(&indexPt->map);
-	mcr_StringSet_free(&indexPt->set);
+	struct mcr_StringIndex ret;
+	mcr_StringIndex_init(&ret);
+	return ret;
 }
 
-/* */
+int mcr_StringIndex_deinit(void *indexPt)
+{
+	struct mcr_StringIndex *localPt = indexPt;
+	if (localPt) {
+		mcr_Map_deinit(&localPt->map);
+		mcr_StringSet_deinit(&localPt->set);
+	}
+	return 0;
+}
+
 /* Allocation control */
-/* */
-int mcr_StringIndex_minused(struct mcr_StringIndex *indexPt, size_t minimumUsed)
+int mcr_StringIndex_minused(struct mcr_StringIndex *indexPt, size_t minUsed)
 {
 	dassert(indexPt);
-	return mcr_StringSet_minused(&indexPt->set, minimumUsed);
+	return mcr_StringSet_minused(&indexPt->set, minUsed);
 }
 
-int mcr_StringIndex_minsize(struct mcr_StringIndex *indexPt, size_t minimumSize)
+int mcr_StringIndex_minsize(struct mcr_StringIndex *indexPt, size_t minSize)
 {
 	dassert(indexPt);
-	return mcr_StringSet_minsize(&indexPt->set, minimumSize);
+	return mcr_StringSet_minsize(&indexPt->set, minSize);
 }
 
 int mcr_StringIndex_smartsize(struct mcr_StringIndex *indexPt,
@@ -60,45 +70,39 @@ int mcr_StringIndex_smartsize(struct mcr_StringIndex *indexPt,
 	return mcr_StringSet_smartsize(&indexPt->set, increasingCount);
 }
 
-/*! Minimize allocated space.
- */
 void mcr_StringIndex_trim(struct mcr_StringIndex *indexPt)
 {
 	dassert(indexPt);
-	mcr_StringMap_trim(&indexPt->map);
+	mcr_Map_trim(&indexPt->map);
 	mcr_StringSet_trim(&indexPt->set);
 }
 
 int mcr_StringIndex_resize(struct mcr_StringIndex *indexPt, size_t newSize)
 {
-	dassert(indexPt);
 	size_t prevUsed, i;
+	dassert(indexPt);
 	if (!newSize) {
-		mcr_StringIndex_free(indexPt);
+		mcr_StringIndex_deinit(indexPt);
 		return 0;
 	}
 	prevUsed = indexPt->set.used;
 	if (newSize < prevUsed) {
 		for (i = newSize; i < prevUsed; i++) {
-			mcr_StringMap_unmap_value(&indexPt->map, &i);
+			mcr_Map_unmap_value(&indexPt->map, &i);
 		}
-		mcr_StringMap_trim(&indexPt->map);
+		mcr_Map_trim(&indexPt->map);
 	}
 	return mcr_StringSet_resize(&indexPt->set, newSize);
 }
 
-/*! Remove all mapped key-value pairs.
- */
 void mcr_StringIndex_clear(struct mcr_StringIndex *indexPt)
 {
 	dassert(indexPt);
-	mcr_StringMap_clear(&indexPt->map);
+	mcr_Map_clear(&indexPt->map);
 	mcr_StringSet_clear(&indexPt->set);
 }
 
-/* */
 /* Position/Values */
-/* */
 mcr_String *mcr_StringIndex_string(struct mcr_StringIndex *indexPt,
 	size_t index)
 {
@@ -106,21 +110,23 @@ mcr_String *mcr_StringIndex_string(struct mcr_StringIndex *indexPt,
 	return MCR_STRINGINDEX_STRING(*indexPt, index);
 }
 
-const char *mcr_StringIndex_name(struct mcr_StringIndex *indexPt, size_t index)
+const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
+	size_t index)
 {
-	mcr_String *found = MCR_STRINGINDEX_STRING(*indexPt, index);
-	dassert(indexPt);
+	mcr_String *found;
+	if (!indexPt)
+		return NULL;
+	found = MCR_STRINGINDEX_STRING(*indexPt, index);
 	return found ? found->array : NULL;
 }
 
-size_t mcr_StringIndex_index(struct mcr_StringIndex * indexPt,
+size_t mcr_StringIndex_index(const struct mcr_StringIndex * indexPt,
 	const char *strKey)
 {
 	size_t *found;
-	dassert(indexPt);
-	if (!strKey)
+	if (!indexPt || !strKey)
 		return ~0;
-	found = mcr_StringMap_value(&indexPt->map, strKey);
+	found = mcr_Map_value(&indexPt->map, &strKey);
 	return found ? *found : (size_t) ~ 0;
 }
 
@@ -128,34 +134,42 @@ size_t mcr_StringIndex_index(struct mcr_StringIndex * indexPt,
 int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
 	size_t index, const char *strKey, const char **addKeys, size_t addCount)
 {
-	int ret;
+	int err;
 	dassert(indexPt);
 	dassert(index != (size_t) ~ 0);
-	if (strKey) {
-		ret = mcr_StringSet_set(&indexPt->set, index, strKey);
-		if (!ret)
-			ret = mcr_StringMap_map(&indexPt->map, strKey, &index);
-		if (ret)
-			return ret;
+	if (strKey && strKey[0]) {
+		if ((err = mcr_StringSet_minused(&indexPt->set, index + 1)))
+			return err;
+		if ((err = mcr_StringSet_set(&indexPt->set, index, strKey)))
+			return err;
+		if ((err = mcr_Map_map(&indexPt->map, &strKey, &index)))
+			return err;
 	}
 	if (addKeys && addCount)
-		return mcr_StringMap_fill(&indexPt->map, addKeys, addCount,
-			&index);
+		return mcr_Map_fill(&indexPt->map, addKeys, addCount, &index);
 	return 0;
 }
 
 int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
 	size_t index, const char **addKeys, size_t addCount)
 {
+	int err;
+	size_t i;
 	dassert(indexPt);
-	return mcr_StringMap_fill(&indexPt->map, addKeys, addCount, &index);
+	if (!addKeys || !addCount)
+		return 0;
+	for (i = 0; i < addCount; i++) {
+		if ((err = mcr_Map_map(&indexPt->map, addKeys + i, &index)))
+			return err;
+	}
+	return 0;
 }
 
 int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
 	size_t curIndex, size_t newIndex)
 {
 	mcr_String *found;
-	int ret;
+	int err;
 	char *itPt, *end;
 	size_t bytes;
 	dassert(indexPt);
@@ -164,11 +178,11 @@ int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
 	found = mcr_StringSet_element(&indexPt->set, curIndex);
 	if (!found)
 		return 0;
-	if ((ret = mcr_StringSet_set(&indexPt->set, newIndex, found->array)))
-		return ret;
-	mcr_String_free(found);
-	MCR_STRINGMAP_ITER(indexPt->map, itPt, end, bytes);
-	itPt = MCR_STRINGMAP_VALUEOF(indexPt->map, itPt);
+	if ((err = mcr_StringSet_set(&indexPt->set, newIndex, found->array)))
+		return err;
+	mcr_String_deinit(found);
+	mcr_Map_iter(&indexPt->map, &itPt, &end, &bytes);
+	itPt = MCR_MAP_VALUEOF(indexPt->map, itPt);
 	while (itPt < end) {
 		if (*(size_t *) itPt == curIndex)
 			*(size_t *) itPt = newIndex;
@@ -180,20 +194,22 @@ int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
 int mcr_StringIndex_remap(struct mcr_StringIndex *indexPt,
 	const char *strKey, const char *newKey)
 {
+	int err;
 	size_t mapVal, *found;
 	dassert(indexPt);
-	dassert(strKey);
+	if (strKey == newKey)
+		return 0;
 	if (newKey) {
-		found = mcr_StringMap_value(&indexPt->map, strKey);
-		if (!found)
+		if (!(found = mcr_Map_value(&indexPt->map, &strKey))) {
+			mcr_StringIndex_unmap_string(indexPt, newKey, true);
 			return 0;
+		}
 		mapVal = *found;
-		mcr_StringMap_unmap(&indexPt->map, strKey);
-		return mcr_StringIndex_map(indexPt, mapVal, newKey, NULL, 0);
-	} else {
-		mcr_StringMap_unmap(&indexPt->map, strKey);
+		if ((err = mcr_StringIndex_map(indexPt, mapVal, newKey, NULL,
+					0)))
+			return err;
 	}
-	return 0;
+	return mcr_Map_unmap(&indexPt->map, &strKey);
 }
 
 void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
@@ -202,12 +218,12 @@ void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
 	mcr_String *found = MCR_STRINGSET_ELEMENT(indexPt->set, remIndex);
 	dassert(indexPt);
 	if (flagRemoveAll) {
-		mcr_StringMap_unmap_value(&indexPt->map, &remIndex);
+		mcr_Map_unmap_value(&indexPt->map, &remIndex);
 	} else if (found && found->array) {
-		mcr_StringMap_unmap(&indexPt->map, found->array);
+		mcr_Map_unmap(&indexPt->map, &found);
 	}
 	if (found)
-		mcr_String_free(found);
+		mcr_String_deinit(found);
 }
 
 void mcr_StringIndex_unmap_string(struct mcr_StringIndex *indexPt,
@@ -221,13 +237,13 @@ void mcr_StringIndex_unmap_string(struct mcr_StringIndex *indexPt,
 	found = MCR_MAP_VALUEOF(indexPt->map, found);
 	if (found) {
 		mcr_StringIndex_unmap(indexPt, *found, flagRemoveAll);
-		mcr_StringMap_unmap(&indexPt->map, remString);
+		mcr_Map_unmap(&indexPt->map, &remString);
 	}
 }
 
 void mcr_StringIndex_sort(struct mcr_StringIndex *indexPt)
 {
 	dassert(indexPt);
-	mcr_StringMap_sort(&indexPt->map);
+	mcr_Map_sort(&indexPt->map);
 	mcr_StringSet_sort(&indexPt->set);
 }

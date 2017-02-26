@@ -18,12 +18,11 @@ nohup.*
 *.dll
 *.exe
 *.so*
-*Makefile
+Makefile
 *makefile
 *.pro.user
 template
 build*/
 tests/*test
 app/macronsole
-
-include/rapidxml/*
+.qmake.stash

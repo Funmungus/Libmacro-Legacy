@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Key
+ * \brief \ref mcr_Key - TODO: Dispatch only keys?
  */
 
 #ifndef MCR_KEY_H
@@ -43,7 +43,7 @@ struct mcr_Key;
  *
  * Native
  */
-MCR_API void mcr_Key_init(void *keyDataPt);
+MCR_API int mcr_Key_init(void *keyDataPt);
 /*! \brief Set key, scan and key up type. */
 MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 	enum mcr_KeyUpType keyUp);
@@ -77,7 +77,7 @@ MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
 MCR_API int mcr_Key_compare(const void *lhs, const void *rhs);
 /*! \brief Copy \ref mcr_Key */
 MCR_API int mcr_Key_copy(void *dstPt, void *srcPt);
-/* Default free */
+/* Default deinit */
 
 /* Key names */
 /*!
@@ -144,7 +144,7 @@ MCR_API int mcr_Key_mod_set_key(struct mcr_context *ctx,
 MCR_API int mcr_Key_mod_add(struct mcr_context *ctx, unsigned int modifiers,
 	int key);
 MCR_API int mcr_Key_mod_map(struct mcr_context *ctx, unsigned int modifiers,
-	int key, const int *addKeys, size_t bufferLen);
+	int key, int *addKeys, size_t bufferLen);
 MCR_API int mcr_Key_mod_rekey(struct mcr_context *ctx, int oldKey, int newKey);
 MCR_API int mcr_Key_mod_remod(struct mcr_context *ctx,
 	unsigned int modifiers, unsigned int newMods);
@@ -153,9 +153,9 @@ MCR_API void mcr_Key_mod_trim(struct mcr_context *ctx);
 MCR_API struct mcr_ISignal *mcr_iKey(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_Key * */
 #define mcr_Key_data(sigPt) \
-((struct mcr_Key *)mcr_inst_data(sigPt))
+((struct mcr_Key *)mcr_Instance_data(sigPt))
 /*! \brief Signal data casted \ref mcr_Key * */
 #define MCR_KEY_DATA(sig) \
-((struct mcr_Key *)(sig).inst.data.data)
+((struct mcr_Key *)(sig).instance.data.data)
 
 #endif

@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
 int mcr_Mods_send(struct mcr_Signal *sigPt)
 {
 	struct mcr_Mods *modPt = mcr_Mods_data(sigPt);
-	struct mcr_CtxISignal *isigPt = (struct mcr_CtxISignal *)sigPt->isig;
+	struct mcr_CtxISignal *isigPt = (struct mcr_CtxISignal *)sigPt->isignal;
 	unsigned int mods;
 	if (isigPt && modPt) {
 		mods = mcr_modifiers(isigPt->ctx);

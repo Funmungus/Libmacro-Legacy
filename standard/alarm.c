@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -22,17 +22,11 @@
 #include <string.h>
 #include <stdio.h>
 
-void mcr_Alarm_init(void *dataPt)
+int mcr_Alarm_init(void *dataPt)
 {
-	mcr_Alarm *almPt = dataPt;
-	time_t zero = time(NULL);
-	struct tm *now = localtime(&zero);
-	if (almPt) {
-		if (now)
-			*almPt = *now;
-		else
-			memset(almPt, 0, sizeof(mcr_Alarm));
-	}
+	if (dataPt)
+		memset(dataPt, 0, sizeof(mcr_Alarm));
+	return 0;
 }
 
 void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
@@ -47,16 +41,6 @@ int mcr_Alarm_send(struct mcr_Signal *signalData)
 {
 	dassert(signalData);
 	return mcr_Alarm_send_data(mcr_Alarm_data(signalData));
-}
-
-int mcr_Alarm_send_data(mcr_Alarm * dataPt)
-{
-	int ret;
-	if (!dataPt || (ret = thrd_sleep_until(dataPt) == thrd_success))
-		return 0;
-	ret = mcr_thrd_errno(ret);
-	mset_error(ret);
-	return ret;
 }
 
 int mcr_tm_compare(const void *lhs, const void *rhs)

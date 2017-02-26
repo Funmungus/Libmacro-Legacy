@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -16,15 +16,16 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_LNX_UTIL_DEF_H
-#define MCR_LNX_UTIL_DEF_H
+#ifndef MCR_UTIL_LNX_DEF_H
+#define MCR_UTIL_LNX_DEF_H
 
 #include "mcr/util/def.h"
 
 #include <strings.h>		/* strcasecmp */
 #include <unistd.h>		/* read/write (used in macros) */
 
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
+#define mcr_snprintf snprintf
+#define mcr_casecmp strcasecmp
+#define mcr_ncasecmp strncasecmp
 
 #endif

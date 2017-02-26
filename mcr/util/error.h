@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,6 +17,8 @@
 */
 
 /*! \file
+ * Standard error codes memorized by Libmacro\n
+ * Refer to \c errno.h
  */
 
 #ifndef MCR_ERROR_H
@@ -24,7 +26,12 @@
 
 #include "mcr/util/def.h"
 
+/*! \brief Last \ref errno known by Libmacro
+ *
+ * \return \ref reterr
+ */
 MCR_API int mcr_error();
+/*! \brief Set a new error code for \ref mcr_error */
 MCR_API void mcr_set_error(int errorNumber);
 
 #endif

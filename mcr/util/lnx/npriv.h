@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -21,8 +21,10 @@
 
 #include "mcr/util/lnx/ndef.h"
 
-/*!
- * \brief Set the user id used when removing root permissions.
+/*! \brief Set the user id used when removing root permissions.
+ *
+ * Linux only
+ * \ref uid User id to set
  */
 MCR_API void mcr_setuid(int uid);
 

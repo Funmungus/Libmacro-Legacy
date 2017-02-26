@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -73,31 +73,35 @@ void mcr_cursor_position(mcr_SpacePosition buffer)
 	}
 }
 
-void mcr_HidEcho_init(void *echoPt)
+int mcr_HidEcho_init(void *echoPt)
 {
 	if (echoPt)
 		((struct mcr_HidEcho *)echoPt)->event = 0;
+	return 0;
 }
 
-void mcr_Key_init(void *keyDataPt)
+int mcr_Key_init(void *keyDataPt)
 {
 	if (keyDataPt)
 		memset(keyDataPt, 0, sizeof(struct mcr_Key));
+	return 0;
 }
 
-void mcr_MoveCursor_init(void *mcPt)
+int mcr_MoveCursor_init(void *mcPt)
 {
 	if (mcPt) {
 		memset(mcPt, 0, sizeof(mcr_MC));
 		/* Justify for default relative event */
 		((struct mcr_MoveCursor *)mcPt)->is_justify = 1;
 	}
+	return 0;
 }
 
-void mcr_Scroll_init(void *scrollPt)
+int mcr_Scroll_init(void *scrollPt)
 {
 	if (scrollPt)
 		memset(scrollPt, 0, sizeof(struct mcr_Scroll));
+	return 0;
 }
 
 int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
@@ -164,13 +168,14 @@ int mcr_standard_native_initialize(struct mcr_context *context)
 	return mcr_Mods_load_key_contract(context);
 }
 
-void mcr_standard_native_cleanup(struct mcr_context *context)
+int mcr_standard_native_deinitialize(struct mcr_context *context)
 {
+	UNUSED(context);
 	/* Remove an initialized reference of internal modifiers */
 	if (!_initialize_count || --_initialize_count)
 		return;
-	mcr_Array_free(&mcr_echoEvents);
-	mcr_Map_free(&mcr_flagToEcho);
+	mcr_Array_deinit(&mcr_echoEvents);
+	return mcr_Map_deinit(&mcr_flagToEcho);
 }
 
 static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
@@ -493,43 +498,24 @@ static int add_echo_flags()
 	return err;
 }
 
-#define errIf(expr) \
-if (expr) \
-{ dmsg; return 0; }
 static int add_echo_names(struct mcr_context *ctx)
 {
 	const char *names[] = {
-		"Left",
-		"Middle",
-		"Right",
-		"X"
+		"LeftDown", "LeftUp",
+		"MiddleDown", "MiddleUp",
+		"RightDown", "RightUp",
+		"XDown", "XUp"
+	};
+	const char *addNames[4][2] = {
+		{"Left Down", "left_down"}, {"Left Up", "left_up"},
+		{"Middle Down", "middle_down"}, {"Middle Up", "middle_up"},
+		{"Right Down", "right_down"}, {"Right Up", "right_up"},
+		{"X Down", "x_down"}, {"X Up", "x_up"}
 	};
 	int count = arrlen(names);
-	char setname[64];
-	int i = 0, echoCode = 0, err = 0;
+	int i = 0, err = 0;
 	while (i < count) {
-		snprintf(setname, 63, "%s%s", names[i], "Down");
-		if ((err = mcr_HidEcho_set_name(ctx, echoCode, setname)))
-			return err;
-		snprintf(setname, 63, "%s %s", names[i], "Down");
-		if ((err = mcr_HidEcho_add(ctx, echoCode,
-					(const char **)&setname, 1)))
-			return err;
-		snprintf(setname, 63, "%s_%s", names[i], "Down");
-		if ((err = mcr_HidEcho_add(ctx, echoCode++,
-					(const char **)&setname, 1)))
-			return err;
-
-		snprintf(setname, 63, "%s%s", names[i], "Up");
-		if ((err = mcr_HidEcho_set_name(ctx, echoCode, setname)))
-			return err;
-		snprintf(setname, 63, "%s %s", names[i], "Up");
-		if ((err = mcr_HidEcho_add(ctx, echoCode,
-					(const char **)&setname, 1)))
-			return err;
-		snprintf(setname, 63, "%s_%s", names[i], "Up");
-		if ((err = mcr_HidEcho_add(ctx, echoCode++,
-					(const char **)&setname, 1)))
+		if ((err = mcr_HidEcho_map(ctx, i, names[i], addNames[i], 2)))
 			return err;
 		++i;
 	}

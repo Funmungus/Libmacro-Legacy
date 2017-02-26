@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -25,9 +25,9 @@ int mcr_macro_initialize(struct mcr_context *ctx)
 	return mcr_trigger_initialize(ctx);
 }
 
-void mcr_macro_cleanup(struct mcr_context *ctx)
+int mcr_macro_deinitialize(struct mcr_context *ctx)
 {
-	mcr_trigger_cleanup(ctx);
+	return mcr_trigger_deinitialize(ctx);
 }
 
 void mcr_macro_trim(struct mcr_context *ctx)

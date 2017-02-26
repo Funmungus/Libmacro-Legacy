@@ -1,4 +1,4 @@
-/* Libmacro - A multi-platform, extendable macro and hotkey C library.
+/* Libmacro - A multi-platform, extendable macro and hotkey C library
   Copyright (C) 2013  Jonathan D. Pelletier
 
   This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief String functions for libmacro
+ * \brief C-String functions for Libmacro
  */
 
 #ifndef MCR_STRING_H
@@ -25,168 +25,221 @@
 
 #include "mcr/util/array.h"
 
-MCR_API const struct mcr_Interface *mcr_String_iface();
+/*! \brief Interface for a sorted array of strings */
+MCR_API const struct mcr_Interface *mcr_String_interface();
 
-/*!
- * \brief Convert a C-string into boolean true/false.
+/*! \brief Convert a C-string into boolean true/false.
  *
  * A string value of false or true is not case sensitive.
- * An integer value will be placed into retVal directly.
+ * A boolean value will be placed into retVal directly.
+ * \param value \ref opt
  * \param retVal boolean return value of string value
  * \return \ref reterr
-*/
+ */
 MCR_API int mcr_atob(const char *value, bool * retVal);
 
 /*! \brief \ref mcr_Array designed for C-strings */
 typedef struct mcr_Array mcr_String;
-/* Array string helper */
-MCR_API void mcr_String_init(void *dataPt);
-#define mcr_String_free mcr_Array_free
-/*! \ref mcr_Array_free_foreach */
-#define mcr_String_free_foreach(strPt, ignore) mcr_String_free(strPt)
-MCR_API int mcr_String_copy(void *dstPt, void *srcPt);
-/*!
- * \brief Compare to strings from pointers to either \ref mcr_String
- * or const char *. i.e. const mcr_Array * or const char **
+
+/*! \brief \ref mcr_String ctor
  *
- * \ref strcasecmp
- * \ref stricmp \ref _stricmp
- * \param lhs Left hand side
- * \param rhs Right hand side
+ * Initialize array for character elements
+ * \ref strPt \ref mcr_String *
+ * \return 0
+ */
+MCR_API int mcr_String_init(void *strPt);
+/*! \brief \ref mcr_String_init
+ *
+ * \return Empty string
+ */
+MCR_API mcr_String mcr_String_new();
+/*! \brief ref mcr_String ctor */
+#define mcr_String_deinit mcr_Array_deinit
+/*! \brief Compare two strings, case insensitive.
+ *
+ * \ref mcr_casecmp
+ * \param lhs \ref mcr_String * or char ** Left hand side
+ * \param rhs \ref mcr_String * or char ** Right hand side
  * \return \ref retcmp
  */
 #define mcr_String_compare mcr_name_compare
+/*! \brief Copy a string
+ *
+ * \ref strcpy
+ * \ref dstPt \ref mcr_String * Destination
+ * \ref srcPt \ref mcr_String * or char ** Source
+ * \return \ref reterr
+ */
+MCR_API int mcr_String_copy(void *dstPt, void *srcPt);
+
 /* Allocation control */
+/*! \brief Set a minimum character count size, not including null-terminating
+ * character.
+ *
+ * \param strPt \ref mcr_String *
+ * \param minSize size_t Minimum number of characters available
+ * \return \ref reterr
+ */
 #define mcr_String_minlen(strPt, strLen) \
 mcr_Array_minsize(strPt, (strLen) + 1)
+/*! \brief \ref mcr_Array_smartsize */
 #define mcr_String_smartlen mcr_Array_smartsize
+/*! \brief \ref mcr_Array_trim */
 #define mcr_String_trim mcr_Array_trim
+/*! \brief Set a new maximum character count.
+ *
+ * \param strPt \ref mcr_String *
+ * \param strLen size_t New maximum character count
+ * \return \ref reterr
+ */
 #define mcr_String_resize(strPt, strLen) \
 mcr_Array_resize(strPt, (strLen) + 1)
+/*! \brief Make a string empty
+ *
+ * If a string is allocated, it will become empty.  If nothing
+ * is allocated, it will be left not allocated.
+ */
 MCR_API void mcr_String_clear(mcr_String * strPt);
-/* */
-/* Position, all same as array */
-/* */
+
+/* Position and elements */
+/*! \brief Get C-String from mcr_String
+ *
+ * \param strPt \ref mcr_String * \ref opt
+ * \return const char *
+ */
 #define mcr_String_str(strPt) \
 ((const char *)(strPt ? \
 	(strPt)->array : \
 NULL))
-/* */
+
 /* Add/remove */
-/* */
-/*!
- * \brief Insert another string at given index. This string will be
- * resized, if needed.
+/*! \brief Insert another string at given index
  *
- * \param index The index within this string to insert
- * \param str (opt) Other string to copy from
+ * \param index The index within this string to insert. This cannot be
+ * after the null terminator index
+ * \param str \ref opt Other string to copy from
  * \param len Number of characters to copy from str, if greater
  * than the string length, then the entire string will be copied.
  * \return \ref reterr
  */
 MCR_API int mcr_String_insert(mcr_String * strPt, size_t index,
 	const char *str, size_t len);
-/*!
- * \brief Remove a substring.
+/*! \brief Remove a substring.
  *
  * \param index First character to remove
- * \param count Number of characters to remove
+ * \param count Number of characters to remove.  If greater than what
+ * is available, the string will be emptied starting with the given index.
  */
 MCR_API void mcr_String_remove_index(mcr_String * strPt, size_t index,
 	size_t count);
-/*!
- * \brief Append a string to the end of this string. This string will be
- * resized, if needed.
+/*! \brief Append a string to the end of this string
  *
- * \param str (opt) String to copy
+ * \param str \ref opt String to copy
  * \param len Number of characters to copy, if this is more than the
  * string's length, the entire string will be copied.
  * \return \ref reterr
  */
 MCR_API int mcr_String_append(mcr_String * strPt, const char *str, size_t len);
-/*!
- * \brief Append a character to the end of a string. This string will be
- * resized, if needed.
+/*! \brief Append a character to the end of a string.
  *
  * \param c Character to push
  * \return \ref reterr
  */
 MCR_API int mcr_String_push(mcr_String * strPt, const char c);
-/*!
- * \brief Remove a character from the end of a string.
+/*! \brief Remove a character from the end of a string.
  *
  * \return The character that was removed.
  */
 MCR_API char mcr_String_pop(mcr_String * strPt);
-/*!
- * \brief Reset this string and copy from another. This string will be
- * resized, if needed.
+
+/* Replace current elements */
+/*! \brief Reset this string and copy from another.
  *
  * \param strPt \ref mcr_String *
- * \param str const char * (opt) String to copy from
+ * \param str const char * \ref opt String to copy from
  * \return \ref reterr
  */
 #define mcr_String_replace(strPt, str) \
 mcr_String_nreplace(strPt, str, ~0)
-/*!
- * \brief Reset this string and copy from another. This string will be
- * resized, if needed.
+/*! \brief Reset this string and copy from another.
  *
- * \param str (opt) String to copy from
+ * \param str \ref opt String to copy from
  * \param len Number of characters to copy, if this is more than the
  * string's length, the entire string will be copied.
  * \return \ref reterr
  */
 MCR_API int mcr_String_nreplace(mcr_String * strPt,
 	const char *str, size_t len);
+/*! \brief Replace characters starting from an index.
+ *
+ * \param index First index to start replacing from
+ * \param str \ref opt String to copy
+ * \param len Number of characters to copy, if this is more than the
+ * string's length, the entire string will be copied.
+ * \return \ref reterr
+ */
 MCR_API int mcr_String_copy_str(mcr_String * strPt, size_t index,
 	const char *str, size_t len);
+/*! \brief Replace a single character
+ *
+ * \param index Index to replace
+ * \param c Character to copy
+ * \return \ref reterr
+ */
 MCR_API int mcr_String_set(mcr_String * strPt, size_t index, char c);
+/*! \brief Replace a range of characters with a single character
+ *
+ * \param index Index to replace
+ * \param count Number of elements to replace
+ * \param c Character to copy
+ * \return \ref reterr
+ */
 MCR_API int mcr_String_fill(mcr_String * strPt, size_t index,
 	size_t count, char c);
+/*! \brief Move characters within a string, or from one to the other.
+ *
+ * \param dstPos Destination index to move characters into
+ * \param srcPt \ref opt String to move characters from.  If null, the
+ * destination array is assumed
+ * \param srcPos Source index to move characters from
+ * \param count Number of characters to move
+ * \return \ref reterr
+ */
 MCR_API int mcr_String_move(mcr_String * dstPt, size_t dstPos,
 	mcr_String * srcPt, size_t srcPos, size_t count);
-/*!
- * \brief An empty string either has no characters, or the first
+
+/*! \brief An empty string either has no characters, or the first
  * character is NULL.
  *
- * \param arr mcr_String
+ * \param str \ref mcr_String
  * \return bool
  */
 #define MCR_STR_IS_EMPTY(str) \
 (!(str).used || (str).array[0] == '\0')
-#define MCR_STR_SET_EMPTY(str) \
+
+/*! \brief \ref mcr_String_clear */
+#define MCR_STR_CLEAR(str) \
 if ((str).size) { \
 	(str).array[0] = '\0'; \
 	(str).used = 1; \
 }
+
+/*! \brief Number of characters in a string, not including the null-terminating
+ * character.
+ *
+ * \param str \ref mcr_String
+ * \return \ref retind
+ */
 #define MCR_STR_LEN(str) \
-(MCR_STR_IS_EMPTY (str) ? 0 : (str).used - 1)
+(MCR_STR_IS_EMPTY(str) ? 0 : (str).used - 1)
+
+/*! \brief Number of characters in a string, not including the null-terminating
+ * character.
+ *
+ * \param strPt \ref mcr_String *
+ * \return \ref retind
+ */
 #define mcr_String_len(strPt) \
 ((strPt) ? MCR_STR_LEN (*(strPt)) : 0)
-/*!
- * \brief On a \ref mcr_String do a function
- * only if the string contains characters, not including '\0'.
- *
- * Usage: MCR_STRING_DO (mcrString, fnc, mcrString.array) ;
- * \param mcrString \ref mcr_String
- * \param void (*)(...), or similar function.
- * All variadic args are optional.
- */
-#define MCR_STR_DO(mcrString, ...) \
-if (!MCR_STR_IS_EMPTY (mcrString)) \
-{ __VA_ARGS__ }
-/*!
- * \brief On a \ref mcr_Array do a function with a numeric
- * return value.  If the string is empty the return value is 0.
- *
- * Usage: MCR_STRING_IS (mcrString, isFnc, mcrString.array, str2) ;
- * \param mcrString \ref mcr_String
- * \param void (*)(...), or similar function.
- * All variadic args are optional.
- * \return bool 0 or return value of isFnc
- */
-#define MCR_STR_IS(mcrString, isFnc, ...) \
-(MCR_STR_IS_EMPTY(mcrString) ? false : isFnc(__VA_ARGS__))
 
 #endif
