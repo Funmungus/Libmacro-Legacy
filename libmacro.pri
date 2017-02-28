@@ -27,6 +27,3 @@ else:lnx: MCR_NATIVE_DIR = lnx
 #else:mac: MCR_NATIVE_DIR = mac
 else: MCR_NATIVE_DIR = nativeless
 DEFINES += MCR_NATIVE_DIR=$${MCR_NATIVE_DIR}
-
-x11: DEFINES += MCR_USE_X
-wayland: DEFINES += MCR_USE_WAYLAND
