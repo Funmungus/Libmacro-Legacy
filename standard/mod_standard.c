@@ -67,7 +67,8 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	isigPt->send = mcr_MoveCursor_send;
 
 	isigPt = mcr_iNoOp(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(mcr_NoOp), NULL, NULL, NULL, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_NoOp), NULL, NULL, NULL,
+		NULL);
 	isigPt->send = mcr_NoOp_send;
 
 	isigPt = mcr_iScroll(ctx);

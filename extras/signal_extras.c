@@ -30,7 +30,7 @@ static int compare_args(const struct mcr_Command *lhs,
 static int copy_args(struct mcr_Command *dstPt, struct mcr_Command *srcPt);
 
 static int set_signal_delays(struct mcr_Array *sigArrPt,
-	struct mcr_ISignal *inoop, struct timespec delay);
+	struct mcr_ISignal *inoop, struct mcr_NoOp delay);
 static int ssget_foreach(struct mcr_SafeString *ssPt,
 	struct mcr_Array *argArrPt, char **argsArr, size_t * argsItPt);
 
@@ -112,7 +112,7 @@ int mcr_StringKey_init(void *skPt)
 	struct mcr_StringKey *localPt = skPt;
 	if (localPt) {
 		memset(skPt, 0, sizeof(struct mcr_StringKey));
-		localPt->interval.tv_nsec = 1000 * 1000 * 100;
+		localPt->interval.msec = 100;
 		mcr_SafeString_init(&localPt->string);
 	}
 	return 0;
@@ -142,11 +142,11 @@ int mcr_StringKey_compare(const void *lhs, const void *rhs)
 		if (lhs) {
 			if (lhs == rhs)
 				return 0;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->interval.tv_sec,
-						rPt->interval.tv_sec)))
+			if ((ret = MCR_CMP_INTEGRAL(lPt->interval.sec,
+						rPt->interval.sec)))
 				return ret;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->interval.tv_nsec,
-						rPt->interval.tv_nsec)))
+			if ((ret = MCR_CMP_INTEGRAL(lPt->interval.msec,
+						rPt->interval.msec)))
 				return ret;
 			return mcr_SafeString_compare(&lPt->string,
 				&rPt->string);
@@ -259,7 +259,7 @@ int mcr_StringKey_send_data(struct mcr_context *ctx, struct mcr_StringKey *skPt)
 					if ((err = mcr_send(ctx, sigPt)))
 						lastErr = err;
 				}
-				thrd_sleep(&skPt->interval, NULL);
+				mcr_NoOp_send_data(&skPt->interval);
 			}
 		}
 	}
@@ -381,18 +381,18 @@ void mcr_StringKey_remove_char(struct mcr_context *ctx, int character)
 }
 
 int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
-	int key, long nsec, bool shiftFlag)
+	int key, long msec, bool shiftFlag)
 {
 	int i, ret;
 	int shift = mcr_Key_mod_key(ctx, MCR_SHIFT);
-	mcr_NoOp delay = { 0 };
+	struct mcr_NoOp delay = { 0 };
 	struct mcr_Signal sigs[7];
 	struct mcr_ISignal *ikey = mcr_iKey(ctx), *inoop = mcr_iNoOp(ctx);
 	if (shift == -1) {
 		mset_error(EINVAL);
 		return EINVAL;
 	}
-	delay.tv_nsec = nsec;
+	delay.msec = msec;
 	memset(sigs, 0, sizeof(sigs));
 	// Evens are keys
 	for (i = 0; i < 7; i += 2) {
@@ -423,7 +423,7 @@ int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
 	return ret;
 }
 
-int mcr_StringKey_set_delays(struct mcr_context *ctx, struct timespec delay)
+int mcr_StringKey_set_delays(struct mcr_context *ctx, struct mcr_NoOp delay)
 {
 	int err = 0;
 	char *itPt, *end;
@@ -558,12 +558,12 @@ int mcr_signal_extras_deinitialize(struct mcr_context *ctx)
 }
 
 static int set_signal_delays(struct mcr_Array *sigArrPt,
-	struct mcr_ISignal *inoop, struct timespec delay)
+	struct mcr_ISignal *inoop, struct mcr_NoOp delay)
 {
 	char *itPt, *end;
 	size_t bytes;
 	struct mcr_Signal *sigPt;
-	mcr_NoOp *dataPt;
+	struct mcr_NoOp *dataPt;
 	mcr_Array_iter(sigArrPt, &itPt, &end, &bytes);
 	while (itPt < end) {
 		sigPt = (struct mcr_Signal *)itPt;

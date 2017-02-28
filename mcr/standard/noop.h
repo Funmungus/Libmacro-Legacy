@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_NoOp
+ * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds
  */
 
 #ifndef MCR_NOOP_H
@@ -25,37 +25,32 @@
 
 #include "mcr/standard/def.h"
 
-/*!
- * \brief Pause execution in seconds and nanoseconds.
- *
- * timespec members are : tv_sec, and tv_nsec
- */
-typedef struct timespec mcr_NoOp;
+/*! \brief Pause execution in seconds and milliseconds. */
+struct mcr_NoOp {
+	/*! \brief Seconds */
+	int sec;
+	/*! \brief Milliseconds */
+	int msec;
+};
 
-/*! \brief Set both seconds and nanoseconds. */
-MCR_API void mcr_NoOp_set_all(mcr_NoOp * noopPt, int sec, int nsec);
-/*!
- * \brief Pause execution in seconds and nanoseconds.
+/*! \brief Set both seconds and milliseconds. */
+MCR_API void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec);
+/*! \brief Pause execution in seconds and milliseconds.
  *
  * \param signalData Has data member \ref mcr_NoOp
- * or struct timespec
  * \return \ref reterr
  */
 MCR_API int mcr_NoOp_send(struct mcr_Signal *signalData);
 /*! \brief \ref mcr_NoOp_send */
-MCR_API int mcr_NoOp_send_data(mcr_NoOp * dataPt);
+MCR_API int mcr_NoOp_send_data(struct mcr_NoOp *dataPt);
 /* Default init, deinit, copy, and compare */
-
-#define MCR_NOOP_SET_ALL(noop, sec, nsec) \
-(noop).tv_sec = sec; \
-(noop).tv_nsec = nsec;
 
 MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_NoOp * */
 #define mcr_NoOp_data(sigPt) \
-((mcr_NoOp *)mcr_Instance_data(sigPt))
+((struct mcr_NoOp *)mcr_Instance_data(sigPt))
 /*! \brief Signal data casted \ref mcr_NoOp * */
 #define MCR_NOOP_DATA(sig) \
-((mcr_NoOp *)(sig).instance.data.data)
+((struct mcr_NoOp *)(sig).instance.data.data)
 
 #endif
