@@ -41,101 +41,38 @@ void mcr_cursor_position(mcr_SpacePosition buffer)
 		buffer[i] = mcr_cursor[i];
 }
 
-int mcr_Echo_key(int echoCode)
+int mcr_Echo_key(size_t echoCode)
 {
-	struct mcr_Key *keyPt =
-		MCR_ARR_ELEMENT(mcr_echoEvents, (unsigned)echoCode);
-	return keyPt ? MCR_KEY_KEY(*keyPt) : MCR_ECHO_ANY;
+	struct mcr_Key *keyPt = MCR_ARR_ELEMENT(mcr_echoEvents, echoCode);
+	return keyPt ? keyPt->key : MCR_KEY_ANY;
 }
 
-int mcr_Echo_set_key(int echoCode, struct mcr_Key *keyPt)
+int mcr_Echo_set_key(size_t echoCode, struct mcr_Key *keyPt)
 {
 	int err, kVal;
-	struct mcr_Key initial;
+	struct mcr_Key initial = { 0 };
 	struct mcr_Map *mapPt;
 	dassert(keyPt);
 	if (echoCode == MCR_ECHO_ANY) {
-		mset_error(EINVAL)
-			return EINVAL;
+		mset_error(EINVAL);
+		return EINVAL;
 	}
-	mcr_Key_init(&initial);
 	if ((err = mcr_Array_minfill(&mcr_echoEvents, echoCode + 1, &initial))
 		|| (err = mcr_Array_set(&mcr_echoEvents, echoCode, keyPt)))
 		return err;
-	mapPt = mcr_keyToEcho + (MCR_KEY_UP_TYPE(*keyPt) ? 1 : 0);
-	kVal = MCR_KEY_KEY(*keyPt);
+	mapPt = mcr_keyToEcho + (keyPt->up_type ? 1 : 0);
+	kVal = keyPt->key;
 	return mcr_Map_map(mapPt, &kVal, &echoCode);
 }
 
-int mcr_HidEcho_init(void *echoPt)
-{
-	if (echoPt)
-		((struct mcr_HidEcho *)echoPt)->event = 0;
-	return 0;
-}
-
-int mcr_Key_init(void *keyPt)
-{
-	struct mcr_Key *kPt = keyPt;
-	if (keyPt) {
-		memset(kPt, 0, sizeof(struct mcr_Key));
-		kPt->events[0].type = EV_MSC;
-		kPt->events[0].code = MSC_SCAN;
-		kPt->events[1].type = EV_KEY;
-		kPt->events[2] = mcr_syncer;
-		kPt->up_type = MCR_BOTH;
-	}
-	return 0;
-}
-
-int mcr_MoveCursor_init(void *mcPt)
-{
-	struct mcr_MoveCursor *mPt = mcPt;
-	if (mcPt) {
-		memset(mPt, 0, sizeof(struct mcr_MoveCursor));
-		mPt->absvent[0].type = mPt->absvent[1].type =
-			mPt->absvent[2].type = EV_ABS;
-		mPt->relvent[0].type = mPt->relvent[1].type =
-			mPt->relvent[2].type = EV_REL;
-		mPt->absvent[MCR_X].code = ABS_X;
-		mPt->absvent[MCR_Y].code = ABS_Y;
-		mPt->absvent[MCR_Z].code = ABS_Z;
-		mPt->relvent[MCR_X].code = REL_X;
-		mPt->relvent[MCR_Y].code = REL_Y;
-		mPt->relvent[MCR_Z].code = REL_Z;
-		mPt->relvent[MCR_DIMENSION_CNT] =
-			mPt->absvent[MCR_DIMENSION_CNT] = mcr_syncer;
-		mPt->is_justify = true;
-	}
-	return 0;
-}
-
-int mcr_Scroll_init(void *scrollPt)
-{
-	struct mcr_Scroll *sPt = scrollPt;
-	if (scrollPt) {
-		memset(sPt, 0, sizeof(struct mcr_Scroll));
-		sPt->events[0].type = sPt->events[1].type =
-			sPt->events[2].type = EV_REL;
-		sPt->events[MCR_X].code = REL_HWHEEL;
-		sPt->events[MCR_Y].code = REL_WHEEL;
-		sPt->events[MCR_Z].code = REL_DIAL;
-		sPt->events[MCR_DIMENSION_CNT] = mcr_syncer;
-	}
-	return 0;
-}
-
-int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
+int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 {
 	ssize_t err;
-	if ((unsigned)dataPt->event < mcr_echoEvents.used) {
-		err = mcr_Key_send_data((struct mcr_Key *)
-			MCR_ARR_ELEMENT(mcr_echoEvents,
-				(unsigned)dataPt->event));
-		if (err == -1) {
-			mset_error(EINTR);
-			return EINTR;
-		}
+	if (echoPt->echo < mcr_echoEvents.used) {
+		if ((err = mcr_Key_send_data((struct mcr_Key *)
+					MCR_ARR_ELEMENT(mcr_echoEvents,
+						echoPt->echo))))
+			return err;
 	} else {
 		mset_error(EFAULT);
 		return EFAULT;
@@ -143,22 +80,26 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
 	return 0;
 }
 
-int mcr_Key_send_data(struct mcr_Key *dataPt)
+int mcr_Key_send_data(struct mcr_Key *keyPt)
 {
+	struct input_event events[3] = { 0 };
 	ssize_t err;
-	if (dataPt->up_type != MCR_UP) {
-		dataPt->events[1].value = 1;
-		err = MCR_DEV_SEND(mcr_genDev, dataPt->events,
-			sizeof(dataPt->events));
+	events[0].type = EV_MSC;
+	events[0].code = MSC_SCAN;
+	events[1].type = EV_KEY;
+	events[2].type = EV_SYN;
+	events[2].code = SYN_REPORT;
+	if (keyPt->up_type != MCR_UP) {
+		events[1].value = 1;
+		err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
 			return EINTR;
 		}
 	}
-	if (dataPt->up_type != MCR_DOWN) {
-		dataPt->events[1].value = 0;
-		err = MCR_DEV_SEND(mcr_genDev, dataPt->events,
-			sizeof(dataPt->events));
+	if (keyPt->up_type != MCR_DOWN) {
+		events[1].value = 0;
+		err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
 			return EINTR;
@@ -167,46 +108,68 @@ int mcr_Key_send_data(struct mcr_Key *dataPt)
 	return 0;
 }
 
-static inline void localJustify(struct mcr_MoveCursor *dataPt, int pos)
+static inline void localJustify(struct mcr_MoveCursor *mcPt, int pos)
 {
-	mcr_cursor[pos] += dataPt->relvent[pos].value;
+	mcr_cursor[pos] += mcPt->pos[pos];
 	if (mcr_cursor[pos] > mcr_abs_resolution)
 		mcr_cursor[pos] = mcr_abs_resolution;
 	else if (mcr_cursor[pos] < 0)
 		mcr_cursor[pos] = 0;
 }
 
-int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt)
+int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt)
 {
 	ssize_t err;
-	if (dataPt->is_justify) {
-		err = MCR_DEV_SEND(mcr_genDev, dataPt->relvent,
-			sizeof(dataPt->relvent));
+	struct input_event events[MCR_DIMENSION_CNT + 1] = { 0 };
+	events[MCR_X].value = mcPt->pos[MCR_X];
+	events[MCR_Y].value = mcPt->pos[MCR_Y];
+	events[MCR_Z].value = mcPt->pos[MCR_Z];
+	events[MCR_DIMENSION_CNT].type = EV_SYN;
+	events[MCR_DIMENSION_CNT].code = SYN_REPORT;
+	if (mcPt->is_justify) {
+		events[0].type = events[1].type = events[2].type = EV_REL;
+		events[MCR_X].code = REL_X;
+		events[MCR_Y].code = REL_Y;
+		events[MCR_Z].code = REL_Z;
+		err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
 			return EINTR;
 		}
-		localJustify(dataPt, MCR_X);
-		localJustify(dataPt, MCR_Y);
-		localJustify(dataPt, MCR_Z);
+		localJustify(mcPt, MCR_X);
+		localJustify(mcPt, MCR_Y);
+		localJustify(mcPt, MCR_Z);
 	} else {
-		err = MCR_DEV_SEND(mcr_absDev, dataPt->absvent,
-			sizeof(dataPt->absvent));
+		events[0].type = events[1].type = events[2].type = EV_ABS;
+		events[MCR_X].code = ABS_X;
+		events[MCR_Y].code = ABS_Y;
+		events[MCR_Z].code = ABS_Z;
+		err = MCR_DEV_SEND(mcr_absDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
 			return EINTR;
 		}
-		mcr_cursor[MCR_X] = dataPt->absvent[MCR_X].value;
-		mcr_cursor[MCR_Y] = dataPt->absvent[MCR_Y].value;
-		mcr_cursor[MCR_Z] = dataPt->absvent[MCR_Z].value;
+		mcr_cursor[MCR_X] = mcPt->pos[MCR_X];
+		mcr_cursor[MCR_Y] = mcPt->pos[MCR_Y];
+		mcr_cursor[MCR_Z] = mcPt->pos[MCR_Z];
 	}
 	return 0;
 }
 
-int mcr_Scroll_send_data(struct mcr_Scroll *dataPt)
+int mcr_Scroll_send_data(struct mcr_Scroll *scrPt)
 {
-	ssize_t err = MCR_DEV_SEND(mcr_genDev, dataPt->events,
-		sizeof(dataPt->events));
+	ssize_t err;
+	struct input_event events[MCR_DIMENSION_CNT + 1] = { 0 };
+	events[0].type = events[1].type = events[2].type = EV_REL;
+	events[MCR_X].code = REL_HWHEEL;
+	events[MCR_Y].code = REL_WHEEL;
+	events[MCR_Z].code = REL_DIAL;
+	events[MCR_X].value = scrPt->dm[MCR_X];
+	events[MCR_Y].value = scrPt->dm[MCR_Y];
+	events[MCR_Z].value = scrPt->dm[MCR_Z];
+	events[MCR_DIMENSION_CNT].type = EV_SYN;
+	events[MCR_DIMENSION_CNT].code = SYN_REPORT;
+	err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 	if (err == -1) {
 		mset_error(EINTR);
 		return EINTR;
@@ -578,13 +541,13 @@ static int add_echo_keys()
 	};
 	const int count = arrlen(echokeys);
 	int i, ret, echoCode = 0;
-	struct mcr_Key k;
-	mcr_Key_init(&k);
+	struct mcr_Key k = { 0 };
 	for (i = 0; i < count; i++) {
-		MCR_KEY_SET_ALL(k, echokeys[i], echokeys[i], MCR_DOWN);
+		k.key = k.scan = echokeys[i];
+		k.up_type = MCR_DOWN;
 		if ((ret = mcr_Echo_set_key(echoCode++, &k)))
 			return ret;
-		MCR_KEY_SET_UP_TYPE(k, MCR_UP);
+		k.up_type = MCR_UP;
 		if ((ret = mcr_Echo_set_key(echoCode++, &k)))
 			return ret;
 	}

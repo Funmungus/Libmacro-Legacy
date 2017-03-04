@@ -370,13 +370,13 @@ static inline void abs_set_current(struct mcr_MoveCursor *abs,
 	bool hasPosArray[])
 {
 	if (!(hasPosArray)[MCR_X]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_X, mcr_cursor[MCR_X]);
+		abs->pos[MCR_X] = mcr_cursor[MCR_X];
 	}
 	if (!(hasPosArray)[MCR_Y]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_Y, mcr_cursor[MCR_Y]);
+		abs->pos[MCR_Y] = mcr_cursor[MCR_Y];
 	}
 	if (!(hasPosArray)[MCR_Z]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_Z, mcr_cursor[MCR_Z]);
+		abs->pos[MCR_Z] = mcr_cursor[MCR_Z];
 	}
 }
 
@@ -455,26 +455,19 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	bool writegen = true, writeabs = false;
 	bool bAbs[MCR_DIMENSION_CNT] = { 0 };
 	int *echoFound = NULL;
-	mcr_SpacePosition nopos = { 0 };
-	struct mcr_Key key;
-	struct mcr_HidEcho echo;
-	struct mcr_MoveCursor abs, rel;
-	struct mcr_Scroll scr;
+	struct mcr_Key key = { 0 };
+	struct mcr_HidEcho echo = { 0 };
+	struct mcr_MoveCursor abs = { 0 }, rel = {
+	0};
+	struct mcr_Scroll scr = { 0 };
 	struct mcr_Signal keysig, echosig, abssig, relsig, scrsig;
 	struct pollfd fd = { 0 };
 	dassert(grabPt);
-	mcr_Key_init(&key);
-	mcr_Echo_init(&echo);
-	mcr_MC_init(&abs);
-	mcr_MC_init(&rel);
-	mcr_Scroll_init(&scr);
 	mcr_Signal_init(&keysig);
 	mcr_Signal_init(&echosig);
 	mcr_Signal_init(&abssig);
 	mcr_Signal_init(&relsig);
 	mcr_Signal_init(&scrsig);
-	MCR_MC_SET_JUSTIFY(abs, false);
-	MCR_MC_SET_JUSTIFY(rel, true);
 	mcr_Instance_set_all(&keysig, mcr_iKey(ctx), &key, NULL);
 	mcr_Instance_set_all(&echosig, mcr_iHidEcho(ctx), &echo, NULL);
 	mcr_Instance_set_all(&abssig, mcr_iMoveCursor(ctx), &abs, NULL);
@@ -485,6 +478,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	abssig.is_dispatch = true;
 	relsig.is_dispatch = true;
 	scrsig.is_dispatch = true;
+	rel.is_justify = true;
 	fd.events = POLLIN | POLLPRI | POLLRDNORM | POLLRDBAND;
 	fd.fd = grabPt->fd;
 	/* Disable point 1 */
@@ -518,45 +512,44 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			case EV_MSC:
 				if (curVent->code == MSC_SCAN) {
 					/* Consume a key that already has scan code. */
-					if (MCR_KEY_SCAN(key)) {
+					if (key.scan) {
 						DISP_WRITEMEM(keysig);
-						MCR_KEY_SET_ALL(key, 0,
-							curVent->value,
-							MCR_BOTH);
+						key.key = 0;
+						key.scan = curVent->value;
+						key.up_type = MCR_BOTH;
 					} else {
-						MCR_KEY_SET_SCAN(key,
-							curVent->value);
+						key.scan = curVent->value;
 					}
 				}
 				break;
 				/* Handle KEY */
 			case EV_KEY:
-				if (MCR_KEY_KEY(key)) {
+				if (key.key) {
 					echoFound =
 						MCR_MAP_ELEMENT(mcr_keyToEcho
-						[MCR_KEY_UP_TYPE(key)],
-						&MCR_KEY_KEY(key));
+						[key.up_type], &key.key);
 					if (echoFound) {
 						echoFound =
 							MCR_MAP_VALUEOF
 							(mcr_keyToEcho
-							[MCR_KEY_UP_TYPE(key)],
+							[key.up_type],
 							echoFound);
-						MCR_ECHO_SET_ECHO(echo,
-							*echoFound);
+						echo.echo = *echoFound;
 						DISP_WRITEMEM(echosig);
 						/* No need to reset echo,
 						 * which depends on EV_KEY */
 					}
 					DISP_WRITEMEM(keysig);
-					MCR_KEY_SET_ALL(key, curVent->code, 0,
+					key.key = curVent->code;
+					key.scan = 0;
+					key.up_type =
 						curVent->value ? MCR_DOWN :
-						MCR_UP);
+						MCR_UP;
 				} else {
-					MCR_KEY_SET_KEY(key, curVent->code);
-					MCR_KEY_SET_UP_TYPE(key,
+					key.key = curVent->code;
+					key.up_type =
 						curVent->value ? MCR_DOWN :
-						MCR_UP);
+						MCR_UP;
 				}
 				break;
 				/* Handle ABS */
@@ -567,8 +560,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 					DISP_WRITEMEM_ABS(abssig);
 					MCR_DIMENSIONS_ZERO(bAbs);
 				}
-				MCR_MOVECURSOR_SET_COORDINATE(abs, pos,
-					curVent->value);
+				abs.pos[pos] = curVent->value;
 				++bAbs[pos];
 				break;
 			case EV_REL:
@@ -577,23 +569,19 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				case REL_X:
 				case REL_Y:
 				case REL_Z:
-					if (MCR_MOVECURSOR_COORDINATE(rel, pos)) {
+					if (rel.pos[pos]) {
 						DISP_WRITEMEM(relsig);
-						MCR_MOVECURSOR_SET_POSITION(rel,
-							nopos);
+						MCR_DIMENSIONS_ZERO(rel.pos);
 					}
-					MCR_MOVECURSOR_SET_COORDINATE(rel, pos,
-						curVent->value);
+					rel.pos[pos] = curVent->value;
 					break;
 				default:
 					/* Currently assuming scroll if not relative movement. */
-					if (MCR_SCROLL_COORDINATE(scr, pos)) {
+					if (scr.dm[pos]) {
 						DISP_WRITEMEM(scrsig);
-						MCR_SCROLL_SET_DIMENSIONS(scr,
-							nopos);
+						MCR_DIMENSIONS_ZERO(scr.dm);
 					}
-					MCR_SCROLL_SET_COORDINATE(scr, pos,
-						curVent->value);
+					scr.dm[pos] = curVent->value;
 					break;
 				}
 				break;
@@ -601,18 +589,16 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			++curVent;
 		}
 		/* Call final event, it was not called yet. */
-		if (MCR_KEY_KEY(key) || MCR_KEY_SCAN(key)) {
-			if (MCR_KEY_KEY(key)) {
+		if (key.key || key.scan) {
+			if (key.key) {
 				echoFound =
 					MCR_MAP_ELEMENT(mcr_keyToEcho
-					[MCR_KEY_UP_TYPE(key)],
-					&MCR_KEY_KEY(key));
+					[key.up_type], &key.key);
 				if (echoFound) {
 					echoFound =
 						MCR_MAP_VALUEOF(mcr_keyToEcho
-						[MCR_KEY_UP_TYPE(key)],
-						echoFound);
-					MCR_ECHO_SET_ECHO(echo, *echoFound);
+						[key.up_type], echoFound);
+					echo.echo = *echoFound;
 					if (mcr_dispatch(ctx, &echosig)) {
 						if (writegen)
 							writegen = false;
@@ -620,7 +606,9 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				}
 			}
 			DISP_WRITEMEM(keysig);
-			MCR_KEY_SET_ALL(key, 0, 0, MCR_BOTH);
+			key.key = 0;
+			key.scan = 0;
+			key.up_type = MCR_BOTH;
 		}
 		if (bAbs[MCR_X] || bAbs[MCR_Y] || bAbs[MCR_Z]) {
 			abs_set_current(&abs, bAbs);
@@ -628,16 +616,16 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			MCR_DIMENSIONS_ZERO(bAbs);
 		}
 		for (i = MCR_DIMENSION_CNT; i--;) {
-			if (MCR_MOVECURSOR_COORDINATE(rel, i)) {
+			if (rel.pos[i]) {
 				DISP_WRITEMEM(relsig);
-				MCR_MOVECURSOR_SET_POSITION(rel, nopos);
+				MCR_DIMENSIONS_ZERO(rel.pos);
 				break;
 			}
 		}
 		for (i = MCR_DIMENSION_CNT; i--;) {
-			if (MCR_SCROLL_COORDINATE(scr, i)) {
+			if (scr.dm[i]) {
 				DISP_WRITEMEM(scrsig);
-				MCR_SCROLL_SET_DIMENSIONS(scr, nopos);
+				MCR_DIMENSIONS_ZERO(scr.dm);
 				break;
 			}
 		}

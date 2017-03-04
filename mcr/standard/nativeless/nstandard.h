@@ -21,16 +21,4 @@
 
 #include "mcr/standard/nativeless/ndef.h"
 
-struct mcr_HidEcho {
-};
-
-struct mcr_Key {
-};
-
-struct mcr_MoveCursor {
-};
-
-struct mcr_Scroll {
-};
-
 #endif

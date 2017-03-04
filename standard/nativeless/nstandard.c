@@ -19,39 +19,9 @@
 #include "mcr/signal/nativeless/nsignal.h"
 #include "mcr/signal/signal.h"
 
-void mcr_HidEcho_init(struct mcr_HidEcho *echoPt)
-{
-	UNUSED(echoPt);
-}
-
-void mcr_Key_init(struct mcr_Key *keyPt)
-{
-	UNUSED(keyPt);
-}
-
-void mcr_MoveCursor_init(struct mcr_MoveCursor *mcPt)
-{
-	UNUSED(mcPt);
-}
-
-void mcr_Scroll_init(struct mcr_Scroll *scrollPt)
-{
-	UNUSED(scrollPt);
-}
-
 void mcr_cursor_position(mcr_SpacePosition buffer)
 {
 	memcpy(buffer, mcr_cursor, sizeof(mcr_SpacePosition));
-}
-
-void mcr_standard_set_enabled(int enable)
-{
-	UNUSED(enable);
-}
-
-int mcr_standard_is_enabled()
-{
-	return 0;
 }
 
 int mcr_standard_native_initialize()

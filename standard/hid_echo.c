@@ -18,62 +18,22 @@
 
 #include "mcr/standard/standard.h"
 #include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
 #include "mcr/modules.h"
 
-int mcr_HidEcho_echo(const struct mcr_HidEcho *echoPt)
+int mcr_HidEcho_send(struct mcr_Signal *signalPt)
 {
-	dassert(echoPt);
-	return MCR_HIDECHO_ECHO(*echoPt);
-}
-
-void mcr_HidEcho_set_echo(struct mcr_HidEcho *echoPt, int echo)
-{
-	dassert(echoPt);
-	MCR_HIDECHO_SET_ECHO(*echoPt, echo);
-}
-
-int mcr_HidEcho_send(struct mcr_Signal *signalData)
-{
-	dassert(signalData);
-	struct mcr_HidEcho *echoPt = mcr_HidEcho_data(signalData);
+	struct mcr_HidEcho *echoPt = mcr_HidEcho_data(signalPt);
 	return echoPt ? mcr_HidEcho_send_data(echoPt) : 0;
 }
 
-int mcr_HidEcho_compare(const void *lhs, const void *rhs)
+size_t mcr_HidEcho_name_echo(struct mcr_context * ctx, const char *eventName)
 {
-	const struct mcr_HidEcho *lPt = lhs, *rPt = rhs;
-	int l, r;
-	if (rhs) {
-		if (lhs) {
-			l = MCR_HIDECHO_ECHO(*lPt);
-			r = MCR_HIDECHO_ECHO(*rPt);
-			return MCR_CMP_INTEGRAL(l, r);
-		}
-		return -1;
-	}
-	return ! !lhs;
-}
-
-int mcr_HidEcho_copy(void *dstPt, void *srcPt)
-{
-	dassert(dstPt);
-	MCR_HIDECHO_SET_ECHO(*(struct mcr_HidEcho *)dstPt, srcPt ?
-		MCR_HIDECHO_ECHO(*(struct mcr_HidEcho *)srcPt) : 0);
-	return 0;
-}
-
-int mcr_HidEcho_name_echo(struct mcr_context *ctx, const char *eventName)
-{
-	int ret;
 	if (!eventName)
 		return MCR_ECHO_ANY;
-	ret = (int)mcr_StringIndex_index(&ctx->standard.echo_name_index,
-		eventName);
-	return ret == -1 ? MCR_ECHO_ANY : ret;
+	return mcr_StringIndex_index(&ctx->standard.echo_name_index, eventName);
 }
 
-const char *mcr_HidEcho_name(struct mcr_context *ctx, int eventCode)
+const char *mcr_HidEcho_name(struct mcr_context *ctx, size_t eventCode)
 {
 	const char *ret;
 	if (eventCode == MCR_ECHO_ANY)
@@ -87,7 +47,7 @@ size_t mcr_HidEcho_count(struct mcr_context * ctx)
 	return ctx->standard.echo_name_index.set.used;
 }
 
-int mcr_HidEcho_set_name(struct mcr_context *ctx, int eventCode,
+int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
 	const char *eventName)
 {
 	if (eventCode == MCR_ECHO_ANY) {
@@ -104,14 +64,14 @@ int mcr_HidEcho_set_name(struct mcr_context *ctx, int eventCode,
 	return 0;
 }
 
-int mcr_HidEcho_add(struct mcr_context *ctx, int eventCode,
+int mcr_HidEcho_add(struct mcr_context *ctx, size_t eventCode,
 	const char **addNames, size_t bufferLen)
 {
 	return mcr_StringIndex_add(&ctx->standard.echo_name_index, eventCode,
 		addNames, bufferLen);
 }
 
-int mcr_HidEcho_map(struct mcr_context *ctx, int eventCode,
+int mcr_HidEcho_map(struct mcr_context *ctx, size_t eventCode,
 	const char *eventName, const char **addNames, size_t bufferLen)
 {
 	if (eventCode == MCR_ECHO_ANY) {
@@ -122,7 +82,8 @@ int mcr_HidEcho_map(struct mcr_context *ctx, int eventCode,
 		eventName, addNames, bufferLen);
 }
 
-int mcr_HidEcho_reecho(struct mcr_context *ctx, int eventCode, int newCode)
+int mcr_HidEcho_reecho(struct mcr_context *ctx, size_t eventCode,
+	size_t newCode)
 {
 	int err;
 	if (eventCode == newCode)

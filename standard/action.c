@@ -21,28 +21,28 @@
 #include <stdio.h>
 #include <string.h>
 
-int mcr_Action_init(void *actDataPt)
+int mcr_Action_init(void *actPt)
 {
-	struct mcr_Action *actPt = actDataPt;
+	struct mcr_Action *localPt = actPt;
 	if (actPt) {
-		actPt->modifiers = MCR_MF_NONE;
-		actPt->trigger_flags = MCR_TF_ALL;
+		localPt->modifiers = MCR_MF_NONE;
+		localPt->trigger_flags = MCR_TF_ALL;
 	}
 	return 0;
 }
 
-bool mcr_Action_receive(void *actTrigPt, struct mcr_Signal * sigPt,
+bool mcr_Action_receive(void *trigPt, struct mcr_Signal * sigPt,
 	unsigned int mods)
 {
 	bool isMod = false;
-	struct mcr_Trigger *trigPt = actTrigPt;
-	struct mcr_Action *actPt = mcr_Action_data(trigPt);
-	dassert(actTrigPt);
-	if (actPt && trigPt->trigger) {
+	struct mcr_Trigger *localPt = trigPt;
+	struct mcr_Action *actPt = mcr_Action_data(localPt);
+	dassert(localPt);
+	if (actPt && localPt->trigger) {
 		MCR_TF_IS_MOD(actPt->modifiers, mods, actPt->trigger_flags,
 			isMod);
 		if (isMod) {
-			return trigPt->trigger(actTrigPt, sigPt, mods);
+			return localPt->trigger(localPt, sigPt, mods);
 		}
 	}
 	return false;

@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Required members for standard types.
+ * \brief \ref mcr_mod_standard - Standard signal and trigger module
  */
 
 #ifndef MOD_STANDARD_H
@@ -25,13 +25,13 @@
 
 #include "mcr/macro/macro.h"
 
-/*! \brief \ref mcr_ISignal with \ref mcr_libmacro reference */
+/*! \brief \ref mcr_ISignal with \ref mcr_context reference */
 struct mcr_CtxISignal {
 	struct mcr_ISignal isignal;
 	struct mcr_context *ctx;
 };
 
-/*! \brief \ref mcr_FlagDispatcher with \ref mcr_libmacro reference */
+/*! \brief \ref mcr_FlagDispatcher with \ref mcr_context reference */
 struct mcr_CtxDispatcher {
 	struct mcr_Dispatcher dispatcher;
 	struct mcr_context *ctx;
@@ -58,7 +58,11 @@ struct mcr_mod_standard {
 	/* Trigger types */
 	struct mcr_ITrigger iaction;
 	struct mcr_ITrigger istaged;
+	/*! \brief Set of \ref mcr_IsStage */
 	struct mcr_Array stage_matchers;
+	/*! \brief Stage matcher for no specific type
+	 *
+	 * By default this matches signal by address */
 	struct mcr_IsStage *stage_generic;
 	/* name reg */
 	struct mcr_StringIndex key_name_index;

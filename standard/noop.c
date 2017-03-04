@@ -27,16 +27,15 @@ void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec)
 	noopPt->msec = msec;
 }
 
-int mcr_NoOp_send(struct mcr_Signal *signalData)
+int mcr_NoOp_send(struct mcr_Signal *sigPt)
 {
-	struct mcr_NoOp *nPt = mcr_NoOp_data(signalData);
+	struct mcr_NoOp *nPt = mcr_NoOp_data(sigPt);
 	return nPt ? mcr_NoOp_send_data(nPt) : 0;
 }
 
 int mcr_NoOp_send_data(struct mcr_NoOp *noopPt)
 {
 	struct timespec val;
-	int err;
 	if (!noopPt)
 		return 0;
 	// # seconds contained in msec
@@ -44,8 +43,7 @@ int mcr_NoOp_send_data(struct mcr_NoOp *noopPt)
 	// # nanoseconds in msec, not including seconds left over
 	val.tv_nsec = (noopPt->msec % 1000) * 1000000;
 	thrd_sleep(&val, NULL);
-	err = errno;
-	return err ? err : 0;
+	return 0;
 }
 
 struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx)

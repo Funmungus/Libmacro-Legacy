@@ -17,7 +17,8 @@
 */
 
 /*! \file
- * \brief Stages of activation for \ref mcr_Staged
+ * \brief \ref mcr_Stage - Stages of activation for \ref mcr_Staged
+ * \ref mcr_IsStage - Stage matching functions
  */
 
 #ifndef MCR_STAGE_H
@@ -26,30 +27,25 @@
 #include "mcr/standard/def.h"
 
 struct mcr_Stage;
-/*!
- * \brief Comparison for stages, which may be more lenient than
- * \ref mcr_Interface.compare used for exact comparison.
+/*! \brief Comparison for stages, which may be more lenient than
+ * regular \ref mcr_Signal_compare used for exact comparison.
  */
 typedef bool(*mcr_isme_fnc)
  (struct mcr_Stage *, struct mcr_Signal *);
-/*!
- * \brief Function table for \ref mcr_Stage
+/*! \brief Function table for \ref mcr_Stage
  *
- * Apply matching functions to activate stage, or keep activated.
+ * Matching functions to activate stage, or keep activated.
  */
 struct mcr_IsStage {
 	/*! \brief If true, activate stage */
 	mcr_isme_fnc equals;
-	/*!
-	 * \brief If triggering signal and modifiers are at least similar,
-	 * an activated stage will stay activated.
-	 */
+	/*! \brief If true, stage will remain activated */
 	mcr_isme_fnc resembles;
 };
 
-/*! \brief Stages of activition for triggers. */
+/*! \brief Stages of activition for triggers */
 struct mcr_Stage {
-	/*! \brief Functions to match intercepted signal and activation. */
+	/*! \brief Functions to match intercepted signal and activation */
 	struct mcr_IsStage matcher;
 	/*! \brief Make trigger block if this stage is activated */
 	bool block;
@@ -62,19 +58,55 @@ struct mcr_Stage {
 	/*! \brief Determine how modifiers are compared */
 	int trigger_flags;
 	/* Internal */
-	/* 0 if this stage is triggered, otherwise this stage
-	 * is not triggered */
-	/*! Internal */
+	/*! false if this stage is not triggered, otherwise this stage
+	 * is triggered */
 	bool activated;
 };
 
-MCR_API void mcr_Stage_init(void *stageDataPt);
+/*! \brief \ref mcr_Stage ctor
+ *
+ * \param stagePt \ref opt
+ * \return 0
+ */
+MCR_API int mcr_Stage_init(void *stagePt);
+/*! \brief \ref mcr_Stage dtor
+ *
+ * \param stagePt \ref opt
+ * \return 0
+ */
+MCR_API int mcr_Stage_deinit(void *stagePt);
+/*! \brief Set initial values
+ *
+ * \param intercepPt \ref opt Signal to copy as comparison for activation
+ * \return \ref reterr
+ */
 MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
-	struct mcr_Stage *stagePt, int blocking, struct mcr_Signal *interceptPt,
-	unsigned int measurementError, unsigned int mods, int trigFlags);
-MCR_API void mcr_Stage_deinit(void *stageDataPt);
+	struct mcr_Stage *stagePt, bool blocking,
+	struct mcr_Signal *interceptPt, unsigned int measurementError,
+	unsigned int mods, int trigFlags);
+/*! \brief Match an unactivated stage
+ *
+ * If intercepting a real signal: If signal interface is the same and
+ * modifiers match, the intercepted signal is matched by
+ * \ref mcr_IsStage.equals or \ref mcr_Instance_compare\n
+ * If intercepting a fake signal: Signal matches if stage does not have
+ * a signal interface and modifiers match.\n
+ * Otherwise the intercepted signal does not match.
+ * \param interceptPt \ref opt Intercepted signal
+ * \param mods Intercepted modifiers
+ * \return Do activate if true
+ */
 MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
 	struct mcr_Signal *interceptPt, unsigned int mods);
+/*! \brief Match an activated stage to be the new activated state
+ *
+ * If intercepting a real signal: Match with \ref mcr_IsStage.resembles, or
+ * signal interface.  If stage has an interface, it must be the same.\n
+ * If intercepting a fake signal: Matches if stage does not have an interface.
+ * \param interceptPt \ref opt Intercepted signal
+ * \param mods Intercepted modifiers
+ * \return Deactivate if false
+ */
 MCR_API bool mcr_Stage_resembles(struct mcr_Stage *stagePt,
 	struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_set_intercept(struct mcr_context *ctx,

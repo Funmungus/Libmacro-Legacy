@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Scroll
+ * \brief \ref mcr_Scroll - Scroll visible area
  */
 
 #ifndef MCR_SCROLL_H
@@ -25,55 +25,23 @@
 
 #include "mcr/standard/def.h"
 
-/*! \brief Scroll visible area. */
-struct mcr_Scroll;
+/*! \brief Scroll visible area */
+struct mcr_Scroll {
+	/*! \brief Magnitude to scroll in each direciton */
+	mcr_Dimensions dm;
+};
 
-/*! \brief Initialize \ref mcr_Scroll */
-MCR_API int mcr_Scroll_init(void *scrollPt);
-/*!
- * \brief All coordinate dimensions are copied into the buffer.
+/*! \pre Signal has data member \ref mcr_Scroll
+ * \brief Scroll through visible area
  *
- * \param buffer Values are copied here
- */
-MCR_API void mcr_Scroll_dimensions(const struct mcr_Scroll *scrollPt,
-	mcr_Dimensions buffer);
-/*!
- * \brief Set all coordinate dimensions.
- *
- * \param pos Values to set from
- */
-MCR_API void mcr_Scroll_set_dimensions(struct mcr_Scroll *scrollPt,
-	const mcr_Dimensions pos);
-/*!
- * \brief Get the value of a single coordinate dimension.
- *
- * \param coordinate x, y, z coordinate type, \ref MCR_DIMENSION_MAX
- */
-MCR_API long long mcr_Scroll_coordinate(const struct mcr_Scroll *scrollPt,
-	int coordinate);
-/*!
- * \brief Set a single coordinate dimension.
- *
- * \param coordinate x, y, z coordinate type, \ref MCR_DIMENSION_MAX
- * \param value Coordinate value to set
- */
-MCR_API void mcr_Scroll_set_coordinate(struct mcr_Scroll *scrollPt,
-	int coordinate, long long value);
-/*!
- * \brief Scroll through visible area.
- *
- * \param signalData Has data member \ref mcr_Scroll
  * \return \ref reterr
  */
-MCR_API int mcr_Scroll_send(struct mcr_Signal *signalData);
+MCR_API int mcr_Scroll_send(struct mcr_Signal *sigPt);
 /*! \brief \ref mcr_Scroll_send */
 MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
-/*! \brief Compare \ref mcr_Scroll */
-MCR_API int mcr_Scroll_compare(const void *lhs, const void *rhs);
-/*! \brief Copy \ref mcr_Scroll */
-MCR_API int mcr_Scroll_copy(void *dstPt, void *srcPt);
-/* Default deinit */
+/* Default init, deinit, compare, copy */
 
+/*! \brief Signal interface of \ref mcr_Scroll */
 MCR_API struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_Scroll * */
 #define mcr_Scroll_data(sigPt) \

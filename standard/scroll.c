@@ -18,80 +18,13 @@
 
 #include "mcr/standard/standard.h"
 #include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
 #include "mcr/modules.h"
 
-void mcr_Scroll_dimensions(const struct mcr_Scroll *scrollPt,
-	mcr_Dimensions buffer)
+int mcr_Scroll_send(struct mcr_Signal *sigPt)
 {
-	dassert(scrollPt);
-	MCR_SCROLL_DIMENSIONS(*scrollPt, buffer);
-}
-
-void mcr_Scroll_set_dimensions(struct mcr_Scroll *scrollPt,
-	const mcr_Dimensions pos)
-{
-	dassert(scrollPt);
-	MCR_SCROLL_SET_DIMENSIONS(*scrollPt, pos);
-}
-
-long long mcr_Scroll_coordinate(const struct mcr_Scroll *scrollPt,
-	int coordinate)
-{
-	dassert(scrollPt);
-	return MCR_SCROLL_COORDINATE(*scrollPt, coordinate);
-}
-
-void mcr_Scroll_set_coordinate(struct mcr_Scroll *scrollPt, int coordinate,
-	long long value)
-{
-	dassert(scrollPt);
-	MCR_SCROLL_SET_COORDINATE(*scrollPt, coordinate, value);
-}
-
-int mcr_Scroll_send(struct mcr_Signal *signalData)
-{
-	dassert(signalData);
-	struct mcr_Scroll *scrPt = mcr_Scroll_data(signalData);
+	dassert(sigPt);
+	struct mcr_Scroll *scrPt = mcr_Scroll_data(sigPt);
 	return scrPt ? mcr_Scroll_send_data(scrPt) : 0;
-}
-
-int mcr_Scroll_compare(const void *lhs, const void *rhs)
-{
-	long long l, r;
-	int ret, i;
-	if (rhs) {
-		if (lhs) {
-			const struct mcr_Scroll *lPt = lhs, *rPt = rhs;
-			for (i = MCR_DIMENSION_CNT; i--;) {
-				l = MCR_SCROLL_COORDINATE(*lPt, i);
-				r = MCR_SCROLL_COORDINATE(*rPt, i);
-				if ((ret = MCR_CMP_INTEGRAL(l, r)))
-					return ret;
-			}
-			return ret;
-		}
-		return -1;
-	}
-	return ! !lhs;
-}
-
-int mcr_Scroll_copy(void *dstPt, void *srcPt)
-{
-	dassert(dstPt);
-	struct mcr_Scroll *dPt = dstPt, *sPt = srcPt;
-	int i;
-	if (sPt) {
-		for (i = MCR_DIMENSION_CNT; i--;) {
-			MCR_SCROLL_SET_COORDINATE(*dPt, i,
-				MCR_SCROLL_COORDINATE(*sPt, i));
-		}
-	} else {
-		for (i = MCR_DIMENSION_CNT; i--;) {
-			MCR_SCROLL_SET_COORDINATE(*dPt, i, 0);
-		}
-	}
-	return 0;
 }
 
 struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx)

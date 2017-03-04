@@ -35,16 +35,17 @@ struct mcr_NoOp {
 
 /*! \brief Set both seconds and milliseconds. */
 MCR_API void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec);
-/*! \brief Pause execution in seconds and milliseconds.
+/*! \pre Signal has data member \ref mcr_NoOp
+ * \brief Pause execution in seconds and milliseconds.
  *
- * \param signalData Has data member \ref mcr_NoOp
  * \return \ref reterr
  */
-MCR_API int mcr_NoOp_send(struct mcr_Signal *signalData);
+MCR_API int mcr_NoOp_send(struct mcr_Signal *sigPt);
 /*! \brief \ref mcr_NoOp_send */
 MCR_API int mcr_NoOp_send_data(struct mcr_NoOp *dataPt);
 /* Default init, deinit, copy, and compare */
 
+/*! \brief Signal interface of \ref mcr_NoOp */
 MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_NoOp * */
 #define mcr_NoOp_data(sigPt) \

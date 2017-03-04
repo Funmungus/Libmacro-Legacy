@@ -21,12 +21,12 @@ extern "C" {
 }
 #include <thread>
 
-int mcr_Alarm_send_data(mcr_Alarm * dataPt)
+int mcr_Alarm_send_data(struct mcr_Alarm * dataPt)
 {
 	if (!dataPt)
 		return 0;
 	std::chrono::system_clock::time_point until_time =
-		 std::chrono::system_clock::from_time_t(std::mktime(dataPt));
+		 std::chrono::system_clock::from_time_t(std::mktime(&dataPt->time));
 	std::this_thread::sleep_until(until_time);
 	return 0;
 }

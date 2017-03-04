@@ -18,7 +18,6 @@
 
 #include "mcr/standard/standard.h"
 #include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -36,52 +35,41 @@ int mcr_Mods_send(struct mcr_Signal *sigPt)
 {
 	struct mcr_Mods *modPt = mcr_Mods_data(sigPt);
 	struct mcr_CtxISignal *isigPt = (struct mcr_CtxISignal *)sigPt->isignal;
-	unsigned int mods;
 	if (isigPt && modPt) {
-		mods = mcr_modifiers(isigPt->ctx);
 		switch (modPt->up_type) {
 		case MCR_DOWN:
-			mods |= modPt->modifiers;
+			isigPt->ctx->signal.internal_mods |= modPt->modifiers;
 			break;
 		case MCR_UP:
 		case MCR_BOTH:
-			mods &= (~modPt->modifiers);
+			isigPt->ctx->signal.internal_mods &=
+				(~modPt->modifiers);
 			break;
 		case MCR_TOGGLE:
-			if ((mods & modPt->modifiers) == modPt->modifiers) {
-				mods &= (~modPt->modifiers);
+			if ((isigPt->ctx->signal.internal_mods & modPt->
+					modifiers)
+				== modPt->modifiers) {
+				isigPt->ctx->signal.internal_mods &=
+					(~modPt->modifiers);
 			} else {
-				mods |= modPt->modifiers;
+				isigPt->ctx->signal.internal_mods |=
+					modPt->modifiers;
 			}
 			break;
 		default:
 			mset_error(EINVAL);
 			return EINVAL;
 		}
-		mcr_set_modifiers(isigPt->ctx, mods);
 	}
 	return 0;
-}
-
-int mcr_Mods_compare(const void *lhs, const void *rhs)
-{
-	if (rhs) {
-		if (lhs) {
-			return lhs == rhs ? 0 :
-				memcmp(lhs, rhs, sizeof(struct mcr_Mods));
-		}
-		return -1;
-	}
-	return ! !lhs;
 }
 
 void mcr_Mods_modify(struct mcr_Mods *modPt,
 	unsigned int modifier, enum mcr_KeyUpType modifierKeyUp)
 {
-	if (!modPt)
-		return;
-	/* If same side of the MCR_DOWN, then adding. */
-	if ((modPt->up_type == MCR_DOWN) == (modifierKeyUp == MCR_DOWN)) {
+	dassert(modPt);
+	/* Both set or release then adding */
+	if (modPt->up_type == modifierKeyUp) {
 		modPt->modifiers |= modifier;
 	} else {
 		modPt->modifiers &= ~modifier;

@@ -40,17 +40,17 @@ static int add_key_names(struct mcr_context *context);
 static int add_echo_flags();
 static int add_echo_names(struct mcr_context *context);
 
-int mcr_Echo_mouse_flag(int echoCode)
+int mcr_Echo_mouse_flag(size_t echoCode)
 {
-	if ((unsigned)echoCode >= mcr_echoEvents.used)
-		return MCR_ECHO_ANY;
-	return *(int *)MCR_ARR_ELEMENT(mcr_echoEvents, (unsigned)echoCode);
+	if (echoCode >= mcr_echoEvents.used)
+		return -1;
+	return *(int *)MCR_ARR_ELEMENT(mcr_echoEvents, echoCode);
 }
 
-int mcr_Echo_set_mouse_flag(int echoCode, int mouseEventFlags)
+int mcr_Echo_set_mouse_flag(size_t echoCode, int mouseEventFlags)
 {
 	int err = 0;
-	if (echoCode == -1) {
+	if (echoCode == (size_t) - 1) {
 		mset_error(EINVAL);
 		return EINVAL;
 	}
@@ -73,71 +73,40 @@ void mcr_cursor_position(mcr_SpacePosition buffer)
 	}
 }
 
-int mcr_HidEcho_init(void *echoPt)
+int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 {
-	if (echoPt)
-		((struct mcr_HidEcho *)echoPt)->event = 0;
-	return 0;
-}
-
-int mcr_Key_init(void *keyDataPt)
-{
-	if (keyDataPt)
-		memset(keyDataPt, 0, sizeof(struct mcr_Key));
-	return 0;
-}
-
-int mcr_MoveCursor_init(void *mcPt)
-{
-	if (mcPt) {
-		memset(mcPt, 0, sizeof(mcr_MC));
-		/* Justify for default relative event */
-		((struct mcr_MoveCursor *)mcPt)->is_justify = 1;
-	}
-	return 0;
-}
-
-int mcr_Scroll_init(void *scrollPt)
-{
-	if (scrollPt)
-		memset(scrollPt, 0, sizeof(struct mcr_Scroll));
-	return 0;
-}
-
-int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt)
-{
-	if ((unsigned)dataPt->event < mcr_echoEvents.used) {
+	if (echoPt->echo < mcr_echoEvents.used) {
 		mouse_event(*(int *)MCR_ARR_ELEMENT(mcr_echoEvents,
-				dataPt->event), 0, 0, 0, 0);
+				echoPt->echo), 0, 0, 0, 0);
 	}
 	return 0;
 }
 
-int mcr_Key_send_data(struct mcr_Key *dataPt)
+int mcr_Key_send_data(struct mcr_Key *keyPt)
 {
-	if (dataPt->up_type != MCR_UP) {
-		keybd_event((BYTE) dataPt->key, (BYTE) dataPt->scan,
+	if (keyPt->up_type != MCR_UP) {
+		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->scan,
 			KEYEVENTF_EXTENDEDKEY, 0);
 	}
-	if (dataPt->up_type != MCR_DOWN) {
-		keybd_event((BYTE) dataPt->key, (BYTE) dataPt->scan,
+	if (keyPt->up_type != MCR_DOWN) {
+		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->scan,
 			KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 	}
 	return 0;
 }
 
-int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt)
+int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt)
 {
-	mouse_event(dataPt->is_justify ? MOUSEEVENTF_MOVE :
+	mouse_event(mcPt->is_justify ? MOUSEEVENTF_MOVE :
 		MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
-		(DWORD) dataPt->pos[MCR_X], (DWORD) dataPt->pos[MCR_Y], 0, 0);
+		(DWORD) mcPt->pos[MCR_X], (DWORD) mcPt->pos[MCR_Y], 0, 0);
 	return 0;
 }
 
-int mcr_Scroll_send_data(struct mcr_Scroll *dataPt)
+int mcr_Scroll_send_data(struct mcr_Scroll *scrPt)
 {
-	mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (DWORD) dataPt->dm[MCR_Y], 0);
-	mouse_event(MOUSEEVENTF_HWHEEL, 0, 0, (DWORD) dataPt->dm[MCR_X], 0);
+	mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (DWORD) scrPt->dm[MCR_Y], 0);
+	mouse_event(MOUSEEVENTF_HWHEEL, 0, 0, (DWORD) scrPt->dm[MCR_X], 0);
 	return 0;
 }
 

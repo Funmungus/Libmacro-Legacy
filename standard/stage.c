@@ -32,14 +32,23 @@ static void set_matcher(struct mcr_Stage *stagePt, struct mcr_IsStage *matchPt)
 	}
 }
 
-void mcr_Stage_init(void *stageDataPt)
+int mcr_Stage_init(void *stagePt)
 {
-	if (stageDataPt)
-		memset(stageDataPt, 0, sizeof(struct mcr_Stage));
+	if (stagePt)
+		memset(stagePt, 0, sizeof(struct mcr_Stage));
+	return 0;
+}
+
+int mcr_Stage_deinit(void *stagePt)
+{
+	if (stagePt)
+		return mcr_Signal_deinit(&((struct mcr_Stage *)
+				stagePt)->intercept);
+	return 0;
 }
 
 int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
-	int blocking, struct mcr_Signal *interceptPt,
+	bool blocking, struct mcr_Signal *interceptPt,
 	unsigned int measurementError, unsigned int mods, int trigFlags)
 {
 	dassert(stagePt);
@@ -50,35 +59,53 @@ int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
 	return mcr_Stage_set_intercept(ctx, stagePt, interceptPt);
 }
 
-void mcr_Stage_deinit(void *stageDataPt)
+bool mcr_Stage_equals(struct mcr_Stage * stagePt,
+	struct mcr_Signal * interceptPt, unsigned int mods)
 {
-	if (stageDataPt)
-		mcr_Signal_deinit(&((struct mcr_Stage *)
-				stageDataPt)->intercept);
-}
-
-bool mcr_Stage_equals(struct mcr_Stage *stagePt,
-	struct mcr_Signal *interceptPt, unsigned int mods)
-{
-	dassert(stagePt);
-	dassert(interceptPt);
 	bool isMods = false;
+	struct mcr_Signal *sigPt = &stagePt->intercept;
+	dassert(stagePt);
+	if (!interceptPt) {
+		/* Intercepted a non-signal, but we are looking for one */
+		if (sigPt->isignal)
+			return false;
+		MCR_TF_IS_MOD(stagePt->modifiers, mods, stagePt->trigger_flags,
+			isMods);
+		return isMods;
+	}
+	/* We have a type, and it is not the same */
+	if (sigPt->isignal && sigPt->isignal != interceptPt->isignal)
+		return false;
 	MCR_TF_IS_MOD(stagePt->modifiers, mods, stagePt->trigger_flags, isMods);
 	if (!isMods)
 		return false;
+	/* By default ignore dispatch flag */
 	return stagePt->matcher.equals ?
 		stagePt->matcher.equals(stagePt, interceptPt) :
-		!mcr_Signal_compare(&stagePt->intercept, interceptPt);
+		!mcr_Instance_compare(sigPt, interceptPt);
 }
 
 bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
 	struct mcr_Signal * interceptPt)
 {
+	struct mcr_Signal *sigPt = &stagePt->intercept;
 	dassert(stagePt);
-	dassert(interceptPt);
-	return stagePt->matcher.resembles ?
-		stagePt->matcher.resembles(stagePt, interceptPt) :
-		stagePt->intercept.isignal == interceptPt->isignal;
+	if (interceptPt) {
+		/* Case 1, stage type: By default same type is a resemblance */
+		if (sigPt->isignal) {
+			if (sigPt->isignal == interceptPt->isignal)
+				return stagePt->matcher.
+					resembles ? stagePt->matcher.
+					resembles(stagePt, interceptPt) : true;
+			/* Not same type */
+			return false;
+		}
+		/* Case 2, no stage type: By default always true */
+		return stagePt->matcher.resembles ?
+			stagePt->matcher.resembles(stagePt, interceptPt) : true;
+	}
+	/* Case 3, no intercept: Only true if also no stage type */
+	return !sigPt->isignal;
 }
 
 int mcr_Stage_set_intercept(struct mcr_context *ctx,

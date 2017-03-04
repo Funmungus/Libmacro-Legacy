@@ -126,11 +126,10 @@ struct mcr_Dispatcher {
  * Dispatch with signal and known modifiers into
  * \ref mcr_Dispatcher.dispatch
  *
- * \param signalData \ref opt Object to dispatch, and possibly block sending
+ * \param sigPt \ref opt Object to dispatch, and possibly block sending
  * \return true to block
  */
-MCR_API bool mcr_dispatch(struct mcr_context *ctx,
-	struct mcr_Signal *signalData);
+MCR_API bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *sigPt);
 /*! \brief Get the number of registered dispatchers, including null values
  *
  * \return \ref retind
