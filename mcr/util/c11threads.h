@@ -30,10 +30,6 @@
 #include <threads.h>
 #else
 
-/* TODO: port to MacOSX: no timed mutexes under macosx...
- * just delete that bit if you don't care about timed mutexes
- */
-
 #ifndef C11THREADS_H_
 #define C11THREADS_H_
 
@@ -44,6 +40,16 @@
 #include <sys/time.h>
 
 #define ONCE_FLAG_INIT	PTHREAD_ONCE_INIT
+
+#ifdef __APPLE__
+/* Darwin doesn't implement timed mutexes currently */
+#define C11THREADS_NO_TIMED_MUTEX
+#endif
+
+#ifdef C11THREADS_NO_TIMED_MUTEX
+#define PTHREAD_MUTEX_TIMED_NP PTHREAD_MUTEX_NORMAL
+#define C11THREADS_TIMEDLOCK_POLL_INTERVAL 5000000	/* 5 ms */
+#endif
 
 /* types */
 typedef pthread_t thrd_t;
@@ -181,10 +187,29 @@ static inline int mtx_trylock(mtx_t * mtx)
 static inline int mtx_timedlock(mtx_t * mtx, const struct timespec *ts)
 {
 	int res;
+#ifdef C11THREADS_NO_TIMED_MUTEX
+	/* fake a timedlock by polling trylock in a loop and waiting for a bit */
+	struct timeval now;
+	struct timespec sleeptime;
 
+	sleeptime.tv_sec = 0;
+	sleeptime.tv_nsec = C11THREADS_TIMEDLOCK_POLL_INTERVAL;
+
+	while ((res = pthread_mutex_trylock(mtx)) == EBUSY) {
+		gettimeofday(&now, NULL);
+
+		if (now.tv_sec > ts->tv_sec || (now.tv_sec == ts->tv_sec &&
+				(now.tv_usec * 1000) >= ts->tv_nsec)) {
+			return thrd_timedout;
+		}
+
+		nanosleep(&sleeptime, NULL);
+	}
+#else
 	if ((res = pthread_mutex_timedlock(mtx, ts)) == ETIMEDOUT) {
 		return thrd_timedout;
 	}
+#endif
 	return res == 0 ? thrd_success : thrd_error;
 }
 
