@@ -86,7 +86,9 @@ int mcr_Key_send_data(struct mcr_Key *keyPt)
 	ssize_t err;
 	events[0].type = EV_MSC;
 	events[0].code = MSC_SCAN;
+	events[0].value = keyPt->scan;
 	events[1].type = EV_KEY;
+	events[1].code = keyPt->key;
 	events[2].type = EV_SYN;
 	events[2].code = SYN_REPORT;
 	if (keyPt->up_type != MCR_UP) {
@@ -231,21 +233,22 @@ static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
 {
 	/* Left defaults */
 	const unsigned int types[] = {
-		MCR_ALT, MCR_ALTGR, MCR_COMPOSE,
+		MCR_ALT, MCR_COMPOSE,
 		MCR_CTRL, MCR_FN, MCR_FRONT,
 		MCR_SHIFT, MCR_META
 	};
 	const int modKeys[] = {
-		KEY_LEFTALT, KEY_RIGHTALT, KEY_COMPOSE,
+		KEY_LEFTALT, KEY_COMPOSE,
 		KEY_LEFTCTRL, KEY_FN, KEY_FRONT,
 		KEY_LEFTSHIFT, KEY_LEFTMETA
 	};
 	/* Right extras */
 	const unsigned int extraTypes[] = {
-		MCR_OPTION, MCR_CTRL, MCR_SHIFT, MCR_META
+		MCR_OPTION, MCR_ALT, MCR_CTRL, MCR_SHIFT, MCR_META
 	};
 	const int extraModKeys[] = {
-		KEY_OPTION, KEY_RIGHTCTRL, KEY_RIGHTSHIFT, KEY_RIGHTMETA
+		KEY_OPTION, KEY_RIGHTALT, KEY_RIGHTCTRL, KEY_RIGHTSHIFT,
+		KEY_RIGHTMETA
 	};
 	int err;
 	size_t i = arrlen(types);
