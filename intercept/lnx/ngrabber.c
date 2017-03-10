@@ -79,29 +79,11 @@ bool mcr_Grabber_is_enabled(struct mcr_Grabber * grabPt)
 
 int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable)
 {
-	int err = 0;
-	bool wasPriv = mcr_is_privileged();
 	dassert(grabPt);
 	if (enable != mcr_Grabber_is_enabled(grabPt)) {
-		/* No permission do not continue */
-		if (!wasPriv && (err = mcr_set_privileged(true)))
-			return err;
-
-		if (enable)
-			err = grabber_open(grabPt);
-		else
-			err = grabber_close(grabPt);
-
-		/* If we have an error, keep.  Otherwise get new err code,
-		 * which is most likely success at this point */
-		if (!wasPriv) {
-			if (err)
-				mcr_set_privileged(false);
-			else
-				err = mcr_set_privileged(false);
-		}
+		return enable ? grabber_open(grabPt) : grabber_close(grabPt);
 	}
-	return err;
+	return 0;
 }
 
 static int grabber_open(struct mcr_Grabber *grabPt)
@@ -111,7 +93,7 @@ static int grabber_open(struct mcr_Grabber *grabPt)
 		mset_error(ENODEV);
 		return ENODEV;
 	}
-	if (access(grabPt->path.array, F_OK)) {
+	if (access(grabPt->path.array, R_OK)) {
 		err = errno;
 		if (!err)
 			err = ENODEV;

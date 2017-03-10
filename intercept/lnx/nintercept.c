@@ -68,10 +68,6 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	if (getuid() && geteuid()) {
-		mset_error(EPERM);
-		return EPERM;
-	}
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = set_enabled_impl(ctx, enable);
 	if (thrdErr == thrd_success)
@@ -499,8 +495,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			return thrd_success;
 		if (rdb < (ssize_t) sizeof(struct input_event)) {
 			i = errno;
-			if (!i)
-				i = EINTR;
+			if (i == EINTR)
+				return thrd_success;
 			mset_error(i);
 			return thrd_error;
 		}
@@ -632,8 +628,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		if (writegen) {
 			if (write(mcr_genDev.fd, events, rdb) < 0) {
 				i = errno;
-				if (!i)
-					i = EINTR;
+				if (i == EINTR)
+					return thrd_success;
 				mset_error(i);
 				return thrd_error;
 			}
@@ -642,8 +638,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		}
 		if (writeabs && write(mcr_absDev.fd, events, rdb) < 0) {
 			i = errno;
-			if (!i)
-				i = EINTR;
+			if (i == EINTR)
+				return thrd_success;
 			mset_error(i);
 			return thrd_error;
 		}
@@ -695,7 +691,8 @@ static unsigned int max_mod_val()
 static inline void grab_complete_disable(_grab_complete ** gcPtPt, int *error)
 {
 	int err = mcr_Grabber_set_enabled(&(*gcPtPt)->grabber, false);
-	if (err) {
+	/* EINTR is expected for breaking polling */
+	if (err && err != EINTR) {
 		*error = err;
 	}
 }
@@ -706,8 +703,8 @@ static inline void grab_complete_deinit(_grab_complete ** gcPtPt)
 	free(*gcPtPt);
 }
 
-/*! \pre _enableLock locked */
-/*! \post _enableLock locked */
+/*! \pre Mutex locked */
+/*! \post Mutex locked */
 static int clear_grabbers_impl(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
@@ -735,7 +732,7 @@ grab_complete_disable(itPt, &error);
 			}
 		}
 		prev = nPt->grab_completes.used;
-		/* Impatient free-all, unconditional end for no wait signals */
+		/* Impatient free-all, unconditional end for timed out waiting */
 		if (prev &&
 			(thrdErr =
 				cnd_timedwait(&nPt->cnd, &nPt->lock,
