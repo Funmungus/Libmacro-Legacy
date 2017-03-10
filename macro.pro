@@ -13,6 +13,8 @@ win {
 	# our name is Libmacro, use it
 	TARGET = lib$$TARGET
 	# resolve imports on windows
+	# linkage callspec
+	# TODO: Confirm callspec required for mingw
 	DEFINES += MCR_EXPORTS
 	msvc {
 		LIBS += -luser32
@@ -25,8 +27,6 @@ win {
 		LIBS += -l$$qtLibraryTarget(libcrypto-1_1)
 	}
 } else {
-	# Unix does not require symbol exports
-	DEFINES += MCR_STATIC
 	unix:LIBS += -l$$qtLibraryTarget(crypto)
 }
 

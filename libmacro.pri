@@ -18,6 +18,7 @@ win32|win64:CONFIG += win
 else:unix {
     macx:CONFIG += mac
     else:CONFIG += lnx
+    # Unix/ELF will not use callspec for linking
     DEFINES += MCR_STATIC
 }
 else:CONFIG += nativeless
