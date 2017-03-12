@@ -43,7 +43,6 @@ static bool is_enabled_impl(struct mcr_context *ctx);
 static int set_enabled_impl(struct mcr_context *ctx, bool enable);
 static unsigned int get_mods_impl(struct mcr_context *ctx);
 static int thread_enable(void *threadArgs);
-static int thread_set_enable_impl(struct mcr_context *ctx, bool enable);
 static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
 static int read_grabber_exclusive(struct mcr_context *ctx,
@@ -51,7 +50,7 @@ static int read_grabber_exclusive(struct mcr_context *ctx,
 static unsigned int modify_eventbits(struct mcr_context *ctx,
 	char *keybit_values);
 static unsigned int max_mod_val();
-static int clear_grabbers_impl(struct mcr_context *ctx);
+static int clear_grabbers(struct mcr_context *ctx);
 
 #define MODBIT_SIZE ((sizeof(char)) * max_mod_val() / 8 + 1)
 
@@ -138,8 +137,7 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	ctx->intercept.native = nPt;
 	/* Make const value of MODBIT_SIZE */
 	fixme;
-	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success
-		|| (thrdErr = cnd_init(&nPt->cnd)) != thrd_success) {
+	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
 		return err;
@@ -155,8 +153,9 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	/* Clear grabbers manages lock internally */
+	int err = clear_grabbers(ctx);
 	int thrdErr = mtx_lock(&nPt->lock);
-	int err = clear_grabbers_impl(ctx);
 	if (err) {
 		mset_error(err);
 	}
@@ -165,7 +164,6 @@ int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 	if (thrdErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	mtx_destroy(&nPt->lock);
-	cnd_destroy(&nPt->cnd);
 	free(nPt);
 	ctx->intercept.native = NULL;
 	return err;
@@ -253,34 +251,29 @@ static int thread_enable(void *threadArgs)
 {
 	_context_bool *cbPt = threadArgs;
 	struct mcr_mod_intercept_native *nPt = cbPt->ctx->intercept.native;
-	int thrdErr = mtx_lock(&nPt->lock);
-	int err = thread_set_enable_impl(cbPt->ctx, cbPt->bVal);
+	int thrdErr;
+	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
+	size_t i = nPt->grab_paths.used;
+	/* Always clear. Do not grab what is already grabbed */
+	/* Clear grabbers manages mutex internally */
+	int err = clear_grabbers(cbPt->ctx);
+	if (!err && cbPt->bVal) {
+		thrdErr = mtx_lock(&nPt->lock);
+		while (i--) {
+			if ((err = grab_impl(cbPt->ctx, pathArr[i].array)))
+				break;
+		}
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+	}
 	/* Free args */
 	free(threadArgs);
-	if (thrdErr == thrd_success)
-		mtx_unlock(&nPt->lock);
 	return err ? thrd_error : thrd_success;
 }
 
-static int thread_set_enable_impl(struct mcr_context *ctx, bool enable)
-{
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
-	size_t i = nPt->grab_paths.used;
-	int err = 0;
-	if (enable) {
-		while (i--) {
-			if ((err = grab_impl(ctx, pathArr[i].array)))
-				return err;
-		}
-	} else {
-		if ((err = clear_grabbers_impl(ctx)))
-			return err;
-	}
-	return err;
-}
-
-/* /pre mutex locked */
+/* \pre mutex locked
+ * \post mutex locked
+ */
 static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
@@ -321,8 +314,6 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 			error = mcr_thrd_errno(thrdErr);
 			mset_error(error);
 		}
-		/* GrabComplete set has changed */
-		cnd_broadcast(&nPt->cnd);
 		/* Do not free, grabber is in use */
 		return error;
 	}
@@ -393,7 +384,9 @@ static int intercept_start(void *threadArgs)
 	delay.tv_sec = 0;
 	/* nano -> micro -> milli -> 10 milli */
 	delay.tv_nsec = 1000 * 1000 * 10;
-	/* 1. Create grab from path.
+	/* TODO: Enable grabber before thread.  Delete and remove from array
+	 * in thread.
+	 * 1. Create grab from path.
 	 * 2. Enable (Current step)
 	 * 3. Use grabber
 	 * 4. Remove grabber reference in main before thread ends.
@@ -406,21 +399,19 @@ static int intercept_start(void *threadArgs)
 		mtx_unlock(&nPt->lock);
 	if (err) {
 		gcPt->is_complete = 1;
-		cnd_broadcast(&nPt->cnd);
 		return thrd_error;
 	}
 	/* Will return an error if not enabled. */
 	thrdErr = read_grabber_exclusive(gcPt->ctx, grabPt);
 	mtxErr = mtx_lock(&nPt->lock);
 	err = mcr_Grabber_set_enabled(grabPt, false);
-	gcPt->is_complete = 1;
-	cnd_broadcast(&nPt->cnd);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	if (thrdErr) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
 	}
+	gcPt->is_complete = 1;
 	if (thrdErr)
 		return thrdErr;
 	return err ? thrd_error : thrd_success;
@@ -703,26 +694,31 @@ static inline void grab_complete_deinit(_grab_complete ** gcPtPt)
 	free(*gcPtPt);
 }
 
-/*! \pre Mutex locked */
-/*! \post Mutex locked */
-static int clear_grabbers_impl(struct mcr_context *ctx)
+/*! \pre Mutex not locked */
+/*! \post Mutex not locked */
+static int clear_grabbers(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	/* Disable all, wait for all batch operation. */
-	size_t prev = nPt->grab_completes.used, i;
-	struct timespec timeout = { 10, 0 };
+	size_t i;
+	int timeout = 50; // Total 10 sec
+	struct mcr_NoOp delay = {0};
 	_grab_complete **ptArr;
 	int error = 0, thrdErr;
+	delay.msec = 200;
 	/* TODO : thread destroy on timeout. */
 	fixme;
-#define localExp(itPt) \
+#define localDisable(itPt) \
 grab_complete_disable(itPt, &error);
-	MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-	while (nPt->grab_completes.used) {
-		/* Disable any that are being created while clearing. */
-		if (nPt->grab_completes.used >= prev) {
-			MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-		}
+	while (nPt->grab_completes.used && timeout--) {
+		/* Disable all */
+		thrdErr = mtx_lock(&nPt->lock);
+		MCR_ARR_FOR_EACH(nPt->grab_completes, localDisable);
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+		mcr_NoOp_send_data(&delay);
+		/* Remove completed */
+		thrdErr = mtx_lock(&nPt->lock);
 		ptArr = MCR_ARR_FIRST(nPt->grab_completes);
 		for (i = nPt->grab_completes.used; i--;) {
 			if (ptArr[i]->is_complete) {
@@ -731,20 +727,19 @@ grab_complete_disable(itPt, &error);
 					1);
 			}
 		}
-		prev = nPt->grab_completes.used;
-		/* Impatient free-all, unconditional end for timed out waiting */
-		if (prev &&
-			(thrdErr =
-				cnd_timedwait(&nPt->cnd, &nPt->lock,
-					&timeout)) == thrd_timedout) {
-			error = mcr_thrd_errno(thrdErr);
-			mset_error(error);
-			MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-			MCR_ARR_FOR_EACH(nPt->grab_completes,
-				grab_complete_deinit);
-			nPt->grab_completes.used = 0;
-		}
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
 	}
-#undef localExp
+	/* Impatient free-all, unconditional end for timed out waiting */
+	if (nPt->grab_completes.used) {
+		thrdErr = mtx_lock(&nPt->lock);
+		MCR_ARR_FOR_EACH(nPt->grab_completes, localDisable);
+		MCR_ARR_FOR_EACH(nPt->grab_completes,
+			grab_complete_deinit);
+		nPt->grab_completes.used = 0;
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+	}
+#undef localDisable
 	return error;
 }

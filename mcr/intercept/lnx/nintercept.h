@@ -28,7 +28,6 @@
 
 struct mcr_mod_intercept_native {
 	mtx_t lock;
-	cnd_t cnd;
 	struct mcr_Array grab_completes;
 	mcr_StringSet grab_paths;
 	/* KEY_CNT / 8 is a floor value, and may have remainder of keys. */
