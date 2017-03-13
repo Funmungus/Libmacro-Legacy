@@ -17,6 +17,7 @@
 */
 
 /*! \file
+ * Linux native intercept definitions
  */
 
 #ifndef MCR_LNX_INTERCEPT_DEFINES_H

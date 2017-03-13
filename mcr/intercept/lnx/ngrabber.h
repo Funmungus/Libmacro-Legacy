@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Grabber, Take exclusive access to a /dev/input event.
+ * \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
 #ifndef MCR_LNX_GRABBER_H

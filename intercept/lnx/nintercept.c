@@ -31,8 +31,36 @@
 typedef struct {
 	struct mcr_context *ctx;
 	struct mcr_Grabber grabber;
-	bool is_complete;
-} _grab_complete;
+} _grab_context;
+
+/* Remember (*gcPt) is a _grab_context reference, and not a grabber */
+static int grab_context_malloc(_grab_context **gcPt, struct mcr_context *ctx)
+{
+	int err;
+	*gcPt = malloc(sizeof(_grab_context));
+	if (!*gcPt)
+		return ENOMEM;
+	if ((err = mcr_Grabber_init(&(*gcPt)->grabber))) {
+		free(*gcPt);
+		*gcPt = NULL;
+		return err;
+	}
+	(*gcPt)->ctx = ctx;
+	return 0;
+}
+
+static int grab_context_free(_grab_context **gcPt)
+{
+	int err = mcr_Grabber_deinit(&(*gcPt)->grabber);
+	free(*gcPt);
+	*gcPt = NULL;
+	return err;
+}
+
+static inline void grab_context_disable(_grab_context ** gcPtPt)
+{
+	mcr_Grabber_set_enabled(&(*gcPtPt)->grabber, false);
+}
 
 typedef struct {
 	struct mcr_context *ctx;
@@ -47,12 +75,15 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
 static int read_grabber_exclusive(struct mcr_context *ctx,
 	struct mcr_Grabber *grabPt);
-static unsigned int modify_eventbits(struct mcr_context *ctx,
-	char *keybit_values);
+static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer,
+size_t modBufferSize, char *keybit_values);
 static unsigned int max_mod_val();
 static int clear_grabbers(struct mcr_context *ctx);
 
-#define MODBIT_SIZE ((sizeof(char)) * max_mod_val() / 8 + 1)
+static inline size_t modbit_size()
+{
+	return sizeof(char) * max_mod_val() / 8 + 1;
+}
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
@@ -134,17 +165,16 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 		return ENOMEM;
 	}
 	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
-	ctx->intercept.native = nPt;
-	/* Make const value of MODBIT_SIZE */
-	fixme;
 	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
+		free(nPt);
 		return err;
 	}
-	mcr_Array_init(&nPt->grab_completes);
-	mcr_Array_set_all(&nPt->grab_completes, mcr_ref_compare,
-		sizeof(_grab_complete *));
+	ctx->intercept.native = nPt;
+	mcr_Array_init(&nPt->grab_contexts);
+	mcr_Array_set_all(&nPt->grab_contexts, mcr_ref_compare,
+		sizeof(_grab_context *));
 	mcr_StringSet_init(&nPt->grab_paths);
 	mcr_StringSet_set_all(&nPt->grab_paths, mcr_String_compare);
 	return err;
@@ -160,7 +190,7 @@ int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 		mset_error(err);
 	}
 	mcr_StringSet_deinit(&nPt->grab_paths);
-	mcr_Array_deinit(&nPt->grab_completes);
+	mcr_Array_deinit(&nPt->grab_contexts);
 	if (thrdErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	mtx_destroy(&nPt->lock);
@@ -172,10 +202,10 @@ int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 static bool is_enabled_impl(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	_grab_complete **ptArr = MCR_ARR_FIRST(nPt->grab_completes);
-	size_t i = nPt->grab_completes.used;
+	_grab_context **ptArr = MCR_ARR_FIRST(nPt->grab_contexts);
+	size_t i = nPt->grab_contexts.used;
 	while (i--) {
-		if (ptArr[i]->grabber.fd != -1 && !ptArr[i]->is_complete)
+		if (ptArr[i]->grabber.fd != -1)
 			return true;
 	}
 	return false;
@@ -216,21 +246,31 @@ static int set_enabled_impl(struct mcr_context *ctx, bool enable)
 static unsigned int get_mods_impl(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	_grab_complete **grabSet = MCR_ARR_FIRST(nPt->grab_completes);
+	_grab_context **grabSet = MCR_ARR_FIRST(nPt->grab_contexts);
 	unsigned int ret;
+	/* One modifier for each key that has a modifier mapped */
+	size_t modKeysCount = mcr_Key_mod_count(ctx);
+	unsigned int *modArr = malloc(sizeof(unsigned int) * modKeysCount);
 	char *bitRetrieval = nPt->bit_retrieval;
-	size_t modSize = MODBIT_SIZE, i = nPt->grab_completes.used;
-	int err = ioctl(mcr_genDev.fd, EVIOCGKEY(modSize), bitRetrieval), fd;
-	if (err < 0) {
+	size_t modSize = modbit_size(), i = nPt->grab_contexts.used;
+	int err, fd;
+	if (!modArr) {
+		mset_error(ENOMEM);
+		return ENOMEM;
+	}
+	/* Fill modifiers mapped from a key */
+	mcr_Key_mod_all(ctx, modArr, modKeysCount);
+	if ((err = ioctl(mcr_genDev.fd, EVIOCGKEY(modSize), bitRetrieval)) < 0) {
 		err = errno;
 		if (!err)
 			err = EINTR;
 		mset_error(err);
+		free(modArr);
 		return MCR_MOD_ANY;
 	}
 	/* handle MCR_MOD_ANY as an error */
 	fixme;
-	ret = modify_eventbits(ctx, bitRetrieval);
+	ret = modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
 	while (i--) {
 		if ((fd = grabSet[i]->grabber.fd) != -1) {
 			if ((err = ioctl(fd, EVIOCGKEY(modSize),
@@ -240,34 +280,37 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 					err = EINTR;
 				mset_error(err);
 			} else {
-				ret |= modify_eventbits(ctx, bitRetrieval);
+				ret |= modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
 			}
 		}
 	}
+	free(modArr);
 	return ret;
 }
 
 static int thread_enable(void *threadArgs)
 {
-	_context_bool *cbPt = threadArgs;
-	struct mcr_mod_intercept_native *nPt = cbPt->ctx->intercept.native;
+	_context_bool cb = *(_context_bool *)threadArgs;
+	struct mcr_mod_intercept_native *nPt = cb.ctx->intercept.native;
 	int thrdErr;
 	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
 	size_t i = nPt->grab_paths.used;
+	int err = 0;
+	/* Free args when no longer in use */
+	free(threadArgs);
 	/* Always clear. Do not grab what is already grabbed */
 	/* Clear grabbers manages mutex internally */
-	int err = clear_grabbers(cbPt->ctx);
-	if (!err && cbPt->bVal) {
+	if (nPt->grab_contexts.used)
+		err = clear_grabbers(cb.ctx);
+	if (!err && cb.bVal) {
 		thrdErr = mtx_lock(&nPt->lock);
 		while (i--) {
-			if ((err = grab_impl(cbPt->ctx, pathArr[i].array)))
+			if ((err = grab_impl(cb.ctx, pathArr[i].array)))
 				break;
 		}
 		if (thrdErr == thrd_success)
 			mtx_unlock(&nPt->lock);
 	}
-	/* Free args */
-	free(threadArgs);
 	return err ? thrd_error : thrd_success;
 }
 
@@ -279,32 +322,25 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	int error = 0, thrdErr = thrd_success;
 	thrd_t trd;
-	/* Free in ? */
-	_grab_complete *pt;
+	/* Freed when thread is done with it */
+	_grab_context *pt;
 	if (!grabPath || grabPath[0] == '\0')
 		return 0;
-	pt = malloc(sizeof(_grab_complete));
 	dassert(grabPath);
-	if (!pt) {
-		mset_error(ENOMEM);
-		return ENOMEM;
-	}
-	memset(pt, 0, sizeof(_grab_complete));
-	pt->ctx = ctx;
-	mcr_Grabber_init(&pt->grabber);
+	if ((error = grab_context_malloc(&pt, ctx)))
+		return error;
 	if ((error = mcr_Grabber_set_path(&pt->grabber, grabPath))) {
-		mcr_Grabber_deinit(&pt->grabber);
-		free(pt);
+		grab_context_free(&pt);
 		return error;
 	}
-	if ((error = mcr_Array_add(&nPt->grab_completes, &pt, 1, true))) {
+	if ((error = mcr_Array_add(&nPt->grab_contexts, &pt, 1, true))) {
 		/* Not able to add reference */
-		mcr_Array_remove(&nPt->grab_completes, &pt);
+		mcr_Array_remove(&nPt->grab_contexts, &pt);
 	} else if ((thrdErr =
 			thrd_create(&trd, intercept_start,
 				pt)) != thrd_success) {
 		/* Not able to start thread */
-		mcr_Array_remove(&nPt->grab_completes, &pt);
+		mcr_Array_remove(&nPt->grab_contexts, &pt);
 		error = mcr_thrd_errno(thrdErr);
 		mset_error(error);
 	} else {
@@ -317,10 +353,8 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 		/* Do not free, grabber is in use */
 		return error;
 	}
-	if (error) {
-		mcr_Grabber_deinit(&pt->grabber);
-		free(pt);
-	}
+	if (error)
+		grab_context_free(&pt);
 	return error;
 }
 
@@ -369,51 +403,53 @@ static inline void abs_set_current(struct mcr_MoveCursor *abs,
 
 /* Note: Excess time setting up and releasing is ok. Please try to limit
  * time-consumption during grabbing and callbacks. */
-/* \pre Thread args is heap-allocated _grab_complete. It is assumed to
- * already have a path, which is already added to the _grabCompletes.
+/* \pre Thread args is heap-allocated _grab_context. It is assumed to
+ * already have a path.
  */
 static int intercept_start(void *threadArgs)
 {
-	/* Free in ? */
-	_grab_complete *gcPt = threadArgs;
+	/* Free in thread when done with it */
+	_grab_context *gcPt = threadArgs;
 	struct mcr_mod_intercept_native *nPt = gcPt->ctx->intercept.native;
 	struct mcr_Grabber *grabPt = &gcPt->grabber;
 	int thrdErr = thrd_success, mtxErr = thrd_success, err = 0;
 	struct timespec delay;
 	dassert(threadArgs);
 	delay.tv_sec = 0;
-	/* nano -> micro -> milli -> 10 milli */
+	/* 10 milli */
 	delay.tv_nsec = 1000 * 1000 * 10;
-	/* TODO: Enable grabber before thread.  Delete and remove from array
-	 * in thread.
+	/* TODO: Enable grabber before thread.
 	 * 1. Create grab from path.
 	 * 2. Enable (Current step)
 	 * 3. Use grabber
-	 * 4. Remove grabber reference in main before thread ends.
+	 * 4. Always free grabber before end of thread
 	 */
 	mtxErr = mtx_lock(&nPt->lock);
-	err = mcr_Grabber_set_enabled(grabPt, true);
+	if ((err = mcr_Grabber_set_enabled(grabPt, true))) {
+		mcr_Array_remove(&nPt->grab_contexts, &gcPt);
+		grab_context_free(&gcPt);
+		if (mtxErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+		return thrd_error;
+	}
 	/* Give a delay between grabs before unlocking. */
 	thrd_sleep(&delay, NULL);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
-	if (err) {
-		gcPt->is_complete = 1;
-		return thrd_error;
-	}
 	/* Will return an error if not enabled. */
 	thrdErr = read_grabber_exclusive(gcPt->ctx, grabPt);
 	mtxErr = mtx_lock(&nPt->lock);
 	err = mcr_Grabber_set_enabled(grabPt, false);
+	mcr_Array_remove(&nPt->grab_contexts, &gcPt);
+	grab_context_free(&gcPt);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	if (thrdErr) {
-		err = mcr_thrd_errno(thrdErr);
-		mset_error(err);
-	}
-	gcPt->is_complete = 1;
-	if (thrdErr)
+		if (!err) {
+			mset_error(mcr_thrd_errno(thrdErr));
+		}
 		return thrdErr;
+	}
 	return err ? thrd_error : thrd_success;
 }
 
@@ -640,25 +676,20 @@ if (mcr_dispatch(ctx, &(signal))) { \
 #undef DISP_WRITEMEM_ABS
 }
 
-static unsigned int modify_eventbits(struct mcr_context *ctx,
+static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer, size_t modBufferSize,
 	char *keybitValues)
 {
 	int curKey;
 	unsigned int i, modValOut = 0;
-	size_t modKeysCount = mcr_Key_mod_count(ctx);
-	unsigned int *modArr = malloc(sizeof(unsigned int) * modKeysCount);
-	if (!modArr) {
-		mset_error(ENOMEM);
-		return ENOMEM;
+	if (!modBuffer || !modBufferSize)
+		return 0;
+	/* For each modifier, find the modifier of that key, and check
+	 * if key is set in the key bit value set. */
+	for (i = modBufferSize; i--;) {
+		curKey = mcr_Key_mod_key(ctx, modBuffer[i]);
+		if (curKey != MCR_KEY_ANY && (keybitValues[MCR_EVENTINDEX(curKey)] & MCR_EVENTBIT(curKey)))
+			modValOut |= modBuffer[i];
 	}
-	mcr_Key_mod_all(ctx, modArr, modKeysCount);
-	for (i = modKeysCount; i--;) {
-		curKey = mcr_Key_mod_key(ctx, modArr[i]);
-		if ((keybitValues[MCR_EVENTINDEX(curKey)] &
-				MCR_EVENTBIT(curKey)))
-			modValOut |= modArr[i];
-	}
-	free(modArr);
 	return modValOut;
 }
 
@@ -679,67 +710,35 @@ static unsigned int max_mod_val()
 	return val;
 }
 
-static inline void grab_complete_disable(_grab_complete ** gcPtPt, int *error)
-{
-	int err = mcr_Grabber_set_enabled(&(*gcPtPt)->grabber, false);
-	/* EINTR is expected for breaking polling */
-	if (err && err != EINTR) {
-		*error = err;
-	}
-}
-
-static inline void grab_complete_deinit(_grab_complete ** gcPtPt)
-{
-	mcr_Grabber_deinit(&(*gcPtPt)->grabber);
-	free(*gcPtPt);
-}
-
 /*! \pre Mutex not locked */
 /*! \post Mutex not locked */
 static int clear_grabbers(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	/* Disable all, wait for all batch operation. */
-	size_t i;
 	int timeout = 50; // Total 10 sec
 	struct mcr_NoOp delay = {0};
-	_grab_complete **ptArr;
 	int error = 0, thrdErr;
 	delay.msec = 200;
 	/* TODO : thread destroy on timeout. */
 	fixme;
-#define localDisable(itPt) \
-grab_complete_disable(itPt, &error);
-	while (nPt->grab_completes.used && timeout--) {
+	while (nPt->grab_contexts.used && timeout--) {
 		/* Disable all */
 		thrdErr = mtx_lock(&nPt->lock);
-		MCR_ARR_FOR_EACH(nPt->grab_completes, localDisable);
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_disable);
 		if (thrdErr == thrd_success)
 			mtx_unlock(&nPt->lock);
+		/* While unlocked and paused, threads will remove themselves */
 		mcr_NoOp_send_data(&delay);
-		/* Remove completed */
-		thrdErr = mtx_lock(&nPt->lock);
-		ptArr = MCR_ARR_FIRST(nPt->grab_completes);
-		for (i = nPt->grab_completes.used; i--;) {
-			if (ptArr[i]->is_complete) {
-				grab_complete_deinit(ptArr + i);
-				mcr_Array_remove_index(&nPt->grab_completes, i,
-					1);
-			}
-		}
-		if (thrdErr == thrd_success)
-			mtx_unlock(&nPt->lock);
 	}
 	/* Impatient free-all, unconditional end for timed out waiting */
-	if (nPt->grab_completes.used) {
+	if (nPt->grab_contexts.used) {
 		thrdErr = mtx_lock(&nPt->lock);
-		MCR_ARR_FOR_EACH(nPt->grab_completes, localDisable);
-		MCR_ARR_FOR_EACH(nPt->grab_completes,
-			grab_complete_deinit);
-		nPt->grab_completes.used = 0;
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_disable);
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_free);
+		nPt->grab_contexts.used = 0;
 		if (thrdErr == thrd_success)
 			mtx_unlock(&nPt->lock);
 	}
-#undef localDisable
 	return error;
 }
