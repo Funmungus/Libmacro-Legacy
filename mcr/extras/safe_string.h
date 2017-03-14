@@ -155,7 +155,7 @@ MCR_API void mcr_SafeString_set_password(char *pass);
 /* Implement in native directory */
 /*! \brief Randomize bytes
  *
- * Native, use encryption software where available
+ * \ref native_fnc Use encryption software where available
  * \param buffer Bytes output
  * \param bufferSize Buffer byte count
  * \return \ref reterr

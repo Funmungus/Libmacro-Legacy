@@ -17,11 +17,16 @@
 */
 
 /*! \file
- * \brief \ref mcr_Signal data types : \ref mcr_Alarm, \ref mcr_HidEcho,
- * \ref mcr_Key, \ref mcr_MoveCursor, \ref mcr_NoOp,
- * and \ref mcr_Scroll <br>
- * \ref mcr_ISignal : \ref mcr_IAlarm, \ref mcr_IHidEcho, \ref mcr_IKey,
- * \ref mcr_IMoveCursor, \ref mcr_INoOp, and \ref mcr_IScroll
+ * \brief Standard signal and trigger types
+ *
+ * \ref mcr_Signal data types: \ref mcr_Alarm, \ref mcr_HidEcho,
+ * \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
+ * and \ref mcr_Scroll \n
+ * \ref mcr_ISignal: \ref mcr_iAlarm, \ref mcr_iHidEcho, \ref mcr_iKey,
+ * \ref mcr_iMoveCursor, \ref mcr_iNoOp, and \ref mcr_iScroll\n
+ * \n
+ * \ref mcr_Trigger date types: \ref mcr_Action, \ref mcr_Staged\n
+ * \ref mcr_ITrigger: \ref mcr_iAction, \ref mcr_iStaged
  */
 
 #ifndef MCR_STANDARD_H
@@ -39,12 +44,12 @@
 #include "mcr/standard/staged.h"
 
 /* Some extra, possibly useful, utilities */
-/*! For both positions, either may be 0, or the same coordinate
+/*! \brief For both positions, either may be 0, or the same coordinate
  * array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
 	const mcr_Dimensions second);
-/*! For both positions, the same coordinate array member must
+/*! \brief For both positions, the same coordinate array member must
  * be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,

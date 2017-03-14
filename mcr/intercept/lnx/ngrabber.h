@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Grabber, Take exclusive access to a /dev/input event.
+ * \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
 #ifndef MCR_LNX_GRABBER_H
@@ -27,15 +27,15 @@
 
 /*! \brief Take exclusive access to a /dev/input event. */
 struct mcr_Grabber {
-	/*! \brief File of the created input event */
+	/*! \brief File of input event to read */
 	int fd;
 	/*! \brief File path of input event */
 	struct mcr_Array path;
 };
 
 /*! ctor */
-MCR_API void mcr_Grabber_init(void *grabDataPt);
-MCR_API void mcr_Grabber_deinit(void *grabDataPt);
+MCR_API int mcr_Grabber_init(void *grabPt);
+MCR_API int mcr_Grabber_deinit(void *grabPt);
 
 MCR_API const char *mcr_Grabber_path(struct mcr_Grabber *grabPt);
 MCR_API int mcr_Grabber_set_path(struct mcr_Grabber *grabPt, const char *path);
@@ -50,14 +50,6 @@ MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
-/*!
- * \brief Obtain the current key state of this device.
- *
- * \param size bytesize of buffer.
- * \return reterr
- */
-MCR_API int mcr_Grabber_state(struct mcr_Grabber *grabPt,
-	char *buffer, const size_t size);
 
 #define MCR_EVENTINDEX(keyCode) \
 ((keyCode) / 8)

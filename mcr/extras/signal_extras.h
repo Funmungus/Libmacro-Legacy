@@ -42,7 +42,7 @@ struct mcr_Command {
 /*! \brief Type or send signals from text */
 struct mcr_StringKey {
 	/*! \brief Pause time between sending each character in string */
-	struct timespec interval;
+	struct mcr_NoOp interval;
 	/*! \brief Text to parse, each character maps to a set of signals
 	 * to send */
 	struct mcr_SafeString string;
@@ -193,12 +193,13 @@ MCR_API void mcr_StringKey_remove_char(struct mcr_context *ctx, int character);
  *
  * \param character Character to set signals for
  * \param key Keyboard key to press and release
+ * \param msec Milliseconds to pause between key press and release
  * \param shiftFlag If true a shift key will press before the key, and
  * release after the key.
  * \return \ref reterr
  */
 MCR_API int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
-	int key, long nsec, bool shiftFlag);
+	int key, long msec, bool shiftFlag);
 /*! \brief Set default string key pause delay between press and release
  *
  * This will also replace all \ref mcr_NoOp already set.
@@ -206,7 +207,7 @@ MCR_API int mcr_StringKey_set_char_keys(struct mcr_context *ctx, int character,
  * \return \ref reterr
  */
 MCR_API int mcr_StringKey_set_delays(struct mcr_context *ctx,
-	struct timespec delay);
+	struct mcr_NoOp delay);
 /*! \brief Get the number of characters set to send signals for
  *
  * \return \ref retind

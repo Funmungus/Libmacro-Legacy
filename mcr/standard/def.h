@@ -45,9 +45,7 @@
 (posArray)[MCR_Y] = 0; \
 (posArray)[MCR_Z] = 0;
 
-/*!
- * \brief A signal is set, released, or both
- */
+/*! \brief A signal is set, released, or both */
 enum mcr_KeyUpType {
 	MCR_DOWN = 0,
 	MCR_UP,
@@ -55,8 +53,7 @@ enum mcr_KeyUpType {
 	MCR_TOGGLE
 };
 
-/*!
- * \brief Spatial position, indices are coordinates.
+/*! \brief Spatial position, indices are coordinates.
  * \ref MCR_DIMENSION_CNT
  *
  * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
@@ -66,7 +63,7 @@ typedef long long mcr_SpacePosition[MCR_DIMENSION_CNT];
 typedef mcr_SpacePosition mcr_Dimensions;
 
 /*! \brief Any or invalid echo code */
-#define MCR_ECHO_ANY ((const int)-1)
+#define MCR_ECHO_ANY ((const size_t)-1)
 /*! \brief Any or invalid scan or key code */
 #define MCR_KEY_ANY ((const int)0)
 

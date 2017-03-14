@@ -26,15 +26,20 @@
 
 #include "mcr/intercept/lnx/ngrabber.h"
 
+/*! \brief Linux intercept native structure */
 struct mcr_mod_intercept_native {
+	/*! \brief Intercept critical sections */
 	mtx_t lock;
-	cnd_t cnd;
-	struct mcr_Array grab_completes;
+	/*! \brief Ordered list so each grab can remove itself */
+	struct mcr_Array grab_contexts;
+	/*! \brief Set of input event paths to try grabbing */
 	mcr_StringSet grab_paths;
-	/* KEY_CNT / 8 is a floor value, and may have remainder of keys. */
+	/*! \brief Get key pressed values from a device
+	 *
+	 * KEY_CNT / 8 is a floor value, and may have remainder of keys. */
 	char bit_retrieval[MCR_EVENTINDEX(KEY_CNT) + 1];
 };
-
+/* All use /dev/input/eventX files to read from */
 MCR_API int mcr_intercept_add_grab(struct mcr_context *ctx,
 	const char *grabPath);
 MCR_API void mcr_intercept_remove_grab(struct mcr_context *ctx,

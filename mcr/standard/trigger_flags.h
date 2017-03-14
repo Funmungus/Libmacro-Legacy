@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_TriggerFlags enumerates behavior of triggering modifiers.
+ * \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
  */
 
 #ifndef MCR_TRIGGER_FLAGS_H
@@ -25,8 +25,7 @@
 
 #include "mcr/standard/def.h"
 
-/*!
- * \brief Logical ing bahavior of modifiers.
+/*! \brief Logical triggering bahavior of modifiers.
  *
  * This will define behaviour of how modifiers may or may not trigger a
  * dispatch to receivers.\n
@@ -50,13 +49,13 @@ enum mcr_TriggerFlags {
 	MCR_TF_NONE = 1,
 	/*! \brief Some flag of this modifier must be included, but not all. */
 	MCR_TF_SOME = 1 << 1,
-	/*! \brief Anything except an exact match. */
+	/*! \brief Anything except an exact match */
 	MCR_TF_INEQUAL = MCR_TF_NONE | MCR_TF_SOME,
 	/*! \brief All flags of this modifier must be included. */
 	MCR_TF_ALL = 1 << 2,
-	/*! \brief All or nothing match. */
+	/*! \brief All or nothing match */
 	MCR_TF_ALL_OR_NOTHING = MCR_TF_NONE | MCR_TF_ALL,
-	/*! \brief At least one mod flag matches. */
+	/*! \brief At least one mod flag matches */
 	MCR_TF_MATCH = MCR_TF_SOME | MCR_TF_ALL,
 	/*! \brief All flags set (-1 also works) */
 	MCR_TF_ANY = MCR_TF_NONE | MCR_TF_SOME | MCR_TF_ALL,
@@ -65,8 +64,7 @@ enum mcr_TriggerFlags {
 };
 /*! \brief Make valid \ref mcr_TriggerFlags from any number */
 #define MCR_TF_mask(number) (MCR_TF_ANY & (number))
-/*!
- * \brief Remove valid \ref mcr_TriggerFlags from any number, leaving
+/*! \brief Remove valid \ref mcr_TriggerFlags from any number, leaving
  * only user defined flags.
  */
 #define MCR_TF_user_mask(number) ((number) & (~MCR_TF_ANY))
@@ -87,13 +85,12 @@ enum mcr_TriggerFlags {
 /*! \brief bool, \ref MCR_TF_ANY */
 #define MCR_TF_IS_ANY(lhs, rhs) true
 
-/*!
- * \brief Match modifiers using \ref mcr_TriggerFlags logic.
+/*! \brief Match modifiers using \ref mcr_TriggerFlags logic.
  *
- * \param lhs Modifiers that must be matched
- * \param rhs Modifiers that are used to match
+ * \param lhs uint Modifiers that must be matched
+ * \param rhs uint Modifiers that are used to match
  * \param flags \ref mcr_TriggerFlags Logic flags
- * \param outIsVal bool True if modifiers match
+ * \param outIsVal bool Return value, true if modifiers match
  */
 #define MCR_TF_IS_MOD(lhs, rhs, flags, outIsVal) \
 switch (flags) { \

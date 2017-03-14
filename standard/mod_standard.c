@@ -40,39 +40,39 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	while (i--)
 		mcr_ISignal_init(sigs[i]);
 	isigPt = mcr_iAlarm(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(mcr_Alarm), mcr_Alarm_init, NULL,
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Alarm), NULL, NULL,
 		mcr_Alarm_compare, NULL);
 	isigPt->send = mcr_Alarm_send;
 
 	isigPt = mcr_iEcho(ctx);
 	mcr_Interface_set_all(isigPt, sizeof(struct mcr_HidEcho),
-		mcr_HidEcho_init, NULL, mcr_HidEcho_compare, mcr_HidEcho_copy);
+		NULL, NULL, NULL, NULL);
 	isigPt->send = mcr_HidEcho_send;
 
 	isigPt = mcr_iKey(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Key), mcr_Key_init,
-		NULL, mcr_Key_compare, mcr_Key_copy);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Key), NULL,
+		NULL, NULL, NULL);
 	isigPt->send = mcr_Key_send;
 
 	isigPt = mcr_iMods(ctx);
 	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Mods), NULL, NULL,
-		mcr_Mods_compare, NULL);
+		NULL, NULL);
 	isigPt->send = mcr_Mods_send;
 	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
 
 	isigPt = mcr_iMC(ctx);
 	mcr_Interface_set_all(isigPt, sizeof(struct mcr_MoveCursor),
-		mcr_MoveCursor_init, NULL, mcr_MoveCursor_compare,
-		mcr_MoveCursor_copy);
+		NULL, NULL, NULL, NULL);
 	isigPt->send = mcr_MoveCursor_send;
 
 	isigPt = mcr_iNoOp(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(mcr_NoOp), NULL, NULL, NULL, NULL);
+	mcr_Interface_set_all(isigPt, sizeof(struct mcr_NoOp), NULL, NULL, NULL,
+		NULL);
 	isigPt->send = mcr_NoOp_send;
 
 	isigPt = mcr_iScroll(ctx);
 	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Scroll),
-		mcr_Scroll_init, NULL, mcr_Scroll_compare, mcr_Scroll_copy);
+		NULL, NULL, NULL, NULL);
 	isigPt->send = mcr_Scroll_send;
 
 	count = arrlen(sigs);

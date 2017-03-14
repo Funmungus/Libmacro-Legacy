@@ -150,9 +150,9 @@ static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
-		MCR_KEY_SET_KEY(_key, p->vkCode);
-		MCR_KEY_SET_SCAN(_key, p->scanCode);
-		MCR_KEY_SET_UP_TYPE(_key, (WPARAM_UPTYPE(wParam)));
+		_key.key = p->vkCode;
+		_key.scan = p->scanCode;
+		_key.up_type = (WPARAM_UPTYPE(wParam));
 		if (mcr_dispatch(_hook_context, &_keySig))
 			return -1;
 	}
@@ -167,17 +167,16 @@ static LRESULT CALLBACK move_proc(int nCode, WPARAM wParam, LPARAM lParam)
 		DWORD flags = p->flags;
 		/* Check for movecursor */
 		if ((flags & MOUSEEVENTF_MOVE)) {
-			MCR_MOVECURSOR_SET_COORDINATE(_mc, MCR_X, p->pt.x);
-			MCR_MOVECURSOR_SET_COORDINATE(_mc, MCR_Y, p->pt.y);
+			_mc.pos[MCR_X] = p->pt.x;
+			_mc.pos[MCR_Y] = p->pt.y;
 			/* 0 absolute, 1 justify/relative */
-			MCR_MOVECURSOR_SET_JUSTIFY(_mc,
-				!(flags & MOUSEEVENTF_ABSOLUTE));
+			_mc.is_justify = !(flags & MOUSEEVENTF_ABSOLUTE);
 			if (mcr_dispatch(_hook_context, &_mcSig))
 				return -1;
 		}
 		for (unsigned int i = arrlen(_echo_flags); i--;) {
 			if ((flags & _echo_flags[i])) {
-				MCR_ECHO_SET_ECHO(_echo, i);
+				_echo.echo = i;
 				if (mcr_dispatch(_hook_context, &_echoSig))
 					return -1;
 			}
@@ -195,12 +194,12 @@ static LRESULT CALLBACK scroll_proc(int nCode, WPARAM wParam, LPARAM lParam)
 			((p->mouseData >> sizeof(WORD)));
 		switch (wParam) {
 		case WM_MOUSEWHEEL:
-			MCR_SCROLL_SET_COORDINATE(_scr, MCR_X, 0);
-			MCR_SCROLL_SET_COORDINATE(_scr, MCR_Y, delta);
+			_scr.dm[MCR_X] = 0;
+			_scr.dm[MCR_Y] = delta;
 			break;
 		case WM_MOUSEHWHEEL:
-			MCR_SCROLL_SET_COORDINATE(_scr, MCR_X, delta);
-			MCR_SCROLL_SET_COORDINATE(_scr, MCR_Y, 0);
+			_scr.dm[MCR_X] = delta;
+			_scr.dm[MCR_Y] = 0;
 			break;
 		}
 		if (mcr_dispatch(_hook_context, &_scrSig))

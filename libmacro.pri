@@ -18,6 +18,7 @@ win32|win64:CONFIG += win
 else:unix {
     macx:CONFIG += mac
     else:CONFIG += lnx
+    # Unix/ELF will not use callspec for linking
     DEFINES += MCR_STATIC
 }
 else:CONFIG += nativeless
@@ -27,6 +28,3 @@ else:lnx: MCR_NATIVE_DIR = lnx
 #else:mac: MCR_NATIVE_DIR = mac
 else: MCR_NATIVE_DIR = nativeless
 DEFINES += MCR_NATIVE_DIR=$${MCR_NATIVE_DIR}
-
-x11: DEFINES += MCR_USE_X
-wayland: DEFINES += MCR_USE_WAYLAND

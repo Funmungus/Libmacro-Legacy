@@ -88,7 +88,7 @@ static int add(struct mcr_context *ctx, int character, bool shiftFlag,
 {
 	if (character <= 0x7F && keyVals[character]) {
 		return mcr_StringKey_set_char_keys(ctx, character,
-			keyVals[character], 1000 * 1000 * 10, shiftFlag);
+			keyVals[character], 10, shiftFlag);
 	}
 	return 0;
 }

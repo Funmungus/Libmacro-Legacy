@@ -27,32 +27,37 @@ static int grabber_open(struct mcr_Grabber *grabPt);
 static int grabber_close(struct mcr_Grabber *grabPt);
 static int grabber_grab(struct mcr_Grabber *grabPt, bool toGrab);
 
-void mcr_Grabber_init(void *grabDataPt)
+int mcr_Grabber_init(void *grabPt)
 {
-	struct mcr_Grabber *grabPt = grabDataPt;
-	dassert(grabDataPt);
-	memset(grabDataPt, 0, sizeof(struct mcr_Grabber));
-	grabPt->fd = -1;
-	mcr_String_init(&grabPt->path);
+	struct mcr_Grabber *localPt = grabPt;
+	if (localPt) {
+		memset(grabPt, 0, sizeof(struct mcr_Grabber));
+		localPt->fd = -1;
+		mcr_String_init(&localPt->path);
+	}
+	return 0;
 }
 
-void mcr_Grabber_deinit(void *grabDataPt)
+int mcr_Grabber_deinit(void *grabPt)
 {
-	struct mcr_Grabber *grabPt = grabDataPt;
-	dassert(grabDataPt);
-	mcr_Grabber_set_enabled(grabPt, false);
-	mcr_Array_deinit(&grabPt->path);
+	int err = 0;
+	struct mcr_Grabber *localPt = grabPt;
+	if (localPt) {
+		err = mcr_Grabber_set_enabled(localPt, false);
+		mcr_String_deinit(&localPt->path);
+	}
+	return err;
 }
 
 const char *mcr_Grabber_path(struct mcr_Grabber *grabPt)
 {
-	dassert(grabPt);
-	return grabPt->path.array;
+	return grabPt ? grabPt->path.array : NULL;
 }
 
 int mcr_Grabber_set_path(struct mcr_Grabber *grabPt, const char *path)
 {
-	int err = 0, wasEnabled = mcr_Grabber_is_enabled(grabPt);
+	int err = 0;
+	bool wasEnabled = mcr_Grabber_is_enabled(grabPt);
 	dassert(grabPt);
 	if (wasEnabled) {
 		if ((err = mcr_Grabber_set_enabled(grabPt, false)))
@@ -74,98 +79,30 @@ bool mcr_Grabber_is_enabled(struct mcr_Grabber * grabPt)
 
 int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable)
 {
-	int err = 0;
 	dassert(grabPt);
 	if (enable != mcr_Grabber_is_enabled(grabPt)) {
-		/* No permission do not continue */
-		if ((err = mcr_set_privileged(true)))
-			return err;
-
-		if (enable)
-			err = grabber_open(grabPt);
-		else
-			err = grabber_close(grabPt);
-
-		/* If we have an error, keep.  Otherwise get new err code,
-		 * which is most likely success at this point */
-		if (err)
-			mcr_set_privileged(false);
-		else
-			err = mcr_set_privileged(false);
+		return enable ? grabber_open(grabPt) : grabber_close(grabPt);
 	}
-	return err;
-}
-
-int mcr_Grabber_state(struct mcr_Grabber *grabPt,
-	char *buffer, const size_t size)
-{
-	int fd = grabPt->fd, err = 0;
-	dassert(grabPt);
-	dassert(buffer);
-	if (fd == -1) {
-		if (MCR_STR_IS_EMPTY(grabPt->path)) {
-			err = errno;
-			if (!err)
-				err = EPERM;
-			mset_error(err);
-			return err;
-		}
-		if ((err = mcr_set_privileged(true)))
-			return err;
-		if ((fd = open(grabPt->path.array, O_RDONLY | O_NONBLOCK))
-			== -1) {
-			err = errno;
-			if (!err)
-				err = EPERM;
-			mset_error(err);
-			goto onError;
-		}
-	}
-
-	if (ioctl(fd, EVIOCGKEY(size), buffer) < 0) {
-		err = errno;
-		if (!err)
-			err = EPERM;
-		mset_error(err);
-		goto onError;
-	}
-	/* If grabber was not enabled, we need to return it back. */
-	if (grabPt->fd == -1) {
-		if (close(fd) < 0) {
-			err = errno;
-			if (!err)
-				err = EPERM;
-			mset_error(err);
-			goto onError;
-		}
-		if ((err = mcr_set_privileged(false))) {
-			goto onError;
-		}
-	}
-	return err;
- onError:
-	if (grabPt->fd == -1) {
-		if (close(fd) < 0) {
-			mset_error(errno);
-		}
-		if (mcr_set_privileged(false)) {
-			mset_error(errno);
-		}
-	}
-	return err;
+	return 0;
 }
 
 static int grabber_open(struct mcr_Grabber *grabPt)
 {
 	int err;
 	if (grabPt->fd != -1 || MCR_STR_IS_EMPTY(grabPt->path)) {
-		mset_error(EPERM);
-		return EPERM;
+		mset_error(ENODEV);
+		return ENODEV;
+	}
+	if (access(grabPt->path.array, R_OK)) {
+		err = errno;
+		if (!err)
+			err = ENODEV;
+		mset_error(err);
+		return err;
 	}
 	if ((grabPt->fd =
 			open(grabPt->path.array,
 				O_RDONLY | O_NONBLOCK)) == -1) {
-		/*| O_NONBLOCK */
 		err = errno;
 		if (!err)
 			err = EINTR;
@@ -198,7 +135,7 @@ static int grabber_close(struct mcr_Grabber *grabPt)
 static int grabber_grab(struct mcr_Grabber *grabPt, bool toGrab)
 {
 	int err = 0;
-	if (ioctl(grabPt->fd, EVIOCGRAB, toGrab) < 0) {
+	if (ioctl(grabPt->fd, EVIOCGRAB, toGrab ? 1 : 0) < 0) {
 		err = errno;
 		if (!err)
 			err = EINTR;

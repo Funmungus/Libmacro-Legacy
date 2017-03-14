@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Alarm
+ * \brief \ref mcr_Alarm - Pause execution until a specific date-time.
  */
 
 #ifndef MCR_ALARM_H
@@ -25,46 +25,54 @@
 
 #include "mcr/standard/def.h"
 
-/*!
- * \brief Pause execution until a day, hour and minute mark.
- *
- * tm members are tm_sec 0-60, tm_min 0-59,
- * tm_hour 0-23, tm_mday 1-31, tm_mon 0-11, tm_year, tm_wday 0-6,
- * tm_yday 0-365, tm_isdst (daylight savings)
- */
-typedef struct tm mcr_Alarm;
-MCR_API int mcr_Alarm_init(void *dataPt);
+/*! \brief Pause execution until a specific date-time. */
+struct mcr_Alarm {
+	/*! \brief Pause execution until this time. */
+	struct tm time;
+};
+
 /*! \brief Set second, minute, hour, day of month, month, and day of week. */
-MCR_API void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
-	int mday, int mon, int wday);
-/*!
+MCR_API void mcr_Alarm_set_all(struct mcr_Alarm *almPt, int sec, int minute,
+	int hour, int mday, int mon, int wday);
+/*! \pre Signal data is \ref mcr_Alarm
  * \brief Pause execution until a time point.
  *
- * \param signalData Has data member \ref mcr_Alarm or struct tm
  * \return \ref reterr
  */
-MCR_API int mcr_Alarm_send(struct mcr_Signal *signalData);
+MCR_API int mcr_Alarm_send(struct mcr_Signal *sigPt);
 /*! \brief \ref std::this_thread::sleep_until defined in C++ */
-MCR_API int mcr_Alarm_send_data(mcr_Alarm * dataPt);
-/*! \brief \ref mcr_compare_fnc to compare \ref mcr_Alarm or struct tm */
+MCR_API int mcr_Alarm_send_data(struct mcr_Alarm *dataPt);
+/*! \brief Compare two \ref mcr_Alarm or struct tm
+ *
+ * \param lhs \ref opt \ref mcr_Alarm * or struct tm *
+ * \param rhs \ref opt \ref mcr_Alarm * or struct tm *
+ * \return \ref retcmp
+ */
 MCR_API int mcr_tm_compare(const void *lhs, const void *rhs);
+/*! \brief Compare two \ref mcr_Alarm or struct tm
+ *
+ * \param lhs \ref opt \ref mcr_Alarm * or struct tm *
+ * \param rhs \ref opt \ref mcr_Alarm * or struct tm *
+ * \return \ref retcmp
+ */
 #define mcr_Alarm_compare mcr_tm_compare
-/* Default copy and free */
+/* Default init, deinit, and copy */
 
 #define MCR_ALARM_SET_ALL(alm, sec, minute, hour, mday, mon, wday) \
-(alm).tm_sec = sec; \
-(alm).tm_min = minute; \
-(alm).tm_hour = hour; \
-(alm).tm_mday = mday; \
-(alm).tm_mon = mon; \
-(alm).tm_wday = wday;
+(alm).time.tm_sec = sec; \
+(alm).time.tm_min = minute; \
+(alm).time.tm_hour = hour; \
+(alm).time.tm_mday = mday; \
+(alm).time.tm_mon = mon; \
+(alm).time.tm_wday = wday;
 
+/*! \brief Get the signal interface of \ref mcr_Alarm */
 MCR_API struct mcr_ISignal *mcr_iAlarm(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_Alarm * */
 #define mcr_Alarm_data(sigPt) \
-((mcr_Alarm *)mcr_Instance_data (sigPt))
+((struct mcr_Alarm *)mcr_Instance_data (sigPt))
 /*! \brief Signal data casted \ref mcr_Alarm * */
 #define MCR_ALARM_DATA(sig) \
-((mcr_Alarm *)(sig).instance.data.data)
+((struct mcr_Alarm *)(sig).instance.data.data)
 
 #endif

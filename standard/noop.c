@@ -20,26 +20,30 @@
 #include "mcr/modules.h"
 #include <errno.h>
 
-void mcr_NoOp_set_all(mcr_NoOp * noopPt, int sec, int nsec)
+void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec)
 {
 	dassert(noopPt);
-	noopPt->tv_sec = sec;
-	noopPt->tv_nsec = nsec;
+	noopPt->sec = sec;
+	noopPt->msec = msec;
 }
 
-int mcr_NoOp_send(struct mcr_Signal *signalData)
+int mcr_NoOp_send(struct mcr_Signal *sigPt)
 {
-	dassert(signalData);
-	mcr_NoOp *nPt = mcr_NoOp_data(signalData);
+	struct mcr_NoOp *nPt = mcr_NoOp_data(sigPt);
 	return nPt ? mcr_NoOp_send_data(nPt) : 0;
 }
 
-int mcr_NoOp_send_data(mcr_NoOp * dataPt)
+int mcr_NoOp_send_data(struct mcr_NoOp *noopPt)
 {
-	dassert(dataPt);
-	thrd_sleep(dataPt, NULL);
-	int err = errno;
-	return err ? err : 0;
+	struct timespec val;
+	if (!noopPt)
+		return 0;
+	// # seconds contained in msec
+	val.tv_sec = noopPt->sec + noopPt->msec / 1000;
+	// # nanoseconds in msec, not including seconds left over
+	val.tv_nsec = (noopPt->msec % 1000) * 1000000;
+	thrd_sleep(&val, NULL);
+	return 0;
 }
 
 struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx)

@@ -20,15 +20,24 @@
 #include "mcr/modules.h"
 #include <string.h>
 
-int mcr_Staged_init(void *stagedDataPt)
+int mcr_Staged_init(void *stagedPt)
 {
-	struct mcr_Staged *stagedPt = stagedDataPt;
-	if (stagedPt) {
-		memset(stagedPt, 0, sizeof(struct mcr_Staged));
-		stagedPt->block = false;
-		mcr_Array_init(&stagedPt->stages);
-		stagedPt->stages.element_size = sizeof(struct mcr_Stage);
-		stagedPt->style = MCR_BS_UNMANAGED;
+	struct mcr_Staged *localPt = stagedPt;
+	if (localPt) {
+		memset(localPt, 0, sizeof(struct mcr_Staged));
+		mcr_Array_init(&localPt->stages);
+		localPt->stages.element_size = sizeof(struct mcr_Stage);
+		localPt->style = MCR_BS_UNMANAGED;
+	}
+	return 0;
+}
+
+int mcr_Staged_deinit(void *stagedPt)
+{
+	struct mcr_Staged *localPt = stagedPt;
+	if (localPt) {
+		MCR_ARR_FOR_EACH(localPt->stages, mcr_Stage_deinit);
+		mcr_Array_deinit(&localPt->stages);
 	}
 	return 0;
 }
@@ -37,18 +46,9 @@ void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
 	enum mcr_BlockStyle style)
 {
 	dassert(stagedPt);
+	mcr_Staged_deinit(stagedPt);
 	mcr_Staged_set_blocking(stagedPt, blocking);
 	mcr_Staged_set_style(stagedPt, style);
-}
-
-int mcr_Staged_deinit(void *stagedDataPt)
-{
-	struct mcr_Staged *stagedPt = stagedDataPt;
-	if (stagedPt) {
-		MCR_ARR_FOR_EACH(stagedPt->stages, mcr_Stage_deinit);
-		mcr_Array_deinit(&stagedPt->stages);
-	}
-	return 0;
 }
 
 int mcr_Staged_compare(const void *lhs, const void *rhs)

@@ -22,14 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int mcr_Alarm_init(void *dataPt)
-{
-	if (dataPt)
-		memset(dataPt, 0, sizeof(mcr_Alarm));
-	return 0;
-}
-
-void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
+void mcr_Alarm_set_all(struct mcr_Alarm *almPt, int sec, int minute, int hour,
 	int mday, int mon, int wday)
 {
 	dassert(almPt);
@@ -37,10 +30,10 @@ void mcr_Alarm_set_all(mcr_Alarm * almPt, int sec, int minute, int hour,
 }
 
 /* Send functions that are placed into ISignals. */
-int mcr_Alarm_send(struct mcr_Signal *signalData)
+int mcr_Alarm_send(struct mcr_Signal *sigPt)
 {
-	dassert(signalData);
-	return mcr_Alarm_send_data(mcr_Alarm_data(signalData));
+	dassert(sigPt);
+	return mcr_Alarm_send_data(mcr_Alarm_data(sigPt));
 }
 
 int mcr_tm_compare(const void *lhs, const void *rhs)

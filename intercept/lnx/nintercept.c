@@ -31,8 +31,36 @@
 typedef struct {
 	struct mcr_context *ctx;
 	struct mcr_Grabber grabber;
-	bool is_complete;
-} _grab_complete;
+} _grab_context;
+
+/* Remember (*gcPt) is a _grab_context reference, and not a grabber */
+static int grab_context_malloc(_grab_context **gcPt, struct mcr_context *ctx)
+{
+	int err;
+	*gcPt = malloc(sizeof(_grab_context));
+	if (!*gcPt)
+		return ENOMEM;
+	if ((err = mcr_Grabber_init(&(*gcPt)->grabber))) {
+		free(*gcPt);
+		*gcPt = NULL;
+		return err;
+	}
+	(*gcPt)->ctx = ctx;
+	return 0;
+}
+
+static int grab_context_free(_grab_context **gcPt)
+{
+	int err = mcr_Grabber_deinit(&(*gcPt)->grabber);
+	free(*gcPt);
+	*gcPt = NULL;
+	return err;
+}
+
+static inline void grab_context_disable(_grab_context ** gcPtPt)
+{
+	mcr_Grabber_set_enabled(&(*gcPtPt)->grabber, false);
+}
 
 typedef struct {
 	struct mcr_context *ctx;
@@ -43,17 +71,19 @@ static bool is_enabled_impl(struct mcr_context *ctx);
 static int set_enabled_impl(struct mcr_context *ctx, bool enable);
 static unsigned int get_mods_impl(struct mcr_context *ctx);
 static int thread_enable(void *threadArgs);
-static int thread_set_enable_impl(struct mcr_context *ctx, bool enable);
 static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
 static int read_grabber_exclusive(struct mcr_context *ctx,
 	struct mcr_Grabber *grabPt);
-static unsigned int modify_eventbits(struct mcr_context *ctx,
-	char *keybit_values);
+static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer,
+size_t modBufferSize, char *keybit_values);
 static unsigned int max_mod_val();
-static int clear_grabbers_impl(struct mcr_context *ctx);
+static int clear_grabbers(struct mcr_context *ctx);
 
-#define MODBIT_SIZE ((sizeof(char)) * max_mod_val() / 8 + 1)
+static inline size_t modbit_size()
+{
+	return sizeof(char) * max_mod_val() / 8 + 1;
+}
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
@@ -68,10 +98,6 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	if (getuid() && geteuid()) {
-		mset_error(EPERM);
-		return EPERM;
-	}
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = set_enabled_impl(ctx, enable);
 	if (thrdErr == thrd_success)
@@ -139,18 +165,16 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 		return ENOMEM;
 	}
 	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
-	ctx->intercept.native = nPt;
-	/* Make const value of MODBIT_SIZE */
-	fixme;
-	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success
-		|| (thrdErr = cnd_init(&nPt->cnd)) != thrd_success) {
+	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
+		free(nPt);
 		return err;
 	}
-	mcr_Array_init(&nPt->grab_completes);
-	mcr_Array_set_all(&nPt->grab_completes, mcr_ref_compare,
-		sizeof(_grab_complete *));
+	ctx->intercept.native = nPt;
+	mcr_Array_init(&nPt->grab_contexts);
+	mcr_Array_set_all(&nPt->grab_contexts, mcr_ref_compare,
+		sizeof(_grab_context *));
 	mcr_StringSet_init(&nPt->grab_paths);
 	mcr_StringSet_set_all(&nPt->grab_paths, mcr_String_compare);
 	return err;
@@ -159,17 +183,17 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	/* Clear grabbers manages lock internally */
+	int err = clear_grabbers(ctx);
 	int thrdErr = mtx_lock(&nPt->lock);
-	int err = clear_grabbers_impl(ctx);
 	if (err) {
 		mset_error(err);
 	}
 	mcr_StringSet_deinit(&nPt->grab_paths);
-	mcr_Array_deinit(&nPt->grab_completes);
+	mcr_Array_deinit(&nPt->grab_contexts);
 	if (thrdErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	mtx_destroy(&nPt->lock);
-	cnd_destroy(&nPt->cnd);
 	free(nPt);
 	ctx->intercept.native = NULL;
 	return err;
@@ -178,10 +202,10 @@ int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 static bool is_enabled_impl(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	_grab_complete **ptArr = MCR_ARR_FIRST(nPt->grab_completes);
-	size_t i = nPt->grab_completes.used;
+	_grab_context **ptArr = MCR_ARR_FIRST(nPt->grab_contexts);
+	size_t i = nPt->grab_contexts.used;
 	while (i--) {
-		if (ptArr[i]->grabber.fd != -1 && !ptArr[i]->is_complete)
+		if (ptArr[i]->grabber.fd != -1)
 			return true;
 	}
 	return false;
@@ -222,21 +246,31 @@ static int set_enabled_impl(struct mcr_context *ctx, bool enable)
 static unsigned int get_mods_impl(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
-	_grab_complete **grabSet = MCR_ARR_FIRST(nPt->grab_completes);
+	_grab_context **grabSet = MCR_ARR_FIRST(nPt->grab_contexts);
 	unsigned int ret;
+	/* One modifier for each key that has a modifier mapped */
+	size_t modKeysCount = mcr_Key_mod_count(ctx);
+	unsigned int *modArr = malloc(sizeof(unsigned int) * modKeysCount);
 	char *bitRetrieval = nPt->bit_retrieval;
-	size_t modSize = MODBIT_SIZE, i = nPt->grab_completes.used;
-	int err = ioctl(mcr_genDev.fd, EVIOCGKEY(modSize), bitRetrieval), fd;
-	if (err < 0) {
+	size_t modSize = modbit_size(), i = nPt->grab_contexts.used;
+	int err, fd;
+	if (!modArr) {
+		mset_error(ENOMEM);
+		return ENOMEM;
+	}
+	/* Fill modifiers mapped from a key */
+	mcr_Key_mod_all(ctx, modArr, modKeysCount);
+	if ((err = ioctl(mcr_genDev.fd, EVIOCGKEY(modSize), bitRetrieval)) < 0) {
 		err = errno;
 		if (!err)
 			err = EINTR;
 		mset_error(err);
+		free(modArr);
 		return MCR_MOD_ANY;
 	}
 	/* handle MCR_MOD_ANY as an error */
 	fixme;
-	ret = modify_eventbits(ctx, bitRetrieval);
+	ret = modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
 	while (i--) {
 		if ((fd = grabSet[i]->grabber.fd) != -1) {
 			if ((err = ioctl(fd, EVIOCGKEY(modSize),
@@ -246,76 +280,67 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 					err = EINTR;
 				mset_error(err);
 			} else {
-				ret |= modify_eventbits(ctx, bitRetrieval);
+				ret |= modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
 			}
 		}
 	}
+	free(modArr);
 	return ret;
 }
 
 static int thread_enable(void *threadArgs)
 {
-	_context_bool *cbPt = threadArgs;
-	struct mcr_mod_intercept_native *nPt = cbPt->ctx->intercept.native;
-	int thrdErr = mtx_lock(&nPt->lock);
-	int err = thread_set_enable_impl(cbPt->ctx, cbPt->bVal);
-	/* Free args */
-	free(threadArgs);
-	if (thrdErr == thrd_success)
-		mtx_unlock(&nPt->lock);
-	return err ? thrd_error : thrd_success;
-}
-
-static int thread_set_enable_impl(struct mcr_context *ctx, bool enable)
-{
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	_context_bool cb = *(_context_bool *)threadArgs;
+	struct mcr_mod_intercept_native *nPt = cb.ctx->intercept.native;
+	int thrdErr;
 	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
 	size_t i = nPt->grab_paths.used;
 	int err = 0;
-	if (enable) {
+	/* Free args when no longer in use */
+	free(threadArgs);
+	/* Always clear. Do not grab what is already grabbed */
+	/* Clear grabbers manages mutex internally */
+	if (nPt->grab_contexts.used)
+		err = clear_grabbers(cb.ctx);
+	if (!err && cb.bVal) {
+		thrdErr = mtx_lock(&nPt->lock);
 		while (i--) {
-			if ((err = grab_impl(ctx, pathArr[i].array)))
-				return err;
+			if ((err = grab_impl(cb.ctx, pathArr[i].array)))
+				break;
 		}
-	} else {
-		if ((err = clear_grabbers_impl(ctx)))
-			return err;
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
 	}
-	return err;
+	return err ? thrd_error : thrd_success;
 }
 
-/* /pre mutex locked */
+/* \pre mutex locked
+ * \post mutex locked
+ */
 static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	int error = 0, thrdErr = thrd_success;
 	thrd_t trd;
-	/* Free in ? */
-	_grab_complete *pt;
+	/* Freed when thread is done with it */
+	_grab_context *pt;
 	if (!grabPath || grabPath[0] == '\0')
 		return 0;
-	pt = malloc(sizeof(_grab_complete));
 	dassert(grabPath);
-	if (!pt) {
-		mset_error(ENOMEM);
-		return ENOMEM;
-	}
-	memset(pt, 0, sizeof(_grab_complete));
-	pt->ctx = ctx;
-	mcr_Grabber_init(&pt->grabber);
+	if ((error = grab_context_malloc(&pt, ctx)))
+		return error;
 	if ((error = mcr_Grabber_set_path(&pt->grabber, grabPath))) {
-		mcr_Grabber_deinit(&pt->grabber);
-		free(pt);
+		grab_context_free(&pt);
 		return error;
 	}
-	if ((error = mcr_Array_add(&nPt->grab_completes, &pt, 1, true))) {
+	if ((error = mcr_Array_add(&nPt->grab_contexts, &pt, 1, true))) {
 		/* Not able to add reference */
-		mcr_Array_remove(&nPt->grab_completes, &pt);
+		mcr_Array_remove(&nPt->grab_contexts, &pt);
 	} else if ((thrdErr =
 			thrd_create(&trd, intercept_start,
 				pt)) != thrd_success) {
 		/* Not able to start thread */
-		mcr_Array_remove(&nPt->grab_completes, &pt);
+		mcr_Array_remove(&nPt->grab_contexts, &pt);
 		error = mcr_thrd_errno(thrdErr);
 		mset_error(error);
 	} else {
@@ -325,15 +350,11 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 			error = mcr_thrd_errno(thrdErr);
 			mset_error(error);
 		}
-		/* GrabComplete set has changed */
-		cnd_broadcast(&nPt->cnd);
 		/* Do not free, grabber is in use */
 		return error;
 	}
-	if (error) {
-		mcr_Grabber_deinit(&pt->grabber);
-		free(pt);
-	}
+	if (error)
+		grab_context_free(&pt);
 	return error;
 }
 
@@ -370,63 +391,65 @@ static inline void abs_set_current(struct mcr_MoveCursor *abs,
 	bool hasPosArray[])
 {
 	if (!(hasPosArray)[MCR_X]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_X, mcr_cursor[MCR_X]);
+		abs->pos[MCR_X] = mcr_cursor[MCR_X];
 	}
 	if (!(hasPosArray)[MCR_Y]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_Y, mcr_cursor[MCR_Y]);
+		abs->pos[MCR_Y] = mcr_cursor[MCR_Y];
 	}
 	if (!(hasPosArray)[MCR_Z]) {
-		MCR_MOVECURSOR_SET_COORDINATE(*abs, MCR_Z, mcr_cursor[MCR_Z]);
+		abs->pos[MCR_Z] = mcr_cursor[MCR_Z];
 	}
 }
 
 /* Note: Excess time setting up and releasing is ok. Please try to limit
  * time-consumption during grabbing and callbacks. */
-/* \pre Thread args is heap-allocated _grab_complete. It is assumed to
- * already have a path, which is already added to the _grabCompletes.
+/* \pre Thread args is heap-allocated _grab_context. It is assumed to
+ * already have a path.
  */
 static int intercept_start(void *threadArgs)
 {
-	/* Free in ? */
-	_grab_complete *gcPt = threadArgs;
+	/* Free in thread when done with it */
+	_grab_context *gcPt = threadArgs;
 	struct mcr_mod_intercept_native *nPt = gcPt->ctx->intercept.native;
 	struct mcr_Grabber *grabPt = &gcPt->grabber;
 	int thrdErr = thrd_success, mtxErr = thrd_success, err = 0;
 	struct timespec delay;
 	dassert(threadArgs);
 	delay.tv_sec = 0;
-	/* nano -> micro -> milli -> 10 milli */
+	/* 10 milli */
 	delay.tv_nsec = 1000 * 1000 * 10;
-	/* 1. Create grab from path.
+	/* TODO: Enable grabber before thread.
+	 * 1. Create grab from path.
 	 * 2. Enable (Current step)
 	 * 3. Use grabber
-	 * 4. Remove grabber reference in main before thread ends.
+	 * 4. Always free grabber before end of thread
 	 */
 	mtxErr = mtx_lock(&nPt->lock);
-	err = mcr_Grabber_set_enabled(grabPt, true);
+	if ((err = mcr_Grabber_set_enabled(grabPt, true))) {
+		mcr_Array_remove(&nPt->grab_contexts, &gcPt);
+		grab_context_free(&gcPt);
+		if (mtxErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+		return thrd_error;
+	}
 	/* Give a delay between grabs before unlocking. */
 	thrd_sleep(&delay, NULL);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
-	if (err) {
-		gcPt->is_complete = 1;
-		cnd_broadcast(&nPt->cnd);
-		return thrd_error;
-	}
 	/* Will return an error if not enabled. */
 	thrdErr = read_grabber_exclusive(gcPt->ctx, grabPt);
 	mtxErr = mtx_lock(&nPt->lock);
 	err = mcr_Grabber_set_enabled(grabPt, false);
-	gcPt->is_complete = 1;
-	cnd_broadcast(&nPt->cnd);
+	mcr_Array_remove(&nPt->grab_contexts, &gcPt);
+	grab_context_free(&gcPt);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	if (thrdErr) {
-		err = mcr_thrd_errno(thrdErr);
-		mset_error(err);
-	}
-	if (thrdErr)
+		if (!err) {
+			mset_error(mcr_thrd_errno(thrdErr));
+		}
 		return thrdErr;
+	}
 	return err ? thrd_error : thrd_success;
 }
 
@@ -455,26 +478,19 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	bool writegen = true, writeabs = false;
 	bool bAbs[MCR_DIMENSION_CNT] = { 0 };
 	int *echoFound = NULL;
-	mcr_SpacePosition nopos = { 0 };
-	struct mcr_Key key;
-	struct mcr_HidEcho echo;
-	struct mcr_MoveCursor abs, rel;
-	struct mcr_Scroll scr;
+	struct mcr_Key key = { 0 };
+	struct mcr_HidEcho echo = { 0 };
+	struct mcr_MoveCursor abs = { 0 }, rel = {
+	0};
+	struct mcr_Scroll scr = { 0 };
 	struct mcr_Signal keysig, echosig, abssig, relsig, scrsig;
 	struct pollfd fd = { 0 };
 	dassert(grabPt);
-	mcr_Key_init(&key);
-	mcr_Echo_init(&echo);
-	mcr_MC_init(&abs);
-	mcr_MC_init(&rel);
-	mcr_Scroll_init(&scr);
 	mcr_Signal_init(&keysig);
 	mcr_Signal_init(&echosig);
 	mcr_Signal_init(&abssig);
 	mcr_Signal_init(&relsig);
 	mcr_Signal_init(&scrsig);
-	MCR_MC_SET_JUSTIFY(abs, false);
-	MCR_MC_SET_JUSTIFY(rel, true);
 	mcr_Instance_set_all(&keysig, mcr_iKey(ctx), &key, NULL);
 	mcr_Instance_set_all(&echosig, mcr_iHidEcho(ctx), &echo, NULL);
 	mcr_Instance_set_all(&abssig, mcr_iMoveCursor(ctx), &abs, NULL);
@@ -485,6 +501,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	abssig.is_dispatch = true;
 	relsig.is_dispatch = true;
 	scrsig.is_dispatch = true;
+	rel.is_justify = true;
 	fd.events = POLLIN | POLLPRI | POLLRDNORM | POLLRDBAND;
 	fd.fd = grabPt->fd;
 	/* Disable point 1 */
@@ -505,8 +522,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			return thrd_success;
 		if (rdb < (ssize_t) sizeof(struct input_event)) {
 			i = errno;
-			if (!i)
-				i = EINTR;
+			if (i == EINTR)
+				return thrd_success;
 			mset_error(i);
 			return thrd_error;
 		}
@@ -518,45 +535,44 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			case EV_MSC:
 				if (curVent->code == MSC_SCAN) {
 					/* Consume a key that already has scan code. */
-					if (MCR_KEY_SCAN(key)) {
+					if (key.scan) {
 						DISP_WRITEMEM(keysig);
-						MCR_KEY_SET_ALL(key, 0,
-							curVent->value,
-							MCR_BOTH);
+						key.key = 0;
+						key.scan = curVent->value;
+						key.up_type = MCR_BOTH;
 					} else {
-						MCR_KEY_SET_SCAN(key,
-							curVent->value);
+						key.scan = curVent->value;
 					}
 				}
 				break;
 				/* Handle KEY */
 			case EV_KEY:
-				if (MCR_KEY_KEY(key)) {
+				if (key.key) {
 					echoFound =
 						MCR_MAP_ELEMENT(mcr_keyToEcho
-						[MCR_KEY_UP_TYPE(key)],
-						&MCR_KEY_KEY(key));
+						[key.up_type], &key.key);
 					if (echoFound) {
 						echoFound =
 							MCR_MAP_VALUEOF
 							(mcr_keyToEcho
-							[MCR_KEY_UP_TYPE(key)],
+							[key.up_type],
 							echoFound);
-						MCR_ECHO_SET_ECHO(echo,
-							*echoFound);
+						echo.echo = *echoFound;
 						DISP_WRITEMEM(echosig);
 						/* No need to reset echo,
 						 * which depends on EV_KEY */
 					}
 					DISP_WRITEMEM(keysig);
-					MCR_KEY_SET_ALL(key, curVent->code, 0,
+					key.key = curVent->code;
+					key.scan = 0;
+					key.up_type =
 						curVent->value ? MCR_DOWN :
-						MCR_UP);
+						MCR_UP;
 				} else {
-					MCR_KEY_SET_KEY(key, curVent->code);
-					MCR_KEY_SET_UP_TYPE(key,
+					key.key = curVent->code;
+					key.up_type =
 						curVent->value ? MCR_DOWN :
-						MCR_UP);
+						MCR_UP;
 				}
 				break;
 				/* Handle ABS */
@@ -567,8 +583,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 					DISP_WRITEMEM_ABS(abssig);
 					MCR_DIMENSIONS_ZERO(bAbs);
 				}
-				MCR_MOVECURSOR_SET_COORDINATE(abs, pos,
-					curVent->value);
+				abs.pos[pos] = curVent->value;
 				++bAbs[pos];
 				break;
 			case EV_REL:
@@ -577,23 +592,19 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				case REL_X:
 				case REL_Y:
 				case REL_Z:
-					if (MCR_MOVECURSOR_COORDINATE(rel, pos)) {
+					if (rel.pos[pos]) {
 						DISP_WRITEMEM(relsig);
-						MCR_MOVECURSOR_SET_POSITION(rel,
-							nopos);
+						MCR_DIMENSIONS_ZERO(rel.pos);
 					}
-					MCR_MOVECURSOR_SET_COORDINATE(rel, pos,
-						curVent->value);
+					rel.pos[pos] = curVent->value;
 					break;
 				default:
 					/* Currently assuming scroll if not relative movement. */
-					if (MCR_SCROLL_COORDINATE(scr, pos)) {
+					if (scr.dm[pos]) {
 						DISP_WRITEMEM(scrsig);
-						MCR_SCROLL_SET_DIMENSIONS(scr,
-							nopos);
+						MCR_DIMENSIONS_ZERO(scr.dm);
 					}
-					MCR_SCROLL_SET_COORDINATE(scr, pos,
-						curVent->value);
+					scr.dm[pos] = curVent->value;
 					break;
 				}
 				break;
@@ -601,18 +612,16 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			++curVent;
 		}
 		/* Call final event, it was not called yet. */
-		if (MCR_KEY_KEY(key) || MCR_KEY_SCAN(key)) {
-			if (MCR_KEY_KEY(key)) {
+		if (key.key || key.scan) {
+			if (key.key) {
 				echoFound =
 					MCR_MAP_ELEMENT(mcr_keyToEcho
-					[MCR_KEY_UP_TYPE(key)],
-					&MCR_KEY_KEY(key));
+					[key.up_type], &key.key);
 				if (echoFound) {
 					echoFound =
 						MCR_MAP_VALUEOF(mcr_keyToEcho
-						[MCR_KEY_UP_TYPE(key)],
-						echoFound);
-					MCR_ECHO_SET_ECHO(echo, *echoFound);
+						[key.up_type], echoFound);
+					echo.echo = *echoFound;
 					if (mcr_dispatch(ctx, &echosig)) {
 						if (writegen)
 							writegen = false;
@@ -620,7 +629,9 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				}
 			}
 			DISP_WRITEMEM(keysig);
-			MCR_KEY_SET_ALL(key, 0, 0, MCR_BOTH);
+			key.key = 0;
+			key.scan = 0;
+			key.up_type = MCR_BOTH;
 		}
 		if (bAbs[MCR_X] || bAbs[MCR_Y] || bAbs[MCR_Z]) {
 			abs_set_current(&abs, bAbs);
@@ -628,24 +639,24 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			MCR_DIMENSIONS_ZERO(bAbs);
 		}
 		for (i = MCR_DIMENSION_CNT; i--;) {
-			if (MCR_MOVECURSOR_COORDINATE(rel, i)) {
+			if (rel.pos[i]) {
 				DISP_WRITEMEM(relsig);
-				MCR_MOVECURSOR_SET_POSITION(rel, nopos);
+				MCR_DIMENSIONS_ZERO(rel.pos);
 				break;
 			}
 		}
 		for (i = MCR_DIMENSION_CNT; i--;) {
-			if (MCR_SCROLL_COORDINATE(scr, i)) {
+			if (scr.dm[i]) {
 				DISP_WRITEMEM(scrsig);
-				MCR_SCROLL_SET_DIMENSIONS(scr, nopos);
+				MCR_DIMENSIONS_ZERO(scr.dm);
 				break;
 			}
 		}
 		if (writegen) {
 			if (write(mcr_genDev.fd, events, rdb) < 0) {
 				i = errno;
-				if (!i)
-					i = EINTR;
+				if (i == EINTR)
+					return thrd_success;
 				mset_error(i);
 				return thrd_error;
 			}
@@ -654,8 +665,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		}
 		if (writeabs && write(mcr_absDev.fd, events, rdb) < 0) {
 			i = errno;
-			if (!i)
-				i = EINTR;
+			if (i == EINTR)
+				return thrd_success;
 			mset_error(i);
 			return thrd_error;
 		}
@@ -665,25 +676,20 @@ if (mcr_dispatch(ctx, &(signal))) { \
 #undef DISP_WRITEMEM_ABS
 }
 
-static unsigned int modify_eventbits(struct mcr_context *ctx,
+static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer, size_t modBufferSize,
 	char *keybitValues)
 {
 	int curKey;
 	unsigned int i, modValOut = 0;
-	size_t modKeysCount = mcr_Key_mod_count(ctx);
-	unsigned int *modArr = malloc(sizeof(unsigned int) * modKeysCount);
-	if (!modArr) {
-		mset_error(ENOMEM);
-		return ENOMEM;
+	if (!modBuffer || !modBufferSize)
+		return 0;
+	/* For each modifier, find the modifier of that key, and check
+	 * if key is set in the key bit value set. */
+	for (i = modBufferSize; i--;) {
+		curKey = mcr_Key_mod_key(ctx, modBuffer[i]);
+		if (curKey != MCR_KEY_ANY && (keybitValues[MCR_EVENTINDEX(curKey)] & MCR_EVENTBIT(curKey)))
+			modValOut |= modBuffer[i];
 	}
-	mcr_Key_mod_all(ctx, modArr, modKeysCount);
-	for (i = modKeysCount; i--;) {
-		curKey = mcr_Key_mod_key(ctx, modArr[i]);
-		if ((keybitValues[MCR_EVENTINDEX(curKey)] &
-				MCR_EVENTBIT(curKey)))
-			modValOut |= modArr[i];
-	}
-	free(modArr);
 	return modValOut;
 }
 
@@ -704,62 +710,35 @@ static unsigned int max_mod_val()
 	return val;
 }
 
-static inline void grab_complete_disable(_grab_complete ** gcPtPt, int *error)
-{
-	int err = mcr_Grabber_set_enabled(&(*gcPtPt)->grabber, false);
-	if (err) {
-		*error = err;
-	}
-}
-
-static inline void grab_complete_deinit(_grab_complete ** gcPtPt)
-{
-	mcr_Grabber_deinit(&(*gcPtPt)->grabber);
-	free(*gcPtPt);
-}
-
-/*! \pre _enableLock locked */
-/*! \post _enableLock locked */
-static int clear_grabbers_impl(struct mcr_context *ctx)
+/*! \pre Mutex not locked */
+/*! \post Mutex not locked */
+static int clear_grabbers(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
 	/* Disable all, wait for all batch operation. */
-	size_t prev = nPt->grab_completes.used, i;
-	struct timespec timeout = { 10, 0 };
-	_grab_complete **ptArr;
+	int timeout = 50; // Total 10 sec
+	struct mcr_NoOp delay = {0};
 	int error = 0, thrdErr;
+	delay.msec = 200;
 	/* TODO : thread destroy on timeout. */
 	fixme;
-#define localExp(itPt) \
-grab_complete_disable(itPt, &error);
-	MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-	while (nPt->grab_completes.used) {
-		/* Disable any that are being created while clearing. */
-		if (nPt->grab_completes.used >= prev) {
-			MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-		}
-		ptArr = MCR_ARR_FIRST(nPt->grab_completes);
-		for (i = nPt->grab_completes.used; i--;) {
-			if (ptArr[i]->is_complete) {
-				grab_complete_deinit(ptArr + i);
-				mcr_Array_remove_index(&nPt->grab_completes, i,
-					1);
-			}
-		}
-		prev = nPt->grab_completes.used;
-		/* Impatient free-all, unconditional end for no wait signals */
-		if (prev &&
-			(thrdErr =
-				cnd_timedwait(&nPt->cnd, &nPt->lock,
-					&timeout)) == thrd_timedout) {
-			error = mcr_thrd_errno(thrdErr);
-			mset_error(error);
-			MCR_ARR_FOR_EACH(nPt->grab_completes, localExp);
-			MCR_ARR_FOR_EACH(nPt->grab_completes,
-				grab_complete_deinit);
-			nPt->grab_completes.used = 0;
-		}
+	while (nPt->grab_contexts.used && timeout--) {
+		/* Disable all */
+		thrdErr = mtx_lock(&nPt->lock);
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_disable);
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+		/* While unlocked and paused, threads will remove themselves */
+		mcr_NoOp_send_data(&delay);
 	}
-#undef localExp
+	/* Impatient free-all, unconditional end for timed out waiting */
+	if (nPt->grab_contexts.used) {
+		thrdErr = mtx_lock(&nPt->lock);
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_disable);
+		MCR_ARR_FOR_EACH(nPt->grab_contexts, grab_context_free);
+		nPt->grab_contexts.used = 0;
+		if (thrdErr == thrd_success)
+			mtx_unlock(&nPt->lock);
+	}
 	return error;
 }

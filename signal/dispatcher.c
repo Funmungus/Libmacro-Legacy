@@ -48,28 +48,28 @@ void mcr_remove_modifiers(struct mcr_context *ctx, unsigned int remMods)
 	ctx->signal.internal_mods &= (~remMods);
 }
 
-bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *signalData)
+bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 {
 	struct mcr_mod_signal *modSignal = &ctx->signal;
 	struct mcr_Dispatcher *dispPt =
-		signalData ? signalData->isignal->dispatcher : NULL, *genPt =
+		sigPt ? sigPt->isignal->dispatcher : NULL, *genPt =
 		modSignal->dispatcher_generic_pt;
 	bool isGen = genPt && modSignal->dispatcher_generic_enabled;
 	unsigned int mods = modSignal->internal_mods;
 	/* If found only dispatch to enabled methods. */
 	if (dispPt) {
-		if (dispPt->dispatch(dispPt, signalData, mods))
+		if (dispPt->dispatch(dispPt, sigPt, mods))
 			return true;
 	}
 	if (isGen) {
-		if (genPt->dispatch(genPt, signalData, mods))
+		if (genPt->dispatch(genPt, sigPt, mods))
 			return true;
 	}
 	if (dispPt && dispPt->modifier) {
-		dispPt->modifier(dispPt, signalData, &modSignal->internal_mods);
+		dispPt->modifier(dispPt, sigPt, &modSignal->internal_mods);
 	}
 	if (isGen && genPt->modifier) {
-		genPt->modifier(genPt, signalData, &modSignal->internal_mods);
+		genPt->modifier(genPt, sigPt, &modSignal->internal_mods);
 	}
 	return false;
 }

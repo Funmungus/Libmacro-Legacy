@@ -18,7 +18,6 @@
 
 #include "mcr/standard/standard.h"
 #include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -43,89 +42,16 @@ void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 	enum mcr_KeyUpType keyUp)
 {
 	dassert(keyPt);
-	MCR_KEY_SET_ALL(*keyPt, key == -1 ? MCR_KEY_ANY : key, scan, keyUp);
+	keyPt->key = key == -1 ? MCR_KEY_ANY : key;
+	keyPt->scan = scan;
+	keyPt->up_type = keyUp;
 }
 
-int mcr_Key_key(const struct mcr_Key *keyPt)
+int mcr_Key_send(struct mcr_Signal *sigPt)
 {
-	dassert(keyPt);
-	return MCR_KEY_KEY(*keyPt);
-}
-
-void mcr_Key_set_key(struct mcr_Key *keyPt, int key)
-{
-	dassert(keyPt);
-	MCR_KEY_SET_KEY(*keyPt, key == -1 ? MCR_KEY_ANY : key);
-}
-
-int mcr_Key_scan(const struct mcr_Key *keyPt)
-{
-	dassert(keyPt);
-	return MCR_KEY_SCAN(*keyPt);
-}
-
-void mcr_Key_set_scan(struct mcr_Key *keyPt, int scan)
-{
-	dassert(keyPt);
-	MCR_KEY_SET_SCAN(*keyPt, scan);
-}
-
-enum mcr_KeyUpType mcr_Key_up_type(const struct mcr_Key *keyPt)
-{
-	dassert(keyPt);
-	return MCR_KEY_UP_TYPE(*keyPt);
-}
-
-void mcr_Key_set_up_type(struct mcr_Key *keyPt, const enum mcr_KeyUpType keyUp)
-{
-	dassert(keyPt);
-	MCR_KEY_SET_UP_TYPE(*keyPt, keyUp);
-}
-
-int mcr_Key_send(struct mcr_Signal *signalData)
-{
-	dassert(signalData);
-	struct mcr_Key *keyPt = mcr_Key_data(signalData);
+	dassert(sigPt);
+	struct mcr_Key *keyPt = mcr_Key_data(sigPt);
 	return keyPt ? mcr_Key_send_data(keyPt) : 0;
-}
-
-int mcr_Key_compare(const void *lhs, const void *rhs)
-{
-	int l, r, ret;
-	const struct mcr_Key *lPt = lhs, *rPt = rhs;
-	if (rhs) {
-		if (lhs) {
-			l = MCR_KEY_KEY(*lPt);
-			r = MCR_KEY_KEY(*rPt);
-			if ((ret = MCR_CMP_INTEGRAL(l, r)))
-				return ret;
-			l = MCR_KEY_SCAN(*lPt);
-			r = MCR_KEY_SCAN(*rPt);
-			if ((ret = MCR_CMP_INTEGRAL(l, r)))
-				return ret;
-			l = MCR_KEY_UP_TYPE(*lPt);
-			r = MCR_KEY_UP_TYPE(*rPt);
-			return MCR_CMP_INTEGRAL(l, r);
-		}
-		return -1;
-	}
-	return ! !lhs;
-}
-
-int mcr_Key_copy(void *dstPt, void *srcPt)
-{
-	dassert(dstPt);
-	struct mcr_Key *dPt = dstPt, *sPt = srcPt;
-	if (sPt) {
-		MCR_KEY_SET_KEY(*dPt, MCR_KEY_KEY(*sPt));
-		MCR_KEY_SET_SCAN(*dPt, MCR_KEY_SCAN(*sPt));
-		MCR_KEY_SET_UP_TYPE(*dPt, MCR_KEY_UP_TYPE(*sPt));
-	} else {
-		MCR_KEY_SET_KEY(*dPt, MCR_KEY_ANY);
-		MCR_KEY_SET_SCAN(*dPt, 0);
-		MCR_KEY_SET_UP_TYPE(*dPt, MCR_BOTH);
-	}
-	return 0;
 }
 
 int mcr_Key_name_key(struct mcr_context *ctx, const char *keyName)
@@ -350,20 +276,18 @@ static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	if (!receiveFnc)
 		receiveFnc = mcr_Trigger_receive;
 	if (keyPt) {
-		upType = MCR_KEY_UP_TYPE(*keyPt);
+		upType = keyPt->up_type;
 		if (upType < MCR_BOTH)
 			return mcr_Key_Dispatcher_add_keys(dispMaps + upType,
-				MCR_KEY_KEY(*keyPt), MCR_KEY_SCAN(*keyPt),
+				keyPt->key, keyPt->scan,
 				newTrigger, receiveFnc);
 		/* Generic up, add to both */
 		if ((err = mcr_Key_Dispatcher_add_keys(dispMaps,
-					MCR_KEY_KEY(*keyPt),
-					MCR_KEY_SCAN(*keyPt), newTrigger,
-					receiveFnc)))
+					keyPt->key,
+					keyPt->scan, newTrigger, receiveFnc)))
 			return err;
 		return mcr_Key_Dispatcher_add_keys(dispMaps + 1,
-			MCR_KEY_KEY(*keyPt), MCR_KEY_SCAN(*keyPt), newTrigger,
-			receiveFnc);
+			keyPt->key, keyPt->scan, newTrigger, receiveFnc);
 	}
 	/* Generic up, add to both */
 	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY,
@@ -417,9 +341,9 @@ static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 	unsigned int scan, upType;
 	dassert(dispDataPt);
 	if (keyPt) {
-		key = MCR_KEY_KEY(*keyPt);
-		scan = MCR_KEY_SCAN(*keyPt);
-		upType = MCR_KEY_UP_TYPE(*keyPt);
+		key = keyPt->key;
+		scan = keyPt->scan;
+		upType = keyPt->up_type;
 		if (upType < MCR_BOTH) {
 			/* Specific up type */
 			if (key != MCR_KEY_ANY) {
@@ -490,10 +414,10 @@ static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	int key;
 	unsigned int *found;
 	if (keyPt) {
-		key = MCR_KEY_KEY(*keyPt);
+		key = keyPt->key;
 		found = mcr_Map_value(&ctx->standard.map_key_modifier, &key);
 		if (found) {
-			switch (MCR_KEY_UP_TYPE(*keyPt)) {
+			switch (keyPt->up_type) {
 			case MCR_DOWN:
 				*modsPt |= *found;
 				break;
