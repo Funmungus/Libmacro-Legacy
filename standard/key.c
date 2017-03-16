@@ -26,7 +26,6 @@
 
 const int mcr_Key_gen_key = MCR_KEY_ANY;
 const unsigned int mcr_Key_gen_up = MCR_BOTH;
-static int mcr_Key_init_scan_map(void *mapPt);
 static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc);
 static int mcr_Key_Dispatcher_clear(void *dispDataPt);
@@ -42,7 +41,7 @@ void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 	enum mcr_KeyUpType keyUp)
 {
 	dassert(keyPt);
-	keyPt->key = key == -1 ? MCR_KEY_ANY : key;
+	keyPt->key = key;
 	keyPt->scan = scan;
 	keyPt->up_type = keyUp;
 }
@@ -242,24 +241,17 @@ void mcr_Key_mod_trim(struct mcr_context *ctx)
 }
 
 static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
-	int scan, void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
+	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	/* first map int => map, second unsigned => dispatch array */
-	struct mcr_Map *scanMapPt;
 	struct mcr_Array *arrPt;
 	struct mcr_DispatchPair dispPair = { newTrigger, receiveFnc };
-	scanMapPt = mcr_Map_element_ensured(keyMap, &key);
-	if (!scanMapPt)
-		return mcr_error();	// Expect ENOMEM
-	scanMapPt = MCR_MAP_VALUEOF(*keyMap, scanMapPt);
-	arrPt = mcr_Map_element_ensured(scanMapPt, &scan);
+	arrPt = mcr_Map_element_ensured(keyMap, &key);
 	if (!arrPt)
 		return mcr_error();	// Expect ENOMEM
-	if ((arrPt = MCR_MAP_VALUEOF(*scanMapPt, arrPt))) {
-		/* Multiple object references may exist */
-		return mcr_Array_add(arrPt, &dispPair, 1, false);
-	}
-	return mcr_error();	// Expect ENOMEM
+	arrPt = MCR_MAP_VALUEOF(*keyMap, arrPt);
+	/* Multiple object references may exist */
+	return mcr_Array_add(arrPt, &dispPair, 1, false);
 }
 
 /* Key */
@@ -279,22 +271,18 @@ static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 		upType = keyPt->up_type;
 		if (upType < MCR_BOTH)
 			return mcr_Key_Dispatcher_add_keys(dispMaps + upType,
-				keyPt->key, keyPt->scan,
-				newTrigger, receiveFnc);
+				keyPt->key, newTrigger, receiveFnc);
 		/* Generic up, add to both */
 		if ((err = mcr_Key_Dispatcher_add_keys(dispMaps,
-					keyPt->key,
-					keyPt->scan, newTrigger, receiveFnc)))
+					keyPt->key, newTrigger, receiveFnc)))
 			return err;
 		return mcr_Key_Dispatcher_add_keys(dispMaps + 1,
-			keyPt->key, keyPt->scan, newTrigger, receiveFnc);
+			keyPt->key, newTrigger, receiveFnc);
 	}
 	/* Generic up, add to both */
-	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY,
-				MCR_KEY_ANY, newTrigger, receiveFnc)))
+	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY, newTrigger, receiveFnc)))
 		return err;
-	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY,
-		MCR_KEY_ANY, newTrigger, receiveFnc);
+	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY, newTrigger, receiveFnc);
 }
 
 static int mcr_Key_Dispatcher_clear(void *dispDataPt)
@@ -302,7 +290,6 @@ static int mcr_Key_Dispatcher_clear(void *dispDataPt)
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
 	/* Down, up, and generic */
-	mcr_Map_clear(maps++);
 	mcr_Map_clear(maps++);
 	mcr_Map_clear(maps);
 	return 0;
@@ -320,75 +307,41 @@ static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 	if (arrPt) { \
 		MCR_ARR_FOR_EACH(*arrPt, localDispAll); \
 	}
-#define localDispScanMap(mapPt, scanKey) \
-	if (mapPt) { \
-		if (scanKey != MCR_KEY_ANY) { \
-			arrPt = mcr_Map_value(mapPt, \
-				&scanKey); \
-			localDispArrPt; \
-		} \
-		arrPt = mcr_Map_value(mapPt, \
-			&mcr_Key_gen_key); \
-		localDispArrPt; \
-	}
 
 	struct mcr_CtxDispatcher *dispMapPt = dispDataPt;
 	struct mcr_Key *keyPt = mcr_Key_data(signalPt);
 	struct mcr_Map *maps = dispMapPt->ctx->standard.key_dispatcher_maps;
-	struct mcr_Map *scanMapPt;
 	struct mcr_Array *arrPt;
 	int key;
-	unsigned int scan, upType;
+	unsigned int upType;
 	dassert(dispDataPt);
 	if (keyPt) {
 		key = keyPt->key;
-		scan = keyPt->scan;
 		upType = keyPt->up_type;
 		if (upType < MCR_BOTH) {
 			/* Specific up type */
 			if (key != MCR_KEY_ANY) {
-				/* specific: up, key, spec+gen: scan */
-				scanMapPt = mcr_Map_value(maps + upType, &key);
-				localDispScanMap(scanMapPt, scan);
+				arrPt = mcr_Map_value(maps + upType, &key);
+				localDispArrPt;
 			}
-			/* specific: up, gen: key, spec+gen: scan */
-			scanMapPt =
-				mcr_Map_value(maps + upType, &mcr_Key_gen_key);
-			localDispScanMap(scanMapPt, scan);
+			arrPt = mcr_Map_value(maps + upType, &mcr_Key_gen_key);
+			localDispArrPt;
 		} else {
 			/* Generic up type */
 			if (key != MCR_KEY_ANY) {
-				/* specific: key, spec+gen: scan */
-				/* down */
-				scanMapPt = mcr_Map_value(maps, &key);
-				localDispScanMap(scanMapPt, scan);
-				/* and up */
-				scanMapPt = mcr_Map_value(maps + 1, &key);
-				localDispScanMap(scanMapPt, scan);
+				arrPt = mcr_Map_value(maps, &key);
+				localDispArrPt;
+				arrPt = mcr_Map_value(maps + 1, &key);
+				localDispArrPt;
 			}
-			/* gen: key, spec+gen: scan */
-			/* down */
-			scanMapPt = mcr_Map_value(maps, &mcr_Key_gen_key);
-			localDispScanMap(scanMapPt, scan);
-			/* and up */
-			scanMapPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);
-			localDispScanMap(scanMapPt, scan);
-			return false;
 		}
 	}
 	/* all generic, TODO: Generic receivers will receive twice */
-	scanMapPt = mcr_Map_value(maps, &mcr_Key_gen_key);
-	if (scanMapPt) {
-		arrPt = mcr_Map_value(scanMapPt, &mcr_Key_gen_key);
-		localDispArrPt;
-	}
-	scanMapPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);
-	if (scanMapPt) {
-		arrPt = mcr_Map_value(scanMapPt, &mcr_Key_gen_key);
-		localDispArrPt;
-	}
+	arrPt = mcr_Map_value(maps, &mcr_Key_gen_key);
+	localDispArrPt;
+	arrPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);
+	localDispArrPt;
 	return false;
-#undef localDispScanMap
 #undef localDispArrPt
 #undef localDispAll
 }
@@ -439,21 +392,10 @@ static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	}
 }
 
-static void mcr_Key_Dispatcher_scan_map_remove(struct mcr_Map *scanMap,
-	void *delTrigger)
-{
-	struct mcr_Array *arrPt;
-#define localRemove(itPt) \
-	arrPt = (struct mcr_Array *)itPt; \
-	mcr_Array_remove(arrPt, &delTrigger);
-	MCR_MAP_FOR_EACH_VALUE(*scanMap, localRemove);
-#undef localRemove
-}
-
 static int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger)
 {
 #define localRemove(itPt) \
-	mcr_Key_Dispatcher_scan_map_remove((struct mcr_Map *)itPt, delTrigger)
+	mcr_Array_remove((struct mcr_Array *)itPt, &delTrigger);
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
 	MCR_MAP_FOR_EACH_VALUE(maps[0], localRemove);
@@ -496,17 +438,6 @@ static int mcr_Key_Dispatcher_trim(void *dispDataPt)
 	return 0;
 }
 
-static int mcr_Key_init_scan_map(void *mapPt)
-{
-	if (mapPt) {
-		mcr_Map_init(mapPt);
-		mcr_Map_set_all(mapPt, sizeof(unsigned int), 0,
-			mcr_unsigned_compare, NULL,
-			mcr_Array_DispatchPair_interface());
-	}
-	return 0;
-}
-
 /* Library initializer and deinitialize. */
 int mcr_Key_initialize(struct mcr_context *ctx)
 {
@@ -518,12 +449,9 @@ int mcr_Key_initialize(struct mcr_context *ctx)
 		mcr_Key_Dispatcher_modifier, mcr_Key_Dispatcher_remove,
 		mcr_Key_Dispatcher_trim);
 	standard->key_dispatcher.ctx = ctx;
-	standard->scan_map_interface =
-		mcr_Interface_new(sizeof(struct mcr_Map), mcr_Key_init_scan_map,
-		mcr_Map_deinit, NULL, NULL);
 	standard->key_dispatcher_maps[0] = standard->key_dispatcher_maps[1] =
 		mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
-		&standard->scan_map_interface);
+		mcr_Array_DispatchPair_interface());
 	standard->map_key_modifier = mcr_Map_new(sizeof(int),
 		sizeof(unsigned int), mcr_int_compare, NULL, NULL);
 	standard->map_modifier_key = mcr_Map_new(sizeof(unsigned int),

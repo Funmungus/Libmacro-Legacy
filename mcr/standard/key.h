@@ -18,8 +18,6 @@
 
 /*! \file
  * \brief \ref mcr_Key - Simulate keyboard keys
- *
- * TODO: Dispatch only keys and not scancodes?
  */
 
 #ifndef MCR_KEY_H

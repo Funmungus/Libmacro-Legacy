@@ -51,7 +51,6 @@ struct mcr_mod_standard {
 	struct mcr_CtxDispatcher key_dispatcher;
 	/* down, up, generic is set into both */
 	struct mcr_Map key_dispatcher_maps[2];
-	struct mcr_Interface scan_map_interface;
 	/* modifier <=> key */
 	struct mcr_Map map_key_modifier;
 	struct mcr_Map map_modifier_key;
