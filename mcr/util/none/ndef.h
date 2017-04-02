@@ -16,23 +16,9 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * \brief In cases of extreme complexity, please break glass.
- */
+#ifndef MCR_UTIL_NONE_DEF_H
+#define MCR_UTIL_NONE_DEF_H
 
-#ifndef MCR_SIGNAL_PRIVATE_H
-#define MCR_SIGNAL_PRIVATE_H
-
-#include "mcr/signal/def.h"
-
-MCR_API int mcr_signal_initialize(struct mcr_context *ctx);
-MCR_API int mcr_signal_deinitialize(struct mcr_context *ctx);
-MCR_API int mcr_signal_load_contract(struct mcr_context *ctx);
-MCR_API void mcr_signal_trim(struct mcr_context *ctx);
-
-MCR_API int mcr_dispatcher_initialize(struct mcr_context *ctx);
-MCR_API int mcr_dispatcher_deinitialize(struct mcr_context *ctx);
-
-MCR_API int mcr_mod_load_contract(struct mcr_context *ctx);
+#include "mcr/util/def.h"
 
 #endif

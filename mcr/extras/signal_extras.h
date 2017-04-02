@@ -245,7 +245,7 @@ MCR_API void mcr_StringKey_char_trim(struct mcr_context *ctx);
  */
 #define mcr_SK_data(sigPt) mcr_StringKey_data (sigPt)
 
-/* native directory */
+/* platform directory */
 /*! \brief Same as execvp, except a new process is created to not kill
  * this one.
  *

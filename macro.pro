@@ -50,14 +50,15 @@ HEADERS = $$files(*.h, true)
 OTHER_FILES = style \
 	README.md
 
-# Optional and native source files are explicit to view in QTCreator
+# Optional and platform source files are explicit to view in QTCreator
 # optional
 # extras default is to include(we like stuff)
 extras: SOURCES += $$files(extras/*.c)
 
-# native
+# platform
 win {
 	SOURCES += \
+		util/win/npriv.c \
 		standard/win/nstandard.c \
 		intercept/win/ngrabber.c \
 		intercept/win/nintercept.c
@@ -72,15 +73,16 @@ lnx {
 		intercept/lnx/nintercept.c
 }
 
-nativeless {
+none {
 	SOURCES += \
-		util/nativeless/nmcrstring.c \
-		standard/nativeless/nstandard.c \
-		standard/nativeless/nstandardnames.c \
-		standard/nativeless/nmods.c
+		util/none/npriv.c \
+		util/none/nmcrstring.c \
+		standard/none/nstandard.c \
+		standard/none/nstandardnames.c \
+		standard/none/nmods.c
 }
 
-# Optional natives
+# Optional platforms
 extras {
 	lnx {
 		SOURCES += \
@@ -94,11 +96,11 @@ extras {
 			extras/win/nsignalextras.c \
 			extras/win/nextras.c
 	}
-	nativeless {
+	none {
 		SOURCES += \
-			extras/nativeless/nsafestring.c \
-			extras/nativeless/nsignalextras.c \
-			extras/nativeless/nextras.c
+			extras/none/nsafestring.c \
+			extras/none/nsignalextras.c \
+			extras/none/nextras.c
 	}
 }
 
@@ -145,3 +147,4 @@ lnx {
 	linksmin.commands = $${QMAKE_SYMBOLIC_LINK} $${LINKOUTPUT} $${LINKBASE}.$${MCR_VER_MAJ}.$${MCR_VER_MIN}
 	INSTALLS += lib links linksmaj linksmin
 }
+

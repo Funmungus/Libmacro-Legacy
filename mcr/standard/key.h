@@ -53,7 +53,7 @@ MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 MCR_API int mcr_Key_send(struct mcr_Signal *sigPt);
 /*! \brief \ref mcr_Key_send
  *
- * \ref native_fnc
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
@@ -141,5 +141,16 @@ MCR_API struct mcr_ISignal *mcr_iKey(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_Key * */
 #define MCR_KEY_DATA(sig) \
 ((struct mcr_Key *)(sig).instance.data.data)
+
+MCR_API int mcr_Key_Dispatcher_add(void *dispDataPt,
+	struct mcr_Signal *signalPt, void *newTrigger,
+	mcr_Dispatcher_receive_fnc receiveFnc);
+MCR_API int mcr_Key_Dispatcher_clear(void *dispDataPt);
+MCR_API bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
+	struct mcr_Signal *signalPt, unsigned int mods);
+MCR_API void mcr_Key_Dispatcher_modifier(void *dispDataPt,
+	struct mcr_Signal *signalPt, unsigned int *modsPt);
+MCR_API int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger);
+MCR_API int mcr_Key_Dispatcher_trim(void *dispDataPt);
 
 #endif

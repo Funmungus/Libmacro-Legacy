@@ -17,7 +17,6 @@
 */
 
 #include "mcr/macro/macro.h"
-#include "mcr/macro/private.h"
 #include <string.h>
 
 static const struct mcr_Interface _MCR_TRIGGER_IFACE = {
@@ -140,19 +139,6 @@ int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt)
 		return -1;
 	}
 	return ! !lhsPtPt;
-}
-
-int mcr_trigger_initialize(struct mcr_context *ctx)
-{
-	dassert(ctx);
-	mcr_reg_init(mcr_ITrigger_reg(ctx));
-	return 0;
-}
-
-int mcr_trigger_deinitialize(struct mcr_context *ctx)
-{
-	dassert(ctx);
-	return mcr_reg_deinit(mcr_ITrigger_reg(ctx));
 }
 
 int mcr_Trigger_add_dispatch(struct mcr_context *ctx,

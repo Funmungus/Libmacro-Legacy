@@ -17,23 +17,16 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/signal/private.h"
 #include "mcr/modules.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 
 /* Public access modifiers */
-unsigned int mcr_modifiers(struct mcr_context *ctx)
+unsigned int *mcr_modifiers(struct mcr_context *ctx)
 {
 	dassert(ctx);
-	return ctx->signal.internal_mods;
-}
-
-void mcr_set_modifiers(struct mcr_context *ctx, unsigned int setMods)
-{
-	dassert(ctx);
-	ctx->signal.internal_mods = setMods;
+	return &ctx->signal.internal_mods;
 }
 
 void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods)
@@ -123,6 +116,11 @@ int mcr_Dispatcher_add(struct mcr_context *ctx,
 {
 	struct mcr_Dispatcher *dispPt =
 		mcr_Dispatcher_from_id(ctx, mcr_Instance_id(interceptPt));
+	if (!receiveFnc)
+		receiveFnc = mcr_Trigger_receive;
+	/* mcr_Trigger_receive requires an object */
+	if (receiveFnc == mcr_Trigger_receive && !receiver)
+		return EINVAL;
 	return dispPt
 		&& dispPt->add ? dispPt->add(dispPt, interceptPt,
 		receiver, receiveFnc) : 0;
@@ -133,6 +131,11 @@ int mcr_Dispatcher_add_generic(struct mcr_context *ctx,
 	void *receiver, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
+	if (!receiveFnc)
+		receiveFnc = mcr_Trigger_receive;
+	/* mcr_Trigger_receive requires an object */
+	if (receiveFnc == mcr_Trigger_receive && !receiver)
+		return EINVAL;
 	return genPt
 		&& genPt->add ? genPt->add(genPt, interceptPt,
 		receiver, receiveFnc) : 0;
@@ -160,31 +163,6 @@ int mcr_Dispatcher_clear_all(struct mcr_context *ctx)
 	}
 	if (genPt && genPt->clear)
 		return genPt->clear(genPt);
-	return 0;
-}
-
-int mcr_Dispatcher_deinit(struct mcr_context *ctx, struct mcr_ISignal *isigPt)
-{
-	struct mcr_Dispatcher *dispPt =
-		mcr_Dispatcher_from_id(ctx, mcr_iid(isigPt));
-	if (dispPt && dispPt->deinit)
-		return dispPt->deinit(dispPt);
-	return 0;
-}
-
-int mcr_Dispatcher_deinit_all(struct mcr_context *ctx)
-{
-	struct mcr_Dispatcher *dispPt;
-	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
-	size_t i = mcr_Dispatcher_count(ctx);
-	int err;
-	while (i--) {
-		dispPt = mcr_Dispatcher_from_id(ctx, i);
-		if (dispPt && dispPt->deinit && (err = dispPt->deinit(dispPt)))
-			return err;
-	}
-	if (genPt && genPt->deinit)
-		return genPt->deinit(genPt);
 	return 0;
 }
 
@@ -259,8 +237,8 @@ int mcr_Dispatcher_init(void *dispPt)
 
 struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
 	mcr_Dispatcher_fnc clear, mcr_Dispatcher_dispatch_fnc dispatch,
-	mcr_Dispatcher_fnc deinit, mcr_Dispatcher_modify_fnc modifier,
-	mcr_Dispatcher_remove_fnc remove, mcr_Dispatcher_fnc trim)
+	mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
+	mcr_Dispatcher_fnc trim)
 {
 	struct mcr_Dispatcher ret = { 0 };
 	if (add)
@@ -269,8 +247,6 @@ struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
 		ret.clear = clear;
 	if (dispatch)
 		ret.dispatch = dispatch;
-	if (deinit)
-		ret.deinit = deinit;
 	if (modifier)
 		ret.modifier = modifier;
 	if (remove)
@@ -282,7 +258,7 @@ struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
 
 void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
 	mcr_Dispatcher_add_fnc add, mcr_Dispatcher_fnc clear,
-	mcr_Dispatcher_dispatch_fnc dispatch, mcr_Dispatcher_fnc deinit,
+	mcr_Dispatcher_dispatch_fnc dispatch,
 	mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
 	mcr_Dispatcher_fnc trim)
 {
@@ -290,7 +266,6 @@ void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
 	dispPt->add = add;
 	dispPt->clear = clear;
 	dispPt->dispatch = dispatch;
-	dispPt->deinit = deinit;
 	dispPt->modifier = modifier;
 	dispPt->remove = remove;
 	dispPt->trim = trim;
@@ -337,32 +312,4 @@ struct mcr_Dispatcher *mcr_Dispatcher_from_id(struct mcr_context *ctx,
 	struct mcr_Dispatcher **ret =
 		MCR_ARR_ELEMENT(ctx->signal.dispatchers, signalTypeId);
 	return ret ? *ret : NULL;
-}
-
-int mcr_dispatcher_initialize(struct mcr_context *ctx)
-{
-	struct mcr_mod_signal *modSignal = &ctx->signal;
-	mcr_Array_init(&modSignal->dispatchers);
-	mcr_Array_set_all(&modSignal->dispatchers, NULL, sizeof(void *));
-	mcr_Map_init(&modSignal->map_mod_name);
-	mcr_Map_init(&modSignal->map_name_mod);
-	mcr_Map_set_all(&modSignal->map_mod_name, sizeof(unsigned int),
-		sizeof(mcr_String), mcr_unsigned_compare, NULL,
-		mcr_String_interface());
-	mcr_Map_set_all(&modSignal->map_name_mod, sizeof(mcr_String),
-		sizeof(unsigned int), mcr_name_compare, mcr_String_interface(),
-		NULL);
-	modSignal->dispatcher_generic_enabled = false;
-	modSignal->internal_mods = 0;
-	return 0;
-}
-
-int mcr_dispatcher_deinitialize(struct mcr_context *ctx)
-{
-	struct mcr_mod_signal *modSignal = &ctx->signal;
-	mcr_Dispatcher_deinit_all(ctx);
-	mcr_Array_deinit(&modSignal->dispatchers);
-	mcr_Map_deinit(&modSignal->map_mod_name);
-	mcr_Map_deinit(&modSignal->map_name_mod);
-	return 0;
 }

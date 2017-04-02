@@ -17,8 +17,8 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
+#include "mcr/standard/mod_standard.h"
+#include MCR_STANDARD_PLATFORM_INC
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -179,20 +179,7 @@ int mcr_Scroll_send_data(struct mcr_Scroll *scrPt)
 	return 0;
 }
 
-int mcr_Key_load_contract(struct mcr_context *context)
-{
-	return add_key_names(context);
-}
-
-int mcr_HidEcho_load_contract(struct mcr_context *context)
-{
-	int err = add_echo_keys();
-	if (err)
-		return err;
-	return add_echo_names(context);
-}
-
-int mcr_standard_native_initialize(struct mcr_context *context)
+int mcr_standard_platform_initialize(struct mcr_context *context)
 {
 	int err;
 	UNUSED(context);
@@ -214,7 +201,7 @@ int mcr_standard_native_initialize(struct mcr_context *context)
 	return mcr_Mods_load_key_contract(context);
 }
 
-int mcr_standard_native_deinitialize(struct mcr_context *context)
+int mcr_standard_platform_deinitialize(struct mcr_context *context)
 {
 	int err;
 	UNUSED(context);
@@ -227,6 +214,16 @@ int mcr_standard_native_deinitialize(struct mcr_context *context)
 	mcr_Map_deinit(mcr_keyToEcho);
 	mcr_Map_deinit(mcr_keyToEcho + 1);
 	return 0;
+}
+
+int mcr_standard_platform_load_contract(struct mcr_context *ctx)
+{
+	int err = add_key_names(ctx);
+	if (err)
+		return err;
+	if ((err = add_echo_keys()))
+		return err;
+	return add_echo_names(ctx);
 }
 
 static int mcr_Mods_load_key_contract(struct mcr_context *ctx)

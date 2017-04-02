@@ -16,9 +16,9 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_UTIL_NATIVELESS_DEF_H
-#define MCR_UTIL_NATIVELESS_DEF_H
+#ifndef MCR_NONE_STANDARD_H
+#define MCR_NONE_STANDARD_H
 
-#include "mcr/util/def.h"
+#include "mcr/standard/none/ndef.h"
 
 #endif

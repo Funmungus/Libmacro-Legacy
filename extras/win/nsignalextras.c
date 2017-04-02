@@ -18,7 +18,7 @@
 
 #include "mcr/extras/win/nextras.h"
 #include "mcr/extras/extras.h"
-#include "mcr/extras/private.h"
+#include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

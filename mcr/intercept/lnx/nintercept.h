@@ -26,8 +26,8 @@
 
 #include "mcr/intercept/lnx/ngrabber.h"
 
-/*! \brief Linux intercept native structure */
-struct mcr_mod_intercept_native {
+/*! \brief Linux intercept platform structure */
+struct mcr_mod_intercept_platform {
 	/*! \brief Intercept critical sections */
 	mtx_t lock;
 	/*! \brief Ordered list so each grab can remove itself */

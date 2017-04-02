@@ -17,7 +17,9 @@
 */
 
 /*! \file
- * \brief \ref mcr_mod_standard - Standard signal and trigger module
+ * \brief \ref mcr_mod_standard - Standard signal and trigger types module
+ *
+ * In cases of extreme complexity, please break glass.
  */
 
 #ifndef MOD_STANDARD_H
@@ -69,5 +71,35 @@ struct mcr_mod_standard {
 	struct mcr_StringIndex echo_name_index;
 	mcr_String echo_name_any;
 };
+
+MCR_API int mcr_standard_initialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_load_contract(struct mcr_context *ctx);
+MCR_API void mcr_standard_trim(struct mcr_context *ctx);
+
+/* Platform directory */
+#define MCR_STANDARD_PLATFORM_INC \
+MCR_STR(mcr/standard/MCR_PLATFORM_DIR/nstandard.h)
+/*! \brief Initialize platform requirements for standard signals.
+ *
+ * Called by \ref mcr_standard_initialize
+ */
+MCR_API int mcr_standard_platform_initialize(struct mcr_context *ctx);
+/*! \brief Clean up platform requirements for standard signals.
+ *
+ * Called by \ref mcr_standard_deinitialize
+ */
+MCR_API int mcr_standard_platform_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_platform_load_contract(struct mcr_context *ctx);
+
+/* Platform signal */
+struct mcr_HidEcho;
+struct mcr_Key;
+struct mcr_MoveCursor;
+struct mcr_Scroll;
+MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
+MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
+MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt);
+MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 
 #endif

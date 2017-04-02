@@ -16,14 +16,4 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NATIVELESS_STRINGS_H
-#define MCR_NATIVELESS_STRINGS_H
-
-#include "mcr/util/nativeless/ndef.h"
-
-/* case functions implemented in util/nativeless/mcrstring.c */
-#define mcr_snprintf snprintf
-MCR_API int mcr_casecmp(const char *s1, const char *s2);
-MCR_API int mcr_ncasecmp(const char *s1, const char *s2, size_t n);
-
-#endif
+#include "mcr/util/none/nmcrstring.h"

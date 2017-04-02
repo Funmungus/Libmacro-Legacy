@@ -17,17 +17,16 @@
 */
 
 #include "mcr/macro/macro.h"
-#include "mcr/macro/private.h"
 #include "mcr/modules.h"
 
 int mcr_macro_initialize(struct mcr_context *ctx)
 {
-	return mcr_trigger_initialize(ctx);
+	return mcr_reg_init(mcr_ITrigger_reg(ctx));
 }
 
 int mcr_macro_deinitialize(struct mcr_context *ctx)
 {
-	return mcr_trigger_deinitialize(ctx);
+	return mcr_reg_deinit(mcr_ITrigger_reg(ctx));
 }
 
 void mcr_macro_trim(struct mcr_context *ctx)

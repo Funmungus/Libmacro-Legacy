@@ -71,9 +71,9 @@
 #define opt
 #endif
 
-#ifndef native_fnc
+#ifndef mcr_is_platform
 /*! \brief Required to be re-defined for each platform */
-#define native_fnc
+#define mcr_is_platform
 #endif
 
 #define MCR_STR_HELPER(x) #x
@@ -137,11 +137,11 @@
 #define MCR_FERR "mcr/err.h"
 #endif
 
-#ifndef MCR_NATIVE_DIR
-#define MCR_NATIVE_DIR nativeless
+#ifndef MCR_PLATFORM_DIR
+#define MCR_PLATFORM_DIR none
 MCR_WARN
-#pragma message "MCR_NATIVE_DIR is not defined.  Please provide \
-MCR_NATIVE_DIR as a preprocessor definition for your platform."
+#pragma message "MCR_PLATFORM_DIR is not defined.  Please provide \
+MCR_PLATFORM_DIR as a preprocessor definition for your platform."
 #include MCR_FERR
 #endif
 #ifndef UNUSED
@@ -215,7 +215,9 @@ mcr_ddo(_Pragma("message MCR_LINE \": Fix Me!\""))
 /*! \brief \ref mcr_set_error and \ref mcr_dmsg */
 #define mcr_mset_error(errorNumber) \
 mcr_set_error(errorNumber); \
-mcr_dmsg;
+if (errorNumber) { \
+	mcr_dmsg; \
+}
 #endif
 #ifndef WARN
 /*! \brief \ref MCR_WARN */
@@ -285,9 +287,9 @@ typedef int (*mcr_copy_fnc) (void *destinationPt, void *sourcePt);
  */
 typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 
-#ifndef MCR_UTIL_NATIVE_INC
-/*! \brief Include to access native utilities */
-#define MCR_UTIL_NATIVE_INC MCR_STR(mcr/util/MCR_NATIVE_DIR/nutil.h)
+#ifndef MCR_UTIL_PLATFORM_INC
+/*! \brief Include to access platform utilities */
+#define MCR_UTIL_PLATFORM_INC MCR_STR(mcr/util/MCR_PLATFORM_DIR/nutil.h)
 #endif
 
 #ifndef MCR_API
@@ -303,6 +305,6 @@ typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 #endif
 
 /* Define string comparison aliases, because Windows has too many options */
-#include MCR_STR(mcr/util/MCR_NATIVE_DIR/ndef.h)
+#include MCR_STR(mcr/util/MCR_PLATFORM_DIR/ndef.h)
 
 #endif

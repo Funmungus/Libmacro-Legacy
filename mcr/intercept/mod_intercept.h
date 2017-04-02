@@ -18,15 +18,29 @@
 
 /*! \file
  * \brief \ref mcr_mod_intercept - Intercept module
+ *
+ * In cases of extreme complexity, please break glass.
  */
 
 #ifndef MCR_MOD_INTERCEPT_H
 #define MCR_MOD_INTERCEPT_H
 
+#include "mcr/intercept/def.h"
+
 /*! \brief Intercept module */
 struct mcr_mod_intercept {
-	/*! All data reserved for native definitions */
-	void *native;
+	/*! All data reserved for platform definitions */
+	void *platform;
 };
+
+MCR_API int mcr_intercept_initialize(struct mcr_context *ctx);
+MCR_API int mcr_intercept_deinitialize(struct mcr_context *ctx);
+
+/* Implement in platform directory */
+MCR_API int mcr_intercept_platform_initialize(struct mcr_context *ctx);
+MCR_API int mcr_intercept_platform_deinitialize(struct mcr_context *ctx);
+
+#define MCR_INTERCEPT_PLATFORM_INC \
+MCR_STR(mcr/intercept/MCR_PLATFORM_DIR/nintercept.h)
 
 #endif

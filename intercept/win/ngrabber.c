@@ -17,8 +17,8 @@
 */
 
 #include "mcr/intercept/intercept.h"
-#include "mcr/intercept/private.h"
-#include MCR_INTERCEPT_NATIVE_INC
+#include "mcr/modules.h"
+#include MCR_INTERCEPT_PLATFORM_INC
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

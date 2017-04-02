@@ -17,7 +17,6 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
 #include "mcr/modules.h"
 
 int mcr_HidEcho_send(struct mcr_Signal *signalPt)
@@ -110,23 +109,6 @@ void mcr_HidEcho_trim(struct mcr_context *ctx)
 void mcr_HidEcho_clear(struct mcr_context *ctx)
 {
 	mcr_StringIndex_clear(&ctx->standard.echo_name_index);
-}
-
-int mcr_HidEcho_initialize(struct mcr_context *ctx)
-{
-	int err = 0;
-	mcr_StringIndex_init(&ctx->standard.echo_name_index);
-	mcr_String_init(&ctx->standard.echo_name_any);
-	if ((err = mcr_String_replace(&ctx->standard.echo_name_any, "Any")))
-		return err;
-	return err;
-}
-
-int mcr_HidEcho_deinitialize(struct mcr_context *ctx)
-{
-	mcr_StringIndex_deinit(&ctx->standard.echo_name_index);
-	mcr_String_deinit(&ctx->standard.echo_name_any);
-	return 0;
 }
 
 struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx)

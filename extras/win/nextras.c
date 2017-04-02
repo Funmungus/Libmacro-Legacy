@@ -25,7 +25,7 @@
 #include <openssl/rand.h>
 #include <string.h>
 
-int mcr_extras_native_initialize(struct mcr_context *ctx)
+int mcr_extras_platform_initialize(struct mcr_context *ctx)
 {
 	UNUSED(ctx);
 	int err = 0;
@@ -44,7 +44,7 @@ int mcr_extras_native_initialize(struct mcr_context *ctx)
 	return 0;
 }
 
-int mcr_extras_native_deinitialize(struct mcr_context *ctx)
+int mcr_extras_platform_deinitialize(struct mcr_context *ctx)
 {
 	UNUSED(ctx);
 	EVP_cleanup();

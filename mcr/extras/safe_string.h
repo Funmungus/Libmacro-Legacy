@@ -152,10 +152,10 @@ MCR_API int mcr_String_encrypt(const mcr_String * strOriginalPt,
  * null-termination. */
 MCR_API void mcr_SafeString_set_password(char *pass);
 
-/* Implement in native directory */
+/* Implement in platform directory */
 /*! \brief Randomize bytes
  *
- * \ref native_fnc Use encryption software where available
+ * \ref mcr_is_platform Use encryption software where available
  * \param buffer Bytes output
  * \param bufferSize Buffer byte count
  * \return \ref reterr

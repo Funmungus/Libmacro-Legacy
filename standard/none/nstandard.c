@@ -16,10 +16,20 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NATIVELESS_EXTRAS_H
-#define MCR_NATIVELESS_EXTRAS_H
+#include "mcr/signal/none/nsignal.h"
+#include "mcr/signal/signal.h"
 
-#include "mcr/intercept/nativeless/ndef.h"
-#include "mcr/extras/def.h"
+void mcr_cursor_position(mcr_SpacePosition buffer)
+{
+	memcpy(buffer, mcr_cursor, sizeof(mcr_SpacePosition));
+}
 
-#endif
+int mcr_standard_platform_initialize()
+{
+	return 0;
+}
+
+int mcr_standard_platform_deinitialize(void)
+{
+	return 0;
+}

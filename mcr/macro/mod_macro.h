@@ -31,4 +31,8 @@ struct mcr_mod_macro {
 	struct mcr_IRegistry itriggers;
 };
 
+MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
+MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
+MCR_API void mcr_macro_trim(struct mcr_context *ctx);
+
 #endif

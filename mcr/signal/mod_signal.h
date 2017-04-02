@@ -18,6 +18,8 @@
 
 /*! \file
  * \brief \ref mcr_mod_signal - Signal module
+ *
+ * In cases of extreme complexity, please break glass.
  */
 
 #ifndef MCR_MOD_SIGNAL_H
@@ -31,7 +33,7 @@ struct mcr_Dispatcher;
 struct mcr_mod_signal {
 	/*! \brief \ref mcr_ISignal registry */
 	struct mcr_IRegistry isignals;
-	/*! \brief Set of \ref mcr_Dispatcher for each signal */
+	/*! \brief Set of \ref mcr_Dispatcher * for each signal */
 	struct mcr_Array dispatchers;
 	/*! \brief If enabled, the generic dispatcher will be used for all
 	 * signals */
@@ -46,5 +48,10 @@ struct mcr_mod_signal {
 	/*! \brief Map from names to modifiers */
 	struct mcr_Map map_name_mod;
 };
+
+MCR_API int mcr_signal_initialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_load_contract(struct mcr_context *ctx);
+MCR_API void mcr_signal_trim(struct mcr_context *ctx);
 
 #endif

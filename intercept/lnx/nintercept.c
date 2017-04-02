@@ -17,10 +17,8 @@
 */
 
 #include "mcr/intercept/intercept.h"
-#include "mcr/standard/private.h"
-#include "mcr/intercept/private.h"
-#include MCR_INTERCEPT_NATIVE_INC
 #include "mcr/modules.h"
+#include MCR_INTERCEPT_PLATFORM_INC
 #include <errno.h>
 #include <poll.h>
 #include <stdint.h>
@@ -34,7 +32,7 @@ typedef struct {
 } _grab_context;
 
 /* Remember (*gcPt) is a _grab_context reference, and not a grabber */
-static int grab_context_malloc(_grab_context **gcPt, struct mcr_context *ctx)
+static int grab_context_malloc(_grab_context ** gcPt, struct mcr_context *ctx)
 {
 	int err;
 	*gcPt = malloc(sizeof(_grab_context));
@@ -49,7 +47,7 @@ static int grab_context_malloc(_grab_context **gcPt, struct mcr_context *ctx)
 	return 0;
 }
 
-static int grab_context_free(_grab_context **gcPt)
+static int grab_context_free(_grab_context ** gcPt)
 {
 	int err = mcr_Grabber_deinit(&(*gcPt)->grabber);
 	free(*gcPt);
@@ -75,8 +73,8 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
 static int read_grabber_exclusive(struct mcr_context *ctx,
 	struct mcr_Grabber *grabPt);
-static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer,
-size_t modBufferSize, char *keybit_values);
+static unsigned int modify_eventbits(struct mcr_context *ctx,
+	unsigned int *modBuffer, size_t modBufferSize, char *keybit_values);
 static unsigned int max_mod_val();
 static int clear_grabbers(struct mcr_context *ctx);
 
@@ -87,7 +85,7 @@ static inline size_t modbit_size()
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = is_enabled_impl(ctx);
 	if (thrdErr == thrd_success)
@@ -97,7 +95,7 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = set_enabled_impl(ctx, enable);
 	if (thrdErr == thrd_success)
@@ -107,7 +105,7 @@ int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 
 unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	unsigned int ret = get_mods_impl(ctx);
 	if (thrdErr == thrd_success)
@@ -117,7 +115,7 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 
 int mcr_intercept_add_grab(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_add(&nPt->grab_paths, &grabPath, 1, true);
 	dassert(grabPath);
@@ -130,7 +128,7 @@ int mcr_intercept_add_grab(struct mcr_context *ctx, const char *grabPath)
 
 void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	/* remove grabber? */
 	fixme;
@@ -143,7 +141,7 @@ void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 int mcr_intercept_set_grabs(struct mcr_context *ctx, const char **allGrabPaths,
 	size_t pathCount)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_replace(&nPt->grab_paths, allGrabPaths,
 		pathCount);
@@ -154,24 +152,24 @@ int mcr_intercept_set_grabs(struct mcr_context *ctx, const char **allGrabPaths,
 	return err;
 }
 
-int mcr_intercept_native_initialize(struct mcr_context *ctx)
+int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 {
 	int thrdErr = 0, err = 0;
 	/* Free in deinitialize */
-	struct mcr_mod_intercept_native *nPt =
-		malloc(sizeof(struct mcr_mod_intercept_native));
+	struct mcr_mod_intercept_platform *nPt =
+		malloc(sizeof(struct mcr_mod_intercept_platform));
 	if (!nPt) {
 		mset_error(ENOMEM);
 		return ENOMEM;
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
+	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
 	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
 		free(nPt);
 		return err;
 	}
-	ctx->intercept.native = nPt;
+	ctx->intercept.platform = nPt;
 	mcr_Array_init(&nPt->grab_contexts);
 	mcr_Array_set_all(&nPt->grab_contexts, mcr_ref_compare,
 		sizeof(_grab_context *));
@@ -180,9 +178,9 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	return err;
 }
 
-int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
+int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	/* Clear grabbers manages lock internally */
 	int err = clear_grabbers(ctx);
 	int thrdErr = mtx_lock(&nPt->lock);
@@ -195,13 +193,13 @@ int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
 		mtx_unlock(&nPt->lock);
 	mtx_destroy(&nPt->lock);
 	free(nPt);
-	ctx->intercept.native = NULL;
+	ctx->intercept.platform = NULL;
 	return err;
 }
 
 static bool is_enabled_impl(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	_grab_context **ptArr = MCR_ARR_FIRST(nPt->grab_contexts);
 	size_t i = nPt->grab_contexts.used;
 	while (i--) {
@@ -245,7 +243,7 @@ static int set_enabled_impl(struct mcr_context *ctx, bool enable)
 
 static unsigned int get_mods_impl(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	_grab_context **grabSet = MCR_ARR_FIRST(nPt->grab_contexts);
 	unsigned int ret;
 	/* One modifier for each key that has a modifier mapped */
@@ -280,7 +278,8 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 					err = EINTR;
 				mset_error(err);
 			} else {
-				ret |= modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
+				ret |= modify_eventbits(ctx, modArr,
+					modKeysCount, bitRetrieval);
 			}
 		}
 	}
@@ -290,8 +289,8 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 
 static int thread_enable(void *threadArgs)
 {
-	_context_bool cb = *(_context_bool *)threadArgs;
-	struct mcr_mod_intercept_native *nPt = cb.ctx->intercept.native;
+	_context_bool cb = *(_context_bool *) threadArgs;
+	struct mcr_mod_intercept_platform *nPt = cb.ctx->intercept.platform;
 	int thrdErr;
 	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
 	size_t i = nPt->grab_paths.used;
@@ -319,7 +318,7 @@ static int thread_enable(void *threadArgs)
  */
 static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int error = 0, thrdErr = thrd_success;
 	thrd_t trd;
 	/* Freed when thread is done with it */
@@ -410,7 +409,7 @@ static int intercept_start(void *threadArgs)
 {
 	/* Free in thread when done with it */
 	_grab_context *gcPt = threadArgs;
-	struct mcr_mod_intercept_native *nPt = gcPt->ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = gcPt->ctx->intercept.platform;
 	struct mcr_Grabber *grabPt = &gcPt->grabber;
 	int thrdErr = thrd_success, mtxErr = thrd_success, err = 0;
 	struct timespec delay;
@@ -676,8 +675,8 @@ if (mcr_dispatch(ctx, &(signal))) { \
 #undef DISP_WRITEMEM_ABS
 }
 
-static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modBuffer, size_t modBufferSize,
-	char *keybitValues)
+static unsigned int modify_eventbits(struct mcr_context *ctx,
+	unsigned int *modBuffer, size_t modBufferSize, char *keybitValues)
 {
 	int curKey;
 	unsigned int i, modValOut = 0;
@@ -687,7 +686,9 @@ static unsigned int modify_eventbits(struct mcr_context *ctx, unsigned int *modB
 	 * if key is set in the key bit value set. */
 	for (i = modBufferSize; i--;) {
 		curKey = mcr_Key_mod_key(ctx, modBuffer[i]);
-		if (curKey != MCR_KEY_ANY && (keybitValues[MCR_EVENTINDEX(curKey)] & MCR_EVENTBIT(curKey)))
+		if (curKey != MCR_KEY_ANY
+			&& (keybitValues[MCR_EVENTINDEX(curKey)] &
+				MCR_EVENTBIT(curKey)))
 			modValOut |= modBuffer[i];
 	}
 	return modValOut;
@@ -714,10 +715,10 @@ static unsigned int max_mod_val()
 /*! \post Mutex not locked */
 static int clear_grabbers(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	/* Disable all, wait for all batch operation. */
-	int timeout = 50; // Total 10 sec
-	struct mcr_NoOp delay = {0};
+	int timeout = 50;	// Total 10 sec
+	struct mcr_NoOp delay = { 0 };
 	int error = 0, thrdErr;
 	delay.msec = 200;
 	/* TODO : thread destroy on timeout. */

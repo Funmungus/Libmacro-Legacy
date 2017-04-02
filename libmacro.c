@@ -15,13 +15,6 @@
 
 #include "mcr/libmacro.h"
 #include "mcr/modules.h"
-#include "mcr/signal/private.h"
-#include "mcr/macro/private.h"
-#include "mcr/standard/private.h"
-#include "mcr/intercept/private.h"
-#ifdef MCR_EXTRAS
-#include "mcr/extras/private.h"
-#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,36 +47,58 @@ int mcr_deallocate(struct mcr_context *ctx)
 	return err;
 }
 
+#define local_err_stack_size 5
+static int local_err(struct mcr_context *ctx, int errorOut,
+	int (**errStack) (struct mcr_context *), int stackCount)
+{
+	dassert(stackCount <= local_err_stack_size);
+	/* Traverse backwards through stack */
+	while (stackCount--) {
+		errStack[stackCount] (ctx);
+	}
+	return errorOut;
+}
+
 int mcr_initialize(struct mcr_context *ctx,
 	bool flagLoadContracts, bool flagTrimFinish)
 {
-	int err = 0;
+	int err = 0, stackCount = 0;
+	int (*errStack[local_err_stack_size]) (struct mcr_context *) = {
+	mcr_signal_deinitialize, mcr_macro_deinitialize,
+			mcr_standard_deinitialize,
+			mcr_intercept_deinitialize, mcr_extras_deinitialize};
 	if (!ctx) {
 		mset_error(EINVAL);
 		return EINVAL;
 	}
 	memset(ctx, 0, sizeof(struct mcr_context));
 	dprint("Loading signal module\n");
+	/* No error functions yet on stack */
 	if ((err = mcr_signal_initialize(ctx)))
-		goto onSignalErr;
+		return err;
+	++stackCount;
 	dprint("Loading trigger module\n");
 	if ((err = mcr_macro_initialize(ctx)))
-		goto onMacroErr;
+		return local_err(ctx, err, errStack, stackCount);
+	++stackCount;
 	dprint("Loading standard types\n");
 	if ((err = mcr_standard_initialize(ctx)))
-		goto onStandardErr;
+		return local_err(ctx, err, errStack, stackCount);
+	++stackCount;
 	dprint("Loading intercept module\n");
 	if ((err = mcr_intercept_initialize(ctx)))
-		goto onInterceptErr;
+		return local_err(ctx, err, errStack, stackCount);
+	++stackCount;
 #ifdef MCR_EXTRAS
 	dprint("Loading extras module\n");
 	if ((err = mcr_extras_initialize(ctx)))
-		goto onExtrasErr;
+		return local_err(ctx, err, errStack, stackCount);
+	++stackCount;
 #endif
 	if (flagLoadContracts) {
 		dprint("Loading contracts\n");
 		if ((err = mcr_load_contracts(ctx)))
-			goto onContractFail;
+			return local_err(ctx, err, errStack, stackCount);
 	}
 	if (flagTrimFinish) {
 		dprint("Trimming allocation\n");
@@ -91,20 +106,6 @@ int mcr_initialize(struct mcr_context *ctx,
 	}
 	dprint("Initialization complete\n");
 	return 0;
- onContractFail:
-#ifdef MCR_EXTRAS
-	mcr_extras_deinitialize(ctx);
-#endif
- onExtrasErr:
-	mcr_intercept_deinitialize(ctx);
- onInterceptErr:
-	mcr_standard_deinitialize(ctx);
- onStandardErr:
-	mcr_macro_deinitialize(ctx);
- onMacroErr:
-	mcr_signal_deinitialize(ctx);
- onSignalErr:
-	return err;
 }
 
 int mcr_deinitialize(struct mcr_context *ctx)
@@ -145,4 +146,7 @@ void mcr_trim(struct mcr_context *ctx)
 	mcr_signal_trim(ctx);
 	mcr_macro_trim(ctx);
 	mcr_standard_trim(ctx);
+#ifdef MCR_EXTRAS
+	/* TODO: Add trim function */
+#endif
 }

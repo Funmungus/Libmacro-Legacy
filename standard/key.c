@@ -17,7 +17,6 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -26,16 +25,6 @@
 
 const int mcr_Key_gen_key = MCR_KEY_ANY;
 const unsigned int mcr_Key_gen_up = MCR_BOTH;
-static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
-	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc);
-static int mcr_Key_Dispatcher_clear(void *dispDataPt);
-static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
-	struct mcr_Signal *signalPt, unsigned int mods);
-static int mcr_Key_Dispatcher_deinit(void *dispDataPt);
-static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
-	struct mcr_Signal *signalPt, unsigned int *modsPt);
-static int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger);
-static int mcr_Key_Dispatcher_trim(void *dispDataPt);
 
 void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 	enum mcr_KeyUpType keyUp)
@@ -255,7 +244,7 @@ static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
 }
 
 /* Key */
-static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
+int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
@@ -263,10 +252,11 @@ static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 	unsigned int upType;
 	int err;
 	struct mcr_Map *dispMaps = dispPt->ctx->standard.key_dispatcher_maps;
-	/* mcr_Trigger_receive requires an object */
-	dassert(newTrigger || receiveFnc);
 	if (!receiveFnc)
 		receiveFnc = mcr_Trigger_receive;
+	/* mcr_Trigger_receive requires an object */
+	if (receiveFnc == mcr_Trigger_receive && !newTrigger)
+		return EINVAL;
 	if (keyPt) {
 		upType = keyPt->up_type;
 		if (upType < MCR_BOTH)
@@ -280,12 +270,14 @@ static int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 			keyPt->key, newTrigger, receiveFnc);
 	}
 	/* Generic up, add to both */
-	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY, newTrigger, receiveFnc)))
+	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY,
+				newTrigger, receiveFnc)))
 		return err;
-	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY, newTrigger, receiveFnc);
+	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY,
+		newTrigger, receiveFnc);
 }
 
-static int mcr_Key_Dispatcher_clear(void *dispDataPt)
+int mcr_Key_Dispatcher_clear(void *dispDataPt)
 {
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
@@ -297,10 +289,11 @@ static int mcr_Key_Dispatcher_clear(void *dispDataPt)
 
 /* Optimize this function as much as possible, TODO: iterator instead of
  * "for each" */
-static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
-	struct mcr_Signal *signalPt, unsigned int mods)
+bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
+	struct mcr_Signal * signalPt, unsigned int mods)
 {
 #define localDispAll(itPt) \
+	dassert(((struct mcr_DispatchPair *)itPt)->dispatch); \
 	if (((struct mcr_DispatchPair *)itPt)->dispatch(*(void **)itPt, signalPt, mods)) \
 		return true;
 #define localDispArrPt \
@@ -346,18 +339,7 @@ static bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 #undef localDispAll
 }
 
-static int mcr_Key_Dispatcher_deinit(void *dispDataPt)
-{
-	struct mcr_CtxDispatcher *dispPt = dispDataPt;
-	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
-	/* Down, up, and generic */
-	mcr_Map_deinit(maps++);
-	mcr_Map_deinit(maps++);
-	mcr_Map_deinit(maps);
-	return 0;
-}
-
-static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
+void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	struct mcr_Signal *sigPt, unsigned int *modsPt)
 {
 	dassert(dispDataPt);
@@ -392,7 +374,7 @@ static void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 	}
 }
 
-static int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger)
+int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger)
 {
 #define localRemove(itPt) \
 	mcr_Array_remove((struct mcr_Array *)itPt, &delTrigger);
@@ -429,56 +411,13 @@ static void mcr_Key_Dispatcher_remove_empties(struct mcr_Map *mapPt)
 	}
 }
 
-static int mcr_Key_Dispatcher_trim(void *dispDataPt)
+int mcr_Key_Dispatcher_trim(void *dispDataPt)
 {
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Map *maps = dispPt->ctx->standard.key_dispatcher_maps;
 	mcr_Key_Dispatcher_remove_empties(maps);
 	mcr_Key_Dispatcher_remove_empties(maps + 1);
 	return 0;
-}
-
-/* Library initializer and deinitialize. */
-int mcr_Key_initialize(struct mcr_context *ctx)
-{
-	struct mcr_mod_standard *standard = &ctx->standard;
-	int err = 0;
-	mcr_Dispatcher_set_all(&standard->key_dispatcher.dispatcher,
-		mcr_Key_Dispatcher_add, mcr_Key_Dispatcher_clear,
-		mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_deinit,
-		mcr_Key_Dispatcher_modifier, mcr_Key_Dispatcher_remove,
-		mcr_Key_Dispatcher_trim);
-	standard->key_dispatcher.ctx = ctx;
-	standard->key_dispatcher_maps[0] = standard->key_dispatcher_maps[1] =
-		mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
-		mcr_Array_DispatchPair_interface());
-	standard->map_key_modifier = mcr_Map_new(sizeof(int),
-		sizeof(unsigned int), mcr_int_compare, NULL, NULL);
-	standard->map_modifier_key = mcr_Map_new(sizeof(unsigned int),
-		sizeof(int), mcr_unsigned_compare, NULL, NULL);
-	if ((err = mcr_Dispatcher_register(ctx, &standard->key_dispatcher,
-				mcr_iKey(ctx)->interface.id)))
-		return err;
-	mcr_StringIndex_init(&standard->key_name_index);
-	mcr_String_init(&standard->key_name_any);
-	if ((err = mcr_String_replace(&standard->key_name_any, "Any")))
-		return err;
-	return err;
-}
-
-int mcr_Key_deinitialize(struct mcr_context *ctx)
-{
-	int err;
-	struct mcr_mod_standard *standard = &ctx->standard;
-	mcr_StringIndex_deinit(&standard->key_name_index);
-	mcr_String_deinit(&standard->key_name_any);
-	if ((err = mcr_Map_deinit(standard->key_dispatcher_maps)))
-		return err;
-	if ((err = mcr_Map_deinit(standard->key_dispatcher_maps + 1)))
-		return err;
-	if ((err = mcr_Map_deinit(&standard->map_key_modifier)))
-		return err;
-	return mcr_Map_deinit(&standard->map_modifier_key);
 }
 
 struct mcr_ISignal *mcr_iKey(struct mcr_context *ctx)

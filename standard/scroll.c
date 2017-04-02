@@ -17,7 +17,6 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
 #include "mcr/modules.h"
 
 int mcr_Scroll_send(struct mcr_Signal *sigPt)

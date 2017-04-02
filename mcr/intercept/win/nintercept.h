@@ -28,7 +28,7 @@
 
 #define MCR_GRAB_COUNT 3
 
-struct mcr_mod_intercept_native {
+struct mcr_mod_intercept_platform {
 	struct mcr_Grabber *grab_key;
 	struct mcr_Grabber *grab_move;
 	struct mcr_Grabber *grab_scroll;

@@ -16,7 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/util/nativeless/nutil.h"
+#include "mcr/util/none/nutil.h"
 #include "mcr/util/util.h"
 
 int mcr_casecmp(const char *s1, const char *s2)

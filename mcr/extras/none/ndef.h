@@ -16,4 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/nativeless/ndef.h"
+#ifndef MCR_NONE_EXTRAS_H
+#define MCR_NONE_EXTRAS_H
+
+#include "mcr/intercept/none/ndef.h"
+#include "mcr/extras/def.h"
+
+#endif

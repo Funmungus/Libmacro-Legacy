@@ -94,9 +94,9 @@ bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
 		/* Case 1, stage type: By default same type is a resemblance */
 		if (sigPt->isignal) {
 			if (sigPt->isignal == interceptPt->isignal)
-				return stagePt->matcher.
-					resembles ? stagePt->matcher.
-					resembles(stagePt, interceptPt) : true;
+				return stagePt->matcher.resembles ? stagePt->
+					matcher.resembles(stagePt,
+					interceptPt) : true;
 			/* Not same type */
 			return false;
 		}

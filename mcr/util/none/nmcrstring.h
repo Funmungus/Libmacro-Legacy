@@ -16,20 +16,14 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/signal/nativeless/nsignal.h"
-#include "mcr/signal/signal.h"
+#ifndef MCR_NONE_STRINGS_H
+#define MCR_NONE_STRINGS_H
 
-void mcr_cursor_position(mcr_SpacePosition buffer)
-{
-	memcpy(buffer, mcr_cursor, sizeof(mcr_SpacePosition));
-}
+#include "mcr/util/none/ndef.h"
 
-int mcr_standard_native_initialize()
-{
-	return 0;
-}
+/* case functions implemented in util/none/mcrstring.c */
+#define mcr_snprintf snprintf
+MCR_API int mcr_casecmp(const char *s1, const char *s2);
+MCR_API int mcr_ncasecmp(const char *s1, const char *s2, size_t n);
 
-int mcr_standard_native_deinitialize(void)
-{
-	return 0;
-}
+#endif

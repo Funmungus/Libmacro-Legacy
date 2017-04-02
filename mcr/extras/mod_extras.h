@@ -18,6 +18,8 @@
 
 /*! \file
  * \brief \ref mcr_mod_extras - Extras module
+ *
+ * In case of extreme complexity, break glass
  */
 
 #ifndef MCR_MOD_EXTRAS_H
@@ -37,5 +39,18 @@ struct mcr_mod_extras {
 	 * \ref mcr_StringKey */
 	struct mcr_Array key_chars;
 };
+
+MCR_API int mcr_extras_initialize(struct mcr_context *ctx);
+MCR_API int mcr_extras_deinitialize(struct mcr_context *ctx);
+
+/* TODO: Trim */
+MCR_API int mcr_extras_load_contract(struct mcr_context *ctx);
+
+/* Implement in platform directory */
+/* Platform key definitions. */
+MCR_API int mcr_StringKey_load_contract(struct mcr_context *ctx);
+
+MCR_API int mcr_extras_platform_initialize(struct mcr_context *ctx);
+MCR_API int mcr_extras_platform_deinitialize(struct mcr_context *ctx);
 
 #endif

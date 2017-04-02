@@ -17,7 +17,6 @@
 */
 
 #include "mcr/extras/extras.h"
-#include "mcr/extras/private.h"
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -520,41 +519,6 @@ static int copy_args(struct mcr_Command *dstPt, struct mcr_Command *srcPt)
 		}
 	}
 	return err;
-}
-
-int mcr_signal_extras_initialize(struct mcr_context *ctx)
-{
-	struct mcr_ISignal *isigPt = mcr_iStringKey(ctx);
-	int err = 0;
-	mcr_ISignal_init(isigPt);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_StringKey),
-		mcr_StringKey_init, mcr_StringKey_deinit, mcr_StringKey_compare,
-		mcr_StringKey_copy);
-	isigPt->send = mcr_StringKey_send;
-	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
-	isigPt = mcr_iCommand(ctx);
-	mcr_ISignal_init(isigPt);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Command),
-		mcr_Command_init, mcr_Command_deinit, mcr_Command_compare,
-		mcr_Command_copy);
-	isigPt->send = mcr_Command_send;
-	mcr_Array_init(&ctx->extras.key_chars);
-	mcr_Array_set_all(&ctx->extras.key_chars, NULL,
-		sizeof(struct mcr_Array));
-
-	err = mcr_register(mcr_ISignal_reg(ctx), mcr_iStringKey(ctx), NULL,
-		NULL, 0);
-	if (!err)
-		err = mcr_register(mcr_ISignal_reg(ctx), mcr_iCommand(ctx),
-			NULL, NULL, 0);
-	return err;
-}
-
-int mcr_signal_extras_deinitialize(struct mcr_context *ctx)
-{
-	mcr_StringKey_char_clear(ctx);
-	mcr_Array_deinit(&ctx->extras.key_chars);
-	return 0;
 }
 
 static int set_signal_delays(struct mcr_Array *sigArrPt,

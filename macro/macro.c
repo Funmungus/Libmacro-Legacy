@@ -382,8 +382,10 @@ int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
 	struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
 {
 	dassert(mcrPt);
-	return mcr_Dispatcher_remove(mcrPt->ctx, isigPt, trigPt
-		&& trigPt->itrigger ? (void *)trigPt : (void *)mcrPt);
+	mcr_set_error(0);
+	mcr_Dispatcher_remove(mcrPt->ctx, isigPt, trigPt);
+	mcr_Dispatcher_remove(mcrPt->ctx, isigPt, mcrPt);
+	return mcr_error();
 }
 
 struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,

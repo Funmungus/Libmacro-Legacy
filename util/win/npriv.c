@@ -16,9 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NATIVELESS_STANDARD_H
-#define MCR_NATIVELESS_STANDARD_H
+#include "mcr/util/win/nutil.h"
+#include "mcr/util/util.h"
 
-#include "mcr/standard/nativeless/ndef.h"
-
-#endif
+int mcr_privilege_deactivate()
+{
+	return 0;
+}

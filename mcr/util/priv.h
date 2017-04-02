@@ -25,22 +25,12 @@
 
 #include "mcr/util/def.h"
 
-/*
- * Defined natively per OS
- */
 /*! \brief Disable privileges, and remove the ability to
  * enable them.
  *
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_privilege_deactivate();
-/*! \return If false, this application is not privileged, otherwise the
- * application has privileges */
-MCR_API bool mcr_is_privileged();
-/*! \brief Enable privileges
- *
- * \return \ref reterr
- */
-MCR_API int mcr_set_privileged(bool enable);
 
 #endif

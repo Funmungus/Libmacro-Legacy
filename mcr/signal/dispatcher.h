@@ -30,13 +30,8 @@
 #include "mcr/signal/dispatch_pair.h"
 #include "mcr/signal/isignal.h"
 
-/*! \brief All modifiers known by Libmacro to be set. */
-MCR_API unsigned int mcr_modifiers(struct mcr_context *ctx);
-/*! \brief Change current modifiers
- *
- * \param setMods New modifiers to set
- */
-MCR_API void mcr_set_modifiers(struct mcr_context *ctx, unsigned int setMods);
+/*! \brief Reference to Libmacro internal modifiers. */
+MCR_API unsigned int *mcr_modifiers(struct mcr_context *ctx);
 /*! \brief Add modifiers to current
  *
  * \param addMods Modifiers to add
@@ -110,8 +105,6 @@ struct mcr_Dispatcher {
 	mcr_Dispatcher_fnc clear;
 	/*! \brief Dispatch and return blocking status. */
 	mcr_Dispatcher_dispatch_fnc dispatch;
-	/*! \brief Deinitialize any resources for this dispatccher. */
-	mcr_Dispatcher_fnc deinit;
 	/*! \brief Change modifiers from the given signal. */
 	mcr_Dispatcher_modify_fnc modifier;
 	/*! \brief Remove given receiver. */
@@ -125,7 +118,6 @@ struct mcr_Dispatcher {
  *
  * Dispatch with signal and known modifiers into
  * \ref mcr_Dispatcher.dispatch
- *
  * \param sigPt \ref opt Object to dispatch, and possibly block sending
  * \return true to block
  */
@@ -200,18 +192,6 @@ MCR_API int mcr_Dispatcher_clear(struct mcr_context *ctx,
  * \return \ref reterr
  */
 MCR_API int mcr_Dispatcher_clear_all(struct mcr_context *ctx);
-/*! \brief Deallocate the dispatcher for a signal type
- *
- * \param isigPt \ref opt Signal type to remove receivers for
- * \return \ref reterr
- */
-MCR_API int mcr_Dispatcher_deinit(struct mcr_context *ctx,
-	struct mcr_ISignal *isigPt);
-/*! \brief Deallocate all dispatchers
- *
- * \return \ref reterr
- */
-MCR_API int mcr_Dispatcher_deinit_all(struct mcr_context *ctx);
 /*! \brief Use a signal to change modifiers
  *
  * \param interceptPt \ref opt Signal to use to change modifiers
@@ -257,7 +237,6 @@ MCR_API int mcr_Dispatcher_init(void *dispPt);
  * \param add \ref opt \ref mcr_Dispatcher.add
  * \param clear \ref opt \ref mcr_Dispatcher.clear
  * \param dispatch \ref opt \ref mcr_Dispatcher.dispatch
- * \param deinit \ref opt \ref mcr_Dispatcher.deinit
  * \param modifier \ref opt \ref mcr_Dispatcher.modifier
  * \param remove \ref opt \ref mcr_Dispatcher.remove
  * \param trim \ref opt \ref mcr_Dispatcher.trim
@@ -265,21 +244,20 @@ MCR_API int mcr_Dispatcher_init(void *dispPt);
  */
 MCR_API struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
 	mcr_Dispatcher_fnc clear, mcr_Dispatcher_dispatch_fnc dispatch,
-	mcr_Dispatcher_fnc deinit, mcr_Dispatcher_modify_fnc modifier,
-	mcr_Dispatcher_remove_fnc remove, mcr_Dispatcher_fnc trim);
+	mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
+	mcr_Dispatcher_fnc trim);
 /*! \brief Set initial values
  *
  * \param add \ref opt \ref mcr_Dispatcher.add
  * \param clear \ref opt \ref mcr_Dispatcher.clear
  * \param dispatch \ref opt \ref mcr_Dispatcher.dispatch
- * \param deinit \ref opt \ref mcr_Dispatcher.deinit
  * \param modifier \ref opt \ref mcr_Dispatcher.modifier
  * \param remove \ref opt \ref mcr_Dispatcher.remove
  * \param trim \ref opt \ref mcr_Dispatcher.trim
  */
 MCR_API void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
 	mcr_Dispatcher_add_fnc add, mcr_Dispatcher_fnc clear,
-	mcr_Dispatcher_dispatch_fnc dispatch, mcr_Dispatcher_fnc deinit,
+	mcr_Dispatcher_dispatch_fnc dispatch,
 	mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
 	mcr_Dispatcher_fnc trim);
 /*! \brief Register a new dispatcher for a

@@ -51,7 +51,7 @@ struct mcr_Macro {
 	 * return value of intercepting a signal. */
 	bool block;
 	/*! \brief If false the signals will be sent only once.  Otherwise
-	 * the signal set will repeat sending until interrupted */
+	 * the signals sent will repeat sending until interrupted */
 	bool sticky;
 	/*! \brief Maximum number of threads this macro can start when it is
 	 * triggered. */

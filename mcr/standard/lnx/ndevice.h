@@ -39,7 +39,7 @@ struct mcr_Device {
 	int fd;
 	/*! \brief File descriptor for event node, to ioctl and read from */
 	int event_fd;
-	/*! \brief 0 disabled, otherwise can write events to fd */
+	/*! \brief false disabled, otherwise can write events to fd */
 	bool enabled;
 };
 

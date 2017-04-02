@@ -17,9 +17,8 @@
 */
 
 #include "mcr/intercept/intercept.h"
-#include "mcr/standard/private.h"
-#include "mcr/intercept/private.h"
-#include MCR_INTERCEPT_NATIVE_INC
+#include "mcr/modules.h"
+#include MCR_INTERCEPT_PLATFORM_INC
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -57,7 +56,7 @@ static LRESULT CALLBACK scroll_proc(int nCode, WPARAM wParam, LPARAM lParam);
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		if (mcr_Grabber_is_enabled(nPt->all_grabbers[i]))
 			return true;
@@ -67,7 +66,7 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int err = 0;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		if ((err = mcr_Grabber_set_enabled(nPt->all_grabbers[i],
@@ -87,12 +86,12 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 	unsigned int *modBuffer;
 	/* If cannot get the mod state, return current */
 	if (verify_key_state(keyState, 0xFF))
-		return mcr_modifiers(ctx);
+		return *mcr_modifiers(ctx);
 
 	modBuffer = malloc(sizeof(int) * modlen);
 	if (!modBuffer) {
 		mset_error(ENOMEM);
-		return mcr_modifiers(ctx);
+		return *mcr_modifiers(ctx);
 	}
 
 	mcr_Key_mod_all(ctx, modBuffer, modlen);
@@ -111,43 +110,44 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 
 bool mcr_intercept_key_is_enabled(struct mcr_context * ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return MCR_GRABBER_IS_ENABLED(*nPt->grab_key);
 }
 
 int mcr_intercept_key_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return mcr_Grabber_set_enabled(nPt->grab_key, enable);
 }
 
 bool mcr_intercept_move_is_enabled(struct mcr_context * ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return MCR_GRABBER_IS_ENABLED(*nPt->grab_move);
 }
 
 int mcr_intercept_move_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return mcr_Grabber_set_enabled(nPt->grab_move, enable);
 }
 
 bool mcr_intercept_scroll_is_enabled(struct mcr_context * ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return MCR_GRABBER_IS_ENABLED(*nPt->grab_scroll);
 }
 
 int mcr_intercept_scroll_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	return mcr_Grabber_set_enabled(nPt->grab_scroll, enable);
 }
 
 static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
+	struct mcr_mod_intercept_platform *nPt =
+		_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
 		_key.key = p->vkCode;
@@ -161,7 +161,8 @@ static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 
 static LRESULT CALLBACK move_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
+	struct mcr_mod_intercept_platform *nPt =
+		_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
 		DWORD flags = p->flags;
@@ -187,7 +188,8 @@ static LRESULT CALLBACK move_proc(int nCode, WPARAM wParam, LPARAM lParam)
 
 static LRESULT CALLBACK scroll_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	struct mcr_mod_intercept_native *nPt = _hook_context->intercept.native;
+	struct mcr_mod_intercept_platform *nPt =
+		_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
 		WORD delta = GET_WHEEL_DELTA_WPARAM
@@ -230,18 +232,18 @@ static int verify_key_state(PBYTE keyState, size_t keyState_size)
 	return 0;
 }
 
-int mcr_intercept_native_initialize(struct mcr_context *ctx)
+int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 {
 	int i;
-	struct mcr_mod_intercept_native *nPt =
-		malloc(sizeof(struct mcr_mod_intercept_native));
+	struct mcr_mod_intercept_platform *nPt =
+		malloc(sizeof(struct mcr_mod_intercept_platform));
 	if (!nPt) {
 		mset_error(ENOMEM);
 		return ENOMEM;
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
+	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
 	_hook_context = ctx;
-	ctx->intercept.native = nPt;
+	ctx->intercept.platform = nPt;
 	for (i = arrlen(_signal_set); i--;) {
 		mcr_Signal_deinit(_signal_set[i]);
 		mcr_Signal_init(_signal_set[i]);
@@ -290,15 +292,15 @@ int mcr_intercept_native_initialize(struct mcr_context *ctx)
 	return 0;
 }
 
-int mcr_intercept_native_deinitialize(struct mcr_context *ctx)
+int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_native *nPt = ctx->intercept.native;
+	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		/* Will block while waiting to finish. */
 		mcr_Grabber_deinit(nPt->all_grabbers[i]);
 		free(nPt->all_grabbers[i]);
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_native));
+	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
 	free(nPt);
 	return 0;
 }

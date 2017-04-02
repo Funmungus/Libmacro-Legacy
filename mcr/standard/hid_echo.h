@@ -43,7 +43,7 @@ typedef struct mcr_HidEcho mcr_Echo;
 MCR_API int mcr_HidEcho_send(struct mcr_Signal *signalPt);
 /*! \brief \ref mcr_HidEcho_send
  *
- * \ref native_fnc
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);

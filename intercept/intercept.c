@@ -17,9 +17,8 @@
 */
 
 #include "mcr/intercept/intercept.h"
-#include "mcr/intercept/private.h"
 
 void mcr_intercept_reset_modifiers(struct mcr_context *ctx)
 {
-	mcr_set_modifiers(ctx, mcr_intercept_modifiers(ctx));
+	*mcr_modifiers(ctx) = mcr_intercept_modifiers(ctx);
 }

@@ -57,7 +57,6 @@ MCR_API mcr_String mcr_String_new();
 #define mcr_String_deinit mcr_Array_deinit
 /*! \brief Compare two strings, case insensitive.
  *
- * \ref mcr_casecmp
  * \param lhs \ref mcr_String * or char ** Left hand side
  * \param rhs \ref mcr_String * or char ** Right hand side
  * \return \ref retcmp

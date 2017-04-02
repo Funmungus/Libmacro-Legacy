@@ -16,23 +16,12 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * \brief In cases of extreme complexity, please break glass.
- */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifndef MCR_INTERCEPT_PRIVATE_H
-#define MCR_INTERCEPT_PRIVATE_H
+#include "mcr/intercept/none/nintercept.h"
 
-#include "mcr/intercept/def.h"
-
-MCR_API int mcr_intercept_initialize(struct mcr_context *ctx);
-MCR_API int mcr_intercept_deinitialize(struct mcr_context *ctx);
-
-/* Implement in native directory */
-MCR_API int mcr_intercept_native_initialize(struct mcr_context *ctx);
-MCR_API int mcr_intercept_native_deinitialize(struct mcr_context *ctx);
-
-#define MCR_INTERCEPT_NATIVE_INC \
-MCR_STR(mcr/intercept/MCR_NATIVE_DIR/nintercept.h)
-
+#ifdef __cplusplus
+}
 #endif

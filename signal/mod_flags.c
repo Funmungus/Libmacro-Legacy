@@ -17,7 +17,6 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/signal/private.h"
 #include "mcr/modules.h"
 
 /* Names */
@@ -72,44 +71,4 @@ void mcr_ModFlags_maps(struct mcr_context *ctx, struct mcr_Map **mapModName,
 		*mapModName = &ctx->signal.map_mod_name;
 	if (mapNameMod)
 		*mapNameMod = &ctx->signal.map_name_mod;
-}
-
-int mcr_mod_load_contract(struct mcr_context *ctx)
-{
-	unsigned int mods[] = { MCR_MOD_ANY, MCR_MF_NONE,
-		MCR_ALT, MCR_ALTGR, MCR_AMIGA, MCR_CMD,
-		MCR_CODE, MCR_COMPOSE, MCR_CTRL, MCR_FN, MCR_FRONT,
-		MCR_GRAPH, MCR_HYPER, MCR_META, MCR_SHIFT, MCR_SUPER,
-		MCR_SYMBOL, MCR_TOP, MCR_WIN, MCR_MF_USER
-	};
-	const char *modNames[] = { "Any", "None",
-		"Alt", "AltGr", "Amiga", "Cmd",
-		"Code", "Compose", "Ctrl", "Fn", "Front",
-		"Graph", "Hyper", "Meta", "Shift", "Super",
-		"Symbol", "Top", "Win", "User"
-	};
-	unsigned int addMods[5] = {
-		MCR_ALT, MCR_ALTGR, MCR_CMD, MCR_CTRL, MCR_WIN
-	};
-	const char *addNames[][2] = {
-		{"Option", ""}, {"Alt Gr", "alt_gr"}, {"Command", ""},
-		{"Control", ""}, {"Window", "Windows"}
-	};
-	size_t addLens[5] = { 1, 2, 1, 1, 2 };
-	int i = arrlen(mods), err;
-	struct mcr_Map *modNamesPt, *namesModPt;
-	mcr_ModFlags_maps(ctx, &modNamesPt, &namesModPt);
-	while (i--) {
-		if ((err = mcr_Map_map(modNamesPt, mods + i, modNames + i)))
-			return err;
-		if ((err = mcr_Map_map(namesModPt, modNames + i, mods + i)))
-			return err;
-	}
-	i = arrlen(addMods);
-	while (i--) {
-		if ((err = mcr_Map_fill(namesModPt, addNames[i], addLens[i],
-					addMods + i)))
-			return err;
-	}
-	return 0;
 }

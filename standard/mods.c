@@ -17,7 +17,6 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
 #include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
@@ -46,8 +45,8 @@ int mcr_Mods_send(struct mcr_Signal *sigPt)
 				(~modPt->modifiers);
 			break;
 		case MCR_TOGGLE:
-			if ((isigPt->ctx->signal.internal_mods & modPt->
-					modifiers)
+			if ((isigPt->ctx->signal.
+					internal_mods & modPt->modifiers)
 				== modPt->modifiers) {
 				isigPt->ctx->signal.internal_mods &=
 					(~modPt->modifiers);

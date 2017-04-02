@@ -47,7 +47,7 @@ MCR_API void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
 MCR_API int mcr_MoveCursor_send(struct mcr_Signal *sigPt);
 /*! \brief \ref mcr_MoveCursor_send
  *
- * \ref native_fnc
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt);
@@ -55,7 +55,7 @@ MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt);
 
 /*! \brief Current cursor position
  *
- * \ref native_fnc
+ * \ref mcr_is_platform
  */
 MCR_API void mcr_cursor_position(mcr_SpacePosition buffer);
 /*! \brief If justified then \ref mcr_resembles_justified,

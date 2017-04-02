@@ -16,13 +16,5 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/signal/nativeless/nsignal.h"
-#include "mcr/signal/signal.h"
-
-void mcr_Key_load_contract()
-{
-}
-
-void mcr_HidEcho_load_contract()
-{
-}
+#include "mcr/util/none/nutil.h"
+#include "mcr/standard/def.h"

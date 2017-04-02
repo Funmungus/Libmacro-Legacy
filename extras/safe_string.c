@@ -17,7 +17,7 @@
 */
 
 #include "mcr/extras/extras.h"
-#include "mcr/extras/private.h"
+#include "mcr/modules.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -307,19 +307,4 @@ void mcr_SafeString_set_password(char *pass)
 		memset(_pass, 0, MCR_AES_BLOCK_SIZE);
 	}
 	_pass[MCR_AES_BLOCK_SIZE] = '\0';
-}
-
-int mcr_safe_string_initialize(struct mcr_context *ctx)
-{
-	int err = mcr_randomize((unsigned char *)_pass,
-		MCR_AES_BLOCK_SIZE);
-	_pass[MCR_AES_BLOCK_SIZE] = '\0';
-	UNUSED(ctx);
-	return err;
-}
-
-int mcr_safe_string_deinitialize(struct mcr_context *ctx)
-{
-	UNUSED(ctx);
-	return 0;
 }

@@ -21,10 +21,10 @@ else:unix {
     # Unix/ELF will not use callspec for linking
     DEFINES += MCR_STATIC
 }
-else:CONFIG += nativeless
+else:CONFIG += none
 
-win: MCR_NATIVE_DIR = win
-else:lnx: MCR_NATIVE_DIR = lnx
-#else:mac: MCR_NATIVE_DIR = mac
-else: MCR_NATIVE_DIR = nativeless
-DEFINES += MCR_NATIVE_DIR=$${MCR_NATIVE_DIR}
+win: MCR_PLATFORM_DIR = win
+else:lnx: MCR_PLATFORM_DIR = lnx
+#else:mac: MCR_PLATFORM_DIR = mac
+else: MCR_PLATFORM_DIR = none
+DEFINES += MCR_PLATFORM_DIR=$${MCR_PLATFORM_DIR}

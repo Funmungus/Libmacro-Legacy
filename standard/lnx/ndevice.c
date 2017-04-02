@@ -17,8 +17,8 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
+#include "mcr/standard/mod_standard.h"
+#include MCR_STANDARD_PLATFORM_INC
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -86,17 +86,15 @@ static const struct mcr_Interface _iIntArray = {
 
 int mcr_Device_set_uinput_path(const char *path)
 {
-	dassert(path);
-	if (path[0] == '\0')
-		return EINVAL;
+	if (!path || path[0] == '\0')
+		return ENODEV;
 	return mcr_String_replace(&_uinputPath, path);
 }
 
 int mcr_Device_set_event_path(const char *directoryPath)
 {
-	dassert(directoryPath);
-	if (directoryPath[0] == '\0')
-		return EINVAL;
+	if (!directoryPath || directoryPath[0] == '\0')
+		return ENODEV;
 	return mcr_String_replace(&_eventPath, directoryPath);
 }
 
@@ -111,12 +109,6 @@ int mcr_Device_set_absolute_resolution(__s32 resolution)
 	if (wasEnabled)
 		return mcr_Device_enable(&mcr_absDev, true);
 	return err;
-/*      if ( mcr_relDev.enabled ) */
-/*              wasEnabled = 1 ; */
-/*      mcr_Device_deinit ( & mcr_relDev ) ; */
-/*      relDevice_init ( ) ; */
-/*      if ( wasEnabled ) */
-/*              mcr_Device_enable ( & mcr_relDev, 1 ) ; */
 }
 
 int mcr_Device_init(void *dataPt)
@@ -201,9 +193,6 @@ int mcr_Device_enable_all(bool enable)
 	int err = mcr_Device_enable(&mcr_genDev, enable);
 	if (!err)
 		err = mcr_Device_enable(&mcr_absDev, enable);
-/*	if (!err)
- *		err = mcr_Device_enable (&mcr_relDev, enable);
- */
 	return err;
 }
 
@@ -267,11 +256,11 @@ static int device_open(struct mcr_Device *devPt)
 
 static int device_open_event(struct mcr_Device *devPt)
 {
-	dassert(devPt);
 	int err = 0;
 	long int size;
 	char *wd;
 	char *ptr;
+	dassert(devPt);
 	if ((err = device_close_event(devPt)))
 		return err;
 	size = pathconf(".", _PC_PATH_MAX);
@@ -368,7 +357,6 @@ static int device_open_event_wd(struct mcr_Device *devPt)
 	memset(dev_name, 0, sizeof(dev_name));
 	/* if !entry then end of directory */
 	while ((entry = readdir(dirp))) {
-//      for (entry = readdir(dirp); entry != NULL; entry = readdir(dirp)) {
 		if (stat(entry->d_name, &s) < 0) {
 			mset_error(errno);
 			continue;
@@ -606,7 +594,7 @@ int mcr_Device_initialize(struct mcr_context *context)
 		return err;
 	if ((err = absDevice_init()))
 		return err;
-	if (mcr_is_privileged()) {
+	if (!access(MCR_STR(MCR_UINPUT_PATH), W_OK | R_OK)) {
 		if ((err = mcr_Device_enable_all(true)))
 			return err;
 	}

@@ -17,9 +17,12 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/standard/private.h"
-#include MCR_STANDARD_NATIVE_INC
 #include "mcr/modules.h"
+
+static int mcr_Key_initialize(struct mcr_context *ctx);
+static int mcr_Key_deinitialize(struct mcr_context *ctx);
+static int mcr_HidEcho_initialize(struct mcr_context *ctx);
+static int mcr_HidEcho_deinitialize(struct mcr_context *ctx);
 
 int mcr_standard_initialize(struct mcr_context *ctx)
 {
@@ -106,13 +109,13 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	if (!err)
 		err = mcr_HidEcho_initialize(ctx);
 	if (!err)
-		err = mcr_standard_native_initialize(ctx);
+		err = mcr_standard_platform_initialize(ctx);
 	return err;
 }
 
 int mcr_standard_deinitialize(struct mcr_context *ctx)
 {
-	int err = mcr_standard_native_deinitialize(ctx);
+	int err = mcr_standard_platform_deinitialize(ctx);
 	if (err)
 		return err;
 	if ((err = mcr_HidEcho_deinitialize(ctx)))
@@ -161,9 +164,7 @@ int mcr_standard_load_contract(struct mcr_context *ctx)
 		if ((err = mcr_reg_set_name(regPt, trigs[i], trigNames[i])))
 			return err;
 	}
-	if ((err = mcr_Key_load_contract(ctx)))
-		return err;
-	return mcr_HidEcho_load_contract(ctx);
+	return mcr_standard_platform_load_contract(ctx);
 }
 
 void mcr_standard_trim(struct mcr_context *ctx)
@@ -172,4 +173,62 @@ void mcr_standard_trim(struct mcr_context *ctx)
 	mcr_Key_trim(ctx);
 	mcr_Key_mod_trim(ctx);
 	mcr_Stage_trim(ctx);
+}
+
+static int mcr_Key_initialize(struct mcr_context *ctx)
+{
+	struct mcr_mod_standard *standard = &ctx->standard;
+	int err = 0;
+	mcr_Dispatcher_set_all(&standard->key_dispatcher.dispatcher,
+		mcr_Key_Dispatcher_add, mcr_Key_Dispatcher_clear,
+		mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_modifier,
+		mcr_Key_Dispatcher_remove, mcr_Key_Dispatcher_trim);
+	standard->key_dispatcher.ctx = ctx;
+	standard->key_dispatcher_maps[0] = standard->key_dispatcher_maps[1] =
+		mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
+		mcr_Array_DispatchPair_interface());
+	standard->map_key_modifier = mcr_Map_new(sizeof(int),
+		sizeof(unsigned int), mcr_int_compare, NULL, NULL);
+	standard->map_modifier_key = mcr_Map_new(sizeof(unsigned int),
+		sizeof(int), mcr_unsigned_compare, NULL, NULL);
+	if ((err = mcr_Dispatcher_register(ctx, &standard->key_dispatcher,
+				mcr_iKey(ctx)->interface.id)))
+		return err;
+	mcr_StringIndex_init(&standard->key_name_index);
+	mcr_String_init(&standard->key_name_any);
+	if ((err = mcr_String_replace(&standard->key_name_any, "Any")))
+		return err;
+	return err;
+}
+
+static int mcr_Key_deinitialize(struct mcr_context *ctx)
+{
+	int err;
+	struct mcr_mod_standard *standard = &ctx->standard;
+	int keyDispMapCount = arrlen(standard->key_dispatcher_maps);
+	mcr_StringIndex_deinit(&standard->key_name_index);
+	mcr_String_deinit(&standard->key_name_any);
+	while (keyDispMapCount--) {
+		mcr_Map_deinit(standard->key_dispatcher_maps + keyDispMapCount);
+	}
+	if ((err = mcr_Map_deinit(&standard->map_key_modifier)))
+		return err;
+	return mcr_Map_deinit(&standard->map_modifier_key);
+}
+
+static int mcr_HidEcho_initialize(struct mcr_context *ctx)
+{
+	int err = 0;
+	mcr_StringIndex_init(&ctx->standard.echo_name_index);
+	mcr_String_init(&ctx->standard.echo_name_any);
+	if ((err = mcr_String_replace(&ctx->standard.echo_name_any, "Any")))
+		return err;
+	return err;
+}
+
+static int mcr_HidEcho_deinitialize(struct mcr_context *ctx)
+{
+	mcr_StringIndex_deinit(&ctx->standard.echo_name_index);
+	mcr_String_deinit(&ctx->standard.echo_name_any);
+	return 0;
 }

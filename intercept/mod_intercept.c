@@ -17,15 +17,14 @@
 */
 
 #include "mcr/intercept/intercept.h"
-#include "mcr/intercept/private.h"
 #include "mcr/modules.h"
 
 int mcr_intercept_initialize(struct mcr_context *ctx)
 {
-	return mcr_intercept_native_initialize(ctx);
+	return mcr_intercept_platform_initialize(ctx);
 }
 
 int mcr_intercept_deinitialize(struct mcr_context *ctx)
 {
-	return mcr_intercept_native_deinitialize(ctx);
+	return mcr_intercept_platform_deinitialize(ctx);
 }

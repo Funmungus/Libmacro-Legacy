@@ -65,6 +65,8 @@ extern "C" {
 		bool flagTrimFinish);
 /*! \brief \ref mcr_deinitialize and \ref free
  *
+ * Because of threading do not deallocate in a deconstructor or on program
+ * exit.
  * \param ctx Libmacro context
  */
 	MCR_API int mcr_deallocate(struct mcr_context *ctx);
@@ -77,7 +79,10 @@ extern "C" {
 		bool flagLoadContracts, bool flagTrimFinish);
 /*! \brief Clean all resources used by Libmacro.
  *
+ * Because of threading do not deinitialize in a deconstructor or on program
+ * exit.
  * \param ctx Libmacro context
+ * \return \ref reterr
  */
 	MCR_API int mcr_deinitialize(struct mcr_context *ctx);
 /*! \brief Load string contracts
@@ -88,16 +93,17 @@ extern "C" {
  */
 	MCR_API int mcr_load_contracts(struct mcr_context *ctx);
 /*! \brief Minimize allocation used by Libmacro.
+ *
  * \param ctx Libmacro context
  */
 	MCR_API void mcr_trim(struct mcr_context *ctx);
 
-#ifndef MCR_NATIVE_INC
-/*! \brief Include this file to access native declarations.
+#ifndef MCR_PLATFORM_INC
+/*! \brief Include this file to access platform declarations.
  *
  * In case of emergency break glass
  */
-#define MCR_NATIVE_INC MCR_STR(mcr/MCR_NATIVE_DIR/nlibmacro.h)
+#define MCR_PLATFORM_INC MCR_STR(mcr/MCR_PLATFORM_DIR/nlibmacro.h)
 #endif
 
 #ifdef __cplusplus

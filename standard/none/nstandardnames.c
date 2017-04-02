@@ -16,20 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * \brief In cases of extreme complexity, please break glass.
- */
+#include "mcr/signal/none/nsignal.h"
+#include "mcr/signal/signal.h"
 
-#ifndef MCR_MACRO_PRIVATE_H
-#define MCR_MACRO_PRIVATE_H
+void mcr_Key_load_contract()
+{
+}
 
-#include "mcr/util/def.h"
-
-MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
-MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
-MCR_API void mcr_macro_trim(struct mcr_context *ctx);
-
-MCR_API int mcr_trigger_initialize(struct mcr_context *ctx);
-MCR_API int mcr_trigger_deinitialize(struct mcr_context *ctx);
-
-#endif
+void mcr_HidEcho_load_contract()
+{
+}
