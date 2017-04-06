@@ -37,16 +37,16 @@ extern "C" {
 #endif
 
 /*! \brief Required for Libmacro functions */
-	struct mcr_context {
-		struct mcr_mod_signal signal;
-		struct mcr_mod_macro macro;
-		struct mcr_mod_standard standard;
-		struct mcr_mod_intercept intercept;
-		/* Optional modules last to avoid offset errors */
+struct mcr_context {
+	struct mcr_mod_signal signal;
+	struct mcr_mod_macro macro;
+	struct mcr_mod_standard standard;
+	struct mcr_mod_intercept intercept;
+	/* Optional modules last to avoid offset errors */
 #ifdef MCR_EXTRAS
-		struct mcr_mod_extras extras;
+	struct mcr_mod_extras extras;
 #endif
-	};
+};
 
 #ifdef __cplusplus
 }

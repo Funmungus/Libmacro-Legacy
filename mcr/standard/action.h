@@ -45,7 +45,7 @@ MCR_API int mcr_Action_init(void *actPt);
  * \brief \ref mcr_ITrigger.receive for \ref mcr_Action
  */
 MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
-	unsigned int mods);
+				unsigned int mods);
 
 /*! \brief \ref mcr_ITrigger for \ref mcr_Action */
 MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);

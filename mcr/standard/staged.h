@@ -68,7 +68,7 @@ MCR_API int mcr_Staged_init(void *stagedPt);
 MCR_API int mcr_Staged_deinit(void *stagedPt);
 /*! \brief Set initial values */
 MCR_API void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
-	enum mcr_BlockStyle style);
+				enum mcr_BlockStyle style);
 MCR_API int mcr_Staged_compare(const void *lhs, const void *rhs);
 MCR_API int mcr_Staged_copy(void *dstPt, void *srcPt);
 /*! \brief \ref mcr_ITrigger.receive for staged trigger.
@@ -77,11 +77,11 @@ MCR_API int mcr_Staged_copy(void *dstPt, void *srcPt);
  * \ref mcr_Trigger.trigger will be called.
  */
 MCR_API bool mcr_Staged_receive(void *trigDataPt,
-	struct mcr_Signal *interceptPt, unsigned int mods);
+				struct mcr_Signal *interceptPt, unsigned int mods);
 
 /* Stage manipulation */
 MCR_API void mcr_Staged_set_style(struct mcr_Staged *trigPt,
-	enum mcr_BlockStyle style);
+				  enum mcr_BlockStyle style);
 MCR_API bool mcr_Staged_is_blocking(const struct mcr_Staged *trigPt);
 MCR_API void mcr_Staged_set_blocking(struct mcr_Staged *trigPt, bool blocking);
 MCR_API void mcr_Staged_deactivate(struct mcr_Staged *trigPt);

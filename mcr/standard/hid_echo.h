@@ -56,7 +56,7 @@ MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
  * \return Echo code, or \ref MCR_ECHO_ANY if it is not found
  */
 MCR_API size_t mcr_HidEcho_name_echo(struct mcr_context *ctx,
-	const char *eventName);
+				     const char *eventName);
 /*! \brief Get the name of an echo code.
  *
  * \param eventCode \ref mcr_HidEcho.echo
@@ -75,7 +75,7 @@ MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
-	const char *eventName);
+				 const char *eventName);
 /*! \brief Add a set of names to map to an echo code.
  *
  * \param eventCode Event code to add names for
@@ -84,26 +84,26 @@ MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_add(struct mcr_context *ctx, size_t eventCode,
-	const char **addNames, size_t bufferLen);
+			    const char **addNames, size_t bufferLen);
 /*! \brief \ref mcr_Echo_set_name and \ref mcr_Echo_add_names
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_map(struct mcr_context *ctx, size_t eventCode,
-	const char *eventName, const char **addNames, size_t bufferLen);
+			    const char *eventName, const char **addNames, size_t bufferLen);
 /*! \brief Rename an echo code
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_reecho(struct mcr_context *ctx, size_t eventCode,
-	size_t newCode);
+			       size_t newCode);
 /*! \brief Rename an echo code. The code is first found from its
  * old name.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_rename(struct mcr_context *ctx, const char *oldName,
-	const char *newName);
+			       const char *newName);
 /*! \brief Minimize name allocation */
 MCR_API void mcr_HidEcho_trim(struct mcr_context *ctx);
 /*! \brief Remove all mapped echo codes. */

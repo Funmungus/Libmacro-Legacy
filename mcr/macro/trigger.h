@@ -60,7 +60,7 @@ struct mcr_Trigger {
  * \return False to not block intercepted signal, otherwise do block
  */
 MCR_API bool mcr_Trigger_receive(void *triggerPt,
-	struct mcr_Signal *dispatchSignal, unsigned int mods);
+				 struct mcr_Signal *dispatchSignal, unsigned int mods);
 
 /*! \brief Data interface of trigger structures
  *
@@ -80,7 +80,7 @@ MCR_API int mcr_Trigger_init(void *triggerPt);
  * \return Constructed trigger
  */
 MCR_API struct mcr_Trigger mcr_Trigger_new(mcr_Dispatcher_receive_fnc trigger,
-	void *actor);
+		void *actor);
 /*! \brief \ref mcr_Trigger dtor
  *
  * \return 0
@@ -92,7 +92,7 @@ MCR_API int mcr_Trigger_deinit(void *trigPt);
  * \param actor \ref opt \ref mcr_Trigger.actor
  */
 MCR_API void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
-	mcr_Dispatcher_receive_fnc trigger, void *actor);
+				 mcr_Dispatcher_receive_fnc trigger, void *actor);
 /*! \brief Set trigger dispatch to a macro, and the correct macro receiving
  * function.
  *
@@ -100,7 +100,7 @@ MCR_API void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
  * \ref mcr_Macro_trigger will be set with \ref mcr_Trigger.trigger.
  */
 MCR_API void mcr_Trigger_set_macro(struct mcr_Trigger *triggerPt,
-	struct mcr_Macro *mcrPt);
+				   struct mcr_Macro *mcrPt);
 
 /*! \brief \ref mcr_Instance_copy, then copy trigger and actor
  *
@@ -116,7 +116,7 @@ MCR_API int mcr_Trigger_copy(void *dstPt, void *srcPt);
  * \return \ref retcmp
  */
 MCR_API int mcr_Trigger_compare(const void *lhsTriggerPt,
-	const void *rhsTriggerPt);
+				const void *rhsTriggerPt);
 /*! \brief Compare two signal references
  *
  * \param lhsPtPt \ref opt \ref mcr_Trigger **
@@ -133,13 +133,13 @@ MCR_API int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Trigger_add_dispatch(struct mcr_context *ctx,
-	struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
+				     struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
 /*! \brief Remove trigger from \ref mcr_Dispatcher_remove
  *
  * \param isigPt \ref opt Signal interface to find dispatcher to remove from
  * \return \ref reterr
  */
 MCR_API int mcr_Trigger_remove_dispatch(struct mcr_context *ctx,
-	struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
+					struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
 
 #endif

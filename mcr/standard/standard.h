@@ -48,11 +48,11 @@
  * array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
-	const mcr_Dimensions second);
+				     const mcr_Dimensions second);
 /*! \brief For both positions, the same coordinate array member must
  * be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
-	const mcr_Dimensions second, const unsigned int measurementError);
+				    const mcr_Dimensions second, const unsigned int measurementError);
 
 #endif

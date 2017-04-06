@@ -57,14 +57,14 @@ MCR_API int mcr_StringIndex_deinit(void *indexPt);
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_minused(struct mcr_StringIndex *indexPt,
-	size_t minUsed);
+				    size_t minUsed);
 /*! \brief Set a minimum size, and resize if needed.
  *
  * \param minSize Minimum number of allocated elements
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_minsize(struct mcr_StringIndex *indexPt,
-	size_t minSize);
+				    size_t minSize);
 /*! \brief Apply a smart resizing algorithm for adding a number of
  * elements.
  *
@@ -72,7 +72,7 @@ MCR_API int mcr_StringIndex_minsize(struct mcr_StringIndex *indexPt,
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_smartsize(struct mcr_StringIndex *indexPt,
-	size_t increasingCount);
+				      size_t increasingCount);
 /*! \brief Minimize allocated space. */
 MCR_API void mcr_StringIndex_trim(struct mcr_StringIndex *indexPt);
 /*! \brief Reallocate to given size.
@@ -81,7 +81,7 @@ MCR_API void mcr_StringIndex_trim(struct mcr_StringIndex *indexPt);
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_resize(struct mcr_StringIndex *indexPt,
-	size_t newSize);
+				   size_t newSize);
 /*! \brief Remove all mapped key-value pairs.
  *
  * \return \ref reterr
@@ -95,7 +95,7 @@ MCR_API void mcr_StringIndex_clear(struct mcr_StringIndex *indexPt);
  * \return String of the given index, null if not found
  */
 MCR_API mcr_String *mcr_StringIndex_string(struct mcr_StringIndex *indexPt,
-	size_t index);
+		size_t index);
 /*! \brief Get the C-string of a given index.
  *
  * \param indexPt \ref opt
@@ -103,7 +103,7 @@ MCR_API mcr_String *mcr_StringIndex_string(struct mcr_StringIndex *indexPt,
  * \return C-string for this index, null if not found
  */
 MCR_API const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
-	size_t index);
+		size_t index);
 /*! \brief Get the index of a string
  *
  * \param indexPt \ref opt
@@ -111,7 +111,7 @@ MCR_API const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
  * \return \ref retind -1 if not found
  */
 MCR_API size_t mcr_StringIndex_index(const struct mcr_StringIndex *indexPt,
-	const char *strKey);
+				     const char *strKey);
 
 /* Set/remove mappings */
 /*! \brief Map an index to a string, and a set of strings to that index.
@@ -123,8 +123,8 @@ MCR_API size_t mcr_StringIndex_index(const struct mcr_StringIndex *indexPt,
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
-	size_t index, const char *strKey, const char **addKeys,
-	size_t addCount);
+				size_t index, const char *strKey, const char **addKeys,
+				size_t addCount);
 /*! \brief Map a string to an index, without changing the index itself
  *
  * \param index Index to map to
@@ -133,7 +133,7 @@ MCR_API int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
-	size_t index, const char **addKeys, size_t addCount);
+				size_t index, const char **addKeys, size_t addCount);
 /*! \brief Remove mapped index and remap to a different index.
  *
  * \param curIndex \ref opt Index to remove
@@ -141,7 +141,7 @@ MCR_API int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
-	size_t curIndex, size_t newIndex);
+				    size_t curIndex, size_t newIndex);
 /*! \brief Remove mapped string and remap to a different index.
  *
  * \param strKey String to remove
@@ -149,7 +149,7 @@ MCR_API int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
  * \return \ref reterr
  */
 MCR_API int mcr_StringIndex_remap(struct mcr_StringIndex *indexPt,
-	const char *strKey, const char *newKey);
+				  const char *strKey, const char *newKey);
 /*! \brief Remove a mapped index
  *
  * \param remIndex Index to remove
@@ -157,7 +157,7 @@ MCR_API int mcr_StringIndex_remap(struct mcr_StringIndex *indexPt,
  * index.
  */
 MCR_API void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
-	size_t remIndex, bool flagRemoveAll);
+				   size_t remIndex, bool flagRemoveAll);
 /*! \brief Remove a mapped string
  *
  * \param remString \ref opt String to remove
@@ -165,7 +165,7 @@ MCR_API void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
  * string.
  */
 MCR_API void mcr_StringIndex_unmap_string(struct mcr_StringIndex *indexPt,
-	const char *remString, bool flagRemoveAll);
+		const char *remString, bool flagRemoveAll);
 
 /*! \brief See \ref mcr_Map_sort and \ref mcr_StringSet_sort */
 MCR_API void mcr_StringIndex_sort(struct mcr_StringIndex *indexPt);

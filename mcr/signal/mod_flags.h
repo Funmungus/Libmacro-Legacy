@@ -66,14 +66,14 @@ enum mcr_ModFlags {
  * \return Modifiers
  */
 MCR_API unsigned int mcr_ModFlags_mod(struct mcr_context *ctx,
-	const char *name);
+				      const char *name);
 /*! \brief Get the name of a modifier
  *
  * \param modifier Modifiers
  * \return Name of the modifier, or null if not found
  */
 MCR_API const char *mcr_ModFlags_name(struct mcr_context *ctx,
-	unsigned int modifier);
+				      unsigned int modifier);
 /*! \brief Get the number of modifiers that are mapped to a name
  *
  * \param \ref retind
@@ -88,7 +88,7 @@ MCR_API size_t mcr_ModFlags_count(struct mcr_context *ctx);
  * \return Combined flags
  */
 MCR_API unsigned int mcr_ModFlags_combine(const unsigned int *modsArray,
-	size_t length);
+		size_t length);
 /*! \brief Combine two flags
  *
  * \param mods First set of flags
@@ -110,7 +110,7 @@ MCR_API bool mcr_ModFlags_has(unsigned int mods, unsigned int modVal);
  * \return Current mods with the others removed
  */
 MCR_API unsigned int mcr_ModFlags_remove(unsigned int mods,
-	unsigned int delMod);
+		unsigned int delMod);
 
 /*! \brief Get the naming maps for modifiers and names.
  *
@@ -119,7 +119,7 @@ MCR_API unsigned int mcr_ModFlags_remove(unsigned int mods,
  * \param mapNameMod \ref opt Map from names to modifiers
  */
 MCR_API void mcr_ModFlags_maps(struct mcr_context *ctx,
-	struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
+			       struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
 
 /*! \brief See \ref mcr_ModFlags_add */
 #define MCR_MOD_ADD( toModify, modifiers ) \

@@ -67,7 +67,7 @@ MCR_API int mcr_ISignal_init(void *isigPt);
  * \return Newly created mcr_ISignal
  */
 MCR_API struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
-	mcr_signal_fnc sender);
+		mcr_signal_fnc sender);
 /*! \brief Set initial values
  *
  * Please use \ref mcr_iset_all for interface values.
@@ -75,7 +75,7 @@ MCR_API struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
  * \param sender \ref opt \ref mcr_ISignal.send
  */
 MCR_API void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
-	struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
+				 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
 
 /*! \brief Get the \ref mcr_IRegistry of \ref mcr_ISignal */
 MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
@@ -91,20 +91,20 @@ MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
  * \return Name of the mcr_ISignal, or null if not found
  */
 MCR_API const char *mcr_ISignal_name(struct mcr_context *ctx,
-	struct mcr_ISignal *isigPt);
+				     struct mcr_ISignal *isigPt);
 /*! \brief Get a \ref mcr_ISignal from its id
  *
  * \param id Id of the signal interface
  * \return Signal interface, or null if not found
  */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_id(struct mcr_context *ctx,
-	size_t id);
+		size_t id);
 /*! \brief Get a \ref mcr_ISignal from its name
  *
  * \param name \ref opt Name of the signal interface
  * \return Signal interface, or null if not found
  */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_name(struct mcr_context *ctx,
-	const char *name);
+		const char *name);
 
 #endif

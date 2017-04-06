@@ -101,7 +101,7 @@ MCR_API int mcr_Device_enable_all(bool enable);
  * \return \ref reterr
  */
 MCR_API int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType,
-	int *bits, size_t bitLen);
+				int *bits, size_t bitLen);
 /*! \brief Get all input bits to be set.
  *
  * \param bitType Type of event to find values for
@@ -109,7 +109,7 @@ MCR_API int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType,
  * null if not found.
  */
 MCR_API struct mcr_Array *mcr_Device_bits(struct mcr_Device *devPt,
-	int bitType);
+		int bitType);
 /*! \brief Does the device have UI_SET_EVBIT? */
 MCR_API bool mcr_Device_has_evbit(struct mcr_Device *devPt);
 

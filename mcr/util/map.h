@@ -78,9 +78,9 @@ MCR_API int mcr_Map_init(void *mapPt);
  * \return Empty map
  */
 MCR_API struct mcr_Map mcr_Map_new(size_t keySize,
-	size_t valueSize, mcr_compare_fnc compare,
-	const struct mcr_Interface *keyIface,
-	const struct mcr_Interface *valueIface);
+				   size_t valueSize, mcr_compare_fnc compare,
+				   const struct mcr_Interface *keyIface,
+				   const struct mcr_Interface *valueIface);
 /*! \post The map will be available to use again with only the array changed.
  * \brief \ref mcr_Map dtor
  *
@@ -101,9 +101,9 @@ MCR_API int mcr_Map_deinit(void *mapPt);
  * valueSize
  */
 MCR_API int mcr_Map_set_all(struct mcr_Map *mapPt, size_t keySize,
-	size_t valueSize, mcr_compare_fnc compare,
-	const struct mcr_Interface *keyIface,
-	const struct mcr_Interface *valueIface);
+			    size_t valueSize, mcr_compare_fnc compare,
+			    const struct mcr_Interface *keyIface,
+			    const struct mcr_Interface *valueIface);
 
 /* Allocation control */
 /*! \brief Set a minimum number of used elements and resize
@@ -156,7 +156,7 @@ MCR_API void *mcr_Map_valueof(const struct mcr_Map *mapPt, void *pairPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Map_set_key(const struct mcr_Map *mapPt, void *pairPt,
-	void *copyKeyPt);
+			    void *copyKeyPt);
 /*! \brief Change the value of a key-value element
  *
  * \param mapPt \ref opt
@@ -165,7 +165,7 @@ MCR_API int mcr_Map_set_key(const struct mcr_Map *mapPt, void *pairPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Map_set_valueof(const struct mcr_Map *mapPt, void *pairPt,
-	void *copyValuePt);
+				void *copyValuePt);
 /*! \brief Get a key-value pair, mapped from the key pointer.
  *
  * \param mapPt \ref opt
@@ -203,7 +203,7 @@ MCR_API size_t mcr_Map_index(const struct mcr_Map *mapPt, const void *keyPt);
  * \param bytesPt \ref opt \ref mcr_Map.set.element_size
  */
 MCR_API void mcr_Map_iter(const struct mcr_Map *mapPt, char **iterPt,
-	char **endPt, size_t * bytesPt);
+			  char **endPt, size_t * bytesPt);
 /*! \brief Create a range iterator. \ref mcr_Array_iter_range
  *
  * Depending on the indices used, the iterator or last element might be null.
@@ -216,7 +216,7 @@ MCR_API void mcr_Map_iter(const struct mcr_Map *mapPt, char **iterPt,
  * \param lastIndex Index of last element in range
  */
 MCR_API void mcr_Map_iter_range(const struct mcr_Map *mapPt, char **iterPt,
-	char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
+				char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
 
 /* Set/remove mappings */
 /*! \brief Map from key to value.
@@ -234,7 +234,7 @@ MCR_API int mcr_Map_map(struct mcr_Map *mapPt, void *keyPt, void *valuePt);
  * \return \ref reterr
  */
 MCR_API int mcr_Map_remap(struct mcr_Map *mapPt, const void *previousKeyPt,
-	void *newKeyPt);
+			  void *newKeyPt);
 /*! \brief Map a key-value pair.
  *
  * \param mappingPair Pointer to a key-value pair to
@@ -262,7 +262,7 @@ MCR_API int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt);
  * \return \ref reterr
  */
 MCR_API int mcr_Map_fill(struct mcr_Map *mapPt, void *keyArray,
-	size_t keyCount, void *valuePt);
+			 size_t keyCount, void *valuePt);
 /*! \brief Map a set of keys to a set of values
  *
  * \param keyArray \ref opt A set of keys to map
@@ -271,7 +271,7 @@ MCR_API int mcr_Map_fill(struct mcr_Map *mapPt, void *keyArray,
  * \return \ref reterr
  */
 MCR_API int mcr_Map_graph(struct mcr_Map *mapPt, void *keyArray,
-	void *valueArray, size_t sourceArrayLen);
+			  void *valueArray, size_t sourceArrayLen);
 
 /* Sorting */
 /*! \pre Map may be sorted or not

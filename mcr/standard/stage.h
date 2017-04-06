@@ -31,7 +31,7 @@ struct mcr_Stage;
  * regular \ref mcr_Signal_compare used for exact comparison.
  */
 typedef bool(*mcr_isme_fnc)
- (struct mcr_Stage *, struct mcr_Signal *);
+(struct mcr_Stage *, struct mcr_Signal *);
 /*! \brief Function table for \ref mcr_Stage
  *
  * Matching functions to activate stage, or keep activated.
@@ -81,9 +81,9 @@ MCR_API int mcr_Stage_deinit(void *stagePt);
  * \return \ref reterr
  */
 MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
-	struct mcr_Stage *stagePt, bool blocking,
-	struct mcr_Signal *interceptPt, unsigned int measurementError,
-	unsigned int mods, int trigFlags);
+			      struct mcr_Stage *stagePt, bool blocking,
+			      struct mcr_Signal *interceptPt, unsigned int measurementError,
+			      unsigned int mods, int trigFlags);
 /*! \brief Match an unactivated stage
  *
  * If intercepting a real signal: If signal interface is the same and
@@ -97,7 +97,7 @@ MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
  * \return Do activate if true
  */
 MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
-	struct mcr_Signal *interceptPt, unsigned int mods);
+			      struct mcr_Signal *interceptPt, unsigned int mods);
 /*! \brief Match an activated stage to be the new activated state
  *
  * If intercepting a real signal: Match with \ref mcr_IsStage.resembles, or
@@ -108,22 +108,22 @@ MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
  * \return Deactivate if false
  */
 MCR_API bool mcr_Stage_resembles(struct mcr_Stage *stagePt,
-	struct mcr_Signal *interceptPt);
+				 struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_set_intercept(struct mcr_context *ctx,
-	struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
+				    struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_set_intercept_generic(struct mcr_context *ctx,
-	struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
+		struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_compare(const void *lhs, const void *rhs);
 MCR_API int mcr_Stage_copy(void *dstPt, void *srcPt);
 
 /* Interface development. */
 MCR_API struct mcr_IsStage *mcr_Stage_from_id(struct mcr_context *ctx,
-	size_t id);
+		size_t id);
 MCR_API size_t mcr_Stage_count(struct mcr_context *ctx);
 MCR_API void mcr_Stage_all(struct mcr_context *ctx,
-	struct mcr_IsStage *buffer, size_t bufferLength);
+			   struct mcr_IsStage *buffer, size_t bufferLength);
 MCR_API int mcr_Stage_register(struct mcr_context *ctx, mcr_isme_fnc setIsme,
-	mcr_isme_fnc setResemble, size_t signalId);
+			       mcr_isme_fnc setResemble, size_t signalId);
 MCR_API void mcr_Stage_clear(struct mcr_context *ctx);
 MCR_API void mcr_Stage_trim(struct mcr_context *ctx);
 

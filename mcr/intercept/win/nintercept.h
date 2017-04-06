@@ -39,9 +39,9 @@ MCR_API bool mcr_intercept_key_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_key_set_enabled(struct mcr_context *ctx, bool enable);
 MCR_API bool mcr_intercept_move_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_move_set_enabled(struct mcr_context *ctx,
-	bool enable);
+		bool enable);
 MCR_API bool mcr_intercept_scroll_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_scroll_set_enabled(struct mcr_context *ctx,
-	bool enable);
+		bool enable);
 
 #endif

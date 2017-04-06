@@ -33,7 +33,7 @@ struct mcr_Alarm {
 
 /*! \brief Set second, minute, hour, day of month, month, and day of week. */
 MCR_API void mcr_Alarm_set_all(struct mcr_Alarm *almPt, int sec, int minute,
-	int hour, int mday, int mon, int wday);
+			       int hour, int mday, int mon, int wday);
 /*! \pre Signal data is \ref mcr_Alarm
  * \brief Pause execution until a time point.
  *

@@ -146,8 +146,8 @@ MCR_API int mcr_Interface_init(void *interfacePt);
  * \return New interface
  */
 MCR_API struct mcr_Interface mcr_Interface_new(size_t dataSize,
-	mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
-	mcr_copy_fnc copy);
+		mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
+		mcr_copy_fnc copy);
 
 /*! \brief Set all \ref mcr_Interface functions
  *
@@ -159,8 +159,8 @@ MCR_API struct mcr_Interface mcr_Interface_new(size_t dataSize,
  * \param copy \ref opt \ref mcr_Interface.copy
  */
 MCR_API void mcr_Interface_set_all(void *interfacePt,
-	size_t dataSize, mcr_data_fnc init, mcr_data_fnc deinit,
-	mcr_compare_fnc compare, mcr_copy_fnc copy);
+				   size_t dataSize, mcr_data_fnc init, mcr_data_fnc deinit,
+				   mcr_compare_fnc compare, mcr_copy_fnc copy);
 
 /*! \brief Get the id of a pointer to \ref mcr_Interface
  *
@@ -198,7 +198,7 @@ MCR_API int mcr_iinit(const void *interfacePt, struct mcr_Data *dataPt);
  * \return \ref reterr
  */
 MCR_API int mcr_iref_init(const void *const *interfacePtPt,
-	struct mcr_Data *dataPt);
+			  struct mcr_Data *dataPt);
 
 /*! \brief Release object resources and deallocate if needed.
  *
@@ -220,7 +220,7 @@ MCR_API int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt);
  * \return \ref retcmp
  */
 MCR_API int mcr_icmp(const void *interfacePt,
-	const struct mcr_Data *lhs, const struct mcr_Data *rhs);
+		     const struct mcr_Data *lhs, const struct mcr_Data *rhs);
 
 /*! \brief Use an interface to copy an object
  *
@@ -232,7 +232,7 @@ MCR_API int mcr_icmp(const void *interfacePt,
  * \return \ref reterr
  */
 MCR_API int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
-	struct mcr_Data *srcPt);
+		     struct mcr_Data *srcPt);
 
 /*! \brief Replace object reference using an interface
  *
@@ -245,7 +245,7 @@ MCR_API int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
  * \return \ref reterr
  */
 MCR_API int mcr_iset_data(const void *interfacePt,
-	struct mcr_Data *dataPt, void *data, void (*deallocate) (void *));
+			  struct mcr_Data *dataPt, void *data, void (*deallocate) (void *));
 
 /*! \brief Initialize and set data.  Free previous data if it exists.
  *

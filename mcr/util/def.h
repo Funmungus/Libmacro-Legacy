@@ -263,7 +263,7 @@ if (errorNumber) { \
 #define mset_error(errorNumber) mcr_mset_error(errorNumber)
 #endif
 /* Used throughout in library functions */
-	struct mcr_context;
+struct mcr_context;
 /*! \brief Function on data or an object.
  *
  * Use this for data init and deinit, such as \ref mcr_Interface.init

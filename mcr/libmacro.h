@@ -53,7 +53,7 @@ extern "C" {
 #endif
 
 /*! \brief Libmacro context, required for Libmacro functions */
-	struct mcr_context;
+struct mcr_context;
 /*! \brief \ref malloc and \ref mcr_initialize
  *
  * \param flagLoadContracts If true, also load string contracts in
@@ -61,7 +61,7 @@ extern "C" {
  * \param flagTrimFinish If true, \ref mcr_trim after initializing.
  * \return Initialized Libmacro context, or NULL on error
  */
-	MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
+MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
 		bool flagTrimFinish);
 /*! \brief \ref mcr_deinitialize and \ref free
  *
@@ -69,14 +69,14 @@ extern "C" {
  * exit.
  * \param ctx Libmacro context
  */
-	MCR_API int mcr_deallocate(struct mcr_context *ctx);
+MCR_API int mcr_deallocate(struct mcr_context *ctx);
 /*! \brief Initialize Libmacro resources
  *
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_initialize(struct mcr_context *ctx,
-		bool flagLoadContracts, bool flagTrimFinish);
+MCR_API int mcr_initialize(struct mcr_context *ctx,
+			   bool flagLoadContracts, bool flagTrimFinish);
 /*! \brief Clean all resources used by Libmacro.
  *
  * Because of threading do not deinitialize in a deconstructor or on program
@@ -84,19 +84,19 @@ extern "C" {
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_deinitialize(struct mcr_context *ctx);
 /*! \brief Load string contracts
  *
  * String contracts map string names or keys to types and instances.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_load_contracts(struct mcr_context *ctx);
+MCR_API int mcr_load_contracts(struct mcr_context *ctx);
 /*! \brief Minimize allocation used by Libmacro.
  *
  * \param ctx Libmacro context
  */
-	MCR_API void mcr_trim(struct mcr_context *ctx);
+MCR_API void mcr_trim(struct mcr_context *ctx);
 
 #ifndef MCR_PLATFORM_INC
 /*! \brief Include this file to access platform declarations.

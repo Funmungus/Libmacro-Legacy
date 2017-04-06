@@ -38,7 +38,7 @@ typedef struct mcr_MoveCursor mcr_MC;
 
 /*! \brief Set initial values */
 MCR_API void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
-	const mcr_SpacePosition pos, bool flagJustify);
+				    const mcr_SpacePosition pos, bool flagJustify);
 /*! \pre Signal data is  \ref mcr_MoveCursor
  * \brief Move HID cursor position.
  *
@@ -67,7 +67,7 @@ MCR_API void mcr_cursor_position(mcr_SpacePosition buffer);
  * \return If false cursors do not resemble each other, otherwise they do
  */
 MCR_API bool mcr_resembles(const struct mcr_MoveCursor *lhs,
-	const struct mcr_MoveCursor *rhs, const unsigned int measurementError);
+			   const struct mcr_MoveCursor *rhs, const unsigned int measurementError);
 
 /* mcr_MoveCursor -> mcr_MC */
 /*! \brief \ref mcr_MoveCursor_set_all */

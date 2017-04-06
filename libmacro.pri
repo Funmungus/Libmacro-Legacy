@@ -8,12 +8,6 @@ DEFINES += MCR_VERSION=$${MCR_VERSION} \
 
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
-CONFIG(noextras){}
-else {
-    CONFIG += extras
-    DEFINES += MCR_EXTRAS
-}
-
 win32|win64:CONFIG += win
 else:unix {
     macx:CONFIG += mac

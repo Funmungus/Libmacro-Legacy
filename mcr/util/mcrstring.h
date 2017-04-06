@@ -122,7 +122,7 @@ NULL))
  * \return \ref reterr
  */
 MCR_API int mcr_String_insert(mcr_String * strPt, size_t index,
-	const char *str, size_t len);
+			      const char *str, size_t len);
 /*! \brief Remove a substring.
  *
  * \param index First character to remove
@@ -130,7 +130,7 @@ MCR_API int mcr_String_insert(mcr_String * strPt, size_t index,
  * is available, the string will be emptied starting with the given index.
  */
 MCR_API void mcr_String_remove_index(mcr_String * strPt, size_t index,
-	size_t count);
+				     size_t count);
 /*! \brief Append a string to the end of this string
  *
  * \param str \ref opt String to copy
@@ -168,7 +168,7 @@ mcr_String_nreplace(strPt, str, ~0)
  * \return \ref reterr
  */
 MCR_API int mcr_String_nreplace(mcr_String * strPt,
-	const char *str, size_t len);
+				const char *str, size_t len);
 /*! \brief Replace characters starting from an index.
  *
  * \param index First index to start replacing from
@@ -178,7 +178,7 @@ MCR_API int mcr_String_nreplace(mcr_String * strPt,
  * \return \ref reterr
  */
 MCR_API int mcr_String_copy_str(mcr_String * strPt, size_t index,
-	const char *str, size_t len);
+				const char *str, size_t len);
 /*! \brief Replace a single character
  *
  * \param index Index to replace
@@ -194,7 +194,7 @@ MCR_API int mcr_String_set(mcr_String * strPt, size_t index, char c);
  * \return \ref reterr
  */
 MCR_API int mcr_String_fill(mcr_String * strPt, size_t index,
-	size_t count, char c);
+			    size_t count, char c);
 /*! \brief Move characters within a string, or from one to the other.
  *
  * \param dstPos Destination index to move characters into
@@ -205,7 +205,7 @@ MCR_API int mcr_String_fill(mcr_String * strPt, size_t index,
  * \return \ref reterr
  */
 MCR_API int mcr_String_move(mcr_String * dstPt, size_t dstPos,
-	mcr_String * srcPt, size_t srcPos, size_t count);
+			    mcr_String * srcPt, size_t srcPos, size_t count);
 
 /*! \brief An empty string either has no characters, or the first
  * character is NULL.

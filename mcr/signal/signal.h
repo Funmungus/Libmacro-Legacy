@@ -84,7 +84,7 @@ MCR_API int mcr_Signal_copy(void *dstPt, void *srcPt);
  * \return \ref retcmp
  */
 MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
-	const void *rhsSignalPt);
+			       const void *rhsSignalPt);
 /*! \brief Compare two signal references
  *
  * \param lhsPtPt \ref opt \ref mcr_Signal **

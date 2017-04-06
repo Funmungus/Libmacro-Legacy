@@ -36,7 +36,7 @@ struct mcr_Signal;
  * \return true to block sending
  */
 typedef bool(*mcr_Dispatcher_receive_fnc) (void *receiver,
-	struct mcr_Signal * dispatchSignal, unsigned int mods);
+		struct mcr_Signal * dispatchSignal, unsigned int mods);
 /*! \brief Generic receiver and function that may block or intercept a sending
  * signal
  *
@@ -55,7 +55,7 @@ struct mcr_DispatchPair {
  * \return New \ref mcr_DispatchPair
  */
 MCR_API struct mcr_DispatchPair mcr_DispatchPar_new(void *receiver,
-	mcr_Dispatcher_receive_fnc dispatch);
+		mcr_Dispatcher_receive_fnc dispatch);
 /*! \brief Compare \ref mcr_DispatchPair, only compare receivers. */
 #define mcr_DispatchPair_compare mcr_ref_compare
 

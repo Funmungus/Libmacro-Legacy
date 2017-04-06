@@ -64,7 +64,7 @@ MCR_API int mcr_Instance_deinit(void *instPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_set_all(void *instPt, const void *iPt,
-	void *dataPt, void (*deallocate) (void *));
+				 void *dataPt, void (*deallocate) (void *));
 
 /*! \brief Get \ref mcr_Data.data
  *
@@ -112,7 +112,7 @@ MCR_API int mcr_Instance_set_interface(void *instPt, const void *iPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_set_data(void *instPt, void *dataPt,
-	void (*deallocate) (void *));
+				  void (*deallocate) (void *));
 /*! \brief Compare two instances
  *
  * \param lhsPt \ref opt \ref mcr_Instance *

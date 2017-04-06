@@ -83,7 +83,7 @@ static inline int thrd_create(thrd_t * thr, thrd_start_t func, void *arg)
 	 * thrd_nomem. but it doesn't seem to correspond to any pthread_create errors.
 	 */
 	return pthread_create(thr, 0, (void *(*)(void *))func,
-		arg) == 0 ? thrd_success : thrd_error;
+			      arg) == 0 ? thrd_success : thrd_error;
 }
 
 static inline void thrd_exit(int res)
@@ -120,7 +120,7 @@ static inline int thrd_equal(thrd_t a, thrd_t b)
 }
 
 static inline void thrd_sleep(const struct timespec *ts_in,
-	struct timespec *rem_out)
+			      struct timespec *rem_out)
 {
 	int res;
 	struct timespec rem, ts = *ts_in;
@@ -199,7 +199,7 @@ static inline int mtx_timedlock(mtx_t * mtx, const struct timespec *ts)
 		gettimeofday(&now, NULL);
 
 		if (now.tv_sec > ts->tv_sec || (now.tv_sec == ts->tv_sec &&
-				(now.tv_usec * 1000) >= ts->tv_nsec)) {
+						(now.tv_usec * 1000) >= ts->tv_nsec)) {
 			return thrd_timedout;
 		}
 
@@ -246,7 +246,7 @@ static inline int cnd_wait(cnd_t * cond, mtx_t * mtx)
 }
 
 static inline int cnd_timedwait(cnd_t * cond, mtx_t * mtx,
-	const struct timespec *ts)
+				const struct timespec *ts)
 {
 	int res;
 

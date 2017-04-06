@@ -50,7 +50,7 @@ MCR_API int mcr_ITrigger_init(void *itrigPt);
  * \return Constructed trigger interface
  */
 MCR_API struct mcr_ITrigger mcr_ITrigger_new(mcr_Dispatcher_receive_fnc
-	receiveFnc);
+		receiveFnc);
 
 /*! \brief Get the \ref mcr_IRegistry of \ref mcr_ITrigger */
 MCR_API struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx);
@@ -66,20 +66,20 @@ MCR_API struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx);
  * \return Name of the trigger interface, or null if not found
  */
 MCR_API const char *mcr_ITrigger_name(struct mcr_context *ctx,
-	struct mcr_ITrigger *itrigPt);
+				      struct mcr_ITrigger *itrigPt);
 /*! \brief Get a trigger interface from its id
  *
  * \param id Id of the trigger interface
  * \return Trigger interface, or null if not found
  */
 MCR_API struct mcr_ITrigger *mcr_ITrigger_from_id(struct mcr_context *ctx,
-	size_t id);
+		size_t id);
 /*! \brief Get a trigger interface from its name
  *
  * \param name \ref opt Name of the trigger interface
  * \return Trigger interface, or null if not found
  */
 MCR_API struct mcr_ITrigger *mcr_ITrigger_from_name(struct mcr_context *ctx,
-	const char *name);
+		const char *name);
 
 #endif

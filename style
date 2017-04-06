@@ -1,9 +1,34 @@
+#!/bin/bash
+
+usage () {
+  echo "Current working directory = $(pwd)
+"
+  echo "$0 - Use astyle to style source code.
+"
+  echo "Usage:";
+  echo "  $0 - No options, style all .h, .hpp, .c, and .cpp files in current working directory"
+  echo "  $0 [-h | --help | help | usage] - Show this help list"
+  echo "  $0 [file 1 [file 2 [...]]] - File list, style all files in the given file listing
+"
+  exit 0;
+}
+
+while getopts 'h' opt; do
+ if [ "$opt" = 'h' ]; then
+    usage
+ fi
+done
+
+if [ "$1" = '--help' ] || [ "$1" = 'help' ] || [ "$1" = 'usage' ];then
+  usage
+fi
+
+DIR="$(readlink -f "$0")"
+DIR="$(dirname "$DIR")"
+optFile="$DIR/libmacro.astylerc"
+
 if [ $# -gt 0 ]; then
-  indent -nbad -bap -nbc -bbo -hnl -br -brs -c33 -cd33 -ncdb -ce -ci0 -cli0 \
-    -d0 -di1 -nfc1 -i8 -ip0 -l80 -nlp -npcs -nprs -npsl -sai -saf -saw -ncs \
-    -nsc -sob -nfca -cp33 -ss -ts8 -il1 "$@"
+  astyle --options="$optFile" "$@"
 else
-  indent -nbad -bap -nbc -bbo -hnl -br -brs -c33 -cd33 -ncdb -ce -ci0 -cli0 \
-    -d0 -di1 -nfc1 -i8 -ip0 -l80 -nlp -npcs -nprs -npsl -sai -saf -saw -ncs \
-    -nsc -sob -nfca -cp33 -ss -ts8 -il1 $(find -name '*.c') $(find -name '*.h')
+  astyle --options="$optFile" $(find -name '*.cpp') $(find -name '*.c') $(find -name '*.h')
 fi
