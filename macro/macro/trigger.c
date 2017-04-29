@@ -88,9 +88,10 @@ void mcr_Trigger_set_macro(struct mcr_Trigger *triggerPt,
 	}
 }
 
-int mcr_Trigger_copy(void *dstPt, void *srcPt)
+int mcr_Trigger_copy(void *dstPt, const void *srcPt)
 {
-	struct mcr_Trigger *dstTrig = dstPt, *srcTrig = srcPt;
+	struct mcr_Trigger *dstTrig = dstPt;
+	const struct mcr_Trigger *srcTrig = srcPt;
 	int err = mcr_Instance_copy(dstPt, srcPt);
 	if (err)
 		return err;

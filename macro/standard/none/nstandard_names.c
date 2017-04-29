@@ -16,31 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
- * \brief \ref mcr_mod_macro - Macro module
- */
+#include "mcr/signal/none/nsignal.h"
+#include "mcr/signal/signal.h"
 
-#ifndef MCR_MACRO_MOD_MACRO_H
-#define MCR_MACRO_MOD_MACRO_H
-
-#include "mcr/util/util.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*! \brief Macro module */
-struct mcr_mod_macro {
-	/*! \brief \ref mcr_ITrigger registry */
-	struct mcr_IRegistry itriggers;
-};
-
-MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
-MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
-MCR_API void mcr_macro_trim(struct mcr_context *ctx);
-
-#ifdef __cplusplus
+void mcr_Key_load_contract()
+{
 }
-#endif
-#endif
+
+void mcr_HidEcho_load_contract()
+{
+}

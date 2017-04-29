@@ -97,10 +97,10 @@ mcr_String mcr_String_new()
 	return ret;
 }
 
-int mcr_String_copy(void *dstPt, void *srcPt)
+int mcr_String_copy(void *dstPt, const void *srcPt)
 {
 	dassert(dstPt);
-	return mcr_String_replace(dstPt, srcPt ? *(char **)srcPt : NULL);
+	return mcr_String_replace(dstPt, srcPt ? *(const char **)srcPt : NULL);
 }
 
 void mcr_String_clear(mcr_String * strPt)

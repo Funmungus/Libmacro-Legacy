@@ -16,19 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Interface Interface to object references
  * \ref mcr_Data Object reference
  *
  * Interface definitions are typecasted, data definitions are not.
  */
 
-#ifndef MCR_INTERFACE_H
-#define MCR_INTERFACE_H
+#ifndef MCR_UTIL_INTERFACE_H
+#define MCR_UTIL_INTERFACE_H
 
 #include "mcr/util/def.h"
 
-/*! \brief An object reference that may be heap memory to deallocate
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief An object reference that may be heap memory to deallocate
  *
  * \ref mcr_Data_deinit\n
  * If data is allocated with \ref malloc, set deallocate to
@@ -38,7 +44,8 @@
 struct mcr_Data {
 	/*! \brief Object reference */
 	void *data;
-	/*! \brief If set, this will be called on data in \ref mcr_Data_deinit
+	/*!
+	 * \brief If set, this will be called on data in \ref mcr_Data_deinit
 	 *
 	 * If data is allocated with C++ new or new[] operators, please
 	 * create functions to delete correctly. */
@@ -58,20 +65,23 @@ struct mcr_Interface {
 	mcr_data_fnc deinit;
 	/*! \brief \ref mcr_compare_fnc for an object, default memcmp */
 	mcr_compare_fnc compare;
-	/*! \brief Copy from source object to destination object,
+	/*!
+	 * \brief Copy from source object to destination object,
 	 * default memcpy */
 	mcr_copy_fnc copy;
 };
 
 /* Data */
-/*! \brief Create data object
+/*!
+ * \brief Create data object
  *
  * \param dataPt \ref opt \ref mcr_Data.data
  * \param deallocate \ref opt \ref mcr_Data.deallocate
  * \return Data object
  */
 MCR_API struct mcr_Data mcr_Data_new(void *dataPt, void (*deallocate) (void *));
-/*! \brief Set data reference and deallocator.
+/*!
+ * \brief Set data reference and deallocator.
  *
  * \param dataIn \ref mcr_Data
  * \param dataPt \ref opt \ref mcr_Data.data
@@ -81,7 +91,8 @@ MCR_API struct mcr_Data mcr_Data_new(void *dataPt, void (*deallocate) (void *));
 (dataIn).data = (dataPt); \
 (dataIn).deallocate = (deallocateFnc);
 
-/*! \brief Set data reference and deallocator.
+/*!
+ * \brief Set data reference and deallocator.
  *
  * \param dataInPt \ref mcr_Data
  * \param dataPt \ref opt \ref mcr_Data.data
@@ -92,7 +103,8 @@ if (dataInPt) { \
 	MCR_DATA_SET_ALL(*(dataInPt), dataPt, deallocateFnc) \
 }
 
-/*! \brief Is data heap allocated?
+/*!
+ * \brief Is data heap allocated?
  *
  * \param dataIn \ref mcr_Data
  * \return bool
@@ -100,7 +112,8 @@ if (dataInPt) { \
 #define MCR_DATA_IS_HEAP(dataIn) \
 (!!(dataIn).deallocate)
 
-/*! \brief Is data heap allocated?
+/*!
+ * \brief Is data heap allocated?
  *
  * \param dataInPt \ref opt \ref mcr_Data *
  * \return bool
@@ -108,7 +121,8 @@ if (dataInPt) { \
 #define mcr_Data_is_heap(dataInPt) \
 ((dataInPt) ? MCR_DATA_IS_HEAP(*(dataInPt)) : false)
 
-/*! \brief Free data if needed, and nullify.
+/*!
+ * \brief Free data if needed, and nullify.
  *
  * \param dataIn \ref mcr_Data
  */
@@ -119,7 +133,8 @@ if (MCR_DATA_IS_HEAP(dataIn)) { \
 } \
 (dataIn).data = NULL;
 
-/*! \brief Free data if needed, and nullify.
+/*!
+ * \brief Free data if needed, and nullify.
  *
  * \param dataInPt \ref opt \ref mcr_Data *
  */
@@ -129,14 +144,16 @@ if (dataInPt) { \
 }
 
 /* Interface */
-/*! \brief \ref mcr_Interface ctor
+/*!
+ * \brief \ref mcr_Interface ctor
  *
  * No deinitialize needed
  * \param interfacePt \ref opt \ref mcr_Interface *
  * \return 0
  */
 MCR_API int mcr_Interface_init(void *interfacePt);
-/*! \brief \ref mcr_Interface_init and \ref mcr_Interface_set_all
+/*!
+ * \brief \ref mcr_Interface_init and \ref mcr_Interface_set_all
  *
  * \param dataSize \ref opt \ref mcr_Interface.data_size
  * \param init \ref opt \ref mcr_Interface.init
@@ -149,7 +166,8 @@ MCR_API struct mcr_Interface mcr_Interface_new(size_t dataSize,
 		mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
 		mcr_copy_fnc copy);
 
-/*! \brief Set all \ref mcr_Interface functions
+/*!
+ * \brief Set all \ref mcr_Interface functions
  *
  * \param interfacePt \ref mcr_Interface *
  * \param dataSize \ref opt \ref mcr_Interface.data_size
@@ -162,7 +180,8 @@ MCR_API void mcr_Interface_set_all(void *interfacePt,
 				   size_t dataSize, mcr_data_fnc init, mcr_data_fnc deinit,
 				   mcr_compare_fnc compare, mcr_copy_fnc copy);
 
-/*! \brief Get the id of a pointer to \ref mcr_Interface
+/*!
+ * \brief Get the id of a pointer to \ref mcr_Interface
  *
  * \param interfacePt \ref opt \ref mcr_Interface *
  * \return \ref retid
@@ -170,7 +189,8 @@ MCR_API void mcr_Interface_set_all(void *interfacePt,
 #define mcr_iid(interfacePt) (interfacePt ? \
 ((struct mcr_Interface *)interfacePt)->id : (size_t)~0)
 
-/*! \brief \ref mcr_iid typecasted from \ref mcr_Interface **
+/*!
+ * \brief \ref mcr_iid typecasted from \ref mcr_Interface **
  *
  * \param interfacePtPt \ref opt \ref mcr_Interface **
  */
@@ -179,7 +199,8 @@ MCR_API void mcr_Interface_set_all(void *interfacePt,
 		(size_t)~0)
 
 /* Interface functions on data */
-/*! \brief Heap-allocate and initialize an object
+/*!
+ * \brief Heap-allocate and initialize an object
  *
  * 1) Use \ref malloc to allocate object\n
  * 2) Initialize object with \ref mcr_Interface.init\n
@@ -191,7 +212,8 @@ MCR_API void mcr_Interface_set_all(void *interfacePt,
  */
 MCR_API int mcr_iinit(const void *interfacePt, struct mcr_Data *dataPt);
 
-/*! \brief \ref mcr_iinit with the contained \ref mcr_Interface *
+/*!
+ * \brief \ref mcr_iinit with the contained \ref mcr_Interface *
  *
  * \param interfacePtPt \ref opt \ref mcr_Interface **
  * \param dataPt \ref opt Object to initialize
@@ -200,7 +222,8 @@ MCR_API int mcr_iinit(const void *interfacePt, struct mcr_Data *dataPt);
 MCR_API int mcr_iref_init(const void *const *interfacePtPt,
 			  struct mcr_Data *dataPt);
 
-/*! \brief Release object resources and deallocate if needed.
+/*!
+ * \brief Release object resources and deallocate if needed.
  *
  * 1) Release resources with \ref mcr_Interface.deinit\n
  * 2) Use \ref mcr_Data.deallocate if it is set\n
@@ -211,7 +234,8 @@ MCR_API int mcr_iref_init(const void *const *interfacePtPt,
  */
 MCR_API int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt);
 
-/*! \brief Use an interface to compare two objects
+/*!
+ * \brief Use an interface to compare two objects
  *
  * \ref mcr_compare_fnc
  * \param interfacePt \ref mcr_Interface *
@@ -222,7 +246,8 @@ MCR_API int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt);
 MCR_API int mcr_icmp(const void *interfacePt,
 		     const struct mcr_Data *lhs, const struct mcr_Data *rhs);
 
-/*! \brief Use an interface to copy an object
+/*!
+ * \brief Use an interface to copy an object
  *
  * \ref mcr_copy_fnc
  * If no source is given, destination will be freed.
@@ -232,9 +257,10 @@ MCR_API int mcr_icmp(const void *interfacePt,
  * \return \ref reterr
  */
 MCR_API int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
-		     struct mcr_Data *srcPt);
+		     const struct mcr_Data *srcPt);
 
-/*! \brief Replace object reference using an interface
+/*!
+ * \brief Replace object reference using an interface
  *
  * Existing data will be freed. The assigned data will be copied directly
  * and without modification.
@@ -247,7 +273,8 @@ MCR_API int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
 MCR_API int mcr_iset_data(const void *interfacePt,
 			  struct mcr_Data *dataPt, void *data, void (*deallocate) (void *));
 
-/*! \brief Initialize and set data.  Free previous data if it exists.
+/*!
+ * \brief Initialize and set data.  Free previous data if it exists.
  *
  * \param interfacePt \ref mcr_Interface *
  * \param dataPt \ref opt Data to reset.  Do nothing if this is null
@@ -255,4 +282,7 @@ MCR_API int mcr_iset_data(const void *interfacePt,
  */
 MCR_API int mcr_ireset(const void *interfacePt, struct mcr_Data *dataPt);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

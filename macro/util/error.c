@@ -16,10 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  */
 
 #include "mcr/util/util.h"
+#include <errno.h>
+#include <stdio.h>
 
 static int _local_errno = 0;
 
@@ -31,4 +34,14 @@ int mcr_error()
 void mcr_set_error(int errorNumber)
 {
 	_local_errno = errorNumber < 0 ? -errorNumber : errorNumber;
+}
+
+int mcr_set_errno(int defaultErrorNumber, const char *fileString, int line)
+{
+	_local_errno = errno;
+	if (!_local_errno)
+		_local_errno = defaultErrorNumber < 0 ? -defaultErrorNumber : defaultErrorNumber;
+	ddo(fprintf(stderr, "Error %d: %s(%d) %s: %s.\n", _local_errno,
+			fileString, line, mcr_timestamp(), strerror(_local_errno)));
+	return _local_errno;
 }

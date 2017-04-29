@@ -16,12 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Linux platform intercept definitions
  */
 
-#ifndef MCR_LNX_INTERCEPT_DEFINES_H
-#define MCR_LNX_INTERCEPT_DEFINES_H
+#ifndef MCR_INTERCEPT_LNX_NDEF_H
+#define MCR_INTERCEPT_LNX_NDEF_H
 
 #include "mcr/standard/lnx/nstandard.h"
 #include "mcr/intercept/def.h"

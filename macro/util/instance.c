@@ -27,6 +27,15 @@ int mcr_Instance_init(void *instPt)
 	return 0;
 }
 
+struct mcr_Instance mcr_Instance_new(void *iPt, void *dataPt,
+		void (*deallocate) (void *))
+{
+	struct mcr_Instance ret;
+	mcr_Instance_init(&ret);
+	mcr_Instance_set_all(&ret, iPt, dataPt, deallocate);
+	return ret;
+}
+
 int mcr_Instance_deinit(void *instPt)
 {
 	struct mcr_Instance *localPt = instPt;
@@ -35,7 +44,7 @@ int mcr_Instance_deinit(void *instPt)
 	return 0;
 }
 
-int mcr_Instance_set_all(void *instPt, const void *iPt, void *dataPt,
+int mcr_Instance_set_all(void *instPt, void *iPt, void *dataPt,
 			 void (*deallocate) (void *))
 {
 	struct mcr_Instance *localPt = instPt;
@@ -46,7 +55,7 @@ int mcr_Instance_set_all(void *instPt, const void *iPt, void *dataPt,
 	return mcr_Instance_set_data(instPt, dataPt, deallocate);
 }
 
-int mcr_Instance_set_interface(void *instPt, const void *iPt)
+int mcr_Instance_set_interface(void *instPt, void *iPt)
 {
 	struct mcr_Instance *localPt = instPt;
 	int err;
@@ -90,9 +99,10 @@ int mcr_Instance_compare(const void *lhsPt, const void *rhsPt)
 	return lhsInst && lhsInst->interface;
 }
 
-int mcr_Instance_copy(void *dstPt, void *srcPt)
+int mcr_Instance_copy(void *dstPt, const void *srcPt)
 {
-	struct mcr_Instance *dstInst = dstPt, *srcInst = srcPt;
+	struct mcr_Instance *dstInst = dstPt;
+	const struct mcr_Instance *srcInst = srcPt;
 	int err;
 	dassert(dstInst);
 	if (dstInst == srcInst)

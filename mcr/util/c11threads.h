@@ -18,7 +18,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * C11 threads.h file wrapper based on project
  * https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
  * by the compiler, we will wrap pthread function calls (required to link
@@ -26,18 +27,29 @@
  * directly. Static inline function support is required.
  */
 
-#ifndef __STDC_NO_THREADS__
-#include <threads.h>
-#else
+#ifndef MCR_UTIL_C11THREADS_H
+#define MCR_UTIL_C11THREADS_H
 
-#ifndef C11THREADS_H_
-#define C11THREADS_H_
+#ifndef __STDC_NO_THREADS__
+
+/* Ming does not have pthreads */
+#ifdef __MINGW32__
+#include "mcr/util/cppthread.h"
+#else
+#include <threads.h>
+#endif
+
+#else
 
 #include <time.h>
 #include <errno.h>
 #include <pthread.h>
 #include <sched.h>		/* for sched_yield */
 #include <sys/time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ONCE_FLAG_INIT	PTHREAD_ONCE_INIT
 
@@ -285,5 +297,8 @@ static inline void call_once(once_flag * flag, void (*func) (void))
 	pthread_once(flag, func);
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif				/* C11THREADS_H_ */
 #endif

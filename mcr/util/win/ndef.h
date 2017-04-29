@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_UTIL_WIN_DEF_H
-#define MCR_UTIL_WIN_DEF_H
+#ifndef MCR_UTIL_WIN_NDEF_H
+#define MCR_UTIL_WIN_NDEF_H
 
 #include "mcr/util/def.h"
 
@@ -30,12 +30,18 @@
 
 /* Exclude rarely-used stuff from Windows headers. */
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 
 #define mcr_snprintf _snprintf
 #define mcr_casecmp _stricmp
 #define mcr_ncasecmp _strnicmp
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef __timespec_defined
 #define __timespec_defined 1
@@ -52,4 +58,7 @@ struct timespec {
 #undef fixme
 #define fixme
 
+#ifdef __cplusplus
+}
+#endif
 #endif

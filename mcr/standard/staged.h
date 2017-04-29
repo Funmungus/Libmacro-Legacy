@@ -16,17 +16,23 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Staged - Trigger that is triggered after activating all stages
  * \ref mcr_BlockStyle - How to manage blocking values of all stages
  */
 
-#ifndef MCR_STAGED_H
-#define MCR_STAGED_H
+#ifndef MCR_STANDARD_STAGED_H
+#define MCR_STANDARD_STAGED_H
 
 #include "mcr/standard/stage.h"
 
-/*! \brief Blocking style describes how to manage a set of stages'
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Blocking style describes how to manage a set of stages'
  * blocking values.
  */
 enum mcr_BlockStyle {
@@ -54,13 +60,15 @@ struct mcr_Staged {
 	enum mcr_BlockStyle style;
 };
 
-/*! \brief \ref mcr_Staged ctor
+/*!
+ * \brief \ref mcr_Staged ctor
  *
  * \param stagedPt \ref opt \ref mcr_Staged
  * \return 0
  */
 MCR_API int mcr_Staged_init(void *stagedPt);
-/*! \brief \ref mcr_Staged dtor
+/*!
+ * \brief \ref mcr_Staged dtor
  *
  * \param stagedPt \ref opt \ref mcr_Staged
  * \return 0
@@ -70,8 +78,9 @@ MCR_API int mcr_Staged_deinit(void *stagedPt);
 MCR_API void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
 				enum mcr_BlockStyle style);
 MCR_API int mcr_Staged_compare(const void *lhs, const void *rhs);
-MCR_API int mcr_Staged_copy(void *dstPt, void *srcPt);
-/*! \brief \ref mcr_ITrigger.receive for staged trigger.
+MCR_API int mcr_Staged_copy(void *dstPt, const void *srcPt);
+/*!
+ * \brief \ref mcr_ITrigger.receive for staged trigger.
  *
  * If all stages activate, all will be deactivated and
  * \ref mcr_Trigger.trigger will be called.
@@ -93,4 +102,7 @@ MCR_API struct mcr_ITrigger *mcr_iStaged(struct mcr_context *ctx);
 #define mcr_Staged_data(trigPt) \
 ((struct mcr_Staged *)mcr_Instance_data(trigPt))
 
+#ifdef __cplusplus
+}
+#endif
 #endif

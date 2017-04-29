@@ -16,23 +16,30 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Stage - Stages of activation for \ref mcr_Staged
  * \ref mcr_IsStage - Stage matching functions
  */
 
-#ifndef MCR_STAGE_H
-#define MCR_STAGE_H
+#ifndef MCR_STANDARD_STAGE_H
+#define MCR_STANDARD_STAGE_H
 
 #include "mcr/standard/def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mcr_Stage;
-/*! \brief Comparison for stages, which may be more lenient than
+/*!
+ * \brief Comparison for stages, which may be more lenient than
  * regular \ref mcr_Signal_compare used for exact comparison.
  */
 typedef bool(*mcr_isme_fnc)
 (struct mcr_Stage *, struct mcr_Signal *);
-/*! \brief Function table for \ref mcr_Stage
+/*!
+ * \brief Function table for \ref mcr_Stage
  *
  * Matching functions to activate stage, or keep activated.
  */
@@ -63,28 +70,32 @@ struct mcr_Stage {
 	bool activated;
 };
 
-/*! \brief \ref mcr_Stage ctor
+/*!
+ * \brief \ref mcr_Stage ctor
  *
  * \param stagePt \ref opt
  * \return 0
  */
 MCR_API int mcr_Stage_init(void *stagePt);
-/*! \brief \ref mcr_Stage dtor
+/*!
+ * \brief \ref mcr_Stage dtor
  *
  * \param stagePt \ref opt
  * \return 0
  */
 MCR_API int mcr_Stage_deinit(void *stagePt);
-/*! \brief Set initial values
+/*!
+ * \brief Set initial values
  *
  * \param intercepPt \ref opt Signal to copy as comparison for activation
  * \return \ref reterr
  */
 MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
 			      struct mcr_Stage *stagePt, bool blocking,
-			      struct mcr_Signal *interceptPt, unsigned int measurementError,
+			      const struct mcr_Signal *interceptPt, unsigned int measurementError,
 			      unsigned int mods, int trigFlags);
-/*! \brief Match an unactivated stage
+/*!
+ * \brief Match an unactivated stage
  *
  * If intercepting a real signal: If signal interface is the same and
  * modifiers match, the intercepted signal is matched by
@@ -98,7 +109,8 @@ MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
  */
 MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
 			      struct mcr_Signal *interceptPt, unsigned int mods);
-/*! \brief Match an activated stage to be the new activated state
+/*!
+ * \brief Match an activated stage to be the new activated state
  *
  * If intercepting a real signal: Match with \ref mcr_IsStage.resembles, or
  * signal interface.  If stage has an interface, it must be the same.\n
@@ -110,11 +122,11 @@ MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
 MCR_API bool mcr_Stage_resembles(struct mcr_Stage *stagePt,
 				 struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_set_intercept(struct mcr_context *ctx,
-				    struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
+				    struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_set_intercept_generic(struct mcr_context *ctx,
-		struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt);
+		struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt);
 MCR_API int mcr_Stage_compare(const void *lhs, const void *rhs);
-MCR_API int mcr_Stage_copy(void *dstPt, void *srcPt);
+MCR_API int mcr_Stage_copy(void *dstPt, const void *srcPt);
 
 /* Interface development. */
 MCR_API struct mcr_IsStage *mcr_Stage_from_id(struct mcr_context *ctx,
@@ -127,4 +139,7 @@ MCR_API int mcr_Stage_register(struct mcr_context *ctx, mcr_isme_fnc setIsme,
 MCR_API void mcr_Stage_clear(struct mcr_context *ctx);
 MCR_API void mcr_Stage_trim(struct mcr_context *ctx);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

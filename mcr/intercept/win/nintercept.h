@@ -16,32 +16,36 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Read from grabbers and dispatch signals. This may block
  * incoming events.
  */
 
-#ifndef MCR_WIN_INTERCEPT_H
-#define MCR_WIN_INTERCEPT_H
+#ifndef MCR_INTERCEPT_WIN_NINTERCEPT_H
+#define MCR_INTERCEPT_WIN_NINTERCEPT_H
 
 #include "mcr/intercept/win/ngrabber.h"
 
-#define MCR_GRAB_COUNT 3
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define MCR_GRAB_COUNT 2
 
 struct mcr_mod_intercept_platform {
 	struct mcr_Grabber *grab_key;
-	struct mcr_Grabber *grab_move;
-	struct mcr_Grabber *grab_scroll;
+	struct mcr_Grabber *grab_mouse;
 	struct mcr_Grabber *all_grabbers[MCR_GRAB_COUNT];
 };
 
 MCR_API bool mcr_intercept_key_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_key_set_enabled(struct mcr_context *ctx, bool enable);
-MCR_API bool mcr_intercept_move_is_enabled(struct mcr_context *ctx);
+MCR_API bool mcr_intercept_mouse_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_move_set_enabled(struct mcr_context *ctx,
 		bool enable);
-MCR_API bool mcr_intercept_scroll_is_enabled(struct mcr_context *ctx);
-MCR_API int mcr_intercept_scroll_set_enabled(struct mcr_context *ctx,
-		bool enable);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

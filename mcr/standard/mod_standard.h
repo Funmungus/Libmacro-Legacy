@@ -16,33 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_mod_standard - Standard signal and trigger types module
  *
  * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MOD_STANDARD_H
-#define MOD_STANDARD_H
+#ifndef MCR_STANDARD_MOD_STANDARD_H
+#define MCR_STANDARD_MOD_STANDARD_H
 
 #include "mcr/macro/macro.h"
 
-/*! \brief \ref mcr_ISignal with \ref mcr_context reference */
-struct mcr_CtxISignal {
-	struct mcr_ISignal isignal;
-	struct mcr_context *ctx;
-};
-
-/*! \brief \ref mcr_FlagDispatcher with \ref mcr_context reference */
-struct mcr_CtxDispatcher {
-	struct mcr_Dispatcher dispatcher;
-	struct mcr_context *ctx;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct mcr_IsStage;
 struct mcr_mod_standard {
 	/* Signal types */
-	struct mcr_ISignal ialarm;
 	struct mcr_ISignal ihid_echo;
 	struct mcr_ISignal ikey;
 	struct mcr_CtxISignal imods;
@@ -61,7 +53,8 @@ struct mcr_mod_standard {
 	struct mcr_ITrigger istaged;
 	/*! \brief Set of \ref mcr_IsStage */
 	struct mcr_Array stage_matchers;
-	/*! \brief Stage matcher for no specific type
+	/*!
+	 * \brief Stage matcher for no specific type
 	 *
 	 * By default this matches signal by address */
 	struct mcr_IsStage *stage_generic;
@@ -79,13 +72,15 @@ MCR_API void mcr_standard_trim(struct mcr_context *ctx);
 
 /* Platform directory */
 #define MCR_STANDARD_PLATFORM_INC \
-MCR_STR(mcr/standard/MCR_PLATFORM_DIR/nstandard.h)
-/*! \brief Initialize platform requirements for standard signals.
+MCR_STR(mcr/standard/MCR_PLATFORM/nstandard.h)
+/*!
+ * \brief Initialize platform requirements for standard signals.
  *
  * Called by \ref mcr_standard_initialize
  */
 MCR_API int mcr_standard_platform_initialize(struct mcr_context *ctx);
-/*! \brief Clean up platform requirements for standard signals.
+/*!
+ * \brief Clean up platform requirements for standard signals.
  *
  * Called by \ref mcr_standard_deinitialize
  */
@@ -102,4 +97,7 @@ MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
 MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt);
 MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

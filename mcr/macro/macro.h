@@ -16,18 +16,23 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Macro - When the macro is triggered,
  * its set of signals is sent one after the other.
  *
  * All signal functions will initialize and deinitialize as needed
  */
 
-#ifndef MCR_MACRO_H
-#define MCR_MACRO_H
+#ifndef MCR_MACRO_MACRO_H
+#define MCR_MACRO_MACRO_H
 
 #include "mcr/macro/trigger.h"
 #include "mcr/util/c11threads.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Pause, stop, or continue a running macro */
 enum mcr_Interrupt {
@@ -35,10 +40,12 @@ enum mcr_Interrupt {
 	MCR_CONTINUE = 0,
 	/*! \brief Briefly stop sending signals during critical sections. */
 	MCR_PAUSE,
-	/*! \brief One queued macro from one thread will cancel.
+	/*!
+	 * \brief One queued macro from one thread will cancel.
 	 * After one is cancelled, MCR_CONTINUE is set. */
 	MCR_INTERRUPT,
-	/*! \brief All threads and queued items will cancel.
+	/*!
+	 * \brief All threads and queued items will cancel.
 	 * After all are cancelled, MCR_CONTINUE is set. */
 	MCR_INTERRUPT_ALL,
 	/*! \brief Not able to trigger */
@@ -47,13 +54,16 @@ enum mcr_Interrupt {
 
 /*! \brief A macro, when triggered, will send all its signals */
 struct mcr_Macro {
-	/*! \brief This will be the blocking
+	/*!
+	 * \brief This will be the blocking
 	 * return value of intercepting a signal. */
 	bool block;
-	/*! \brief If false the signals will be sent only once.  Otherwise
+	/*!
+	 * \brief If false the signals will be sent only once.  Otherwise
 	 * the signals sent will repeat sending until interrupted */
 	bool sticky;
-	/*! \brief Maximum number of threads this macro can start when it is
+	/*!
+	 * \brief Maximum number of threads this macro can start when it is
 	 * triggered. */
 	unsigned int thread_max;
 
@@ -70,30 +80,36 @@ struct mcr_Macro {
 	struct mcr_Array signal_set;
 	/*! Current number of threads created from macro being triggered */
 	unsigned int thread_count;
-	/*! Current number of times the macro has been triggered.  This
+	/*!
+	 * Current number of times the macro has been triggered.  This
 	 * number is reduced every time the signal set completes sending or is
 	 * interrupted, until it reaches zero. */
 	unsigned int queued;
 };
 
-/*! \brief Data interface of macro structures
+/*!
+ * \brief Data interface of macro structures
  *
- * \return Interface to manage macro objects */
+ * \return Interface to manage macro objects
+ */
 MCR_API const struct mcr_Interface *mcr_Macro_interface();
 
-/*! \brief \ref mcr_Macro ctor
+/*!
+ * \brief \ref mcr_Macro ctor
  *
  * \param mcrPt \ref opt \ref mcr_Macro *
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_init(void *mcrPt);
-/*! \brief \ref mcr_Macro dtor
+/*!
+ * \brief \ref mcr_Macro dtor
  *
  * \param mcrPt \ref opt \ref mcr_Macro *
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_deinit(void *mcrPt);
-/*! \brief Set initial values
+/*!
+ * \brief Set initial values
  *
  * \param block \ref mcr_Macro.block
  * \param sticky \ref mcr_Macro.sticky
@@ -105,33 +121,38 @@ MCR_API int mcr_Macro_deinit(void *mcrPt);
 MCR_API int mcr_Macro_set_all(struct mcr_Macro *mcrPt,
 			      bool block, bool sticky, unsigned int threadMax, bool enable,
 			      struct mcr_context *ctx);
-/*! \brief Copy a macro
+/*!
+ * \brief Copy a macro
  *
  * \param dstPt \ref mcr_Macro * Destination macro
  * \param srcPt \ref opt \ref mcr_Macro * Source macro
  * \return \ref reterr
  */
-MCR_API int mcr_Macro_copy(void *dstPt, void *srcPt);
-/*! \brief Stop or continue macro execution according to \ref mcr_Interrupt.
+MCR_API int mcr_Macro_copy(void *dstPt, const void *srcPt);
+/*!
+ * \brief Stop or continue macro execution according to \ref mcr_Interrupt.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 				enum mcr_Interrupt interruptType);
-/*! \brief Get the number of signals in the set to send
+/*!
+ * \brief Get the number of signals in the set to send
  *
  * \param mcrPt \ref opt
  * \return \ref retind
  */
 MCR_API size_t mcr_Macro_count(const struct mcr_Macro *mcrPt);
-/*! \brief Get the array of signals
+/*!
+ * \brief Get the array of signals
  *
  * If the signal set changes, this reference will be invalid.
  * \param mcrPt \ref opt
  * \return Signal reference, or null if set is empty
  */
 MCR_API struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt);
-/*! \brief Set all signals
+/*!
+ * \brief Set all signals
  *
  * To avoid buffer overflow, the macro will be completely disabled while
  * modifying the set of signals.
@@ -141,7 +162,8 @@ MCR_API struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt);
  */
 MCR_API int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
 				  struct mcr_Signal *signalSet, size_t signalCount);
-/*! \brief Get a signal reference
+/*!
+ * \brief Get a signal reference
  *
  * If the signal set changes, this reference will be invalid.
  * \param mcrPt \ref opt
@@ -150,7 +172,8 @@ MCR_API int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
  */
 MCR_API struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt,
 		size_t index);
-/*! \brief Copy signal into signal set
+/*!
+ * \brief Copy signal into signal set
  *
  * Signal will replace at given index
  * \param copySig \ref opt Signal to copy
@@ -159,7 +182,8 @@ MCR_API struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt,
  */
 MCR_API int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
 				 struct mcr_Signal *copySig, size_t index);
-/*! \brief Insert and add a signal copy
+/*!
+ * \brief Insert and add a signal copy
  *
  * \param copySig \ref opt Signal to copy
  * \param index Index to insert into
@@ -167,31 +191,36 @@ MCR_API int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
  */
 MCR_API int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
 				    struct mcr_Signal *copySig, size_t index);
-/*! \brief Remove the signal at given index
+/*!
+ * \brief Remove the signal at given index
  *
  * \param index Index to remove from
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_remove_signal(struct mcr_Macro *mcrPt, size_t index);
-/*! \brief Add signal to the end of signal set
+/*!
+ * \brief Add signal to the end of signal set
  *
  * \param newSig \ref opt Signal to copy
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_push_signal(struct mcr_Macro *mcrPt,
 				  struct mcr_Signal *newSig);
-/*! \brief Remove signal from the end of signal set
+/*!
+ * \brief Remove signal from the end of signal set
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_pop_signal(struct mcr_Macro *mcrPt);
-/*! \brief Get enabled state
+/*!
+ * \brief Get enabled state
  *
  * \param mcrPt \ref opt
  * \return false If \ref MCR_DISABLE, otherwise true
  */
 MCR_API bool mcr_Macro_is_enabled(const struct mcr_Macro *mcrPt);
-/*! \brief Set enabled state
+/*!
+ * \brief Set enabled state
  *
  * \param enable \ref mcr_Macro.interruptor If false set to \ref MCR_DISABLE,
  * otherwise set to \ref MCR_CONTINUE.
@@ -200,7 +229,8 @@ MCR_API bool mcr_Macro_is_enabled(const struct mcr_Macro *mcrPt);
 MCR_API int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable);
 
 /* Triggering functions */
-/*! \brief Add correct receivers and dispatch functions into
+/*!
+ * \brief Add correct receivers and dispatch functions into
  * \ref mcr_Dispatcher_add
  *
  * See \ref mcr_Macro_dispatcher for receiver and dispatch rules.
@@ -210,7 +240,8 @@ MCR_API int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable);
  */
 MCR_API int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
 				   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
-/*! \brief Remove correct receivers from \ref mcr_Dispatcher_remove
+/*!
+ * \brief Remove correct receivers from \ref mcr_Dispatcher_remove
  *
  * See \ref mcr_Macro_dispatcher for receiver.
  * \param trigPt \ref opt Trigger with logic to trigger this macro
@@ -219,7 +250,8 @@ MCR_API int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
  */
 MCR_API int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
 				      struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
-/*! \brief Prepare a \ref mcr_DispatchPair to trigger this macro.
+/*!
+ * \brief Prepare a \ref mcr_DispatchPair to trigger this macro.
  *
  * \param trigPt \ref opt If null or uninitialized we will dispatch directly
  * into the macro.  Otherwise the macro is triggered
@@ -227,7 +259,8 @@ MCR_API int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
  */
 MCR_API struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,
 		struct mcr_Trigger *trigPt);
-/*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Macro *
+/*!
+ * \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Macro *
  * \pre \ref mcr_DispatchPair.dispatch must be this function
  * \brief \ref mcr_DispatchPair.dispatch function to send signal set directly
  * from dispatch.
@@ -239,7 +272,8 @@ MCR_API struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,
  */
 MCR_API bool mcr_Macro_receive(void *mcrPt,
 			       struct mcr_Signal *sigPt, unsigned int mods);
-/*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
+/*!
+ * \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
  * \pre \ref mcr_DispatchPair.dispatch must be \ref mcr_Trigger_receive
  * \pre \ref mcr_Trigger.actor must be a \ref mcr_Macro *
  * \pre \ref mcr_Trigger.trigger must be this function
@@ -257,4 +291,7 @@ MCR_API bool mcr_Macro_trigger(void *trigPt,
 #define MCR_MACRO_IS_ENABLED(mcrPt) \
 ((mcrPt).interruptor != MCR_DISABLE)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

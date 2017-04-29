@@ -30,8 +30,10 @@ struct mcr_context *mcr_allocate(bool flagLoadContracts, bool flagTrimFinish)
 		mset_error(ENOMEM);
 		return NULL;
 	}
-	if (mcr_initialize(ctx, flagLoadContracts, flagTrimFinish))
+	if (mcr_initialize(ctx, flagLoadContracts, flagTrimFinish)) {
+		free(ctx);
 		return NULL;
+	}
 	return ctx;
 }
 
@@ -47,7 +49,7 @@ int mcr_deallocate(struct mcr_context *ctx)
 	return err;
 }
 
-#define local_err_stack_size 5
+#define local_err_stack_size 4
 static int local_err(struct mcr_context *ctx, int errorOut,
 		     int (**errStack) (struct mcr_context *), int stackCount)
 {
@@ -66,7 +68,7 @@ int mcr_initialize(struct mcr_context *ctx,
 	int (*errStack[local_err_stack_size]) (struct mcr_context *) = {
 		mcr_signal_deinitialize, mcr_macro_deinitialize,
 		mcr_standard_deinitialize,
-		mcr_intercept_deinitialize, mcr_extras_deinitialize
+		mcr_intercept_deinitialize
 	};
 	if (!ctx) {
 		mset_error(EINVAL);
@@ -90,12 +92,6 @@ int mcr_initialize(struct mcr_context *ctx,
 	if ((err = mcr_intercept_initialize(ctx)))
 		return local_err(ctx, err, errStack, stackCount);
 	++stackCount;
-#ifdef MCR_EXTRAS
-	dprint("Loading extras module\n");
-	if ((err = mcr_extras_initialize(ctx)))
-		return local_err(ctx, err, errStack, stackCount);
-	++stackCount;
-#endif
 	if (flagLoadContracts) {
 		dprint("Loading contracts\n");
 		if ((err = mcr_load_contracts(ctx)))
@@ -112,10 +108,6 @@ int mcr_initialize(struct mcr_context *ctx,
 int mcr_deinitialize(struct mcr_context *ctx)
 {
 	mcr_set_error(0);
-#ifdef MCR_EXTRAS
-	dprint("Cleaning extras module\n");
-	mcr_extras_deinitialize(ctx);
-#endif
 	dprint("Cleaning intercept module\n");
 	mcr_intercept_deinitialize(ctx);
 	dprint("Cleaning standard module\n");
@@ -135,10 +127,6 @@ int mcr_load_contracts(struct mcr_context *ctx)
 		return err;
 	if ((err = mcr_standard_load_contract(ctx)))
 		return err;
-#ifdef MCR_EXTRAS
-	if ((err = mcr_extras_load_contract(ctx)))
-		return err;
-#endif
 	return err;
 }
 
@@ -147,7 +135,4 @@ void mcr_trim(struct mcr_context *ctx)
 	mcr_signal_trim(ctx);
 	mcr_macro_trim(ctx);
 	mcr_standard_trim(ctx);
-#ifdef MCR_EXTRAS
-	/* TODO: Add trim function */
-#endif
 }

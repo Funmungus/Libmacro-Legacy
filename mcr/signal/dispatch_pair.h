@@ -16,18 +16,24 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_DispatchPair - Receiver and receiving function pair which
  * intercepts signals before they are sent
  */
 
-#ifndef MCR_DISPATCH_PAIR_H
-#define MCR_DISPATCH_PAIR_H
+#ifndef MCR_SIGNAL_DISPATCH_PAIR_H
+#define MCR_SIGNAL_DISPATCH_PAIR_H
 
 #include "mcr/signal/def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mcr_Signal;
-/*! \brief Receive dispatch before signal is sent
+/*!
+ * \brief Receive dispatch before signal is sent
  *
  * \param receiver Object to receive signal.  The receiver might
  * be optional for some receiving functions.
@@ -37,7 +43,8 @@ struct mcr_Signal;
  */
 typedef bool(*mcr_Dispatcher_receive_fnc) (void *receiver,
 		struct mcr_Signal * dispatchSignal, unsigned int mods);
-/*! \brief Generic receiver and function that may block or intercept a sending
+/*!
+ * \brief Generic receiver and function that may block or intercept a sending
  * signal
  *
  * Receiver is first, to compare with \ref mcr_ref_compare.
@@ -48,21 +55,26 @@ struct mcr_DispatchPair {
 	/*! \brief Function to act on receiver */
 	mcr_Dispatcher_receive_fnc dispatch;
 };
-/*! \brief Create new \ref mcr_DispatchPair
+/*!
+ * \brief Create new \ref mcr_DispatchPair
  *
  * \param receiver \ref opt \ref mcr_DispatchPair.receiver
  * \param dispatch \ref opt \ref mcr_DispatchPair.dispatch
  * \return New \ref mcr_DispatchPair
  */
-MCR_API struct mcr_DispatchPair mcr_DispatchPar_new(void *receiver,
+MCR_API struct mcr_DispatchPair mcr_DispatchPair_new(void *receiver,
 		mcr_Dispatcher_receive_fnc dispatch);
 /*! \brief Compare \ref mcr_DispatchPair, only compare receivers. */
 #define mcr_DispatchPair_compare mcr_ref_compare
 
-/*! \brief Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
+/*!
+ * \brief Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
  *
  * Dispatch maps should always end with this array.
  */
 MCR_API const struct mcr_Interface *mcr_Array_DispatchPair_interface();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

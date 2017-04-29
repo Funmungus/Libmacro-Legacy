@@ -16,7 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Map - Dynamic resizing map from one type to another for
  * fast retrieval.
  *
@@ -25,19 +26,25 @@
  * \ref bsearch
  */
 
-#ifndef MCR_MAP_H
-#define MCR_MAP_H
+#ifndef MCR_UTIL_MAP_H
+#define MCR_UTIL_MAP_H
 
 #include "mcr/util/array.h"
 #include "mcr/util/interface.h"
 
-/*! \brief Map from one type to another.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Map from one type to another.
  *
  * The map should be sorted at all times.  All functions that add elements
  * will also sort.  All functions that remove values assume the map will
  * still be sorted after items are removed. */
 struct mcr_Map {
-	/*! \brief Resizing set of all items
+	/*!
+	 * \brief Resizing set of all items
 	 *
 	 * Size of one mapped element = \ref mcr_Map.key_size +
 	 * \ref mcr_Map.value_size
@@ -48,25 +55,29 @@ struct mcr_Map {
 	size_t key_size;
 	/*! \brief Size of mapped value elements */
 	size_t value_size;
-	/*! \brief \ref opt Interface of key elements.
+	/*!
+	 * \brief \ref opt Interface of key elements.
 	 *
 	 * Elements will be initialized, freed, copied, and
 	 * compared with this interface */
 	const struct mcr_Interface *key_interface;
-	/*! \brief \ref opt Interface of value elements
+	/*!
+	 * \brief \ref opt Interface of value elements
 	 *
 	 * Elements will be initialized, freed, copied, and
 	 * compared with this interface */
 	const struct mcr_Interface *value_interface;
 };
 
-/*! \brief \ref mcr_Map ctor
+/*!
+ * \brief \ref mcr_Map ctor
  *
  * \param mapPt \ref opt \ref mcr_Map *
  * \return 0
  */
 MCR_API int mcr_Map_init(void *mapPt);
-/*! \brief \ref mcr_Map_init and \ref mcr_Map_set_all
+/*!
+ * \brief \ref mcr_Map_init and \ref mcr_Map_set_all
  *
  * \param keySize \ref mcr_Map.key_size
  * \param valueSize \ref mcr_Map.value_size
@@ -81,14 +92,16 @@ MCR_API struct mcr_Map mcr_Map_new(size_t keySize,
 				   size_t valueSize, mcr_compare_fnc compare,
 				   const struct mcr_Interface *keyIface,
 				   const struct mcr_Interface *valueIface);
-/*! \post The map will be available to use again with only the array changed.
+/*!
+ * \post The map will be available to use again with only the array changed.
  * \brief \ref mcr_Map dtor
  *
  * \param mapPt \ref opt \ref mcr_Map *
  * \return 0
  */
 MCR_API int mcr_Map_deinit(void *mapPt);
-/*! \pre Size and comparison will be taken from interfaces if they are
+/*!
+ * \pre Size and comparison will be taken from interfaces if they are
  * available, otherwize size and comparison must exist.
  * \brief Set initial values
  *
@@ -106,20 +119,23 @@ MCR_API int mcr_Map_set_all(struct mcr_Map *mapPt, size_t keySize,
 			    const struct mcr_Interface *valueIface);
 
 /* Allocation control */
-/*! \brief Set a minimum number of used elements and resize
+/*!
+ * \brief Set a minimum number of used elements and resize
  * if needed.
  *
  * \param minUsed Minimum number of used elements
  * \return \ref reterr
  */
 MCR_API int mcr_Map_minused(struct mcr_Map *mapPt, size_t minUsed);
-/*! \brief Set a minimum size, and resize if needed.
+/*!
+ * \brief Set a minimum size, and resize if needed.
  *
  * \param minSize Minimum number of allocated elements
  * \return \ref reterr
  */
 MCR_API int mcr_Map_minsize(struct mcr_Map *mapPt, size_t minSize);
-/*! \brief Apply a smart resizing algorithm for adding a number of
+/*!
+ * \brief Apply a smart resizing algorithm for adding a number of
  * elements.
  *
  * \param increasingCount Number of elements to add
@@ -128,27 +144,31 @@ MCR_API int mcr_Map_minsize(struct mcr_Map *mapPt, size_t minSize);
 MCR_API int mcr_Map_smartsize(struct mcr_Map *mapPt, size_t increasingCount);
 /*! \brief Minimize allocated space. */
 MCR_API void mcr_Map_trim(struct mcr_Map *mapPt);
-/*! \brief Reallocate map to given size.
+/*!
+ * \brief Reallocate map to given size.
  *
  * \param newSize New allocated number of elements
  * \return \ref reterr
  */
 MCR_API int mcr_Map_resize(struct mcr_Map *mapPt, size_t newSize);
-/*! \brief Remove all mapped key-value pairs.
+/*!
+ * \brief Remove all mapped key-value pairs.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Map_clear(struct mcr_Map *mapPt);
 
 /* Position */
-/*! \brief Convert to the value of a key-value element
+/*!
+ * \brief Convert to the value of a key-value element
  *
  * \param mapPt \ref opt
  * \param pairPt \ref opt Pointer to an element
  * \return Value of pair, or null
  */
 MCR_API void *mcr_Map_valueof(const struct mcr_Map *mapPt, void *pairPt);
-/*! \brief Change the key of a key-value element
+/*!
+ * \brief Change the key of a key-value element
  *
  * \param mapPt \ref opt
  * \param pairPt Pointer to an element
@@ -157,7 +177,8 @@ MCR_API void *mcr_Map_valueof(const struct mcr_Map *mapPt, void *pairPt);
  */
 MCR_API int mcr_Map_set_key(const struct mcr_Map *mapPt, void *pairPt,
 			    void *copyKeyPt);
-/*! \brief Change the value of a key-value element
+/*!
+ * \brief Change the value of a key-value element
  *
  * \param mapPt \ref opt
  * \param pairPt Pointer to an element
@@ -166,34 +187,39 @@ MCR_API int mcr_Map_set_key(const struct mcr_Map *mapPt, void *pairPt,
  */
 MCR_API int mcr_Map_set_valueof(const struct mcr_Map *mapPt, void *pairPt,
 				void *copyValuePt);
-/*! \brief Get a key-value pair, mapped from the key pointer.
+/*!
+ * \brief Get a key-value pair, mapped from the key pointer.
  *
  * \param mapPt \ref opt
  * \param keyPt \ref opt Pointer to key to find from
  * \return Pointer to a key-value pair, or null if not found
  */
 MCR_API void *mcr_Map_element(const struct mcr_Map *mapPt, const void *keyPt);
-/*! \brief Get a pointer to the value mapped from key pointer.
+/*!
+ * \brief Get a pointer to the value mapped from key pointer.
  *
  * \param mapPt \ref opt
  * \param keyPt \ref opt Pointer to key to find from
  * \return Pointer to a value, or null if not found
  */
 MCR_API void *mcr_Map_value(const struct mcr_Map *mapPt, const void *keyPt);
-/*! \brief Get a key-value pair. A backup value will be mapped if
+/*!
+ * \brief Get a key-value pair. A backup value will be mapped if
  * key is not yet mapped.
  *
  * \param keyPt Pointer to key to find from
  * \return Pointer to key-value pair, this is only null for errors.
  */
 MCR_API void *mcr_Map_element_ensured(struct mcr_Map *mapPt, void *keyPt);
-/*! \brief Get the index of an item in the array
+/*!
+ * \brief Get the index of an item in the array
  *
  * \param keyPt \ref opt Pointer to key to find from
  * \return \ref retind
  */
 MCR_API size_t mcr_Map_index(const struct mcr_Map *mapPt, const void *keyPt);
-/*! \brief Create an iterator. \ref mcr_Arrray_iter
+/*!
+ * \brief Create an iterator. \ref mcr_Arrray_iter
  *
  * If iterator is null, end will be null, and vise versa.  Null checks
  * are suggested for equality(e.g. !=) comparisons.
@@ -204,7 +230,8 @@ MCR_API size_t mcr_Map_index(const struct mcr_Map *mapPt, const void *keyPt);
  */
 MCR_API void mcr_Map_iter(const struct mcr_Map *mapPt, char **iterPt,
 			  char **endPt, size_t * bytesPt);
-/*! \brief Create a range iterator. \ref mcr_Array_iter_range
+/*!
+ * \brief Create a range iterator. \ref mcr_Array_iter_range
  *
  * Depending on the indices used, the iterator or last element might be null.
  * A null check is suggested, and a for-loop is not suggested.\n
@@ -219,14 +246,16 @@ MCR_API void mcr_Map_iter_range(const struct mcr_Map *mapPt, char **iterPt,
 				char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
 
 /* Set/remove mappings */
-/*! \brief Map from key to value.
+/*!
+ * \brief Map from key to value.
  *
  * \param keyPt Pointer to key to copy from
  * \param valuePt \ref opt Pointer to value to copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Map_map(struct mcr_Map *mapPt, void *keyPt, void *valuePt);
-/*! \brief Remove mapped value from one mapping, and remap
+/*!
+ * \brief Remove mapped value from one mapping, and remap
  * it for a different key.
  *
  * \param previousKeyPt \ref opt Pointer to key to remove from
@@ -235,26 +264,30 @@ MCR_API int mcr_Map_map(struct mcr_Map *mapPt, void *keyPt, void *valuePt);
  */
 MCR_API int mcr_Map_remap(struct mcr_Map *mapPt, const void *previousKeyPt,
 			  void *newKeyPt);
-/*! \brief Map a key-value pair.
+/*!
+ * \brief Map a key-value pair.
  *
  * \param mappingPair Pointer to a key-value pair to
  * copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Map_map_pair(struct mcr_Map *mapPt, void *mappingPair);
-/*! \brief Remove mapping for given key.
+/*!
+ * \brief Remove mapping for given key.
  *
  * \param keyPt \ref opt Pointer to key to remove
  * \return \ref reterr
  */
 MCR_API int mcr_Map_unmap(struct mcr_Map *mapPt, const void *keyPt);
-/*! \brief Remove all mappings for a value
+/*!
+ * \brief Remove all mappings for a value
  *
  * \param valuePt \ref opt Pointer to value to remove
  * \return \ref reterr
  */
 MCR_API int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt);
-/*! \brief Map a set of keys to the same value
+/*!
+ * \brief Map a set of keys to the same value
  *
  * \param keyArray \ref opt A set of keys to map
  * \param keyCount Number of keys to map
@@ -263,7 +296,8 @@ MCR_API int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt);
  */
 MCR_API int mcr_Map_fill(struct mcr_Map *mapPt, void *keyArray,
 			 size_t keyCount, void *valuePt);
-/*! \brief Map a set of keys to a set of values
+/*!
+ * \brief Map a set of keys to a set of values
  *
  * \param keyArray \ref opt A set of keys to map
  * \param valueArray \ref opt A set of values to map into
@@ -274,21 +308,24 @@ MCR_API int mcr_Map_graph(struct mcr_Map *mapPt, void *keyArray,
 			  void *valueArray, size_t sourceArrayLen);
 
 /* Sorting */
-/*! \pre Map may be sorted or not
+/*!
+ * \pre Map may be sorted or not
  * \post Map will be sorted
  * \brief Sort, usually done automatically
  */
 MCR_API void mcr_Map_sort(struct mcr_Map *mapPt);
 
 /* Some common comparison functions */
-/*! \brief Compare chars
+/*!
+ * \brief Compare chars
  *
  * \param lhs \ref opt const char *
  * \param rhs \ref opt const char *
  * \return \ref retcmp
  */
 MCR_API int mcr_char_compare(const void *lhs, const void *rhs);
-/*! \brief Compare const c-strings referenced by each pointer,
+/*!
+ * \brief Compare const c-strings referenced by each pointer,
  * case insensitive.
  *
  * \param lhs \ref opt const char * const* or mcr_Array *
@@ -296,7 +333,8 @@ MCR_API int mcr_char_compare(const void *lhs, const void *rhs);
  * \return \ref retcmp
  */
 MCR_API int mcr_name_compare(const void *lhs, const void *rhs);
-/*! \brief Compare const c-strings referenced by each pointer,
+/*!
+ * \brief Compare const c-strings referenced by each pointer,
  * case sensitive.
  *
  * \param lhs \ref opt const char * const* or mcr_Array *
@@ -304,28 +342,32 @@ MCR_API int mcr_name_compare(const void *lhs, const void *rhs);
  * \return \ref retcmp
  */
 MCR_API int mcr_str_compare(const void *lhs, const void *rhs);
-/*! \brief Compare integers referenced by each pointer.
+/*!
+ * \brief Compare integers referenced by each pointer.
  *
  * \param lhs \ref opt int *
  * \param rhs \ref opt int *
  * \return \ref retcmp
  */
 MCR_API int mcr_int_compare(const void *lhs, const void *rhs);
-/*! \brief Compare unsigned integers referenced by each pointer.
+/*!
+ * \brief Compare unsigned integers referenced by each pointer.
  *
  * \param lhs \ref opt unsigned int *
  * \param rhs \ref opt unsigned int *
  * \return \ref retcmp
  */
 MCR_API int mcr_unsigned_compare(const void *lhs, const void *rhs);
-/*! \brief Compare size_t referenced by each pointer.
+/*!
+ * \brief Compare size_t referenced by each pointer.
  *
  * \param lhs \ref opt size_t *
  * \param rhs \ref opt size_t *
  * \return \ref retcmp
  */
 MCR_API int mcr_size_t_compare(const void *lhs, const void *rhs);
-/*! \brief Compare void * referenced by each pointer.
+/*!
+ * \brief Compare void * referenced by each pointer.
  *
  * \param lhs \ref opt void **
  * \param rhs \ref opt void **
@@ -367,4 +409,7 @@ MCR_ARR_FOR_EACH((map).set, iterateFnc)
 	} \
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif

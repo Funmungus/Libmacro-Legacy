@@ -48,7 +48,7 @@ int mcr_Stage_deinit(void *stagePt)
 }
 
 int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
-		      bool blocking, struct mcr_Signal *interceptPt,
+		      bool blocking, const struct mcr_Signal *interceptPt,
 		      unsigned int measurementError, unsigned int mods, int trigFlags)
 {
 	dassert(stagePt);
@@ -109,7 +109,7 @@ bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
 }
 
 int mcr_Stage_set_intercept(struct mcr_context *ctx,
-			    struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt)
+			    struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
 {
 	size_t id;
 	struct mcr_IsStage *matchPt;
@@ -129,13 +129,13 @@ int mcr_Stage_set_intercept(struct mcr_context *ctx,
 }
 
 int mcr_Stage_set_intercept_generic(struct mcr_context *ctx,
-				    struct mcr_Stage *stagePt, struct mcr_Signal *interceptPt)
+				    struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
 {
 	struct mcr_IsStage *matchPt = ctx->standard.stage_generic;
 	dassert(stagePt);
 	mcr_Signal_deinit(&stagePt->intercept);
 	stagePt->intercept.isignal = NULL;
-	stagePt->intercept.instance.data.data = interceptPt;
+	stagePt->intercept.instance.data.data = (void *)interceptPt;
 	set_matcher(stagePt, matchPt);
 	return 0;
 }
@@ -167,9 +167,10 @@ int mcr_Stage_compare(const void *lhs, const void *rhs)
 	return ! !lhs;
 }
 
-int mcr_Stage_copy(void *dstPt, void *srcPt)
+int mcr_Stage_copy(void *dstPt, const void *srcPt)
 {
-	struct mcr_Stage *dPt = dstPt, *sPt = srcPt;
+	struct mcr_Stage *dPt = dstPt;
+	const struct mcr_Stage *sPt = srcPt;
 	dassert(dPt);
 	dassert(sPt);
 	if (dPt == sPt)

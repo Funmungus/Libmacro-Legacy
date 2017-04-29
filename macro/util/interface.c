@@ -142,7 +142,7 @@ int mcr_icmp(const void *interfacePt, const struct mcr_Data *lhs,
 }
 
 int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
-	     struct mcr_Data *srcPt)
+	     const struct mcr_Data *srcPt)
 {
 	const struct mcr_Interface *iPt = interfacePt;
 	int err;

@@ -16,16 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Key - Simulate keyboard keys
  */
 
-#ifndef MCR_KEY_H
-#define MCR_KEY_H
+#ifndef MCR_STANDARD_KEY_H
+#define MCR_STANDARD_KEY_H
 
 #include "mcr/standard/def.h"
 
-/*! \brief Simulate keyboard keys
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Simulate keyboard keys
  *
  * One or both of key and scan code may be used.\n
  * A 0 value of both key code and scan code should be logically
@@ -44,14 +50,16 @@ struct mcr_Key {
 /*! \brief Set key, scan and key up type. */
 MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
 			     enum mcr_KeyUpType keyUp);
-/*! \pre Signal instance data is \ref mcr_Key
+/*!
+ * \pre Signal instance data is \ref mcr_Key
  * \brief Simulate keyboard keys.
  *
  * \param sigPt Has data member \ref mcr_Key
  * \return \ref reterr
  */
 MCR_API int mcr_Key_send(struct mcr_Signal *sigPt);
-/*! \brief \ref mcr_Key_send
+/*!
+ * \brief \ref mcr_Key_send
  *
  * \ref mcr_is_platform
  * \return \ref reterr
@@ -60,20 +68,23 @@ MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
 /* Default init, deinit, compare, and copy */
 
 /* Key names */
-/*! \brief Get a key code from its name.
+/*!
+ * \brief Get a key code from its name.
  *
  * \param keyName \ref opt Name of key code
  * \return Key code, or \ref MCR_KEY_ANY if not found
  */
 MCR_API int mcr_Key_name_key(struct mcr_context *ctx, const char *keyName);
-/*! \brief Get the name of a key code.
+/*!
+ * \brief Get the name of a key code.
  *
  * \return Key name, or null if not found
  */
 MCR_API const char *mcr_Key_name(struct mcr_context *ctx, int keyCode);
 /*! \brief Get the number of registered key codes. */
 MCR_API size_t mcr_Key_count(struct mcr_context *ctx);
-/*! \brief Set the name mapped by a key code.
+/*!
+ * \brief Set the name mapped by a key code.
  *
  * The name will also map to this key code.
  * \param newName \ref opt Name to set
@@ -81,25 +92,29 @@ MCR_API size_t mcr_Key_count(struct mcr_context *ctx);
  */
 MCR_API int mcr_Key_set_name(struct mcr_context *ctx, int keyCode,
 			     const char *newName);
-/*! \brief Add a set of names to map to a key code.
+/*!
+ * \brief Add a set of names to map to a key code.
  *
  * \param addNames \ref opt Set of names to add to key code
  * \return \ref reterr
  */
 MCR_API int mcr_Key_add(struct mcr_context *ctx, int keyCode,
 			const char **addNames, size_t bufferLen);
-/*! \brief \ref mcr_Key_set_name and \ref mcr_Key_add_names
+/*!
+ * \brief \ref mcr_Key_set_name and \ref mcr_Key_add_names
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Key_map(struct mcr_context *ctx, int keyCode,
 			const char *newName, const char **addNames, size_t bufferLen);
-/*! \brief Rename a key code.
+/*!
+ * \brief Rename a key code.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode);
-/*! \brief Rename a key code. The code is first found from its
+/*!
+ * \brief Rename a key code. The code is first found from its
  * old name.
  *
  * \return \ref reterr
@@ -153,4 +168,7 @@ MCR_API void mcr_Key_Dispatcher_modifier(void *dispDataPt,
 MCR_API int mcr_Key_Dispatcher_remove(void *dispDataPt, void *delTrigger);
 MCR_API int mcr_Key_Dispatcher_trim(void *dispDataPt);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

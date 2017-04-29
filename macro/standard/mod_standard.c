@@ -28,8 +28,7 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 {
 	int err;
 	struct mcr_ISignal *sigs[] = {
-		mcr_iAlarm(ctx), mcr_iEcho(ctx),
-		mcr_iKey(ctx), mcr_iMods(ctx),
+		mcr_iEcho(ctx), mcr_iKey(ctx), mcr_iMods(ctx),
 		mcr_iMC(ctx), mcr_iNoOp(ctx), mcr_iScroll(ctx)
 	};
 	struct mcr_ITrigger *trigs[] = {
@@ -42,10 +41,6 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	struct mcr_IRegistry *regPt = mcr_ISignal_reg(ctx);
 	while (i--)
 		mcr_ISignal_init(sigs[i]);
-	isigPt = mcr_iAlarm(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Alarm), NULL, NULL,
-			      mcr_Alarm_compare, NULL);
-	isigPt->send = mcr_Alarm_send;
 
 	isigPt = mcr_iEcho(ctx);
 	mcr_Interface_set_all(isigPt, sizeof(struct mcr_HidEcho),
@@ -127,8 +122,7 @@ int mcr_standard_load_contract(struct mcr_context *ctx)
 {
 	int err;
 	struct mcr_ISignal *sigs[] = {
-		mcr_iAlarm(ctx), mcr_iEcho(ctx),
-		mcr_iKey(ctx), mcr_iMods(ctx),
+		mcr_iEcho(ctx), mcr_iKey(ctx), mcr_iMods(ctx),
 		mcr_iMC(ctx), mcr_iNoOp(ctx), mcr_iScroll(ctx)
 	};
 	struct mcr_ITrigger *trigs[] = {
@@ -138,7 +132,7 @@ int mcr_standard_load_contract(struct mcr_context *ctx)
 	size_t i = arrlen(sigs);
 	struct mcr_IRegistry *regPt = mcr_ISignal_reg(ctx);
 	const char *names[] = {
-		"Alarm", "HidEcho", "Key", "Mods",
+		"HidEcho", "Key", "Mods",
 		"MoveCursor", "NoOp", "Scroll"
 	};
 	const char *echoAdd[] = {

@@ -20,7 +20,7 @@
 #include "mcr/modules.h"
 
 /* Names */
-unsigned int mcr_ModFlags_mod(struct mcr_context *ctx, const char *name)
+unsigned int mcr_ModFlags_modifier(struct mcr_context *ctx, const char *name)
 {
 	unsigned int *found = mcr_Map_value(&ctx->signal.map_name_mod, &name);
 	return found ? *found : MCR_MOD_ANY;

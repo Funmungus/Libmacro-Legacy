@@ -122,17 +122,18 @@ int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool block,
 	return mcr_Macro_set_enabled(mcrPt, enable);
 }
 
-int mcr_Macro_copy(void *dstPt, void *srcPt)
+int mcr_Macro_copy(void *dstPt, const void *srcPt)
 {
 	dassert(dstPt);
-	struct mcr_Macro *dPt = dstPt, *sPt = srcPt;
+	struct mcr_Macro *dPt = dstPt;
+	const struct mcr_Macro *sPt = srcPt;
 	int thrdErr, err = mcr_Macro_set_enabled(dPt, false);
 	if (err)
 		return err;
 	if (!sPt)
 		return 0;
 
-	if ((thrdErr = mtx_lock(&sPt->lock) != thrd_success)) {
+	if ((thrdErr = mtx_lock((mtx_t *)&sPt->lock) != thrd_success)) {
 		thrd_conv_err(thrdErr);
 		ddo(return thrdErr);
 	}
@@ -147,7 +148,7 @@ int mcr_Macro_copy(void *dstPt, void *srcPt)
 		return err;
 	/* Leave queued at 0.  Copying data will not trigger */
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&sPt->lock)) != thrd_success) {
+	    (thrdErr = mtx_unlock((mtx_t *)&sPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		return thrdErr;
 	}

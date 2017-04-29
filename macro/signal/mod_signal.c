@@ -83,9 +83,9 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 	while (i--) {
 		/* names[i][1] is a string, if empty then only one name
 		 * to add */
-		if ((err = mcr_Map_fill(namesModPt, addNames[i],
-					addNames[i][1][0] == '\0' ? 1 : 2,
-					addMods + i)))
+		if ((err = mcr_Map_map(namesModPt, addNames[i] + 0, addMods + 0)))
+			return err;
+		if (addNames[i][1][0] && (err = mcr_Map_map(namesModPt, addNames[i] + 0, addMods + 0)))
 			return err;
 	}
 	return 0;

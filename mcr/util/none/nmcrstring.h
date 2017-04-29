@@ -16,14 +16,21 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NONE_STRINGS_H
-#define MCR_NONE_STRINGS_H
+#ifndef MCR_NONE_NMCRSTRING_H
+#define MCR_NONE_NMCRSTRING_H
 
 #include "mcr/util/none/ndef.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* case functions implemented in util/none/mcrstring.c */
 #define mcr_snprintf snprintf
 MCR_API int mcr_casecmp(const char *s1, const char *s2);
 MCR_API int mcr_ncasecmp(const char *s1, const char *s2, size_t n);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

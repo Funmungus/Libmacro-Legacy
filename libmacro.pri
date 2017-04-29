@@ -8,7 +8,7 @@ DEFINES += MCR_VERSION=$${MCR_VERSION} \
 
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
-win32|win64:CONFIG += win
+windows:CONFIG += win
 else:unix {
     macx:CONFIG += mac
     else:CONFIG += lnx
@@ -17,8 +17,10 @@ else:unix {
 }
 else:CONFIG += none
 
-win: MCR_PLATFORM_DIR = win
-else:lnx: MCR_PLATFORM_DIR = lnx
-#else:mac: MCR_PLATFORM_DIR = mac
-else: MCR_PLATFORM_DIR = none
-DEFINES += MCR_PLATFORM_DIR=$${MCR_PLATFORM_DIR}
+win: MCR_PLATFORM = win
+else:lnx: MCR_PLATFORM = lnx
+#else:mac: MCR_PLATFORM = mac
+else: MCR_PLATFORM = none
+DEFINES += MCR_PLATFORM=$${MCR_PLATFORM}
+
+nostl|stl_off: DEFINES += nostl

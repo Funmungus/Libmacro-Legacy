@@ -129,12 +129,12 @@ int mcr_standard_platform_deinitialize(struct mcr_context *context)
 	UNUSED(context);
 	/* Remove an initialized reference of internal modifiers */
 	if (!_initialize_count || --_initialize_count)
-		return;
+		return 0;
 	mcr_Array_deinit(&mcr_echoEvents);
 	return mcr_Map_deinit(&mcr_flagToEcho);
 }
 
-int mcr_standard_platform_load_contract(mcr_context * ctx)
+int mcr_standard_platform_load_contract(struct mcr_context * ctx)
 {
 	int err = add_key_names(ctx);
 	if (err)
@@ -142,7 +142,7 @@ int mcr_standard_platform_load_contract(mcr_context * ctx)
 	err = add_echo_flags();
 	if (err)
 		return err;
-	return add_echo_names(context);
+	return add_echo_names(ctx);
 }
 
 static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
@@ -200,14 +200,14 @@ static int add_key_names(struct mcr_context *ctx)
 		"",		/*0x0F */
 		"Shift",	/*0x10 */
 		"Control",	/*0x11 */
-		"Menu",		/* (ALT) ", /*0x12 */
+		"Menu",		/* ALT, 0x12 */
 		"PAUSE",	/*0x13 */
 		"Capital",	/*0x14 */
-		"Kana",		/* (HANGUL) ", /*0x15 */
+		"Kana",		/* HANGUL, 0x15 */
 		"",		/*0x16 */
 		"Junja",	/*0x17 */
 		"Final",	/*0x18 */
-		"Hanja",	/* (KANJI) ", /*0x19 */
+		"Hanja",	/*KANJI, 0x19 */
 		"",		/*0x1A */
 		"Escape",	/*0x1B */
 		"Convert",	/*0x1C */
@@ -437,7 +437,7 @@ static int add_key_names(struct mcr_context *ctx)
 		"Noname",	/*0xFC */
 		"Pa1",		/*0xFD */
 		"OEM_CLEAR",	/*0xFE */
-		/*"None", /*0xFF */
+		/*"None", 0xFF */
 	};
 	int count = arrlen(names);
 	int i, err = 0;
@@ -473,7 +473,7 @@ static int add_echo_names(struct mcr_context *ctx)
 		"RightDown", "RightUp",
 		"XDown", "XUp"
 	};
-	const char *addNames[4][2] = {
+	const char *addNames[8][2] = {
 		{"Left Down", "left_down"}, {"Left Up", "left_up"},
 		{"Middle Down", "middle_down"}, {"Middle Up", "middle_up"},
 		{"Right Down", "right_down"}, {"Right Up", "right_up"},

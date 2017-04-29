@@ -79,9 +79,10 @@ int mcr_Staged_compare(const void *lhs, const void *rhs)
 	return ! !lhs;
 }
 
-int mcr_Staged_copy(void *dstPt, void *srcPt)
+int mcr_Staged_copy(void *dstPt, const void *srcPt)
 {
-	struct mcr_Staged *dPt = dstPt, *sPt = srcPt;
+	struct mcr_Staged *dPt = dstPt;
+	const struct mcr_Staged *sPt = srcPt;
 	struct mcr_Stage initial, *dSt, *sSt, *end;
 	int err;
 	dassert(dstPt);

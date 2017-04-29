@@ -16,35 +16,44 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_StringSet - An array of \ref mcr_String
  */
 
+#ifndef MCR_UTIL_STRING_SET_H
+#define MCR_UTIL_STRING_SET_H
+
 #include "mcr/util/mcrstring.h"
 
-#ifndef MCR_STRING_SET_H
-#define MCR_STRING_SET_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief An array of \ref mcr_String */
 typedef struct mcr_Array mcr_StringSet;
 
-/*! \brief \ref mcr_StringSet ctor
+/*!
+ * \brief \ref mcr_StringSet ctor
  *
  * Comparison will be set to mcr_String_compare by default.
  * \return 0
  */
 MCR_API int mcr_StringSet_init(void *setPt);
-/*! \brief \ref mcr_StringSet_init
+/*!
+ * \brief \ref mcr_StringSet_init
  *
  * \return Empty string set
  */
 MCR_API mcr_StringSet mcr_StringSet_new();
-/*! \brief \ref mcr_StringSet dtor
+/*!
+ * \brief \ref mcr_StringSet dtor
  *
  * \return 0
  */
 MCR_API int mcr_StringSet_deinit(void *setPt);
-/*! \brief Set initial values
+/*!
+ * \brief Set initial values
  *
  * Will deinit if anything is allocated
  * \param compare \ref mcr_Array.compare
@@ -67,58 +76,68 @@ MCR_API int mcr_StringSet_resize(mcr_StringSet * setPt, size_t newSize);
 MCR_API void mcr_StringSet_clear(mcr_StringSet * setPt);
 
 /* Position */
-/*! \brief \ref mcr_Array_element
+/*!
+ * \brief \ref mcr_Array_element
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_element(setPt, pos) \
 ((mcr_String *)mcr_Array_element(setPt, pos))
-/*! \brief \ref mcr_Array_first
+/*!
+ * \brief \ref mcr_Array_first
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_first(setPt) \
 ((mcr_String *)mcr_Array_first(setPt))
-/*! \brief \ref mcr_Array_last
+/*!
+ * \brief \ref mcr_Array_last
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_last(setPt) \
 ((mcr_String *)mcr_Array_last(setPt))
-/*! \brief \ref mcr_Array_end
+/*!
+ * \brief \ref mcr_Array_end
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_end(setPt) \
 ((mcr_String *)mcr_Array_end(setPt))
-/*! \brief \ref mcr_Array_next
+/*!
+ * \brief \ref mcr_Array_next
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_next(setPt, posPt) \
 ((mcr_String *)mcr_Array_next(setPt, ((void *)posPt)))
-/*! \brief \ref mcr_Array_prev
+/*!
+ * \brief \ref mcr_Array_prev
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_prev(setPt, posPt) \
 ((mcr_String *)mcr_Array_prev(setPt, ((void *)posPt)))
-/*! \brief \ref mcr_Array_index
+/*!
+ * \brief \ref mcr_Array_index
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_index mcr_Array_index
-/*! \brief \ref mcr_Array_last_index
+/*!
+ * \brief \ref mcr_Array_last_index
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_last_index mcr_Array_last_index
-/*! \brief \ref mcr_Array_iter
+/*!
+ * \brief \ref mcr_Array_iter
  *
  * \return \ref mcr_String *
  */
 #define mcr_StringSet_iter mcr_Array_iter
-/*! \brief \ref mcr_Array_iter_range
+/*!
+ * \brief \ref mcr_Array_iter_range
  *
  * \return \ref mcr_String *
  */
@@ -157,21 +176,25 @@ MCR_API int mcr_StringSet_fill(mcr_StringSet * setPt, size_t pos,
 /* Sorted functions: If no compare function is available, mcr_String_compare
  * will be used.
  */
-/*! \pre Set may or may not be sorted
+/*!
+ * \pre Set may or may not be sorted
  * \brief \ref mcr_Array_sort
  */
 MCR_API void mcr_StringSet_sort(mcr_StringSet * setPt);
-/*! \pre Set is sorted
+/*!
+ * \pre Set is sorted
  * \brief \ref mcr_Array_find
  */
 MCR_API mcr_String *mcr_StringSet_find(const mcr_StringSet * setPt,
 				       const char *strKey);
-/*! \pre Set is sorted
+/*!
+ * \pre Set is sorted
  * \brief \ref mcr_Array_add
  */
 MCR_API int mcr_StringSet_add(mcr_StringSet * setPt,
 			      const char **copyStr, size_t count, bool flagUnique);
-/*! \pre Set is sorted
+/*!
+ * \pre Set is sorted
  * \brief \ref mcr_Array_remove
  */
 MCR_API void mcr_StringSet_remove(mcr_StringSet * setPt, const char *removeStr);
@@ -205,4 +228,7 @@ MCR_ARR_LAST_INDEX(set)
 #define MCR_STRINGSET_FOR_EACH(set, iterateFnc) \
 MCR_ARR_FOR_EACH(set, iterateFnc)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

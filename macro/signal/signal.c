@@ -77,9 +77,10 @@ int mcr_send(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 			       sigPt) ? 0 : sigPt->isignal->send(sigPt) : 0;
 }
 
-int mcr_Signal_copy(void *dstPt, void *srcPt)
+int mcr_Signal_copy(void *dstPt, const void *srcPt)
 {
-	struct mcr_Signal *dstSig = dstPt, *srcSig = srcPt;
+	struct mcr_Signal *dstSig = dstPt;
+	const struct mcr_Signal *srcSig = srcPt;
 	int err = mcr_Instance_copy(dstPt, srcPt);
 	if (err)
 		return err;

@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
  */
 
-#ifndef MCR_ACTION_H
-#define MCR_ACTION_H
+#ifndef MCR_STANDARD_ACTION_H
+#define MCR_STANDARD_ACTION_H
 
 #include "mcr/standard/trigger_flags.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Conditional trigger from intercepted modifiers */
 struct mcr_Action {
@@ -33,7 +38,8 @@ struct mcr_Action {
 	int trigger_flags;
 };
 
-/*! \brief \ref mcr_Action ctor
+/*!
+ * \brief \ref mcr_Action ctor
  *
  * Modifiers set to MCR_MF_NONE and flags set to MCR_TF_ALL
  * \param actPt \ref opt \ref mcr_Action
@@ -41,7 +47,8 @@ struct mcr_Action {
  */
 MCR_API int mcr_Action_init(void *actPt);
 /* Default deinit, compare, copy */
-/*! \pre Trigger data is \ref mcr_Action
+/*!
+ * \pre Trigger data is \ref mcr_Action
  * \brief \ref mcr_ITrigger.receive for \ref mcr_Action
  */
 MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
@@ -53,4 +60,7 @@ MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
 #define mcr_Action_data(trigPt) \
 ((struct mcr_Action *)mcr_Instance_data(trigPt))
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -28,7 +28,7 @@ static const struct mcr_Interface _MCR_ARR_DISPATCHPAIR_IFACE = {
 	.deinit = mcr_Array_deinit
 };
 
-struct mcr_DispatchPair mcr_DispatchPar_new(void *receiver,
+struct mcr_DispatchPair mcr_DispatchPair_new(void *receiver,
 		mcr_Dispatcher_receive_fnc dispatch)
 {
 	struct mcr_DispatchPair ret;
