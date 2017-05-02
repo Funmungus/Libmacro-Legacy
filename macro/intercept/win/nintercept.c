@@ -46,16 +46,20 @@ static struct mcr_Signal *_signal_set[] = { &_echoSig, &_keySig, &_mcSig,
 	       &_scrSig
 };
 
-static const DWORD _echo_flags[] = {
-	MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN,
-	MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
-	MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP
+static const DWORD _echo_WM[] = {
+	WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDOWN,
+	WM_MBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP,
+	WM_XBUTTONDOWN, WM_XBUTTONUP
 };
+//static const DWORD _echo_flags[] = {
+//	MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN,
+//	MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
+//	MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP
+//};
 
 static int verify_key_state(PBYTE keyState, size_t keyState_size);
 static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam);
-static LRESULT CALLBACK move_proc(int nCode, WPARAM wParam, LPARAM lParam);
-static LRESULT CALLBACK scroll_proc(int nCode, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK mouse_proc(int nCode, WPARAM wParam, LPARAM lParam);
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
@@ -123,31 +127,19 @@ int mcr_intercept_key_set_enabled(struct mcr_context *ctx, bool enable)
 	return mcr_Grabber_set_enabled(nPt->grab_key, enable);
 }
 
-bool mcr_intercept_move_is_enabled(struct mcr_context * ctx)
+bool mcr_intercept_mouse_is_enabled(struct mcr_context * ctx)
 {
 	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
-	return MCR_GRABBER_IS_ENABLED(*nPt->grab_move);
+	return MCR_GRABBER_IS_ENABLED(*nPt->grab_mouse);
 }
 
 int mcr_intercept_move_set_enabled(struct mcr_context *ctx, bool enable)
 {
 	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
-	return mcr_Grabber_set_enabled(nPt->grab_move, enable);
+	return mcr_Grabber_set_enabled(nPt->grab_mouse, enable);
 }
 
-bool mcr_intercept_scroll_is_enabled(struct mcr_context * ctx)
-{
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
-	return MCR_GRABBER_IS_ENABLED(*nPt->grab_scroll);
-}
-
-int mcr_intercept_scroll_set_enabled(struct mcr_context *ctx, bool enable)
-{
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
-	return mcr_Grabber_set_enabled(nPt->grab_scroll, enable);
-}
-
-static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam)
+static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	struct mcr_mod_intercept_platform *nPt =
 			_hook_context->intercept.platform;
@@ -162,61 +154,47 @@ static LRESULT CALLBACK key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 	return CallNextHookEx(nPt->grab_key->id, nCode, wParam, lParam);
 }
 
-static LRESULT CALLBACK move_proc(int nCode, WPARAM wParam, LPARAM lParam)
+static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	struct mcr_mod_intercept_platform *nPt =
 			_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
 		DWORD flags = p->flags;
-		/* Check for movecursor */
-		if ((flags & MOUSEEVENTF_MOVE)) {
+		WORD delta = GET_WHEEL_DELTA_WPARAM
+			     ((p->mouseData >> sizeof(WORD)));
+		if (wParam == WM_MOUSEMOVE) {
 			_mc.pos[MCR_X] = p->pt.x;
 			_mc.pos[MCR_Y] = p->pt.y;
-			/* 0 absolute, 1 justify/relative */
-			_mc.is_justify = !(flags & MOUSEEVENTF_ABSOLUTE);
+			_mc.is_justify = !(flags & MOUSE_MOVE_ABSOLUTE);
 			if (mcr_dispatch(_hook_context, &_mcSig))
 				return -1;
-		}
-		for (unsigned int i = arrlen(_echo_flags); i--;) {
-			if ((flags & _echo_flags[i])) {
-				_echo.echo = i;
-				if (mcr_dispatch(_hook_context, &_echoSig))
-					return -1;
+		} else if (wParam == WM_MOUSEWHEEL) {
+			_scr.dm[MCR_X] = 0;
+			_scr.dm[MCR_Y] = delta;
+			if (mcr_dispatch(_hook_context, &_scrSig))
+				return -1;
+		} else if (wParam == WM_MOUSEHWHEEL) {
+			_scr.dm[MCR_X] = delta;
+			_scr.dm[MCR_Y] = 0;
+			if (mcr_dispatch(_hook_context, &_scrSig))
+				return -1;
+		} else {
+			for (unsigned int i = arrlen(_echo_WM); i--;) {
+				if ((flags & _echo_WM[i])) {
+					_echo.echo = i;
+					if (mcr_dispatch(_hook_context, &_echoSig))
+						return -1;
+				}
 			}
 		}
 	}
-	return CallNextHookEx(nPt->grab_move->id, nCode, wParam, lParam);
-}
-
-static LRESULT CALLBACK scroll_proc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	struct mcr_mod_intercept_platform *nPt =
-			_hook_context->intercept.platform;
-	if (nCode == HC_ACTION) {
-		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
-		WORD delta = GET_WHEEL_DELTA_WPARAM
-			     ((p->mouseData >> sizeof(WORD)));
-		switch (wParam) {
-		case WM_MOUSEWHEEL:
-			_scr.dm[MCR_X] = 0;
-			_scr.dm[MCR_Y] = delta;
-			break;
-		case WM_MOUSEHWHEEL:
-			_scr.dm[MCR_X] = delta;
-			_scr.dm[MCR_Y] = 0;
-			break;
-		}
-		if (mcr_dispatch(_hook_context, &_scrSig))
-			return -1;
-	}
-	return CallNextHookEx(nPt->grab_scroll->id, nCode, wParam, lParam);
+	return CallNextHookEx(nPt->grab_mouse->id, nCode, wParam, lParam);
 }
 
 static int verify_key_state(PBYTE keyState, size_t keyState_size)
 {
 	BYTE key = (BYTE) VK_RETURN;
-	/*      short result ; /* Only used to refresh kb state. */
 	/* Only get the keyboard state if not done already. The only way to */
 	/* check for this is if keyState is in the right format. */
 	if (keyState == NULL || keyState_size < 0xFF) {
@@ -275,30 +253,25 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 	}
 	i = 0;
 	nPt->grab_key = nPt->all_grabbers[i++];
-	nPt->grab_move = nPt->all_grabbers[i++];
-	nPt->grab_scroll = nPt->all_grabbers[i];
+	nPt->grab_mouse = nPt->all_grabbers[i++];
 	mcr_Grabber_init(nPt->grab_key);
 	if ((i = mcr_Grabber_set_all(nPt->grab_key, WH_KEYBOARD_LL, key_proc)))
 		return i;
-	mcr_Grabber_init(nPt->grab_move);
-	if ((i = mcr_Grabber_set_all(nPt->grab_move, WH_MOUSE_LL, move_proc)))
+	mcr_Grabber_init(nPt->grab_mouse);
+	if ((i = mcr_Grabber_set_all(nPt->grab_mouse, WH_MOUSE_LL, mouse_proc)))
 		return i;
-	mcr_Grabber_init(nPt->grab_scroll);
-	if ((i = mcr_Grabber_set_all(nPt->grab_scroll, WH_MOUSEWHEEL_LL,
-				     scroll_proc)))
-		return i;
-
-	mcr_HidEcho_init(&_echo);
-	mcr_Key_init(&_key);
-	mcr_Scroll_init(&_scr);
-	mcr_MoveCursor_init(&_mc);
 	return 0;
 }
 
 int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 {
 	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
-	for (int i = MCR_GRAB_COUNT; i--;) {
+	int i;
+	for (i = MCR_GRAB_COUNT; i--;) {
+		mcr_Grabber_set_enabled(nPt->all_grabbers[i], false);
+	}
+	Sleep(500);
+	for (i = MCR_GRAB_COUNT; i--;) {
 		/* Will block while waiting to finish. */
 		mcr_Grabber_deinit(nPt->all_grabbers[i]);
 		free(nPt->all_grabbers[i]);

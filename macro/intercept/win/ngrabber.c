@@ -23,10 +23,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if _WIN32_WINNT < 0x0600
+#include <shlobj.h>
+#endif
+
 #define winerr \
-dmsg; \
 ddo(fprintf(stderr, "Windows Error: %ld\n", GetLastError()));
 
+static bool mcr_is_privileged();
 static int enable_impl(struct mcr_Grabber *grabPt, bool enable);
 static int grab_hook(struct mcr_Grabber *grabPt);
 static int grab_unhook(struct mcr_Grabber *grabPt);
@@ -34,49 +38,40 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam);
 static DWORD WINAPI thread_disable(LPVOID lpParam);
 static int disable_impl(struct mcr_Grabber *grabPt);
 
-void mcr_Grabber_init(void *grabDataPt)
+int mcr_Grabber_init(void *grabDataPt)
 {
 	struct mcr_Grabber *grabPt = grabDataPt;
-	if (!grabPt)
-		return;
-	memset(grabPt, 0, sizeof(struct mcr_Grabber));
-	grabPt->hMutex = CreateMutex(NULL, FALSE, NULL);
-	if (!grabPt->hMutex) {
-		winerr;
-		ddo(exit(EXIT_FAILURE));
+	if (grabPt) {
+		memset(grabPt, 0, sizeof(struct mcr_Grabber));
+		if (!(grabPt->hMutex = CreateMutex(NULL, FALSE, NULL))) {
+			winerr;
+			return mset_errno(EINTR);
+		}
 	}
+	return 0;
 }
 
-void mcr_Grabber_deinit(void *grabDataPt)
+int mcr_Grabber_deinit(void *grabDataPt)
 {
+	bool locked;
 	int err = 0;
 	struct mcr_Grabber *grabPt = grabDataPt;
 	if (!grabPt)
-		return;
-	if (WaitForSingleObject(grabPt->hMutex,
-				MCR_INTERCEPT_WAIT_MILLIS) != WAIT_OBJECT_0 ||
-	    (err = disable_impl(grabPt))) {
+		return 0;
+
+	locked = WaitForSingleObject(grabPt->hMutex,
+				     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+	if (!locked) {
 		winerr;
-		if (grabPt->id && !UnhookWindowsHookEx(grabPt->id)) {
-			winerr;
-		}
-		if (grabPt->hThread && !CloseHandle(grabPt->hThread)) {
-			winerr;
-		}
-		if (!CloseHandle(grabPt->hMutex)) {
-			winerr;
-		}
-		ddo(exit(EXIT_FAILURE));
+		err = mset_errno(EINTR);
 	}
-	grabPt->hModule = NULL;
-	grabPt->id = 0;
-	grabPt->hThread = NULL;
-	grabPt->dwThread = 0;
+	disable_impl(grabPt);
 	if (!CloseHandle(grabPt->hMutex)) {
 		winerr;
-		ddo(exit(EXIT_FAILURE));
+		err = mset_errno(EINTR);
 	}
-	grabPt->hMutex = NULL;
+	memset(grabPt, 0, sizeof(struct mcr_Grabber));
+	return err;
 }
 
 int mcr_Grabber_set_all(struct mcr_Grabber *grabPt, int type, HOOKPROC proc)
@@ -94,23 +89,22 @@ int mcr_Grabber_set_all(struct mcr_Grabber *grabPt, int type, HOOKPROC proc)
 int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable)
 {
 	int err = 0;
-	bool locked = WaitForSingleObject(grabPt->hMutex,
-					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+	bool locked;
 	dassert(grabPt);
+	if (!mcr_is_privileged()) {
+		mset_error(EPERM);
+		return EPERM;
+	}
+	locked = WaitForSingleObject(grabPt->hMutex,
+				     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	if (!locked) {
 		winerr;
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
+		err = mset_errno(EINTR);
 	}
 	err = enable_impl(grabPt, enable);
 	if (locked && !ReleaseMutex(grabPt->hMutex)) {
 		winerr;
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
+		err = mset_errno(EINTR);
 	}
 	return err;
 }
@@ -119,6 +113,28 @@ bool mcr_Grabber_is_enabled(struct mcr_Grabber * grabPt)
 {
 	dassert(grabPt);
 	return MCR_GRABBER_IS_ENABLED(*grabPt);
+}
+
+static bool mcr_is_privileged()
+{
+#if _WIN32_WINNT >= 0x0600
+	BOOL fRet = FALSE;
+	HANDLE hToken = NULL;
+	if(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+		TOKEN_ELEVATION Elevation;
+		DWORD cbSize = sizeof(TOKEN_ELEVATION);
+		if(GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation),
+				       &cbSize)) {
+			fRet = Elevation.TokenIsElevated;
+		}
+	}
+	if(hToken) {
+		CloseHandle(hToken);
+	}
+	return fRet;
+#else
+	return !!IsUserAnAdmin();
+#endif
 }
 
 static int enable_impl(struct mcr_Grabber *grabPt, bool enable)
@@ -131,52 +147,41 @@ static int enable_impl(struct mcr_Grabber *grabPt, bool enable)
 		 * an intercepting thread. */
 		if (!isEnabled) {
 			if (grabPt->hThread) {
-				err = errno;
-				if (!err)
-					err = EPERM;
-				mset_error(err);
+				err = mset_errno(EPERM);
 				CloseHandle(grabPt->hThread);
-				return err;
+				grabPt->hThread = NULL;
+				grabPt->dwThread = 0;
 			}
 			if (!(grabPt->hThread = CreateThread(NULL, 0,
 							     (LPTHREAD_START_ROUTINE)
 							     thread_receive_hooking,
-							     (LPVOID) grabPt,
-							     CREATE_SUSPENDED,
+							     (LPVOID) grabPt, 0,
 							     &grabPt->dwThread))) {
 				winerr;
-				err = errno;
-				if (!err)
-					err = EINTR;
-				mset_error(err);
-				return err;
-			}
-			if ((err = grab_hook(grabPt)) ||
-			    ResumeThread(grabPt->hThread) == (DWORD) - 1) {
-				winerr;
-				if (!err)
-					err = EINTR;
-				disable_impl(grabPt);
-				return err;
+				err = mset_errno(EINTR);
 			}
 		}
 	} else if (isEnabled) {
+		DWORD dwThread = 0;
 		/* Disabling from intercepting thread would block */
 		HANDLE hThread = CreateThread(NULL, 0,
 					      (LPTHREAD_START_ROUTINE) thread_disable,
-					      (LPVOID) grabPt, 0, &grabPt->dwThread);
+					      (LPVOID) grabPt, 0, &dwThread);
 		if (!hThread) {
-			err = EINTR;
-			return err;
+			winerr;
+			return mset_errno(EINTR);
 		}
-		if (!CloseHandle(hThread))
-			err = EINTR;
+		if (!CloseHandle(hThread)) {
+			winerr;
+			err = mset_errno(EINTR);
+		}
 	}
 	return err;
 }
 
 static int grab_hook(struct mcr_Grabber *grabPt)
 {
+	int err = 0;
 	dassert(grabPt);
 	if (!MCR_GRABBER_IS_ENABLED(*grabPt)) {
 		if (!grabPt->hThread) {
@@ -189,19 +194,19 @@ static int grab_hook(struct mcr_Grabber *grabPt)
 		}
 		if (!(grabPt->hModule = GetModuleHandle(NULL))) {
 			winerr;
-			mset_error(EINTR);
-			return EINTR;
+			return mset_errno(EINTR);
 		}
-		/* This can return NULL if invalid values. */
+		/* This can return null if invalid values. */
+		/* Will also be null if admin permissions are not raised */
 		if (!(grabPt->id = SetWindowsHookEx(grabPt->type,
 						    grabPt->proc, grabPt->hModule,
-						    grabPt->dwThread))) {
+						    0))) {
 			winerr;
-			mset_error(EINTR);
-			return EINTR;
+			err = mset_errno(EINTR);
+			grabPt->hModule = NULL;
 		}
 	}
-	return 0;
+	return err;
 }
 
 static int grab_unhook(struct mcr_Grabber *grabPt)
@@ -211,10 +216,7 @@ static int grab_unhook(struct mcr_Grabber *grabPt)
 	if (MCR_GRABBER_IS_ENABLED(*grabPt)) {
 		if (!UnhookWindowsHookEx(grabPt->id)) {
 			winerr;
-			err = errno;
-			if (!err)
-				err = EINTR;
-			mset_error(err);
+			err = mset_errno(EINTR);
 		}
 		grabPt->id = 0;
 		grabPt->hModule = NULL;
@@ -225,8 +227,16 @@ static int grab_unhook(struct mcr_Grabber *grabPt)
 static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 {
 	struct mcr_Grabber *me = (struct mcr_Grabber *)lpParam;
-	int err = 0;
 	MSG message;
+	bool locked = WaitForSingleObject(me->hMutex,
+					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+	int err = grab_hook(me);
+	if (locked)
+		ReleaseMutex(me->hMutex);
+	if (err) {
+		enable_impl(me, false);
+		return err;
+	}
 	memset(&message, 0, sizeof(message));
 	while (MCR_GRABBER_IS_ENABLED(*me)) {
 		if (MsgWaitForMultipleObjects(0, NULL, FALSE,
@@ -239,20 +249,20 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 		}
 	}
 
-	bool locked = WaitForSingleObject(me->hMutex,
-					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
-	if (!locked) {
-		winerr;
-		err = EINTR;
-		mset_error(EINTR);
-	}
-	if ((err = grab_unhook(me))) {
-		mset_error(err);
-	}
-	if (locked && !ReleaseMutex(me->hMutex)) {
-		winerr;
-		err = EINTR;
-		mset_error(EINTR);
+	if (!MCR_GRABBER_IS_ENABLED(*me)) {
+		locked = WaitForSingleObject(me->hMutex,
+					     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+		if (!locked) {
+			winerr;
+			err = mset_errno(EINTR);
+		}
+		if ((err = grab_unhook(me))) {
+			mset_error(err);
+		}
+		if (locked && !ReleaseMutex(me->hMutex)) {
+			winerr;
+			err = mset_errno(EINTR);
+		}
 	}
 	return err;
 }
@@ -265,14 +275,12 @@ static DWORD WINAPI thread_disable(LPVOID lpParam)
 					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	if (!locked) {
 		winerr;
-		err = EINTR;
-		mset_error(EINTR);
+		err = mset_errno(EINTR);
 	}
 	err = disable_impl(grabPt);
 	if (locked && !ReleaseMutex(grabPt->hMutex)) {
 		winerr;
-		err = EINTR;
-		mset_error(EINTR);
+		err = mset_errno(EINTR);
 	}
 	return err;
 }
@@ -282,21 +290,9 @@ static int disable_impl(struct mcr_Grabber *grabPt)
 	int err = grab_unhook(grabPt);
 
 	if (grabPt->hThread) {
-		if (WaitForSingleObject(grabPt->hThread,
-					MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0) {
-			if (!CloseHandle(grabPt->hThread)) {
-				winerr;
-				err = EINTR;
-				mset_error(EINTR);
-			}
-		} else {
+		if (!CloseHandle(grabPt->hThread)) {
 			winerr;
-			err = EINTR;
-			mset_error(EINTR);
-			if (!CloseHandle(grabPt->hThread)) {
-				winerr;
-				mset_error(EINTR);
-			}
+			err = mset_errno(EINTR);
 		}
 		grabPt->hThread = NULL;
 		grabPt->dwThread = 0;
