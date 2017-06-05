@@ -16,13 +16,36 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/signal/none/nsignal.h"
-#include "mcr/signal/signal.h"
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
 
-void mcr_Key_load_contract()
-{
+#ifndef MCR_EXTRAS_QT_TYPES_H
+#define MCR_EXTRAS_QT_TYPES_H
+
+#include <QtCore>
+extern "C" {
+#include "mcr/util/def.h"
 }
 
-void mcr_HidEcho_load_contract()
+namespace mcr
 {
+typedef int size_type;
+typedef QByteArray string;
+template <typename T>
+using vector = QVector<T>;
+template <typename T>
+using map = QMap<T>;
+
+inline char *bytes(string &str)
+{
+	return str.data();
 }
+inline const char *bytes(const string &str)
+{
+	return str.data();
+}
+}
+
+#endif

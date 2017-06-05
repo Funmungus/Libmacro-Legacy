@@ -16,4 +16,28 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/intercept/intercept.h"
+#include <cstring>
+#include "mcr/extras/mod_extras.h"
+
+namespace mcr
+{
+void Alarm::copy(const mcr::ISignalData *copytron) throw(int)
+{
+	if (copytron == this)
+		return;
+	if (copytron) {
+		const Alarm *mem = dynamic_cast<const Alarm *>(copytron);
+		if (!mem)
+			throw EINVAL;
+		time = mem->time;
+	} else {
+		memset(&time, 0, sizeof(time));
+	}
+}
+
+AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt) throw(int)
+	: SignalManager(context, sigPt)
+{
+	init(&this->context()->iAlarm.isignal);
+}
+}

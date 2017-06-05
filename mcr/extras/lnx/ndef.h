@@ -16,42 +16,17 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/standard/standard.h"
-#include "mcr/modules.h"
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
 
-void mcr_Alarm_set_all(struct mcr_Alarm *almPt, int sec, int minute, int hour,
-		       int mday, int mon, int wday)
-{
-	dassert(almPt);
-	MCR_ALARM_SET_ALL(*almPt, sec, minute, hour, mday, mon, wday);
-}
+#ifndef MCR_EXTRAS_LNX_NDEF_H
+#define MCR_EXTRAS_LNX_NDEF_H
 
-/* Send functions that are placed into ISignals. */
-int mcr_Alarm_send(struct mcr_Signal *sigPt)
-{
-	dassert(sigPt);
-	return mcr_Alarm_send_data(mcr_Alarm_data(sigPt));
+extern "C" {
+#include "mcr/intercept/lnx/ndef.h"
 }
+#include "mcr/extras/def.h"
 
-int mcr_tm_compare(const void *lhs, const void *rhs)
-{
-	time_t lT, rT;
-	if (rhs) {
-		if (lhs) {
-			lT = mktime((struct tm *)lhs);
-			rT = mktime((struct tm *)rhs);
-			return MCR_CMP_INTEGRAL(lT, rT);
-		}
-		return -1;
-	}
-	return ! !lhs;
-}
-
-struct mcr_ISignal *mcr_iAlarm(struct mcr_context *ctx)
-{
-	dassert(ctx);
-	return &ctx->standard.ialarm;
-}
+#endif

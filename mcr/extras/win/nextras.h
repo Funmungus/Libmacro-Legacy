@@ -16,10 +16,9 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NONE_EXTRAS_H
-#define MCR_NONE_EXTRAS_H
-
-#include "mcr/intercept/none/ndef.h"
-#include "mcr/extras/def.h"
-
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
 #endif
+
+#include "mcr/extras/win/ndef.h"

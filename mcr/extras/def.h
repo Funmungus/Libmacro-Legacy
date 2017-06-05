@@ -15,3 +15,25 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_DEF_H
+#define MCR_EXTRAS_DEF_H
+
+#include <chrono>
+#include <thread>
+#include <new>
+#include <cstring>
+
+#include "mcr/libmacro.h"
+#include "mcr/extras/std.h"
+
+namespace mcr {
+class Libmacro;
+}
+
+#endif

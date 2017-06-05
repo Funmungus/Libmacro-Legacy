@@ -16,16 +16,17 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/none/nextras.h"
-#include "mcr/extras/mod_extras.h"
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
 
-namespace mcr
-{
-void Libmacro::initialize() throw(int)
-{
-}
+#ifndef MCR_EXTRAS_NONE_NDEF_H
+#define MCR_EXTRAS_NONE_NDEF_H
 
-void Libmacro::deinitialize()
-{
+extern "C" {
+#include "mcr/intercept/none/ndef.h"
 }
-}
+#include "mcr/extras/def.h"
+
+#endif

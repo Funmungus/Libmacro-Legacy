@@ -16,102 +16,164 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/extras.h"
-#include "mcr/modules.h"
-#include "mcr/modules.h"
+#include "mcr/extras/mod_extras.h"
 
-static int mcr_safe_string_initialize(struct mcr_context *ctx);
-static int mcr_safe_string_deinitialize(struct mcr_context *ctx);
-/* TODO: Start with size 0xFF, add trim function */
-static int mcr_signal_extras_initialize(struct mcr_context *ctx);
-static int mcr_signal_extras_deinitialize(struct mcr_context *ctx);
-
-int mcr_extras_initialize(struct mcr_context *ctx)
+namespace mcr
 {
-	int err = mcr_safe_string_initialize(ctx);
+vector<Libmacro *> Libmacro::_registry;
+
+Libmacro::Libmacro(bool enabled) throw(int)
+	: iAlarm(this), iCommand(this), iStringKey(this), _enabled(false)
+{
+	int err = mcr_initialize(ptr(), true, true);
 	if (err)
-		return err;
-	if ((err = mcr_signal_extras_initialize(ctx)))
-		return err;
-	return mcr_extras_platform_initialize(ctx);
+		throw(err);
+	/* Register */
+	_registry.push_back(this);
+	iAlarm.registerType();
+	iCommand.registerType();
+	iStringKey.registerType();
+	initialize();
+	SafeString::initialize();
+	setEnabled(enabled);
 }
 
-int mcr_extras_deinitialize(struct mcr_context *ctx)
+Libmacro::~Libmacro() throw(int)
 {
-	int err = mcr_extras_platform_deinitialize(ctx);
-	if (err)
-		return err;
-	if ((err = mcr_signal_extras_deinitialize(ctx)))
-		return err;
-	return mcr_safe_string_deinitialize(ctx);
+	int err;
+	SafeString::deinitialize();
+	deinitialize();
+	/* Unregister context that is being removed */
+	auto end = _registry.end();
+	for (auto iter = _registry.begin(); iter != end; iter++) {
+		/* Assume placed only once */
+		if (*iter == this) {
+			_registry.erase(iter);
+			break;
+		}
+	}
+	if (isEnabled()) {
+		fprintf(stderr, "Error: Libmacro context was not disabled "
+				"before destruction.  "
+				"Threading errors may occur.\n");
+		fprintf(stderr, "Warning: mcr_deinitialize errors are ignored\n");
+		mcr_deinitialize(ptr());
+	} else if ((err = mcr_deinitialize(ptr()))) {
+		throw(err);
+	}
 }
 
-int mcr_extras_load_contract(struct mcr_context *ctx)
+Libmacro *Libmacro::instance() throw(int)
 {
-	char *cmdNames[] = {
-		"Command", "Cmd"
-	};
-	char *skNames[] = {
-		"StringKey", "SK", "string_key"
-	};
-	struct mcr_IRegistry *isigReg = mcr_ISignal_reg(ctx);
-	int err = mcr_reg_set_names(isigReg, mcr_iCommand(ctx),
-				    (const char *)cmdNames[0], (const char **)cmdNames,
-				    arrlen(cmdNames));
-	if (!err)
-		err = mcr_reg_set_names(isigReg, mcr_iStringKey(ctx),
-					(const char *)skNames[0], (const char **)skNames,
-					arrlen(skNames));
-	return err ? err : mcr_StringKey_load_contract(ctx);
+	if (_registry.size() == 0)
+		throw EFAULT;
+	return &*_registry.back();
 }
 
-int mcr_safe_string_initialize(struct mcr_context *ctx)
+void Libmacro::setEnabled(bool val) throw(int)
 {
-	char pass[MCR_AES_BLOCK_SIZE + 1] = { 0 };
-	int err = mcr_randomize((unsigned char *)pass, MCR_AES_BLOCK_SIZE);
-	UNUSED(ctx);
-	pass[MCR_AES_BLOCK_SIZE] = '\0';
-	mcr_SafeString_set_password(pass);
-	return err;
+	int err;
+	if (val != _enabled) {
+		_enabled = val;
+		mcr_Dispatcher_set_enabled_all(ptr(), val);
+		/* Operation not permitted if not admin elevated */
+		if ((err = mcr_intercept_set_enabled(ptr(), val)) &&
+				err != EPERM) {
+			throw err;
+		}
+	}
 }
 
-int mcr_safe_string_deinitialize(struct mcr_context *ctx)
+void Libmacro::setCharacter(int c, vector<Signal> &val) throw(int)
 {
-	UNUSED(ctx);
-	return 0;
+	size_type i;
+	if (c < 0)
+		throw EINVAL;
+	if (c >= (signed)characters.size())
+		characters.resize(c + 1);
+	vector<Signal> &mem = characters[c];
+	mem.resize(val.size());
+	for (i = 0; i < val.size(); i++) {
+		mem[i] = val[i];
+	}
 }
 
-static int mcr_signal_extras_initialize(struct mcr_context *ctx)
+void Libmacro::setKeyChar(int c, int key, long msecDelay, bool shiftFlag) throw(int)
 {
-	struct mcr_ISignal *isigPt = mcr_iStringKey(ctx);
-	int err = 0;
-	mcr_ISignal_init(isigPt);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_StringKey),
-			      mcr_StringKey_init, mcr_StringKey_deinit, mcr_StringKey_compare,
-			      mcr_StringKey_copy);
-	isigPt->send = mcr_StringKey_send;
-	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
-	isigPt = mcr_iCommand(ctx);
-	mcr_ISignal_init(isigPt);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Command),
-			      mcr_Command_init, mcr_Command_deinit, mcr_Command_compare,
-			      mcr_Command_copy);
-	isigPt->send = mcr_Command_send;
-	mcr_Array_init(&ctx->extras.key_chars);
-	mcr_Array_set_all(&ctx->extras.key_chars, NULL,
-			  sizeof(struct mcr_Array));
-
-	err = mcr_register(mcr_ISignal_reg(ctx), mcr_iStringKey(ctx), NULL,
-			   NULL, 0);
-	if (!err)
-		err = mcr_register(mcr_ISignal_reg(ctx), mcr_iCommand(ctx),
-				   NULL, NULL, 0);
-	return err;
+	Signal delaySig, keySig;
+	NoOpRef nMan(this, delaySig.ptr());
+	KeyRef keyMan(this, keySig.ptr());
+	vector<Signal> localSet;
+	size_type i;
+	nMan.mkdata();
+	mcr_NoOp_set_all(nMan.data<mcr_NoOp>(), msecDelay / 1000, msecDelay % 1000);
+	keyMan.mkdata();
+	mcr_Key_set_all(keyMan.data<mcr_Key>(), key, 0, MCR_DOWN);
+	/* shift = 4 keys, 3 delays, non-shift = 2 keys, 1 delay */
+	localSet.resize(shiftFlag ? 7 : 3);
+	for (i = 0; i < localSet.size(); i++) {
+		/* Odd numbers are delays */
+		if (i % 2)
+			localSet[i] = delaySig;
+		else
+			localSet[i] = keySig;
+	}
+	if (shiftFlag) {
+		int shift = mcr_Key_mod_key(ptr(), MCR_SHIFT);
+		mcr_Key_set_all(MCR_KEY_DATA(localSet[0].signal), shift, shift, MCR_DOWN);
+		localSet[6] = localSet[0];
+		keyMan.setSignal(localSet[4].ptr());
+		keyMan.setUpType(MCR_UP);
+		keyMan.setSignal(localSet[6].ptr());
+		keyMan.setUpType(MCR_UP);
+	} else {
+		keyMan.setSignal(localSet[2].ptr());
+		keyMan.setUpType(MCR_UP);
+	}
+	setCharacter(c, localSet);
 }
 
-static int mcr_signal_extras_deinitialize(struct mcr_context *ctx)
+void Libmacro::setCharacterDelays(mcr_NoOp delayValue) throw(int)
 {
-	mcr_StringKey_char_clear(ctx);
-	mcr_Array_deinit(&ctx->extras.key_chars);
-	return 0;
+	size_type i, j;
+	vector<Signal> *vecMem;
+	SignalRef siggy;
+	mcr_ISignal *isigPt = mcr_iNoOp(ptr());
+	for (i = 0; i < characters.size(); i++) {
+		vecMem = &characters[i];
+		for (j = 0; j < vecMem->size(); j++) {
+			siggy = vecMem->at(j).ptr();
+			if (siggy.isignal() == isigPt) {
+				siggy.mkdata();
+				*siggy.data<mcr_NoOp>() = delayValue;
+			}
+		}
+	}
+}
+
+void Libmacro::removeCharacter(int c) throw(int)
+{
+	if (c < 0)
+		throw EINVAL;
+	if (c < (signed)characters.size())
+		characters[c].clear();
+}
+
+void Libmacro::trimCharacters()
+{
+	size_type i;
+	if (!characters.size())
+		return;
+	/* Stop at last index with elements */
+	for (i = characters.size() - 1; i > 0 && !characters[i].size(); i--);
+
+	/* i is either 0(with or without elements), or index has elements */
+	if (characters[i].size()) {
+		/* Index found with elements */
+		characters.resize(i + 1);
+	} else {
+		/* No index with any elements */
+		characters.clear();
+	}
+}
 }

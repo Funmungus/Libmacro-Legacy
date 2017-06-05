@@ -16,4 +16,12 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/lnx/ndef.h"
+#include "mcr/extras/none/nextras.h"
+#include "mcr/extras/mod_extras.h"
+
+namespace mcr
+{
+void Command::send() throw(int)
+{
+}
+}

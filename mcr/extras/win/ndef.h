@@ -15,3 +15,18 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_WIN_NDEF_H
+#define MCR_EXTRAS_WIN_NDEF_H
+
+extern "C" {
+#include "mcr/intercept/win/nintercept.h"
+}
+#include "mcr/extras/def.h"
+
+#endif

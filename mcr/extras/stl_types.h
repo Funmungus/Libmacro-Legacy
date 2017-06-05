@@ -16,4 +16,40 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/win/ndef.h"
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_STL_TYPES_H
+#define MCR_EXTRAS_STL_TYPES_H
+
+#include <string>
+#include <vector>
+#include <map>
+
+extern "C" {
+#include "mcr/util/def.h"
+}
+
+namespace mcr
+{
+typedef size_t size_type;
+typedef std::string string;
+template <typename T>
+using vector = std::vector<T>;
+template <typename Key, typename Value>
+using map = std::map<Key, Value>;
+
+inline const char *bytes(const string &str)
+{
+	return str.data();
+}
+
+inline char *bytes(string &str)
+{
+	return &str.front();
+}
+}
+
+#endif

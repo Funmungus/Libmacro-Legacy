@@ -16,10 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_LNX_EXTRAS_H
-#define MCR_LNX_EXTRAS_H
+/*!
+ * \file
+ * \brief Resolve standard library classes
+ *
+ * Default to standard library, use QT if \ref nostl is defined
+ */
 
-#include "mcr/intercept/lnx/ndef.h"
-#include "mcr/extras/def.h"
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_STD_H
+#define MCR_EXTRAS_STD_H
+
+#ifdef nostl
+#include "mcr/extras/qt_types.h"
+#else
+#include "mcr/extras/stl_types.h"
+#endif
 
 #endif

@@ -16,17 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-extern "C" {
-#include "mcr/standard/standard.h"
-}
-#include <thread>
+/*!
+ * \file
+ * \brief Include Libmacro c++ extra module
+ */
 
-int mcr_Alarm_send_data(struct mcr_Alarm * dataPt)
-{
-	if (!dataPt)
-		return 0;
-	std::chrono::system_clock::time_point until_time =
-		std::chrono::system_clock::from_time_t(std::mktime(&dataPt->time));
-	std::this_thread::sleep_until(until_time);
-	return 0;
-}
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_H
+#define MCR_EXTRAS_H
+
+#include "mcr/extras/mod_extras.h"
+
+#endif
