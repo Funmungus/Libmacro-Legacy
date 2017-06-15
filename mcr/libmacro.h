@@ -16,11 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Include all Libmacro functionality
  */
 
-/*! \namespace mcr
+/*!
+ * \namespace mcr
  * \brief Libmacro, by Jonathan Pelletier 2013.  Alpha version.
  *
  * 1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using
@@ -39,71 +41,75 @@
 #ifndef MCR_LIBMACRO_H
 #define MCR_LIBMACRO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "mcr/util/util.h"
 #include "mcr/signal/signal.h"
 #include "mcr/macro/macro.h"
 #include "mcr/standard/standard.h"
 #include "mcr/intercept/intercept.h"
-#ifdef MCR_EXTRAS
-#include "mcr/extras/extras.h"
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /*! \brief Libmacro context, required for Libmacro functions */
-	struct mcr_context;
-/*! \brief \ref malloc and \ref mcr_initialize
+struct mcr_context;
+/*!
+ * \brief \ref malloc and \ref mcr_initialize
  *
  * \param flagLoadContracts If true, also load string contracts in
  * all modules.  Useful for string-mapped or scripted applications.
  * \param flagTrimFinish If true, \ref mcr_trim after initializing.
  * \return Initialized Libmacro context, or NULL on error
  */
-	MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
+MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
 		bool flagTrimFinish);
-/*! \brief \ref mcr_deinitialize and \ref free
+/*!
+ * \brief \ref mcr_deinitialize and \ref free
  *
  * Because of threading do not deallocate in a deconstructor or on program
  * exit.
  * \param ctx Libmacro context
  */
-	MCR_API int mcr_deallocate(struct mcr_context *ctx);
-/*! \brief Initialize Libmacro resources
+MCR_API int mcr_deallocate(struct mcr_context *ctx);
+/*!
+ * \brief Initialize Libmacro resources
  *
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_initialize(struct mcr_context *ctx,
-		bool flagLoadContracts, bool flagTrimFinish);
-/*! \brief Clean all resources used by Libmacro.
+MCR_API int mcr_initialize(struct mcr_context *ctx,
+			   bool flagLoadContracts, bool flagTrimFinish);
+/*!
+ * \brief Clean all resources used by Libmacro.
  *
  * Because of threading do not deinitialize in a deconstructor or on program
  * exit.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_deinitialize(struct mcr_context *ctx);
-/*! \brief Load string contracts
+MCR_API int mcr_deinitialize(struct mcr_context *ctx);
+/*!
+ * \brief Load string contracts
  *
  * String contracts map string names or keys to types and instances.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-	MCR_API int mcr_load_contracts(struct mcr_context *ctx);
-/*! \brief Minimize allocation used by Libmacro.
+MCR_API int mcr_load_contracts(struct mcr_context *ctx);
+/*!
+ * \brief Minimize allocation used by Libmacro.
  *
  * \param ctx Libmacro context
  */
-	MCR_API void mcr_trim(struct mcr_context *ctx);
+MCR_API void mcr_trim(struct mcr_context *ctx);
 
 #ifndef MCR_PLATFORM_INC
-/*! \brief Include this file to access platform declarations.
+/*!
+ * \brief Include this file to access platform declarations.
  *
  * In case of emergency break glass
  */
-#define MCR_PLATFORM_INC MCR_STR(mcr/MCR_PLATFORM_DIR/nlibmacro.h)
+#define MCR_PLATFORM_INC MCR_STR(mcr/MCR_PLATFORM/nlibmacro.h)
 #endif
 
 #ifdef __cplusplus

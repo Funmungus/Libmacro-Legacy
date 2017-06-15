@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_WIN_STANDARD_DEF_H
-#define MCR_WIN_STANDARD_DEF_H
+#ifndef MCR_STANDARD_WIN_NDEF_H
+#define MCR_STANDARD_WIN_NDEF_H
 
 #include "mcr/util/win/nutil.h"
 #include "mcr/standard/def.h"

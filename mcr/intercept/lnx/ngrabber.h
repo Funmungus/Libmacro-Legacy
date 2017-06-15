@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
-#ifndef MCR_LNX_GRABBER_H
-#define MCR_LNX_GRABBER_H
+#ifndef MCR_INTERCEPT_LNX_NGRABBER_H
+#define MCR_INTERCEPT_LNX_NGRABBER_H
 
 #include "mcr/intercept/lnx/ndef.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Take exclusive access to a /dev/input event. */
 struct mcr_Grabber {
@@ -57,4 +62,7 @@ MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
 #define MCR_EVENTBIT(keyCode) \
 (1 << ((keyCode) % 8))
 
+#ifdef __cplusplus
+}
+#endif
 #endif

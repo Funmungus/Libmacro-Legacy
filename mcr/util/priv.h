@@ -16,16 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Set current operating permissions.
  */
 
-#ifndef MCR_PRIV_H
-#define MCR_PRIV_H
+#ifndef MCR_UTIL_PRIV_H
+#define MCR_UTIL_PRIV_H
 
 #include "mcr/util/def.h"
 
-/*! \brief Disable privileges, and remove the ability to
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Disable privileges, and remove the ability to
  * enable them.
  *
  * \ref mcr_is_platform
@@ -33,4 +39,7 @@
  */
 MCR_API int mcr_privilege_deactivate();
 
+#ifdef __cplusplus
+}
+#endif
 #endif

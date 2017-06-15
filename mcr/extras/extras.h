@@ -16,13 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * \brief Extra things not needed for macros to function
+/*!
+ * \file
+ * \brief Extra and C++ things not needed for Libmacro to function
  */
 
-#ifndef MCR_EXTRAS_H
-#define MCR_EXTRAS_H
+#ifndef __cplusplus
+#pragma message "C++ support is required for extras module"
+#include "mcr/err.h"
+#endif
 
-#include "mcr/extras/signal_extras.h"
+#ifndef MCR_EXTRAS_EXTRAS_H
+#define MCR_EXTRAS_EXTRAS_H
+
+#include "mcr/extras/alarm.h"
+#include "mcr/extras/command.h"
+#include "mcr/extras/string_key.h"
+#include "mcr/extras/wrap_trigger.h"
 
 #endif

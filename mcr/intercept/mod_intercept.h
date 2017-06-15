@@ -16,16 +16,21 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_mod_intercept - Intercept module
  *
  * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_MOD_INTERCEPT_H
-#define MCR_MOD_INTERCEPT_H
+#ifndef MCR_INTERCEPT_MOD_INTERCEPT_H
+#define MCR_INTERCEPT_MOD_INTERCEPT_H
 
 #include "mcr/intercept/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Intercept module */
 struct mcr_mod_intercept {
@@ -41,6 +46,9 @@ MCR_API int mcr_intercept_platform_initialize(struct mcr_context *ctx);
 MCR_API int mcr_intercept_platform_deinitialize(struct mcr_context *ctx);
 
 #define MCR_INTERCEPT_PLATFORM_INC \
-MCR_STR(mcr/intercept/MCR_PLATFORM_DIR/nintercept.h)
+MCR_STR(mcr/intercept/MCR_PLATFORM/nintercept.h)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -16,16 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
  */
 
-#ifndef MCR_TRIGGER_FLAGS_H
-#define MCR_TRIGGER_FLAGS_H
+#ifndef MCR_STANDARD_TRIGGER_FLAGS_H
+#define MCR_STANDARD_TRIGGER_FLAGS_H
 
 #include "mcr/standard/def.h"
 
-/*! \brief Logical triggering bahavior of modifiers.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Logical triggering bahavior of modifiers.
  *
  * This will define behaviour of how modifiers may or may not trigger a
  * dispatch to receivers.\n
@@ -64,7 +70,8 @@ enum mcr_TriggerFlags {
 };
 /*! \brief Make valid \ref mcr_TriggerFlags from any number */
 #define MCR_TF_mask(number) (MCR_TF_ANY & (number))
-/*! \brief Remove valid \ref mcr_TriggerFlags from any number, leaving
+/*!
+ * \brief Remove valid \ref mcr_TriggerFlags from any number, leaving
  * only user defined flags.
  */
 #define MCR_TF_user_mask(number) ((number) & (~MCR_TF_ANY))
@@ -85,7 +92,8 @@ enum mcr_TriggerFlags {
 /*! \brief bool, \ref MCR_TF_ANY */
 #define MCR_TF_IS_ANY(lhs, rhs) true
 
-/*! \brief Match modifiers using \ref mcr_TriggerFlags logic.
+/*!
+ * \brief Match modifiers using \ref mcr_TriggerFlags logic.
  *
  * \param lhs uint Modifiers that must be matched
  * \param rhs uint Modifiers that are used to match
@@ -123,4 +131,7 @@ default: \
 	break; \
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif

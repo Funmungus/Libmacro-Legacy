@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds
  */
 
-#ifndef MCR_NOOP_H
-#define MCR_NOOP_H
+#ifndef MCR_STANDARD_NOOP_H
+#define MCR_STANDARD_NOOP_H
 
 #include "mcr/standard/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Pause execution in seconds and milliseconds. */
 struct mcr_NoOp {
@@ -35,7 +40,8 @@ struct mcr_NoOp {
 
 /*! \brief Set both seconds and milliseconds. */
 MCR_API void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec);
-/*! \pre Signal has data member \ref mcr_NoOp
+/*!
+ * \pre Signal has data member \ref mcr_NoOp
  * \brief Pause execution in seconds and milliseconds.
  *
  * \return \ref reterr
@@ -54,4 +60,7 @@ MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 #define MCR_NOOP_DATA(sig) \
 ((struct mcr_NoOp *)(sig).instance.data.data)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

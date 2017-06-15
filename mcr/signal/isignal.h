@@ -16,28 +16,35 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_ISignal - Interface for signals.
  *
  * Use signals with \ref mcr_send.
  */
 
-#ifndef MCR_ISIGNAL_H
-#define MCR_ISIGNAL_H
+#ifndef MCR_SIGNAL_ISIGNAL_H
+#define MCR_SIGNAL_ISIGNAL_H
 
 #include "mcr/signal/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Types */
 struct mcr_Signal;
 struct mcr_Dispatcher;
-/*! \brief Function to send or dispatch signal
+/*!
+ * \brief Function to send or dispatch signal
  *
  * \param signalPt Signal to send
  * \return \ref reterr for actions with errors, 0 for no error
  */
 typedef int (*mcr_signal_fnc) (struct mcr_Signal * signalPt);
 
-/*! \brief Interface for signal types
+/*!
+ * \brief Interface for signal types
  *
  * Logically a signal should be anything that can be dispatched
  * to another entity, or sent to cause an action.
@@ -46,7 +53,8 @@ struct mcr_ISignal {
 	/*! \brief Common members for interface registration */
 	struct mcr_Interface interface;
 	/* Signal interface */
-	/*! \brief Intercept before sending. Returns false
+	/*!
+	 * \brief Intercept before sending. Returns false
 	 * to not block signals from sending, otherwise do block the signal.
 	 */
 	struct mcr_Dispatcher *dispatcher;
@@ -54,57 +62,73 @@ struct mcr_ISignal {
 	mcr_signal_fnc send;
 };
 
-/*! \brief \ref mcr_ISignal ctor
+/*! \brief \ref mcr_ISignal with \ref mcr_context reference */
+struct mcr_CtxISignal {
+	struct mcr_ISignal isignal;
+	struct mcr_context *ctx;
+};
+
+/*!
+ * \brief \ref mcr_ISignal ctor
  *
  * \param isigPt \ref opt \ref mcr_ISignal
  * \return 0
  */
 MCR_API int mcr_ISignal_init(void *isigPt);
-/*! \brief \ref mcr_ISignal_init and mcr_ISignal_set_all
+/*!
+ * \brief \ref mcr_ISignal_init and mcr_ISignal_set_all
  *
  * \param dispPt \ref opt \ref mcr_ISignal.dispatcher
  * \param sender \ref opt \ref mcr_ISignal.send
  * \return Newly created mcr_ISignal
  */
 MCR_API struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
-	mcr_signal_fnc sender);
-/*! \brief Set initial values
+		mcr_signal_fnc sender);
+/*!
+ * \brief Set initial values
  *
  * Please use \ref mcr_iset_all for interface values.
  * \param dispPt \ref opt \ref mcr_ISignal.dispatcher
  * \param sender \ref opt \ref mcr_ISignal.send
  */
 MCR_API void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
-	struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
+				 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
 
 /*! \brief Get the \ref mcr_IRegistry of \ref mcr_ISignal */
 MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
-/*! \brief Get the id of a mcr_ISignal.
+/*!
+ * \brief Get the id of a mcr_ISignal.
  *
  * \param isigPt \ref opt \ref mcr_ISignal *
  * \return \ref retid
  */
 #define mcr_ISignal_id(isigPt) mcr_iid(isigPt)
-/*! \brief Get the name of a mcr_ISignal.
+/*!
+ * \brief Get the name of a mcr_ISignal.
  *
  * \param isigPt \ref opt
  * \return Name of the mcr_ISignal, or null if not found
  */
 MCR_API const char *mcr_ISignal_name(struct mcr_context *ctx,
-	struct mcr_ISignal *isigPt);
-/*! \brief Get a \ref mcr_ISignal from its id
+				     struct mcr_ISignal *isigPt);
+/*!
+ * \brief Get a \ref mcr_ISignal from its id
  *
  * \param id Id of the signal interface
  * \return Signal interface, or null if not found
  */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_id(struct mcr_context *ctx,
-	size_t id);
-/*! \brief Get a \ref mcr_ISignal from its name
+		size_t id);
+/*!
+ * \brief Get a \ref mcr_ISignal from its name
  *
  * \param name \ref opt Name of the signal interface
  * \return Signal interface, or null if not found
  */
 MCR_API struct mcr_ISignal *mcr_ISignal_from_name(struct mcr_context *ctx,
-	const char *name);
+		const char *name);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

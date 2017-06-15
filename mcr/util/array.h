@@ -16,16 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Array Dynamic resizing array, with utility functions
  */
 
-#ifndef MCR_ARRAY_H
-#define MCR_ARRAY_H
+#ifndef MCR_UTIL_ARRAY_H
+#define MCR_UTIL_ARRAY_H
 
 #include "mcr/util/interface.h"
 
-/*! \brief Dynamic resizing array
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Dynamic resizing array
  *
  * Byte size of the whole array = elementSize * size\n
  * Important: byte array is first element for string comparison
@@ -38,7 +44,8 @@ struct mcr_Array {
 	/*! \brief Number of elements assigned */
 	size_t used;
 	/* Internal */
-	/*! \brief Optional comparison to sort and find elements.
+	/*!
+	 * \brief Optional comparison to sort and find elements.
 	 *
 	 * If null, all sorting and finding will use memcmp */
 	mcr_compare_fnc compare;
@@ -48,29 +55,33 @@ struct mcr_Array {
 /*! \brief Interface for a sorted, generic array of references */
 MCR_API const struct mcr_Interface *mcr_Array_ref_interface();
 
-/*! \brief \ref mcr_Array ctor
+/*!
+ * \brief \ref mcr_Array ctor
  *
  * Element size will be 1, with no array allocated
  * \param arrPt \ref opt \ref mcr_Array *
  * \return 0
  */
 MCR_API int mcr_Array_init(void *arrPt);
-/*! \brief \ref mcr_Array_init and \ref mcr_Array_set_all
+/*!
+ * \brief \ref mcr_Array_init and \ref mcr_Array_set_all
  *
  * \param compare \ref opt \ref mcr_Array.compare
  * \param elementSize \ref mcr_Array.element_size
  * \return Empty \ref mcr_Array
  */
 MCR_API struct mcr_Array mcr_Array_new(mcr_compare_fnc compare,
-	size_t elementSize);
-/*! \brief \ref mcr_Array_init for ordered array of pointers
+				       size_t elementSize);
+/*!
+ * \brief \ref mcr_Array_init for ordered array of pointers
  *
  * Initializer for instances of \ref mcr_Array_ref_interface
  * \param arrPt \ref opt \ref mcr_Array *
  * \return 0
  */
 MCR_API int mcr_Array_init_ref(void *arrPt);
-/*! \post The array object will be ready to use again, with no change to the
+/*!
+ * \post The array object will be ready to use again, with no change to the
  * element size and comparison function.
  * \brief \ref mcr_Array dtor
  *
@@ -79,7 +90,8 @@ MCR_API int mcr_Array_init_ref(void *arrPt);
  * \return 0
  */
 MCR_API int mcr_Array_deinit(void *arrPt);
-/*! \post Any allocated array will be deallocated.
+/*!
+ * \post Any allocated array will be deallocated.
  * \brief Set initial values
  *
  * Will deinitialize anything that is allocated
@@ -87,31 +99,35 @@ MCR_API int mcr_Array_deinit(void *arrPt);
  * \param elementSize \ref mcr_Array.element_size
  */
 MCR_API void mcr_Array_set_all(struct mcr_Array *arrPt,
-	mcr_compare_fnc compare, size_t elementSize);
+			       mcr_compare_fnc compare, size_t elementSize);
 
 /* Allocation control */
-/*! \brief Set a minimum number of used elements and
+/*!
+ * \brief Set a minimum number of used elements and
  * \ref mcr_Array_resize if needed.
  *
  * \param minUsed Minimum number of used elements
  * \return \ref reterr
  */
 MCR_API int mcr_Array_minused(struct mcr_Array *arrPt, size_t minUsed);
-/*! \brief Set a minimum size, and \ref mcr_Array_resize if needed.
+/*!
+ * \brief Set a minimum size, and \ref mcr_Array_resize if needed.
  *
  * \param minSize Minimum number of allocated elements
  * \return \ref reterr
  */
 MCR_API int mcr_Array_minsize(struct mcr_Array *arrPt, size_t minSize);
-/*! \brief Apply a smart resizing algorithm for adding a number of
+/*!
+ * \brief Apply a smart resizing algorithm for adding a number of
  * elements.
  *
  * \param increasingCount Number of elements to add
  * \return \ref reterr
  */
 MCR_API int mcr_Array_smartsize(struct mcr_Array *arrPt,
-	size_t increasingCount);
-/*! \brief Set a minimum number of used elements and fill new elements.
+				size_t increasingCount);
+/*!
+ * \brief Set a minimum number of used elements and fill new elements.
  *
  * \param minUsed Minimum number of used elements
  * \param fillerElementPt \ref opt Reference to copy into new elements at the
@@ -119,10 +135,11 @@ MCR_API int mcr_Array_smartsize(struct mcr_Array *arrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_minfill(struct mcr_Array *arrPt, size_t minUsed,
-	const void *fillerElementPt);
+			      const void *fillerElementPt);
 /*! \brief Minimize array allocation. */
 MCR_API void mcr_Array_trim(struct mcr_Array *arrPt);
-/*! \brief Reallocate array to given size. Actual byte size will
+/*!
+ * \brief Reallocate array to given size. Actual byte size will
  * be this size * element size.
  *
  * \param newSize New allocated number of elements
@@ -133,7 +150,8 @@ MCR_API int mcr_Array_resize(struct mcr_Array *arrPt, size_t newSize);
 MCR_API void mcr_Array_clear(struct mcr_Array *arrPt);
 
 /* Position and elements */
-/*! \brief Get a reference to a position in the array.
+/*!
+ * \brief Get a reference to a position in the array.
  *
  * \param arrPt \ref opt
  * \param pos Index of element to return
@@ -141,19 +159,22 @@ MCR_API void mcr_Array_clear(struct mcr_Array *arrPt);
  * of that position. Otherwise this is null.
  */
 MCR_API void *mcr_Array_element(const struct mcr_Array *arrPt, size_t pos);
-/*! \brief Get a reference to the first element.
+/*!
+ * \brief Get a reference to the first element.
  *
  * \param arrPt \ref opt
  * \return Reference to first element, or null if empty
  */
 MCR_API void *mcr_Array_first(const struct mcr_Array *arrPt);
-/*! \brief Get a reference to the last element.
+/*!
+ * \brief Get a reference to the last element.
  *
  * \param arrPt \ref opt
  * \return Reference to last element, or null if empty
  */
 MCR_API void *mcr_Array_last(const struct mcr_Array *arrPt);
-/*! \brief Get a position reference exactly one byte after
+/*!
+ * \brief Get a position reference exactly one byte after
  * last element in the array.
  *
  * \param arrPt \ref opt
@@ -161,7 +182,8 @@ MCR_API void *mcr_Array_last(const struct mcr_Array *arrPt);
  * empty
  */
 MCR_API void *mcr_Array_end(const struct mcr_Array *arrPt);
-/*! \brief Get a position reference after the given position.
+/*!
+ * \brief Get a position reference after the given position.
  *
  * \param arrPt \ref opt
  * \param posPt \ref opt Base position to increase from
@@ -169,7 +191,8 @@ MCR_API void *mcr_Array_end(const struct mcr_Array *arrPt);
  * \ref mcr_Array.element_size. null if array or position are null
  */
 MCR_API void *mcr_Array_next(const struct mcr_Array *arrPt, void *posPt);
-/*! \brief Get a position reference before the given position.
+/*!
+ * \brief Get a position reference before the given position.
  *
  * \param arrPt \ref opt
  * \param posPt \ref opt Base position to decrease from
@@ -177,7 +200,8 @@ MCR_API void *mcr_Array_next(const struct mcr_Array *arrPt, void *posPt);
  * \ref mcr_Array.element_size. null if array or position are null
  */
 MCR_API void *mcr_Array_prev(const struct mcr_Array *arrPt, void *posPt);
-/*! \brief Get the position for a pointer to an element in the array.
+/*!
+ * \brief Get the position for a pointer to an element in the array.
  *
  * \param arrPt \ref opt
  * \param elPt \ref opt Pointer to an element in the array
@@ -185,14 +209,16 @@ MCR_API void *mcr_Array_prev(const struct mcr_Array *arrPt, void *posPt);
  * element not found
  */
 MCR_API size_t mcr_Array_index(const struct mcr_Array *arrPt, const void *elPt);
-/*! \brief Get the index of the last element.
+/*!
+ * \brief Get the index of the last element.
  *
  * \param arrPt \ref opt
  * \return \ref retind Index of last element. -1 if array is null or
  * element not found
  */
 MCR_API size_t mcr_Array_last_index(const struct mcr_Array *arrPt);
-/*! \brief Create an iterator.
+/*!
+ * \brief Create an iterator.
  *
  * If iterator is null, end will be null, and vise versa.  Null checks
  * are suggested for equality(e.g. !=) comparisons.\n
@@ -212,8 +238,9 @@ MCR_API size_t mcr_Array_last_index(const struct mcr_Array *arrPt);
  * \param bytesPt \ref opt \ref mcr_Array.element_size
  */
 MCR_API void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
-	char **endPt, size_t * bytesPt);
-/*! \brief Create a range iterator.
+			    char **endPt, size_t * bytesPt);
+/*!
+ * \brief Create a range iterator.
  *
  * Depending on the indices used, the iterator or last element might be null.
  * A null check is suggested, and a for-loop is not suggested.\n
@@ -238,10 +265,11 @@ MCR_API void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
  * \param lastIndex Index of last element in range
  */
 MCR_API void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
-	char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
+				  char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
 
 /* Add/remove */
-/*! \brief Place elements at the given position.
+/*!
+ * \brief Place elements at the given position.
  *
  * This will displace elements after position.
  * \param pos Index to place into, within the array's used
@@ -251,8 +279,9 @@ MCR_API void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_insert(struct mcr_Array *arrPt, size_t pos,
-	const void *elementArr, size_t count);
-/*! \brief Remove elements from given index, and adjust the rest of
+			     const void *elementArr, size_t count);
+/*!
+ * \brief Remove elements from given index, and adjust the rest of
  * the array.
  *
  * \param pos Index to remove from, within range of the array's used
@@ -260,8 +289,9 @@ MCR_API int mcr_Array_insert(struct mcr_Array *arrPt, size_t pos,
  * \param count Number of elements to remove
  */
 MCR_API void mcr_Array_remove_index(struct mcr_Array *arrPt, size_t pos,
-	size_t count);
-/*! \brief Place elements at the end of the array.
+				    size_t count);
+/*!
+ * \brief Place elements at the end of the array.
  *
  * \param elementArr \ref opt Array of elements to copy from
  * \param count Number of elements to copy
@@ -270,8 +300,9 @@ MCR_API void mcr_Array_remove_index(struct mcr_Array *arrPt, size_t pos,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_append(struct mcr_Array *arrPt, const void *elementArr,
-	size_t count);
-/*! \brief \ref mcr_Array_append with one element
+			     size_t count);
+/*!
+ * \brief \ref mcr_Array_append with one element
  *
  * \param elementPt \ref opt Reference to copy from
  * \param flagUnique If true elements will only be added if they
@@ -283,15 +314,17 @@ MCR_API int mcr_Array_push(struct mcr_Array *arrPt, const void *elementPt);
 MCR_API void mcr_Array_pop(struct mcr_Array *arrPt);
 
 /* Replace current elements */
-/*! \brief Replace entire array with given array source.
+/*!
+ * \brief Replace entire array with given array source.
  *
  * \param arraySource \ref opt Values are copied from this array.
  * \param count Number of values to copy
  * \return \ref reterr
  */
 MCR_API int mcr_Array_replace(struct mcr_Array *arrPt,
-	const void *arraySource, size_t count);
-/*! \brief Replace a subset of elements at a position.
+			      const void *arraySource, size_t count);
+/*!
+ * \brief Replace a subset of elements at a position.
  *
  * Size will be increased if needed.
  * \param dstPos Destination index to start replacing from
@@ -300,16 +333,18 @@ MCR_API int mcr_Array_replace(struct mcr_Array *arrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_copy(struct mcr_Array *dstPt, size_t dstPos,
-	const void *srcArray, size_t count);
-/*! \brief Replace a single element at a position.
+			   const void *srcArray, size_t count);
+/*!
+ * \brief Replace a single element at a position.
  *
  * \param pos Position of the element to replace
  * \param elementPt \ref opt Pointer to the object to copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Array_set(struct mcr_Array *arrPt, size_t pos,
-	const void *elementPt);
-/*! \brief Replace a subset of elements by copying a single element.
+			  const void *elementPt);
+/*!
+ * \brief Replace a subset of elements by copying a single element.
  *
  * \param dstPos Destination index to start replacing from
  * \param copyElementPt \ref opt Copy this into subset.  If null, fill
@@ -318,8 +353,9 @@ MCR_API int mcr_Array_set(struct mcr_Array *arrPt, size_t pos,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_fill(struct mcr_Array *arrPt, size_t dstPos,
-	const void *copyElementPt, size_t count);
-/*! \brief Move elements within an array, or from one
+			   const void *copyElementPt, size_t count);
+/*!
+ * \brief Move elements within an array, or from one
  * to the other.
  *
  * If source and destination are the same, memmove will be used,
@@ -332,19 +368,21 @@ MCR_API int mcr_Array_fill(struct mcr_Array *arrPt, size_t dstPos,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
-	const struct mcr_Array *srcPt, size_t srcPos, size_t count);
+			   const struct mcr_Array *srcPt, size_t srcPos, size_t count);
 
 /* Sorted functions: If no compare function is available, memcmp will be
  * used.
  */
-/*! \pre Array may be sorted already or not
+/*!
+ * \pre Array may be sorted already or not
  * \post Array will be sorted
  * \brief Sort array elements
  *
  * Sorted function, if \ref mcr_Array.compare is available, it will be used.
  */
 MCR_API void mcr_Array_sort(struct mcr_Array *arrPt);
-/*! \pre Array is sorted
+/*!
+ * \pre Array is sorted
  * \post Array will be sorted
  * \brief Get a reference to an element in the array.
  *
@@ -356,8 +394,9 @@ MCR_API void mcr_Array_sort(struct mcr_Array *arrPt);
  * of that element. Otherwise this is null.
  */
 MCR_API void *mcr_Array_find(const struct mcr_Array *arrPt,
-	const void *elementPt);
-/*! \pre Array is sorted
+			     const void *elementPt);
+/*!
+ * \pre Array is sorted
  * \post Array will be sorted
  * \brief Place an element into a sorted array
  *
@@ -369,8 +408,9 @@ MCR_API void *mcr_Array_find(const struct mcr_Array *arrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Array_add(struct mcr_Array *arrPt,
-	const void *elementArr, size_t count, bool flagUnique);
-/*! \pre Array is sorted
+			  const void *elementArr, size_t count, bool flagUnique);
+/*!
+ * \pre Array is sorted
  * \post Array will be sorted
  * \brief Remove all elements that match the given element.
  *
@@ -378,7 +418,7 @@ MCR_API int mcr_Array_add(struct mcr_Array *arrPt,
  * \param removeElementPt \ref opt Element to remove
  */
 MCR_API void mcr_Array_remove(struct mcr_Array *arrPt,
-	const void *removeElementPt);
+			      const void *removeElementPt);
 
 /* Macro utils, array is checked for existing elements, but indices are
  * not checked for a valid range */
@@ -421,7 +461,8 @@ NULL))
 /*! See \ref mcr_Array_last_index */
 #define MCR_ARR_LAST_INDEX(arr) ((arr).used - 1)
 
-/*! \brief For every element in the array call a function with one argument,
+/*!
+ * \brief For every element in the array call a function with one argument,
  * which will be a void * to each element in the array.
  *
  * It was found that variadic functions have slower performance than
@@ -446,4 +487,7 @@ NULL))
 	} \
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif
