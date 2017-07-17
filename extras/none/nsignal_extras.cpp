@@ -21,7 +21,7 @@
 
 namespace mcr
 {
-void Command::send() throw(int)
+void Command::send() MCR_THROWS
 {
 }
 }

@@ -28,7 +28,7 @@ int mcr_Instance_init(void *instPt)
 }
 
 struct mcr_Instance mcr_Instance_new(void *iPt, void *dataPt,
-		void (*deallocate) (void *))
+				     void (*deallocate) (void *))
 {
 	struct mcr_Instance ret;
 	mcr_Instance_init(&ret);

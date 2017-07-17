@@ -32,11 +32,12 @@
 
 #ifndef __STDC_NO_THREADS__
 
-/* Ming does not have pthreads */
-#ifdef __MINGW32__
-#include "mcr/util/cppthread.h"
+/* Windows does not have C threads */
+#ifdef _WIN32
+	//#if defined(__MINGW32__) || _MSC_VER < 1920
+	#include "mcr/util/cppthread.h"
 #else
-#include <threads.h>
+	#include <threads.h>
 #endif
 
 #else

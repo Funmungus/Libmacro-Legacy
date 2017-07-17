@@ -26,21 +26,26 @@ SafeString::~SafeString()
 	if (_keyProvider)
 		_keyProvider->deregister(this);
 	if (_encrypted)
-		delete _encrypted;
+		delete []_encrypted;
+	if (_plain)
+		delete []_plain;
 }
 
-SafeString::SafeString(const SafeString &copytron) throw(int)
+SafeString::SafeString(const SafeString &copytron) MCR_THROWS
 	: _cryptic(copytron.cryptic()), _encrypted(NULL), _encryptedBufferSize(0),
 	  _encryptedBytes(0),
-	  _keyProvider(copytron.keyProvider()), _iv{0}, _lenMem(0), _plain(""),
-	  _stateless(copytron.stateless()), _tag{0}
+	  _keyProvider(copytron.keyProvider()), _lenMem(0), _plain(NULL),
+	  _plainBufferSize(0),
+	  _stateless(copytron.stateless())
 {
+	memset(_iv, 0, sizeof(_iv));
+	memset(_tag, 0, sizeof(_tag));
 	if (cryptic())
 		resetIv();
 	setText(copytron.text());
 }
 
-int SafeString::compare(const SafeString &rhs) const throw(int)
+int SafeString::compare(const SafeString &rhs) const MCR_THROWS
 {
 	int cmp;
 	mcr::string lMem, rMem;
@@ -55,7 +60,7 @@ int SafeString::compare(const SafeString &rhs) const throw(int)
 	return lMem.empty() ? -1 : std::strcmp(bytes(lMem), bytes(rMem));
 }
 
-void SafeString::setCryptic(bool val) throw (int)
+void SafeString::setCryptic(bool val) MCR_THROWS
 {
 	/* If changing from plain to encrypted, be sure there is a key
 	 * provider */
@@ -64,7 +69,7 @@ void SafeString::setCryptic(bool val) throw (int)
 	}
 }
 
-void SafeString::setKeyProvider(IKeyProvider *provider) throw(int)
+void SafeString::setKeyProvider(IKeyProvider *provider) MCR_THROWS
 {
 	string mem;
 	if (provider != _keyProvider) {
@@ -78,7 +83,7 @@ void SafeString::setKeyProvider(IKeyProvider *provider) throw(int)
 	}
 }
 
-void SafeString::setIv(unsigned char *iv) throw(int)
+void SafeString::setIv(unsigned char *iv) MCR_THROWS
 {
 	string mem;
 	if (cryptic()) {
@@ -90,7 +95,7 @@ void SafeString::setIv(unsigned char *iv) throw(int)
 	}
 }
 
-void SafeString::resetIv() throw(int)
+void SafeString::resetIv() MCR_THROWS
 {
 	string mem;
 	if (cryptic()) {
@@ -102,7 +107,7 @@ void SafeString::resetIv() throw(int)
 	}
 }
 
-void SafeString::setStateless(bool val) throw(int)
+void SafeString::setStateless(bool val) MCR_THROWS
 {
 	string mem;
 	if (val != stateless()) {
@@ -117,33 +122,43 @@ void SafeString::setStateless(bool val) throw(int)
 	}
 }
 
-string SafeString::text() const throw(int)
+size_type SafeString::text(char *bufferOut) const MCR_THROWS
 {
 	const unsigned char *key;
-	if (!cryptic())
-		return _plain;
-	if (!_encrypted || !_encryptedBytes)
-		return "";
+	if (!bufferOut)
+		return 0;
+	if (!cryptic()) {
+		if (_plain)
+			memcpy(bufferOut, _plain, _lenMem + 1);
+		else
+			bufferOut[0] = '\0';
+		return _lenMem;
+	}
+	if (!_encrypted || !_encryptedBytes) {
+		bufferOut[0] = '\0';
+		return 0;
+	}
+	/* Encrypted, but no key available, so something is wrong */
 	if (!_keyProvider)
 		throw EFAULT;
 	_keyProvider->key(this, &key);
 	if (!key)
 		throw EFAULT;
 	return decrypt(_encrypted, _encryptedBytes, key, _iv,
-		       stateless() ? NULL : _tag);
+		       stateless() ? NULL : _tag, bufferOut);
 }
 
-void SafeString::setText(const string &str) throw(int)
+void SafeString::setText(const char *str, size_t len) MCR_THROWS
 {
 	int buffLen;
 	const unsigned char *key;
 	/* Empty string */
-	if (!str.size() || str[0] == '\0') {
+	if (!len || !str || str[0] == '\0') {
 		clear();
 		return;
 	}
 	if (cryptic()) {
-		buffLen = str.size() * 1.5f;
+		buffLen = (int)(len * 1.5f);
 		/* First check valid key provider */
 		if (!_keyProvider)
 			throw EFAULT;
@@ -155,21 +170,27 @@ void SafeString::setText(const string &str) throw(int)
 			if (_encrypted)
 				delete []_encrypted;
 			_encryptedBufferSize = buffLen;
-			_encrypted = new unsigned char[buffLen];
+			_encrypted = new unsigned char[_encryptedBufferSize];
 		}
-		_encryptedBytes = encrypt(str, key, _iv,
+		_encryptedBytes = encrypt(str, len, key, _iv,
 					  stateless() ? NULL : _tag, _encrypted);
 		/* Error, but encrypt function will throw an error so this will
 		 * not be used */
 		if (_encryptedBytes == -1)
 			_encryptedBytes = 0;
 	} else {
-		_plain = str;
+		if (_plainBufferSize < len) {
+			if (_plain)
+				delete []_plain;
+			_plainBufferSize = len + 1;
+			_plain = new char[_plainBufferSize];
+		}
+		memcpy(_plain, str, len + 1);
 	}
-	_lenMem = str.size();
+	_lenMem = len;
 }
 
-void SafeString::setText(const string &str, bool cryptic) throw(int)
+void SafeString::setText(const char *str, size_t len, bool cryptic) MCR_THROWS
 {
 	/* If changing from plain to encrypted, be sure there is a key
 	 * provider */
@@ -178,16 +199,21 @@ void SafeString::setText(const string &str, bool cryptic) throw(int)
 		_cryptic = cryptic;
 		resetIv();
 	}
-	setText(str);
+	setText(str, len);
 }
 
 void SafeString::clear()
 {
 	_encryptedBufferSize = _encryptedBytes = 0;
-	if (_encrypted)
+	if (_encrypted) {
 		delete []_encrypted;
-	_lenMem = 0;
-	_plain = "";
+		_encrypted = NULL;
+	}
+	_plainBufferSize = _lenMem = 0;
+	if (_plain) {
+		delete []_plain;
+		_plain = NULL;
+	}
 	if (cryptic())
 		std::memset(_tag, 0, sizeof(_tag));
 }

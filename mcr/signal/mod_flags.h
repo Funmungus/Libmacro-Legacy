@@ -73,7 +73,7 @@ enum mcr_ModFlags {
  * \return Modifiers
  */
 MCR_API unsigned int mcr_ModFlags_modifier(struct mcr_context *ctx,
-				      const char *name);
+		const char *name);
 /*!
  * \brief Get the name of a modifier
  *

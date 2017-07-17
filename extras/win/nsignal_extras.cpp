@@ -24,7 +24,7 @@
 
 namespace mcr
 {
-void Command::send() throw(int)
+void Command::send() MCR_THROWS
 {
 	int err = 0;
 	size_type i;
@@ -39,8 +39,8 @@ void Command::send() throw(int)
 	std::memset(&sInfo, 0, sizeof(sInfo));
 	std::memset(&pInfo, 0, sizeof(pInfo));
 	cmdline = "\"" + file.text() + "\"";
-	for (i = 0; i < args.size(); i++) {
-		mem = args[i].text();
+	for (i = 0; i < argsCount(); i++) {
+		mem = _args[i].text();
 		if (!mem.empty())
 			cmdline.append(" \"" + mem + '"');
 	}

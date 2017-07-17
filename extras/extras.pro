@@ -21,22 +21,20 @@ win {
 	TARGET = lib$$TARGET
 	# resolve imports on windows
 	# linkage callspec
-	# TODO: Confirm callspec required for mingw
-	DEFINES += MCR_EXPORTS
+	DEFINES += MCR_EXTRAS_EXPORTS
 	# Resolve Libmacro main module
 	CONFIG(debug,debug|release):LIBS += -L$$OUT_PWD/../macro/debug/
 	else:LIBS += -L$$OUT_PWD/../macro/release/
+	LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
 	msvc {
-		LIBS += -l$$qtLibraryTarget(libmacro)
-		LIBS += -luser32
 		contains(QMAKE_TARGET.arch, x86_64) {
 			LIBS += -l$$qtLibraryTarget(libcrypto64MT)
 		} else {
 			LIBS += -l$$qtLibraryTarget(libcrypto32MT)
 		}
 	} else {
-		LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
-		LIBS += -llibcrypto
+		# Ming does not require an import library
+		LIBS += -llibcrypto-1_1
 	}
 } else {
 	# Resolve Libmacro main module

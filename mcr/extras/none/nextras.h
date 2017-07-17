@@ -17,8 +17,8 @@
 */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #include "mcr/extras/none/ndef.h"

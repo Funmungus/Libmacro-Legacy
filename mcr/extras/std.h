@@ -24,17 +24,17 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_STD_H
-#define MCR_EXTRAS_STD_H
+	#define MCR_EXTRAS_STD_H
 
-#ifdef nostl
-#include "mcr/extras/qt_types.h"
-#else
-#include "mcr/extras/stl_types.h"
-#endif
+	#ifdef nostl
+		#include "mcr/extras/qt_types.h"
+	#else
+		#include "mcr/extras/stl_types.h"
+	#endif
 
 #endif

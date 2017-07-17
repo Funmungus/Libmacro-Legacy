@@ -18,39 +18,41 @@
 
 /*!
  * \file
- * \brief \ref Command - Execute a shell command, similar to \ref execvp
+ * \brief \ref Command - Execute a shell command, similar to \ref execvp,
+ * with restrictions and without closing current process.
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_COMMAND_H
 #define MCR_EXTRAS_COMMAND_H
 
-#include "mcr/extras/isignal.h"
+#include "mcr/extras/wrap_signal.h"
+#include "mcr/extras/isignal_data.h"
 #include "mcr/extras/safe_string.h"
 
 namespace mcr
 {
 /*! \brief Execute a shell command, similar to \ref execvp */
-struct MCR_API Command : public ISignalData {
+struct MCR_EXTRAS_API Command : public ISignalData {
 	/*! \brief Executable file */
 	SafeString file;
-	/*! \brief Shell command arguments, argv of execvp */
-	vector<SafeString> args;
 
-	Command(bool cryptic = false) throw(int)
-		: file(_keyProvider, "", cryptic), _cryptic(cryptic && _keyProvider)
+	Command(bool cryptic = false) MCR_THROWS
+		: file(_keyProvider, "", cryptic), _args(NULL), _argsBufferLen(0),
+		  _argsCount(0), _cryptic(cryptic && _keyProvider)
 	{
 	}
-	Command(const Command &copytron) throw(int)
-		: file(copytron.file), _cryptic(copytron.cryptic())
+	Command(const Command &copytron) MCR_THROWS
+		: file(copytron.file), _args(NULL), _argsBufferLen(0), _argsCount(0),
+		  _cryptic(copytron.cryptic())
 	{
 		setArgsText(copytron.argsText());
 	}
-	Command &operator =(const Command &copytron) throw(int);
+	Command &operator =(const Command &copytron) MCR_THROWS;
 
 	/*!
 	 * \brief Get command from signal
@@ -68,7 +70,7 @@ struct MCR_API Command : public ISignalData {
 	 * \param Filename Executable file
 	 * \param ArgList Shell comman arguments
 	 */
-//	static void execvp(const char *Filename, char * const ArgList[]) throw(int);
+//	static void execvp(const char *Filename, char * const ArgList[]) MCR_THROWS;
 	static void setKeyProvider(IKeyProvider *provider)
 	{
 		_keyProvider = provider;
@@ -80,58 +82,96 @@ struct MCR_API Command : public ISignalData {
 		return _cryptic;
 	}
 	/*! \brief Set encryption state for all command strings */
-	void setCryptic(bool val) throw(int);
+	void setCryptic(bool val) MCR_THROWS;
 
 	/*! \brief \ref file */
-	inline string fileText() const throw(int)
+	inline string fileText() const MCR_THROWS
 	{
 		return file.text();
 	}
 	/*! \brief \ref file */
-	void setFileText(const string &val) throw(int)
+	inline void setFileText(const string &val) MCR_THROWS
 	{
 		file.setText(val);
 	}
 
+	/*! \brief Number of \ref args */
+	inline size_t argsCount() const noexcept
+	{
+		return _argsCount;
+	}
+	/*! \brief Shell command arguments, argv of execvp */
+	void args(SafeString *bufferOut, size_t bufferLen) const MCR_THROWS;
 	/*! \brief \ref args */
-	vector<string> argsText() const throw(int);
+	inline vector<string> argsText() const MCR_THROWS
+	{
+		vector<string> ret;
+		for (size_t i = 0; i < _argsCount; i++) {
+			ret.push_back(_args[i].text());
+		}
+		return ret;
+	}
 	/*! \brief \ref args */
-	void setArgsText(const vector<string> &val) throw(int);
+	void setArgs(SafeString *bufferIn, size_t bufferLen) MCR_THROWS;
+	/*! \brief \ref args */
+	inline void setArgsText(const vector<string> &val) MCR_THROWS
+	{
+		setArgsCount(val.size());
+		for (size_t i = 0; i < _argsCount; i++) {
+			_args[i].setText(val[i]);
+		}
+	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const throw(int) override
+	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
 	{
 		return compare(dynamic_cast<const Command &>(rhs));
 	}
 	/*! \brief \ref mcr_Signal_compare */
-	int compare(const Command &rhs) const throw(int);
+	int compare(const Command &rhs) const MCR_THROWS;
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) throw(int) override;
+	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
 	/*! \brief \ref mcr_ISignal_set_name */
-	virtual const char *name() override
+	virtual const char *name() const override
 	{
 		return "Command";
 	}
+	virtual size_t addNamesCount() const override
+	{
+		return 1;
+	}
+	virtual void addNames(const char **bufferOut,
+			      size_t bufferLength) const override
+	{
+		if (bufferOut && bufferLength)
+			bufferOut[0] = "Cmd";
+	}
 	/*! \brief \ref mcr_is_platform \ref mcr_send */
-	virtual void send() throw(int) override;
+	virtual void send() MCR_THROWS override;
 
-	inline void clear()
+	inline void clear() noexcept
 	{
 		file.clear();
-		args.clear();
+		setArgsCount(0);
 	}
 private:
 	static IKeyProvider *_keyProvider;
+	SafeString *_args;
+	size_t _argsBufferLen;
+	size_t _argsCount;
 	bool _cryptic;
+
+	/* This will always clear all current args */
+	void setArgsCount(size_t count);
 };
 
 /*! \brief Modify \ref Command signals */
-class MCR_API CommandRef : public SignalManager
+class MCR_EXTRAS_API CommandRef : public SignalManager
 {
 public:
-	CommandRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) throw(int);
+	CommandRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
 
 	inline const Command *data() const
 	{
@@ -148,7 +188,7 @@ public:
 			return data()->cryptic();
 		return false;
 	}
-	inline void setCryptic(bool val) throw(int)
+	inline void setCryptic(bool val) MCR_THROWS
 	{
 		mkdata();
 		data()->setCryptic(val);
@@ -160,7 +200,7 @@ public:
 			return data()->fileText();
 		return "";
 	}
-	inline void setFile(const string &val) throw(int)
+	inline void setFile(const string &val) MCR_THROWS
 	{
 		mkdata();
 		data()->setFileText(val);
@@ -172,7 +212,7 @@ public:
 			return data()->argsText();
 		return vector<string>();
 	}
-	inline void setArgs(const vector<string> &val) throw(int)
+	inline void setArgs(const vector<string> &val) MCR_THROWS
 	{
 		mkdata();
 		data()->setArgsText(val);

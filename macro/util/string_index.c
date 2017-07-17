@@ -142,11 +142,11 @@ int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
 			return err;
 		if ((err = mcr_StringSet_set(&indexPt->set, index, strKey)))
 			return err;
-		if ((err = mcr_Map_map(&indexPt->map, &strKey, &index)))
+		if ((err = mcr_Map_map(&indexPt->map, (void *)&strKey, &index)))
 			return err;
 	}
 	if (addKeys && addCount)
-		return mcr_Map_fill(&indexPt->map, addKeys, addCount, &index);
+		return mcr_Map_fill(&indexPt->map, (void *)addKeys, addCount, &index);
 	return 0;
 }
 
@@ -159,7 +159,7 @@ int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
 	if (!addKeys || !addCount)
 		return 0;
 	for (i = 0; i < addCount; i++) {
-		if ((err = mcr_Map_map(&indexPt->map, addKeys + i, &index)))
+		if ((err = mcr_Map_map(&indexPt->map, (void *)(addKeys + i), &index)))
 			return err;
 	}
 	return 0;

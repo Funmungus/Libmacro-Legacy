@@ -17,8 +17,8 @@
 */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_DEF_H
@@ -29,11 +29,32 @@
 #include <new>
 #include <cstring>
 
+#ifndef MCR_EXTRAS_API
+	#ifdef MCR_STATIC
+		#define MCR_EXTRAS_API
+	#else
+		#ifdef MCR_EXTRAS_EXPORTS
+			#define MCR_EXTRAS_API __declspec(dllexport)
+		#else
+			#define MCR_EXTRAS_API __declspec(dllimport)
+		#endif
+	#endif
+#endif
+
+#ifndef MCR_THROWS
+	#ifdef _MSC_VER
+		#define MCR_THROWS throw(...)
+	#else
+		#define MCR_THROWS throw(int)
+	#endif
+#endif
+
 #include "mcr/libmacro.h"
 #include "mcr/extras/std.h"
 
-namespace mcr {
-class Libmacro;
+namespace mcr
+{
+struct Libmacro;
 }
 
 #endif

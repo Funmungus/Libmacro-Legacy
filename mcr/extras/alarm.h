@@ -22,19 +22,20 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_ALARM_H
 #define MCR_EXTRAS_ALARM_H
 
-#include "mcr/extras/isignal.h"
+#include "mcr/extras/wrap_signal.h"
+#include "mcr/extras/isignal_data.h"
 
 namespace mcr
 {
 /*! \brief Pause execution until a specific date-time. */
-struct MCR_API Alarm : public ISignalData {
+struct MCR_EXTRAS_API Alarm : public ISignalData {
 	tm time;
 
 	Alarm()
@@ -194,7 +195,7 @@ struct MCR_API Alarm : public ISignalData {
 	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const throw(int) override
+	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
 	{
 		return compare(dynamic_cast<const Alarm &>(rhs));
 	}
@@ -202,23 +203,22 @@ struct MCR_API Alarm : public ISignalData {
 	inline int compare(const Alarm &rhs) const
 	{
 		tm lMem = time, rMem = rhs.time;
-		time_t lT = std::mktime(&lMem), rT = std::mktime(&rMem);
+		time_t lT = ::mktime(&lMem), rT = ::mktime(&rMem);
 		return lT < rT ? -1 : rT > lT;
 	}
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) throw(int) override;
+	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
 	/*! \brief \ref mcr_ISignal_set_name */
-	virtual const char *name() override
+	virtual const char *name() const override
 	{
 		return "Alarm";
 	}
 	/*! \brief \ref mcr_send */
-	virtual inline void send() throw(int) override
+	virtual inline void send() MCR_THROWS override
 	{
-		std::chrono::system_clock::time_point until_time =
-			std::chrono::system_clock::from_time_t(std::mktime(&time));
+		auto until_time = std::chrono::system_clock::from_time_t(::mktime(&time));
 		std::this_thread::sleep_until(until_time);
 	}
 
@@ -230,15 +230,15 @@ struct MCR_API Alarm : public ISignalData {
 	{
 		time_t t = std::chrono::system_clock::to_time_t(
 				   std::chrono::system_clock::now());
-		time = *std::localtime(&t);
+		time = *::localtime(&t);
 	}
 };
 
 /*! \brief Modify \ref Alarm signals */
-class MCR_API AlarmRef : public SignalManager
+class MCR_EXTRAS_API AlarmRef : public SignalManager
 {
 public:
-	AlarmRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) throw(int);
+	AlarmRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
 
 	inline const Alarm *data() const
 	{
@@ -255,7 +255,7 @@ public:
 			return data()->time;
 		return tm();
 	}
-	inline void setTime(tm &val) throw(int)
+	inline void setTime(tm &val) MCR_THROWS
 	{
 		mkdata();
 		data()->time = val;
@@ -267,7 +267,7 @@ public:
 			return data()->sec();
 		return 0;
 	}
-	inline void setSec(int val) throw(int)
+	inline void setSec(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->sec() = val;
@@ -279,7 +279,7 @@ public:
 			return data()->min();
 		return 0;
 	}
-	inline void setMin(int val) throw(int)
+	inline void setMin(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->min() = val;
@@ -291,7 +291,7 @@ public:
 			return data()->hour();
 		return 0;
 	}
-	inline void setHour(int val) throw(int)
+	inline void setHour(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->hour() = val;
@@ -303,7 +303,7 @@ public:
 			return data()->mday();
 		return 0;
 	}
-	inline void setMday(int val) throw(int)
+	inline void setMday(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->mday() = val;
@@ -315,7 +315,7 @@ public:
 			return data()->mon();
 		return 0;
 	}
-	inline void setMon(int val) throw(int)
+	inline void setMon(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->mon() = val;
@@ -327,7 +327,7 @@ public:
 			return data()->year();
 		return 0;
 	}
-	inline void setYear(int val) throw(int)
+	inline void setYear(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->year() = val;
@@ -339,7 +339,7 @@ public:
 			return data()->wday();
 		return 0;
 	}
-	inline void setWday(int val) throw(int)
+	inline void setWday(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->wday() = val;
@@ -351,7 +351,7 @@ public:
 			return data()->yday();
 		return 0;
 	}
-	inline void setYday(int val) throw(int)
+	inline void setYday(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->yday() = val;
@@ -363,7 +363,7 @@ public:
 			return data()->isdst();
 		return 0;
 	}
-	inline void setIsdst(int val) throw(int)
+	inline void setIsdst(int val) MCR_THROWS
 	{
 		mkdata();
 		data()->isdst() = val;

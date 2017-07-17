@@ -47,7 +47,8 @@ MCR_API void mcr_set_error(int errorNumber);
  * \param line Line number in file
  * \return Errno or defaultErrorNumber
  */
-MCR_API int mcr_set_errno(int defaultErrorNumber, const char *fileString, int line);
+MCR_API int mcr_set_errno(int defaultErrorNumber, const char *fileString,
+			  int line);
 
 #ifdef __cplusplus
 }

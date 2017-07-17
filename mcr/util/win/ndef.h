@@ -28,10 +28,11 @@
 
 #include <SDKDDKVer.h>
 
-/* Exclude rarely-used stuff from Windows headers. */
+/* Exclude rarely-used stuff from Windows headers,
+ * and we use min and max for naming. */
 #define WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX
-#define NOMINMAX
+	#define NOMINMAX
 #endif
 #include <windows.h>
 
@@ -43,6 +44,8 @@
 extern "C" {
 #endif
 
+/* _Pragma and timespec undefined before 2015 */
+#if _MSC_VER < 1900
 #ifndef __timespec_defined
 #define __timespec_defined 1
 #ifndef _TIMESPEC_DEFINED
@@ -53,10 +56,9 @@ struct timespec {
 };
 #endif
 #endif
-
-/* _Pragma undefined before 2015 */
 #undef fixme
 #define fixme
+#endif
 
 #ifdef __cplusplus
 }

@@ -27,11 +27,11 @@
 #include "mcr/intercept/def.h"
 
 #ifndef WM_MOUSEHWHEEL
-#define WM_MOUSEHWHEEL 0x020E
+	#define WM_MOUSEHWHEEL 0x020E
 #endif
 
 #ifndef MCR_INTERCEPT_WAIT_MILLIS
-#define MCR_INTERCEPT_WAIT_MILLIS 5000
+	#define MCR_INTERCEPT_WAIT_MILLIS 5000
 #endif
 
 #endif				/* MCR_WIN_INTERCEPT_DEFINES_H */

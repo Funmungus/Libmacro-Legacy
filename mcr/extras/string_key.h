@@ -23,37 +23,38 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_STRING_KEY_H
 #define MCR_EXTRAS_STRING_KEY_H
 
-#include "mcr/extras/isignal.h"
+#include "mcr/extras/wrap_signal.h"
+#include "mcr/extras/isignal_data.h"
 #include "mcr/extras/safe_string.h"
 
 namespace mcr
 {
 /*! \brief Turn a string into a set of signals, such as a key press */
-struct MCR_API StringKey: public ISignalData {
+struct MCR_EXTRAS_API StringKey: public ISignalData {
 	/*! \brief Pause in-between characters */
 	mcr_NoOp interval;
 	/*! \brief Set of characters to turn into signals */
 	SafeString string;
 
-	StringKey(bool cryptic = false) throw(int)
+	StringKey(bool cryptic = false) MCR_THROWS
 		: string(_keyProvider, "", cryptic), _cryptic(cryptic && _keyProvider)
 	{
 		interval.sec = 0;
 		interval.msec = 40;
 	}
-	StringKey(const StringKey &copytron) throw(int)
+	StringKey(const StringKey &copytron) MCR_THROWS
 		: interval(copytron.interval), string(_keyProvider, "", copytron.cryptic()),
 		  _cryptic(copytron.cryptic())
 	{
 	}
-	StringKey &operator =(const StringKey &copytron) throw(int);
+	StringKey &operator =(const StringKey &copytron) MCR_THROWS;
 
 	/*!
 	 * \brief Get a StringKey from a signal
@@ -74,7 +75,7 @@ struct MCR_API StringKey: public ISignalData {
 	{
 		return _cryptic;
 	}
-	void setCryptic(bool val) throw(int)
+	void setCryptic(bool val) MCR_THROWS
 	{
 		if (val != cryptic() && _keyProvider) {
 			_cryptic = val;
@@ -83,41 +84,49 @@ struct MCR_API StringKey: public ISignalData {
 	}
 
 	/*! \brief Set of characters to turn into signals */
-	inline mcr::string stringText() const throw(int)
+	inline mcr::string stringText() const MCR_THROWS
 	{
 		return string.text();
 	}
 	/*! \brief Set the string to turn into signals */
-	inline void setStringText(const mcr::string &val) throw(int)
+	inline void setStringText(const mcr::string &val) MCR_THROWS
 	{
 		string.setText(val);
 	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const throw(int) override
+	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
 	{
 		return compare(dynamic_cast<const StringKey &>(rhs));
 	}
 	/*! \brief \ref mcr_Signal_compare */
-	int compare(const StringKey &rhs) const throw(int);
+	int compare(const StringKey &rhs) const MCR_THROWS;
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) throw(int) override;
+	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
 	/*! \brief \ref mcr_ISignal_set_name */
-	virtual const char *name() override
+	virtual const char *name() const override
 	{
 		return "StringKey";
 	}
-	/*! \brief \ref mcr_ISignal_add_names */
-	virtual vector<mcr::string> addNames() override
+	virtual size_t addNamesCount() const override
 	{
-		vector<mcr::string> ret;
-		ret.push_back("string_key");
-		return ret;
+		return 3;
+	}
+	virtual void addNames(const char **bufferOut,
+			      size_t bufferLength) const override
+	{
+		const char *names[] = {"String Key", "string_key", "SK"};
+		size_t i, count = arrlen(names);
+		if (!bufferOut)
+			return;
+		for (i = 0; i < count && i < bufferLength; i++) {
+			bufferOut[i] = names[i];
+		}
 	}
 	/*! \brief \ref mcr_send */
-	virtual void send() throw(int) override;
+	virtual void send() MCR_THROWS override;
 
 	inline void clear()
 	{
@@ -129,10 +138,10 @@ private:
 };
 
 /*! \brief Modify \ref StringKey signals */
-class MCR_API StringKeyRef : public SignalManager
+class MCR_EXTRAS_API StringKeyRef : public SignalManager
 {
 public:
-	StringKeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) throw(int);
+	StringKeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
 
 	inline mcr_NoOp interval() const
 	{
@@ -177,7 +186,7 @@ public:
 			return data<StringKey>()->cryptic();
 		return false;
 	}
-	inline void setCryptic(bool val) throw(int)
+	inline void setCryptic(bool val) MCR_THROWS
 	{
 		mkdata();
 		data<StringKey>()->setCryptic(val);
@@ -189,7 +198,7 @@ public:
 			return data<StringKey>()->stringText();
 		return "";
 	}
-	inline void setString(const mcr::string &val) throw(int)
+	inline void setString(const mcr::string &val) MCR_THROWS
 	{
 		mkdata();
 		data<StringKey>()->setStringText(val);
