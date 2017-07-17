@@ -16,14 +16,21 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_mod_signal - Signal module
+ *
+ * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_MOD_SIGNAL_H
-#define MCR_MOD_SIGNAL_H
+#ifndef MCR_SIGNAL_MOD_SIGNAL_H
+#define MCR_SIGNAL_MOD_SIGNAL_H
 
 #include "mcr/util/util.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct mcr_ISignal;
 struct mcr_Dispatcher;
@@ -31,12 +38,14 @@ struct mcr_Dispatcher;
 struct mcr_mod_signal {
 	/*! \brief \ref mcr_ISignal registry */
 	struct mcr_IRegistry isignals;
-	/*! \brief Set of \ref mcr_Dispatcher for each signal */
+	/*! \brief Set of \ref mcr_Dispatcher * for each signal */
 	struct mcr_Array dispatchers;
-	/*! \brief If enabled, the generic dispatcher will be used for all
+	/*!
+	 * \brief If enabled, the generic dispatcher will be used for all
 	 * signals */
 	bool dispatcher_generic_enabled;
-	/*! \brief Generic dispatcher which may be used after the specific
+	/*!
+	 * \brief Generic dispatcher which may be used after the specific
 	 * dispatcher has been called */
 	struct mcr_Dispatcher *dispatcher_generic_pt;
 	/*! \brief All modifiers known by Libmacro to be set */
@@ -47,4 +56,12 @@ struct mcr_mod_signal {
 	struct mcr_Map map_name_mod;
 };
 
+MCR_API int mcr_signal_initialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_load_contract(struct mcr_context *ctx);
+MCR_API void mcr_signal_trim(struct mcr_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -16,24 +16,24 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Standard signal and trigger types
  *
- * \ref mcr_Signal data types: \ref mcr_Alarm, \ref mcr_HidEcho,
+ * \ref mcr_Signal data types: \ref mcr_HidEcho,
  * \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
  * and \ref mcr_Scroll \n
- * \ref mcr_ISignal: \ref mcr_iAlarm, \ref mcr_iHidEcho, \ref mcr_iKey,
+ * \ref mcr_ISignal: \ref mcr_iHidEcho, \ref mcr_iKey,
  * \ref mcr_iMoveCursor, \ref mcr_iNoOp, and \ref mcr_iScroll\n
  * \n
  * \ref mcr_Trigger date types: \ref mcr_Action, \ref mcr_Staged\n
  * \ref mcr_ITrigger: \ref mcr_iAction, \ref mcr_iStaged
  */
 
-#ifndef MCR_STANDARD_H
-#define MCR_STANDARD_H
+#ifndef MCR_STANDARD_STANDARD_H
+#define MCR_STANDARD_STANDARD_H
 
 #include "mcr/standard/def.h"
-#include "mcr/standard/alarm.h"
 #include "mcr/standard/hid_echo.h"
 #include "mcr/standard/key.h"
 #include "mcr/standard/mods.h"
@@ -43,16 +43,25 @@
 #include "mcr/standard/action.h"
 #include "mcr/standard/staged.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Some extra, possibly useful, utilities */
-/*! \brief For both positions, either may be 0, or the same coordinate
+/*!
+ * \brief For both positions, either may be 0, or the same coordinate
  * array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
-	const mcr_Dimensions second);
-/*! \brief For both positions, the same coordinate array member must
+				     const mcr_Dimensions second);
+/*!
+ * \brief For both positions, the same coordinate array member must
  * be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
-	const mcr_Dimensions second, const unsigned int measurementError);
+				    const mcr_Dimensions second, const unsigned int measurementError);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -16,22 +16,29 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Mods - Signal to modify internal modifiers
  */
 
-#ifndef MCR_MOD_H
-#define MCR_MOD_H
+#ifndef MCR_STANDARD_MODS_H
+#define MCR_STANDARD_MODS_H
 
 #include "mcr/standard/def.h"
 
-/*! \brief Pair of modifier bits and whether to set or release those
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Pair of modifier bits and whether to set or release those
  * modifiers
  */
 struct mcr_Mods {
 	/*! \brief Bit values representing a set of modifiers. */
 	unsigned int modifiers;
-	/*! \brief \ref MCR_DOWN will set the modifier, \ref MCR_TOGGLE
+	/*!
+	 * \brief \ref MCR_DOWN will set the modifier, \ref MCR_TOGGLE
 	 * will change the state from what it currently is, otherwise it is
 	 * released */
 	enum mcr_KeyUpType up_type;
@@ -39,8 +46,9 @@ struct mcr_Mods {
 
 /*! \brief Set initial values */
 MCR_API void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
-	enum mcr_KeyUpType upType);
-/*! \pre Signal data is \ref mcr_Mods
+			      enum mcr_KeyUpType upType);
+/*!
+ * \pre Signal data is \ref mcr_Mods
  * \brief Modify internal modifiers
  *
  * \return \ref reterr
@@ -48,13 +56,14 @@ MCR_API void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
 MCR_API int mcr_Mods_send(struct mcr_Signal *sigPt);
 /* Default init, deinit, compare, and copy */
 
-/*! \brief Modify an instance of \ref mcr_Mods
+/*!
+ * \brief Modify an instance of \ref mcr_Mods
  *
  * \param modifier Modifiers to set or release
  * \param modifierKeyUp Set or release modifiers
  */
 MCR_API void mcr_Mods_modify(struct mcr_Mods *modPt,
-	unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);
+			     unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);
 
 /*! \brief Get the signal interface for \ref mcr_mods */
 MCR_API struct mcr_ISignal *mcr_iMods(struct mcr_context *ctx);
@@ -65,4 +74,7 @@ MCR_API struct mcr_ISignal *mcr_iMods(struct mcr_context *ctx);
 #define MCR_MODS_DATA(signal) \
 ((struct mcr_Mods *)(signal).instance.data->data)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

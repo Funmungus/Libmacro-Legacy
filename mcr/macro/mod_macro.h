@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_mod_macro - Macro module
  */
 
-#ifndef MCR_MOD_MACRO_H
-#define MCR_MOD_MACRO_H
+#ifndef MCR_MACRO_MOD_MACRO_H
+#define MCR_MACRO_MOD_MACRO_H
 
 #include "mcr/util/util.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Macro module */
 struct mcr_mod_macro {
@@ -31,4 +36,11 @@ struct mcr_mod_macro {
 	struct mcr_IRegistry itriggers;
 };
 
+MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
+MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
+MCR_API void mcr_macro_trim(struct mcr_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

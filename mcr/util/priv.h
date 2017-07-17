@@ -16,31 +16,30 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Set current operating permissions.
  */
 
-#ifndef MCR_PRIV_H
-#define MCR_PRIV_H
+#ifndef MCR_UTIL_PRIV_H
+#define MCR_UTIL_PRIV_H
 
 #include "mcr/util/def.h"
 
-/*
- * Defined natively per OS
- */
-/*! \brief Disable privileges, and remove the ability to
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Disable privileges, and remove the ability to
  * enable them.
  *
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_privilege_deactivate();
-/*! \return If false, this application is not privileged, otherwise the
- * application has privileges */
-MCR_API bool mcr_is_privileged();
-/*! \brief Enable privileges
- *
- * \return \ref reterr
- */
-MCR_API int mcr_set_privileged(bool enable);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

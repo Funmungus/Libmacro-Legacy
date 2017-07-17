@@ -16,37 +16,31 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Structures used by Libmacro
  */
 
 #ifndef MCR_MODULES_H
 #define MCR_MODULES_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Define all module structures */
 #include "mcr/signal/mod_signal.h"
 #include "mcr/macro/mod_macro.h"
 #include "mcr/standard/mod_standard.h"
 #include "mcr/intercept/mod_intercept.h"
-#ifdef MCR_EXTRAS
-#include "mcr/extras/mod_extras.h"
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /*! \brief Required for Libmacro functions */
-	struct mcr_context {
-		struct mcr_mod_signal signal;
-		struct mcr_mod_macro macro;
-		struct mcr_mod_standard standard;
-		struct mcr_mod_intercept intercept;
-		/* Optional modules last to avoid offset errors */
-#ifdef MCR_EXTRAS
-		struct mcr_mod_extras extras;
-#endif
-	};
+struct mcr_context {
+	struct mcr_mod_signal signal;
+	struct mcr_mod_macro macro;
+	struct mcr_mod_standard standard;
+	struct mcr_mod_intercept intercept;
+};
 
 #ifdef __cplusplus
 }

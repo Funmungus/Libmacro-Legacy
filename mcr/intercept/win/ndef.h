@@ -16,21 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  */
 
-#ifndef MCR_WIN_INTERCEPT_DEFINES_H
-#define MCR_WIN_INTERCEPT_DEFINES_H
+#ifndef MCR_INTERCEPT_WIN_NDEF_H
+#define MCR_INTERCEPT_WIN_NDEF_H
 
 #include "mcr/standard/win/nstandard.h"
 #include "mcr/intercept/def.h"
 
 #ifndef WM_MOUSEHWHEEL
-#define WM_MOUSEHWHEEL 0x020E
+	#define WM_MOUSEHWHEEL 0x020E
 #endif
 
 #ifndef MCR_INTERCEPT_WAIT_MILLIS
-#define MCR_INTERCEPT_WAIT_MILLIS 3000
+	#define MCR_INTERCEPT_WAIT_MILLIS 5000
 #endif
 
 #endif				/* MCR_WIN_INTERCEPT_DEFINES_H */

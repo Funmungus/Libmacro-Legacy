@@ -18,7 +18,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * C11 threads.h file wrapper based on project
  * https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
  * by the compiler, we will wrap pthread function calls (required to link
@@ -26,18 +27,30 @@
  * directly. Static inline function support is required.
  */
 
-#ifndef __STDC_NO_THREADS__
-#include <threads.h>
-#else
+#ifndef MCR_UTIL_C11THREADS_H
+#define MCR_UTIL_C11THREADS_H
 
-#ifndef C11THREADS_H_
-#define C11THREADS_H_
+#ifndef __STDC_NO_THREADS__
+
+/* Windows does not have C threads */
+#ifdef _WIN32
+	//#if defined(__MINGW32__) || _MSC_VER < 1920
+	#include "mcr/util/cppthread.h"
+#else
+	#include <threads.h>
+#endif
+
+#else
 
 #include <time.h>
 #include <errno.h>
 #include <pthread.h>
 #include <sched.h>		/* for sched_yield */
 #include <sys/time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ONCE_FLAG_INIT	PTHREAD_ONCE_INIT
 
@@ -83,7 +96,7 @@ static inline int thrd_create(thrd_t * thr, thrd_start_t func, void *arg)
 	 * thrd_nomem. but it doesn't seem to correspond to any pthread_create errors.
 	 */
 	return pthread_create(thr, 0, (void *(*)(void *))func,
-		arg) == 0 ? thrd_success : thrd_error;
+			      arg) == 0 ? thrd_success : thrd_error;
 }
 
 static inline void thrd_exit(int res)
@@ -120,7 +133,7 @@ static inline int thrd_equal(thrd_t a, thrd_t b)
 }
 
 static inline void thrd_sleep(const struct timespec *ts_in,
-	struct timespec *rem_out)
+			      struct timespec *rem_out)
 {
 	int res;
 	struct timespec rem, ts = *ts_in;
@@ -199,7 +212,7 @@ static inline int mtx_timedlock(mtx_t * mtx, const struct timespec *ts)
 		gettimeofday(&now, NULL);
 
 		if (now.tv_sec > ts->tv_sec || (now.tv_sec == ts->tv_sec &&
-				(now.tv_usec * 1000) >= ts->tv_nsec)) {
+						(now.tv_usec * 1000) >= ts->tv_nsec)) {
 			return thrd_timedout;
 		}
 
@@ -246,7 +259,7 @@ static inline int cnd_wait(cnd_t * cond, mtx_t * mtx)
 }
 
 static inline int cnd_timedwait(cnd_t * cond, mtx_t * mtx,
-	const struct timespec *ts)
+				const struct timespec *ts)
 {
 	int res;
 
@@ -285,5 +298,8 @@ static inline void call_once(once_flag * flag, void (*func) (void))
 	pthread_once(flag, func);
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif				/* C11THREADS_H_ */
 #endif

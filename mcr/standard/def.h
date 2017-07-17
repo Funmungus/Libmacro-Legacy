@@ -16,7 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Definitions for standard types.
  */
 
@@ -36,7 +37,7 @@
 #define MCR_W 3
 #define MCR_Y4 MCR_W
 #ifndef MCR_DIMENSION_MAX
-#define MCR_DIMENSION_MAX MCR_Z
+	#define MCR_DIMENSION_MAX MCR_Z
 #endif
 #define MCR_DIMENSION_CNT (MCR_DIMENSION_MAX + 1)
 
@@ -53,7 +54,8 @@ enum mcr_KeyUpType {
 	MCR_TOGGLE
 };
 
-/*! \brief Spatial position, indices are coordinates.
+/*!
+ * \brief Spatial position, indices are coordinates.
  * \ref MCR_DIMENSION_CNT
  *
  * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.

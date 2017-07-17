@@ -16,35 +16,44 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Read from grabbers and dispatch signals. This may block
  * incoming events.
  */
 
-#ifndef MCR_LNX_INTERCEPT_H
-#define MCR_LNX_INTERCEPT_H
+#ifndef MCR_INTERCEPT_LNX_NINTERCEPT_H
+#define MCR_INTERCEPT_LNX_NINTERCEPT_H
 
 #include "mcr/intercept/lnx/ngrabber.h"
 
-/*! \brief Linux intercept native structure */
-struct mcr_mod_intercept_native {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*! \brief Linux intercept platform structure */
+struct mcr_mod_intercept_platform {
 	/*! \brief Intercept critical sections */
 	mtx_t lock;
 	/*! \brief Ordered list so each grab can remove itself */
 	struct mcr_Array grab_contexts;
 	/*! \brief Set of input event paths to try grabbing */
 	mcr_StringSet grab_paths;
-	/*! \brief Get key pressed values from a device
+	/*!
+	 * \brief Get key pressed values from a device
 	 *
 	 * KEY_CNT / 8 is a floor value, and may have remainder of keys. */
 	char bit_retrieval[MCR_EVENTINDEX(KEY_CNT) + 1];
 };
 /* All use /dev/input/eventX files to read from */
 MCR_API int mcr_intercept_add_grab(struct mcr_context *ctx,
-	const char *grabPath);
+				   const char *grabPath);
 MCR_API void mcr_intercept_remove_grab(struct mcr_context *ctx,
-	const char *grabPath);
+				       const char *grabPath);
 MCR_API int mcr_intercept_set_grabs(struct mcr_context *ctx,
-	const char **allGrabPaths, size_t pathCount);
+				    const char **allGrabPaths, size_t pathCount);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

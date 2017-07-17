@@ -16,20 +16,28 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Intercept reads from hardware, and may block.
  */
 
-#ifndef MCR_INTERCEPT_H
-#define MCR_INTERCEPT_H
+#ifndef MCR_INTERCEPT_INTERCEPT_H
+#define MCR_INTERCEPT_INTERCEPT_H
 
 #include "mcr/intercept/def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MCR_API void mcr_intercept_reset_modifiers(struct mcr_context *ctx);
 
-/* Defined in native source. */
+/* Defined in platform source. */
 MCR_API bool mcr_intercept_is_enabled(struct mcr_context *ctx);
 MCR_API int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable);
 MCR_API unsigned int mcr_intercept_modifiers(struct mcr_context *ctx);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

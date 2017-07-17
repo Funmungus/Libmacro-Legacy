@@ -16,7 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Raise a compiler error
  */
 
@@ -24,6 +25,6 @@
 #error Error!
 #elif __clang__
 #pragma GCC error "Error!"
-#else
+#elif _MSC_VER
 #pragma message "Error Msg: Error!"
 #endif

@@ -16,10 +16,17 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_LNX_EXTRAS_H
-#define MCR_LNX_EXTRAS_H
+#ifndef __cplusplus
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
+#endif
 
+#ifndef MCR_EXTRAS_LNX_NDEF_H
+#define MCR_EXTRAS_LNX_NDEF_H
+
+extern "C" {
 #include "mcr/intercept/lnx/ndef.h"
+}
 #include "mcr/extras/def.h"
 
 #endif

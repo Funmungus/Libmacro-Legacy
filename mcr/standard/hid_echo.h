@@ -16,15 +16,20 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_HidEcho - Simulate human interface with spatial
  * coordinates.
  */
 
-#ifndef MCR_HID_ECHO_H
-#define MCR_HID_ECHO_H
+#ifndef MCR_STANDARD_HID_ECHO_H
+#define MCR_STANDARD_HID_ECHO_H
 
 #include "mcr/standard/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Simulate human interface with spatial position activation. */
 struct mcr_HidEcho {
@@ -34,30 +39,34 @@ struct mcr_HidEcho {
 /*! \brief \ref mcr_HidEcho shorthand */
 typedef struct mcr_HidEcho mcr_Echo;
 
-/*! \pre Signal data is \ref mcr_HidEcho
+/*!
+ * \pre Signal data is \ref mcr_HidEcho
  * \brief Send human interface signal
  *
  * \param signalPt Has data member \ref mcr_HidEcho
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_send(struct mcr_Signal *signalPt);
-/*! \brief \ref mcr_HidEcho_send
+/*!
+ * \brief \ref mcr_HidEcho_send
  *
- * \ref native_fnc
+ * \ref mcr_is_platform
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
 /* Default init, deinit, copy, compare */
 
 /* Echo names */
-/*! \brief Get event code from its name.
+/*!
+ * \brief Get event code from its name.
  *
  * \param eventName \ref opt Name of echo code
  * \return Echo code, or \ref MCR_ECHO_ANY if it is not found
  */
 MCR_API size_t mcr_HidEcho_name_echo(struct mcr_context *ctx,
-	const char *eventName);
-/*! \brief Get the name of an echo code.
+				     const char *eventName);
+/*!
+ * \brief Get the name of an echo code.
  *
  * \param eventCode \ref mcr_HidEcho.echo
  * \return Echo name, or null if not found
@@ -67,7 +76,8 @@ MCR_API const char *mcr_HidEcho_name(struct mcr_context *ctx, size_t eventCode);
 MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
 
 /* Code development */
-/*! \brief Set the name mapped by an echo code.
+/*!
+ * \brief Set the name mapped by an echo code.
  *
  * The name will also map to this echo code.
  * \param eventcode Echo code to map
@@ -75,8 +85,9 @@ MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
-	const char *eventName);
-/*! \brief Add a set of names to map to an echo code.
+				 const char *eventName);
+/*!
+ * \brief Add a set of names to map to an echo code.
  *
  * \param eventCode Event code to add names for
  * \param addNames \ref opt Set of names to add
@@ -84,26 +95,29 @@ MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_add(struct mcr_context *ctx, size_t eventCode,
-	const char **addNames, size_t bufferLen);
-/*! \brief \ref mcr_Echo_set_name and \ref mcr_Echo_add_names
+			    const char **addNames, size_t bufferLen);
+/*!
+ * \brief \ref mcr_Echo_set_name and \ref mcr_Echo_add_names
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_map(struct mcr_context *ctx, size_t eventCode,
-	const char *eventName, const char **addNames, size_t bufferLen);
-/*! \brief Rename an echo code
+			    const char *eventName, const char **addNames, size_t bufferLen);
+/*!
+ * \brief Rename an echo code
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_reecho(struct mcr_context *ctx, size_t eventCode,
-	size_t newCode);
-/*! \brief Rename an echo code. The code is first found from its
+			       size_t newCode);
+/*!
+ * \brief Rename an echo code. The code is first found from its
  * old name.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_rename(struct mcr_context *ctx, const char *oldName,
-	const char *newName);
+			       const char *newName);
 /*! \brief Minimize name allocation */
 MCR_API void mcr_HidEcho_trim(struct mcr_context *ctx);
 /*! \brief Remove all mapped echo codes. */
@@ -135,4 +149,7 @@ MCR_API struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx);
 /*! \brief Signal data casted \ref mcr_HidEcho * */
 #define mcr_Echo_data(sigPt) mcr_HidEcho_data(sigPt)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

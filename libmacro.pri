@@ -8,23 +8,19 @@ DEFINES += MCR_VERSION=$${MCR_VERSION} \
 
 CONFIG(debug,debug|release):DEFINES += DEBUG
 
-CONFIG(noextras){}
-else {
-    CONFIG += extras
-    DEFINES += MCR_EXTRAS
-}
-
-win32|win64:CONFIG += win
+windows:CONFIG += win
 else:unix {
     macx:CONFIG += mac
     else:CONFIG += lnx
     # Unix/ELF will not use callspec for linking
     DEFINES += MCR_STATIC
 }
-else:CONFIG += nativeless
+else:CONFIG += none
 
-win: MCR_NATIVE_DIR = win
-else:lnx: MCR_NATIVE_DIR = lnx
-#else:mac: MCR_NATIVE_DIR = mac
-else: MCR_NATIVE_DIR = nativeless
-DEFINES += MCR_NATIVE_DIR=$${MCR_NATIVE_DIR}
+win: MCR_PLATFORM = win
+else:lnx: MCR_PLATFORM = lnx
+#else:mac: MCR_PLATFORM = mac
+else: MCR_PLATFORM = none
+DEFINES += MCR_PLATFORM=$${MCR_PLATFORM}
+
+nostl|stl_off: DEFINES += nostl

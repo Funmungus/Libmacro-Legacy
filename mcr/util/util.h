@@ -16,12 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Utilities for Libmacro
  */
 
-#ifndef MCR_UTIL_H
-#define MCR_UTIL_H
+#ifndef MCR_UTIL_UTIL_H
+#define MCR_UTIL_UTIL_H
 
 #include "mcr/util/instance.h"
 #include "mcr/util/map.h"
@@ -30,16 +31,22 @@
 #include "mcr/util/string_index.h"
 #include "mcr/util/error.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*! \brief time(NULL) and ctime */
 MCR_API const char *mcr_timestamp();
-/*! \brief For given bit return the corresponding array index.
+/*!
+ * \brief For given bit return the corresponding array index.
  * Requires at least one "on" bit
  *
  * See \ref mcr_index_bit
  * \return Array index of bit value
  */
 MCR_API unsigned int mcr_bit_index(unsigned int bitval);
-/*! \brief For given array index return the corresponding bit value.
+/*!
+ * \brief For given array index return the corresponding bit value.
  *
  * See \ref mcr_bit_index
  * \return Bit value of array index
@@ -48,4 +55,7 @@ MCR_API unsigned int mcr_bit_index(unsigned int bitval);
 /*! \brief Get an \c errno.h code from a threading error number. */
 MCR_API int mcr_thrd_errno(int thrdError);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

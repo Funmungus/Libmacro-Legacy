@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief \ref mcr_Scroll - Scroll visible area
  */
 
-#ifndef MCR_SCROLL_H
-#define MCR_SCROLL_H
+#ifndef MCR_STANDARD_SCROLL_H
+#define MCR_STANDARD_SCROLL_H
 
 #include "mcr/standard/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Scroll visible area */
 struct mcr_Scroll {
@@ -31,7 +36,8 @@ struct mcr_Scroll {
 	mcr_Dimensions dm;
 };
 
-/*! \pre Signal has data member \ref mcr_Scroll
+/*!
+ * \pre Signal has data member \ref mcr_Scroll
  * \brief Scroll through visible area
  *
  * \return \ref reterr
@@ -50,4 +56,7 @@ MCR_API struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx);
 #define MCR_SCROLL_DATA(sig) \
 ((struct mcr_Scroll *)(sig).instance.data.data)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

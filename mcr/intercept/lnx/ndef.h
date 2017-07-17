@@ -16,18 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * Linux native intercept definitions
+/*!
+ * \file
+ * Linux platform intercept definitions
  */
 
-#ifndef MCR_LNX_INTERCEPT_DEFINES_H
-#define MCR_LNX_INTERCEPT_DEFINES_H
+#ifndef MCR_INTERCEPT_LNX_NDEF_H
+#define MCR_INTERCEPT_LNX_NDEF_H
 
 #include "mcr/standard/lnx/nstandard.h"
 #include "mcr/intercept/def.h"
 
 #ifndef MCR_GRAB_SET_LENGTH
-#define MCR_GRAB_SET_LENGTH 16
+	#define MCR_GRAB_SET_LENGTH 16
 #endif
 
 #define MCR_GRAB_SET_SIZE (sizeof(struct input_event) * \

@@ -16,14 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Hooks are for intercepting events in Windows.
  */
 
-#ifndef MCR_WIN_GRABBER_H
-#define MCR_WIN_GRABBER_H
+#ifndef MCR_INTERCEPT_WIN_NGRABBER_H
+#define MCR_INTERCEPT_WIN_NGRABBER_H
 
 #include "mcr/intercept/win/ndef.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct mcr_Grabber {
 	DWORD dwThread;
@@ -35,14 +40,17 @@ struct mcr_Grabber {
 	int type;
 };
 
-MCR_API void mcr_Grabber_init(void *grabDataPt);
-MCR_API void mcr_Grabber_deinit(void *grabDataPt);
+MCR_API int mcr_Grabber_init(void *grabDataPt);
+MCR_API int mcr_Grabber_deinit(void *grabDataPt);
 MCR_API int mcr_Grabber_set_all(struct mcr_Grabber *grabPt, int type,
-	HOOKPROC proc);
+				HOOKPROC proc);
 MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);
 MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
 
 #define MCR_GRABBER_IS_ENABLED(grab) \
 ((grab).id != NULL)
 
+#ifdef __cplusplus
+}
+#endif
 #endif

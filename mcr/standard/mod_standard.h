@@ -16,31 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
- * \brief \ref mcr_mod_standard - Standard signal and trigger module
+/*!
+ * \file
+ * \brief \ref mcr_mod_standard - Standard signal and trigger types module
+ *
+ * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MOD_STANDARD_H
-#define MOD_STANDARD_H
+#ifndef MCR_STANDARD_MOD_STANDARD_H
+#define MCR_STANDARD_MOD_STANDARD_H
 
 #include "mcr/macro/macro.h"
 
-/*! \brief \ref mcr_ISignal with \ref mcr_context reference */
-struct mcr_CtxISignal {
-	struct mcr_ISignal isignal;
-	struct mcr_context *ctx;
-};
-
-/*! \brief \ref mcr_FlagDispatcher with \ref mcr_context reference */
-struct mcr_CtxDispatcher {
-	struct mcr_Dispatcher dispatcher;
-	struct mcr_context *ctx;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct mcr_IsStage;
 struct mcr_mod_standard {
 	/* Signal types */
-	struct mcr_ISignal ialarm;
 	struct mcr_ISignal ihid_echo;
 	struct mcr_ISignal ikey;
 	struct mcr_CtxISignal imods;
@@ -51,7 +45,6 @@ struct mcr_mod_standard {
 	struct mcr_CtxDispatcher key_dispatcher;
 	/* down, up, generic is set into both */
 	struct mcr_Map key_dispatcher_maps[2];
-	struct mcr_Interface scan_map_interface;
 	/* modifier <=> key */
 	struct mcr_Map map_key_modifier;
 	struct mcr_Map map_modifier_key;
@@ -60,7 +53,8 @@ struct mcr_mod_standard {
 	struct mcr_ITrigger istaged;
 	/*! \brief Set of \ref mcr_IsStage */
 	struct mcr_Array stage_matchers;
-	/*! \brief Stage matcher for no specific type
+	/*!
+	 * \brief Stage matcher for no specific type
 	 *
 	 * By default this matches signal by address */
 	struct mcr_IsStage *stage_generic;
@@ -71,4 +65,39 @@ struct mcr_mod_standard {
 	mcr_String echo_name_any;
 };
 
+MCR_API int mcr_standard_initialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_load_contract(struct mcr_context *ctx);
+MCR_API void mcr_standard_trim(struct mcr_context *ctx);
+
+/* Platform directory */
+#define MCR_STANDARD_PLATFORM_INC \
+MCR_STR(mcr/standard/MCR_PLATFORM/nstandard.h)
+/*!
+ * \brief Initialize platform requirements for standard signals.
+ *
+ * Called by \ref mcr_standard_initialize
+ */
+MCR_API int mcr_standard_platform_initialize(struct mcr_context *ctx);
+/*!
+ * \brief Clean up platform requirements for standard signals.
+ *
+ * Called by \ref mcr_standard_deinitialize
+ */
+MCR_API int mcr_standard_platform_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_standard_platform_load_contract(struct mcr_context *ctx);
+
+/* Platform signal */
+struct mcr_HidEcho;
+struct mcr_Key;
+struct mcr_MoveCursor;
+struct mcr_Scroll;
+MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
+MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
+MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt);
+MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -16,22 +16,41 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * Standard error codes memorized by Libmacro\n
  * Refer to \c errno.h
  */
 
-#ifndef MCR_ERROR_H
-#define MCR_ERROR_H
+#ifndef MCR_UTIL_ERROR_H
+#define MCR_UTIL_ERROR_H
 
 #include "mcr/util/def.h"
 
-/*! \brief Last \ref errno known by Libmacro
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \brief Last \ref errno known by Libmacro
  *
  * \return \ref reterr
  */
 MCR_API int mcr_error();
 /*! \brief Set a new error code for \ref mcr_error */
 MCR_API void mcr_set_error(int errorNumber);
+/*! \brief Use errno to set \ref mcr_error
+ *
+ * Also print a debugging message
+ * \param defaultErrorNumber Use this error code if errno is not set
+ * \param fileString File name
+ * \param line Line number in file
+ * \return Errno or defaultErrorNumber
+ */
+MCR_API int mcr_set_errno(int defaultErrorNumber, const char *fileString,
+			  int line);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

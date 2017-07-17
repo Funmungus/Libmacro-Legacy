@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_UTIL_WIN_DEF_H
-#define MCR_UTIL_WIN_DEF_H
+#ifndef MCR_UTIL_WIN_NDEF_H
+#define MCR_UTIL_WIN_NDEF_H
 
 #include "mcr/util/def.h"
 
@@ -28,15 +28,24 @@
 
 #include <SDKDDKVer.h>
 
-/* Exclude rarely-used stuff from Windows headers. */
+/* Exclude rarely-used stuff from Windows headers,
+ * and we use min and max for naming. */
 #define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
+#ifndef NOMINMAX
+	#define NOMINMAX
+#endif
 #include <windows.h>
 
 #define mcr_snprintf _snprintf
 #define mcr_casecmp _stricmp
 #define mcr_ncasecmp _strnicmp
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* _Pragma and timespec undefined before 2015 */
+#if _MSC_VER < 1900
 #ifndef __timespec_defined
 #define __timespec_defined 1
 #ifndef _TIMESPEC_DEFINED
@@ -47,9 +56,11 @@ struct timespec {
 };
 #endif
 #endif
-
-/* _Pragma undefined before 2015 */
 #undef fixme
 #define fixme
+#endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif

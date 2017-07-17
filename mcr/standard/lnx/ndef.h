@@ -16,12 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*! \file
+/*!
+ * \file
  * \brief Standard module definitions
  */
 
-#ifndef MCR_LNX_STANDARD_DEF_H
-#define MCR_LNX_STANDARD_DEF_H
+#ifndef MCR_STANDARD_LNX_NDEF_H
+#define MCR_STANDARD_LNX_NDEF_H
 
 #include "mcr/util/lnx/nutil.h"
 #include "mcr/standard/def.h"
@@ -29,18 +30,19 @@
 #include <linux/uinput.h>	/* uinput_user_dev */
 
 #ifndef MCR_UINPUT_PATH
-/*! \brief Default value for uinput node when library is built. */
-#define MCR_UINPUT_PATH /dev/uinput
+	/*! \brief Default value for uinput node when library is built. */
+	#define MCR_UINPUT_PATH /dev/uinput
 #endif
 #ifndef MCR_EVENT_PATH
-/*! \brief Default value for device input event path when library is built. */
-#define MCR_EVENT_PATH /dev/input
+	/*! \brief Default value for device input event path when library is built. */
+	#define MCR_EVENT_PATH /dev/input
 #endif
-/*! \brief Default value for \ref mcr_AbsDev resolution when library is built.
+/*!
+ * \brief Default value for \ref mcr_AbsDev resolution when library is built.
  * Default is 4095, or 0x0FFF
  */
 #ifndef MCR_ABS_RESOLUTION
-#define MCR_ABS_RESOLUTION 0x0FFF
+	#define MCR_ABS_RESOLUTION 0x0FFF
 #endif
 
 #endif
