@@ -37,7 +37,7 @@
 #define MCR_W 3
 #define MCR_Y4 MCR_W
 #ifndef MCR_DIMENSION_MAX
-#define MCR_DIMENSION_MAX MCR_Z
+	#define MCR_DIMENSION_MAX MCR_Z
 #endif
 #define MCR_DIMENSION_CNT (MCR_DIMENSION_MAX + 1)
 

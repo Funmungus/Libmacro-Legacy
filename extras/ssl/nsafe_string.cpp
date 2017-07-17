@@ -30,7 +30,7 @@ namespace mcr
 {
 static unsigned int _initCount = 0;
 static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
-			      unsigned char *deleteBuffer = NULL) throw(int)
+			      unsigned char *deleteBuffer = NULL) MCR_THROWS
 {
 	int err = errno;
 	if (!err)
@@ -44,16 +44,18 @@ static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
 	throw err;
 }
 
-int SafeString::encrypt(const string &plainText, const unsigned char key[],
+int SafeString::encrypt(const char *plainText, size_type pLen,
+			const unsigned char key[],
 			const unsigned char iv[], unsigned char tagOut[],
-			unsigned char *bufferOut) throw(int)
+			unsigned char *bufferOut) MCR_THROWS
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
 	int cipherLen = 0;
-	if (!plainText.size() || plainText[0] == '\0') {
-		if (bufferOut)
-			bufferOut[0] = '\0';
+	if (!bufferOut)
+		return 0;
+	if (!len || !plainText || plainText[0] == '\0') {
+		bufferOut[0] = '\0';
 		return 0;
 	}
 
@@ -63,19 +65,19 @@ int SafeString::encrypt(const string &plainText, const unsigned char key[],
 	}
 	if (tagOut) {
 		if (!EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL,
-					    NULL)) {
+					NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
 		/* Set IV length 16 bytes */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-					     MCR_AES_IV_SIZE, NULL)) {
+					 MCR_AES_IV_SIZE, NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
 	} else {
 		if (!EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, NULL,
-					    NULL)) {
+					NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
@@ -88,8 +90,8 @@ int SafeString::encrypt(const string &plainText, const unsigned char key[],
 	}
 	/* Encrypt */
 	if (!EVP_EncryptUpdate(ctx, bufferOut, &len,
-				   (const unsigned char *)bytes(plainText),
-				   plainText.size() + 1)) {
+			       (const unsigned char *)bytes(plainText),
+			       ((int)pLen) + 1)) {
 		localOnErr(ctx);
 		return -1;
 	}
@@ -105,7 +107,7 @@ int SafeString::encrypt(const string &plainText, const unsigned char key[],
 	if (tagOut) {
 		/* If using gcm, get the tag */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
-					     MCR_AES_TAG_SIZE, tagOut)) {
+					 MCR_AES_TAG_SIZE, tagOut)) {
 			localOnErr(ctx);
 			return -1;
 		}
@@ -115,75 +117,83 @@ int SafeString::encrypt(const string &plainText, const unsigned char key[],
 	return cipherLen;
 }
 
-string SafeString::decrypt(const unsigned char *encrypted, int encryptedLength,
-			   const unsigned char key[], const unsigned char iv[],
-			   const unsigned char tag[]) throw(int)
+size_type SafeString::decrypt(const unsigned char *encrypted,
+			      int encryptedLength,
+			      const unsigned char key[], const unsigned char iv[],
+			      const unsigned char tag[], char *bufferOut) MCR_THROWS
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
-	string ret;
 
-	if (!encrypted || !encryptedLength)
-		return "";
-
-	unsigned char *buffer = new unsigned char[encryptedLength];
+	if (!bufferOut)
+		return 0;
+	if (!encrypted || !encryptedLength) {
+		bufferOut[0] = '\0';
+		return 0;
+	}
 
 	if (!(ctx = EVP_CIPHER_CTX_new())) {
-		localOnErr(NULL, buffer);
-		return "";
+		localOnErr();
+		bufferOut[0] = '\0';
+		return 0;
 	}
 	if (tag) {
 		if (!EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL,
-					    NULL)) {
-			localOnErr(ctx, buffer);
-			return "";
+					NULL)) {
+			localOnErr(ctx);
+			bufferOut[0] = '\0';
+			return 0;
 		}
 		/* Set IV length 16 bytes */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-					     MCR_AES_IV_SIZE, NULL)) {
-			localOnErr(ctx, buffer);
-			return "";
+					 MCR_AES_IV_SIZE, NULL)) {
+			localOnErr(ctx);
+			bufferOut[0] = '\0';
+			return 0;
 		}
 	} else {
 		if (!EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, NULL,
-					    NULL)) {
-			localOnErr(ctx, buffer);
-			return "";
+					NULL)) {
+			localOnErr(ctx);
+			bufferOut[0] = '\0';
+			return 0;
 		}
 		/* A 128 bit IV, cannot be changed, 16 byte */
 	}
 	/* init key + iv */
 	if (!EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv)) {
-		localOnErr(ctx, buffer);
-		return "";
+		localOnErr(ctx);
+		bufferOut[0] = '\0';
+		return 0;
 	}
 	/* Decrypt */
-	if (!EVP_DecryptUpdate(ctx, buffer, &len, encrypted,
-				   encryptedLength)) {
-		localOnErr(ctx, buffer);
-		return "";
+	if (!EVP_DecryptUpdate(ctx, (unsigned char *)bufferOut, &len, encrypted,
+			       encryptedLength)) {
+		localOnErr(ctx);
+		bufferOut[0] = '\0';
+		return 0;
 	}
 	if (tag) {
 		/* If using gcm, set the encryption-paired tag */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG,
-					     MCR_AES_TAG_SIZE, (void *)tag)) {
-			localOnErr(ctx, buffer);
-			return "";
+					 MCR_AES_TAG_SIZE, (void *)tag)) {
+			localOnErr(ctx);
+			bufferOut[0] = '\0';
+			return 0;
 		}
 	}
 	/* Finalise the decryption */
-	if (!EVP_DecryptFinal_ex(ctx, buffer + len, &len)) {
-		localOnErr(ctx, buffer);
-		return "";
+	if (!EVP_DecryptFinal_ex(ctx, (unsigned char *)(bufferOut + len), &len)) {
+		localOnErr(ctx);
+		bufferOut[0] = '\0';
+		return 0;
 	}
 	/* Clean up */
 	EVP_CIPHER_CTX_free(ctx);
-	ret = (char *)buffer;
-	delete []buffer;
-	return ret;
+	return len;
 }
 
-void SafeString::randomize(unsigned char *bufferOut, int bufferSize) throw(int)
+void SafeString::randomize(unsigned char *bufferOut, int bufferSize) MCR_THROWS
 {
 	if (!RAND_bytes(bufferOut, bufferSize)) {
 		localOnErr();
@@ -191,14 +201,19 @@ void SafeString::randomize(unsigned char *bufferOut, int bufferSize) throw(int)
 	}
 }
 
-void SafeString::sha(const string &text, unsigned char bufferOut[]) throw(int)
+void SafeString::sha(const char *text, size_type length,
+		     unsigned char bufferOut[]) MCR_THROWS
 {
 	SHA256_CTX ctx;
+	if (!text) {
+		text = "";
+		length = 0;
+	}
 	if (!SHA256_Init(&ctx)) {
 		localOnErr();
 		return;
 	}
-	if (!SHA256_Update(&ctx, bytes(text), text.size())) {
+	if (!SHA256_Update(&ctx, text, length)) {
 		localOnErr();
 		return;
 	}
@@ -207,7 +222,7 @@ void SafeString::sha(const string &text, unsigned char bufferOut[]) throw(int)
 	}
 }
 
-void SafeString::initialize() throw(int)
+void SafeString::initialize() MCR_THROWS
 {
 	if (!_initCount++) {
 		OPENSSL_init();
@@ -215,7 +230,7 @@ void SafeString::initialize() throw(int)
 		ERR_load_CRYPTO_strings();
 		OPENSSL_add_all_algorithms_noconf();
 		if (!EVP_add_cipher(EVP_aes_256_cbc()) ||
-				!EVP_add_cipher(EVP_aes_256_gcm())) {
+		    !EVP_add_cipher(EVP_aes_256_gcm())) {
 			localOnErr();
 			return;
 		}
@@ -231,7 +246,7 @@ void SafeString::initialize() throw(int)
 	}
 }
 
-void SafeString::deinitialize() throw(int)
+void SafeString::deinitialize() MCR_THROWS
 {
 	if (!--_initCount) {
 		ERR_free_strings();

@@ -23,8 +23,8 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_ISIGNAL_H
@@ -53,9 +53,10 @@ namespace mcr
  * \endcode
  */
 template<typename T>
-class MCR_API ISignal : public CtxISignal {
+class ISignal : public CtxISignal
+{
 public:
-	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL) throw(int)
+	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL) MCR_THROWS
 		: CtxISignal(context, ISignal<T>::send, dispatcher,
 			     mcr_Interface_new(sizeof(T),
 					       ISignal<T>::init, ISignal<T>::deinit, ISignal<T>::compare,
@@ -127,10 +128,16 @@ public:
 	}
 
 	/*! \brief \ref mcr_register */
-	void registerType() throw(int)
+	void registerType() MCR_THROWS
 	{
 		T inst;
-		ISignalRef(ptr()).registerType(inst.name(), inst.addNames());
+		size_t count = inst.addNamesCount();
+		const char **addN = count ? new const char *[count] : NULL;
+		inst.addNames(addN,
+			      count); /* If not implemented this will do nothing \ref ISignalData.addNames */
+		ISignalRef(ptr()).registerType(inst.name(), addN, count);
+		if (addN)
+			delete []addN;
 	}
 };
 }

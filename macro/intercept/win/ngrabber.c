@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 #if _WIN32_WINNT < 0x0600
-#include <shlobj.h>
+	#include <shlobj.h>
 #endif
 
 #define winerr \

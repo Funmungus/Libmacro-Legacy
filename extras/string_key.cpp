@@ -16,14 +16,14 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/mod_extras.h"
 #include <cstring>
+#include "mcr/extras/mod_extras.h"
 
 namespace mcr
 {
 IKeyProvider *StringKey::_keyProvider = NULL;
 
-StringKey &StringKey::operator =(const StringKey &copytron) throw(int)
+StringKey &StringKey::operator =(const StringKey &copytron) MCR_THROWS
 {
 	if (&copytron != this) {
 		clear();
@@ -33,7 +33,7 @@ StringKey &StringKey::operator =(const StringKey &copytron) throw(int)
 	return *this;
 }
 
-int StringKey::compare(const StringKey &rhs) const throw(int)
+int StringKey::compare(const StringKey &rhs) const MCR_THROWS
 {
 	int cmp;
 	if (&rhs == this)
@@ -43,7 +43,7 @@ int StringKey::compare(const StringKey &rhs) const throw(int)
 	return string.compare(rhs.string);
 }
 
-void StringKey::copy(const mcr::ISignalData *copytron) throw(int)
+void StringKey::copy(const mcr::ISignalData *copytron) MCR_THROWS
 {
 	const StringKey *cPt = dynamic_cast<const StringKey *>(copytron);
 	if (!cPt)
@@ -54,17 +54,19 @@ void StringKey::copy(const mcr::ISignalData *copytron) throw(int)
 	}
 }
 
-void StringKey::send() throw(int)
+void StringKey::send() MCR_THROWS
 {
 	Libmacro *context = Libmacro::instance();
 	size_type i, j, err;
 	mcr::string mem = stringText();
-	vector<Signal> *c;
+	Signal *c;
+	size_t count;
 	for (i = 0; i < mem.size(); i++) {
-		if (mem[i] < (signed)context->characters.size()) {
-			c = &context->character(mem[i]);
-			for (j = 0; j < c->size(); j++) {
-				if ((err = mcr_send(context->ptr(), c->at(j).ptr())))
+		if (mem[i] < (signed)context->characterCount()) {
+			count = context->characterCount(mem[i]);
+			c = context->character(mem[i]);
+			for (j = 0; j < count; j++) {
+				if ((err = mcr_send(context->ptr(), c[j].ptr())))
 					throw err;
 			}
 			mcr_NoOp_send_data(&interval);
@@ -72,9 +74,9 @@ void StringKey::send() throw(int)
 	}
 }
 
-StringKeyRef::StringKeyRef(Libmacro *context, mcr_Signal *sigPt) throw(int)
+StringKeyRef::StringKeyRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
 	: SignalManager(context, sigPt)
 {
-	init(context->iStringKey.ptr());
+	init(context->iStringKey().ptr());
 }
 }

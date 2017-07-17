@@ -14,13 +14,11 @@ win {
 	TARGET = lib$$TARGET
 	# resolve imports on windows
 	# linkage callspec
-	# TODO: Confirm callspec required for mingw
 	DEFINES += MCR_EXPORTS
+	# At this time Windows does not have C threads
+	SOURCES += util/cppthread.cpp
 	msvc {
-		LIBS += -luser32
-	} else:*-g++* {
-		# mingw does not have std or pthread
-		SOURCES += util/cppthread.cpp
+		LIBS += -lAdvapi32 -luser32
 	}
 }
 
@@ -30,6 +28,9 @@ isEmpty(prefix) {
 }
 
 HEADERS += $$files(../mcr/*.h, false) \
+	$$files(../mcr/lnx/*.h, true) \
+	$$files(../mcr/win/*.h, true) \
+	$$files(../mcr/none/*.h, true) \
 	$$files(../mcr/util/*.h, true) \
 	$$files(../mcr/signal/*.h, true) \
 	$$files(../mcr/macro/*.h, true) \

@@ -20,55 +20,51 @@
 
 namespace mcr
 {
-ITriggerRef::ITriggerRef(Libmacro *context, mcr_ITrigger *itrigPt) throw(int)
+ITriggerRef::ITriggerRef(Libmacro *context, mcr_ITrigger *itrigPt) MCR_THROWS
 	: _context(context ? context : Libmacro::instance()), _itrigPt(itrigPt)
 {
 }
 
-ITriggerRef::ITriggerRef(mcr_ITrigger *itrigPt) throw(int)
+ITriggerRef::ITriggerRef(mcr_ITrigger *itrigPt) MCR_THROWS
 	: _context(Libmacro::instance()), _itrigPt(itrigPt)
 {
 }
 
-ITriggerRef::ITriggerRef(Libmacro *context, size_t id) throw(int)
+ITriggerRef::ITriggerRef(Libmacro *context, size_t id) MCR_THROWS
 	: _context(context ? context : Libmacro::instance()),
 	  _itrigPt(mcr_ITrigger_from_id(_context->ptr(), id))
 {
 }
 
-ITriggerRef::ITriggerRef(size_t id) throw(int)
-	: _context(Libmacro::instance()), _itrigPt(mcr_ITrigger_from_id(_context->ptr(), id))
+ITriggerRef::ITriggerRef(size_t id) MCR_THROWS
+	: _context(Libmacro::instance()), _itrigPt(mcr_ITrigger_from_id(_context->ptr(),
+			id))
 {
 }
 
-ITriggerRef::ITriggerRef(Libmacro *context, const char *name) throw(int)
+ITriggerRef::ITriggerRef(Libmacro *context, const char *name) MCR_THROWS
 	: _context(context ? context : Libmacro::instance()),
 	  _itrigPt(mcr_ITrigger_from_name(_context->ptr(), name))
 {
 }
 
-ITriggerRef::ITriggerRef(const char *name) throw(int)
-	: _context(Libmacro::instance()), _itrigPt(mcr_ITrigger_from_name(_context->ptr(), name))
+ITriggerRef::ITriggerRef(const char *name) MCR_THROWS
+	: _context(Libmacro::instance()),
+	  _itrigPt(mcr_ITrigger_from_name(_context->ptr(), name))
 {
 }
 
-void ITriggerRef::registerType(const char *name, const vector<string> &addNames) throw(int)
+void ITriggerRef::registerType(const char *name, const char **addNames,
+			       size_t addNamesCount) MCR_THROWS
 {
 	int err = 0;
 	mcr_IRegistry *regPt = mcr_ITrigger_reg(_context->ptr());
 	dassert(regPt);
 	if (_itrigPt) {
-		auto end = addNames.end();
 		if (_itrigPt->interface.id) {
-			if (name)
-				err = mcr_reg_set_name(regPt, _itrigPt, name);
+			err = mcr_reg_set_names(regPt, _itrigPt, name, addNames, addNamesCount);
 		} else {
 			err = mcr_register(regPt, _itrigPt, name, NULL, 0);
-		}
-		for (auto it = addNames.begin(); it != end; it++) {
-			if (err)
-				break;
-			err = mcr_reg_add_name(regPt, _itrigPt, bytes(*it));
 		}
 		if (err)
 			throw err;
@@ -90,17 +86,17 @@ void ITriggerRef::setName(const char *name)
 	_itrigPt = mcr_ITrigger_from_name(_context->ptr(), name);
 }
 
-TriggerRef::TriggerRef(Libmacro *context, mcr_Trigger *trigPt) throw(int)
+TriggerRef::TriggerRef(Libmacro *context, mcr_Trigger *trigPt) MCR_THROWS
 	: _context(context ? context : Libmacro::instance()), _trigPt(trigPt)
 {
 }
 
-TriggerRef::TriggerRef(mcr_Trigger *trigPt) throw(int)
+TriggerRef::TriggerRef(mcr_Trigger *trigPt) MCR_THROWS
 	: _context(Libmacro::instance()), _trigPt(trigPt)
 {
 }
 
-void TriggerRef::setITrigger(mcr_ITrigger *itrigPt) throw(int)
+void TriggerRef::setITrigger(mcr_ITrigger *itrigPt) MCR_THROWS
 {
 	int err;
 	if (_trigPt && _trigPt->itrigger != itrigPt) {
@@ -110,7 +106,7 @@ void TriggerRef::setITrigger(mcr_ITrigger *itrigPt) throw(int)
 	}
 }
 
-void TriggerRef::setId(size_t val) throw(int)
+void TriggerRef::setId(size_t val) MCR_THROWS
 {
 	int err;
 	mcr_ITrigger *itrigPt = mcr_ITrigger_from_id(_context->ptr(), val);
@@ -121,7 +117,7 @@ void TriggerRef::setId(size_t val) throw(int)
 	}
 }
 
-void TriggerRef::setName(const char *val) throw(int)
+void TriggerRef::setName(const char *val) MCR_THROWS
 {
 	int err;
 	mcr_ITrigger *itrigPt = mcr_ITrigger_from_name(_context->ptr(), val);
@@ -132,7 +128,7 @@ void TriggerRef::setName(const char *val) throw(int)
 	}
 }
 
-void TriggerRef::copy(const mcr_Trigger *copytron) throw(int)
+void TriggerRef::copy(const mcr_Trigger *copytron) MCR_THROWS
 {
 	int err;
 	if (_trigPt) {
@@ -141,7 +137,7 @@ void TriggerRef::copy(const mcr_Trigger *copytron) throw(int)
 	}
 }
 
-void TriggerRef::copy(const mcr::TriggerRef &copytron) throw(int)
+void TriggerRef::copy(const mcr::TriggerRef &copytron) MCR_THROWS
 {
 	int err;
 	if (_trigPt) {
@@ -150,7 +146,7 @@ void TriggerRef::copy(const mcr::TriggerRef &copytron) throw(int)
 	}
 }
 
-void TriggerManager::copy(const mcr_Trigger *copytron) throw(int)
+void TriggerManager::copy(const mcr_Trigger *copytron) MCR_THROWS
 {
 	int err = 0;
 	if (copytron && copytron->itrigger == itrigger()) {
@@ -162,18 +158,18 @@ void TriggerManager::copy(const mcr_Trigger *copytron) throw(int)
 		throw err;
 }
 
-void TriggerManager::copy(const mcr::TriggerRef &copytron) throw(int)
+void TriggerManager::copy(const mcr::TriggerRef &copytron) MCR_THROWS
 {
 	copy(copytron.triggerRef());
 }
 
-ActionRef::ActionRef(Libmacro *context, mcr_Trigger *trigPt) throw(int)
+ActionRef::ActionRef(Libmacro *context, mcr_Trigger *trigPt) MCR_THROWS
 	: TriggerManager(context, trigPt)
 {
 	init(mcr_iAction(this->context()->ptr()));
 }
 
-StagedRef::StagedRef(Libmacro *context, mcr_Trigger *trigPt) throw(int)
+StagedRef::StagedRef(Libmacro *context, mcr_Trigger *trigPt) MCR_THROWS
 	: TriggerManager(context, trigPt)
 {
 	init(mcr_iStaged(this->context()->ptr()));
@@ -192,7 +188,7 @@ vector<Stage> StagedRef::stages() const
 	return ret;
 }
 
-void StagedRef::setStages(const vector<Stage> &val) throw(int)
+void StagedRef::setStages(const vector<Stage> &val) MCR_THROWS
 {
 	int err;
 	size_type i;

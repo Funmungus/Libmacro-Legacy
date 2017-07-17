@@ -22,13 +22,13 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_H
-#define MCR_EXTRAS_H
+	#define MCR_EXTRAS_H
 
-#include "mcr/extras/mod_extras.h"
+	#include "mcr/extras/mod_extras.h"
 
 #endif

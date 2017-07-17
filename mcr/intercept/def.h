@@ -26,7 +26,7 @@
 #include "mcr/standard/standard.h"
 
 #ifndef MCR_POLL_TIMEOUT
-#define MCR_POLL_TIMEOUT 3000
+	#define MCR_POLL_TIMEOUT 3000
 #endif
 
 #endif

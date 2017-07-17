@@ -74,18 +74,19 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 	dassert(arrlen(addNames) == arrlen(addMods));
 	mcr_ModFlags_maps(ctx, &modNamesPt, &namesModPt);
 	while (i--) {
-		if ((err = mcr_Map_map(modNamesPt, mods + i, modNames + i)))
+		if ((err = mcr_Map_map(modNamesPt, mods + i, (void *)(modNames + i))))
 			return err;
-		if ((err = mcr_Map_map(namesModPt, modNames + i, mods + i)))
+		if ((err = mcr_Map_map(namesModPt, (void *)(modNames + i), mods + i)))
 			return err;
 	}
 	i = arrlen(addMods);
 	while (i--) {
 		/* names[i][1] is a string, if empty then only one name
 		 * to add */
-		if ((err = mcr_Map_map(namesModPt, addNames[i] + 0, addMods + 0)))
+		if ((err = mcr_Map_map(namesModPt, (void *)(addNames[i] + 0), addMods + 0)))
 			return err;
-		if (addNames[i][1][0] && (err = mcr_Map_map(namesModPt, addNames[i] + 0, addMods + 0)))
+		if (addNames[i][1][0]
+		    && (err = mcr_Map_map(namesModPt, (void *)(addNames[i] + 0), addMods + 0)))
 			return err;
 	}
 	return 0;

@@ -22,16 +22,16 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_EXTRAS_H
-#define MCR_EXTRAS_EXTRAS_H
+	#define MCR_EXTRAS_EXTRAS_H
 
-#include "mcr/extras/alarm.h"
-#include "mcr/extras/command.h"
-#include "mcr/extras/string_key.h"
-#include "mcr/extras/wrap_trigger.h"
+	#include "mcr/extras/alarm.h"
+	#include "mcr/extras/command.h"
+	#include "mcr/extras/string_key.h"
+	#include "mcr/extras/wrap_trigger.h"
 
 #endif

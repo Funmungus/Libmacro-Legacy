@@ -23,6 +23,7 @@
 #include "mcr/util/util.h"
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 
 static int _local_errno = 0;
 
@@ -40,8 +41,9 @@ int mcr_set_errno(int defaultErrorNumber, const char *fileString, int line)
 {
 	_local_errno = errno;
 	if (!_local_errno)
-		_local_errno = defaultErrorNumber < 0 ? -defaultErrorNumber : defaultErrorNumber;
+		_local_errno = defaultErrorNumber < 0 ? -defaultErrorNumber :
+			       defaultErrorNumber;
 	ddo(fprintf(stderr, "Error %d: %s(%d) %s: %s.\n", _local_errno,
-			fileString, line, mcr_timestamp(), strerror(_local_errno)));
+		    fileString, line, mcr_timestamp(), strerror(_local_errno)));
 	return _local_errno;
 }

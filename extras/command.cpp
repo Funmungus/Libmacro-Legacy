@@ -23,7 +23,7 @@ namespace mcr
 {
 IKeyProvider *Command::_keyProvider = NULL;
 
-Command &Command::operator =(const Command &copytron) throw(int)
+Command &Command::operator =(const Command &copytron) MCR_THROWS
 {
 	if (&copytron != this) {
 		clear();
@@ -34,75 +34,95 @@ Command &Command::operator =(const Command &copytron) throw(int)
 	return *this;
 }
 
-void Command::setCryptic(bool val) throw(int)
+void Command::setCryptic(bool val) MCR_THROWS
 {
-	size_type i;
 	if (val != cryptic() && _keyProvider) {
 		_cryptic = val;
 		file.setCryptic(val);
-		for (i = 0; i < args.size(); i++) {
-			args[i].setCryptic(val);
+		for (size_t i = 0; i < _argsCount; i++) {
+			_args[i].setCryptic(val);
 		}
 	}
 }
 
-vector<string> Command::argsText() const throw(int)
+void Command::args(SafeString *bufferOut, size_t bufferLen) const MCR_THROWS
 {
-	vector<string> ret;
-	size_type i;
-	for (i = 0; i < args.size(); i++) {
-		ret.push_back(args[i].text());
-	}
-	return ret;
-}
-
-void Command::setArgsText(const vector<string> &val) throw(int)
-{
-	size_type i;
-	args.clear();
-	for (i = 0; i < val.size(); i++) {
-		args.push_back(SafeString(_keyProvider, val[i], _cryptic));
+	if (!bufferOut || !bufferLen)
+		return;
+	if (bufferLen > _argsCount)
+		bufferLen = _argsCount;
+	for (size_t i = 0; i < bufferLen; i++) {
+		bufferOut[i] = _args[i];
 	}
 }
 
-int Command::compare(const Command &rhs) const throw(int)
+void Command::setArgs(SafeString *bufferIn, size_t bufferLen) MCR_THROWS
+{
+	if (!bufferIn || !bufferLen) {
+		setArgsCount(0);
+		return;
+	}
+	setArgsCount(bufferLen);
+	for (size_t i = 0; i < bufferLen; i++) {
+		_args[i] = bufferIn[i];
+	}
+}
+
+int Command::compare(const Command &rhs) const MCR_THROWS
 {
 	int cmp;
-	size_type i;
 	if (&rhs == this)
 		return 0;
 	if ((cmp = MCR_CMP_INTEGRAL(cryptic(), rhs.cryptic())))
 		return cmp;
-	if ((cmp = MCR_CMP_INTEGRAL(args.size(), rhs.args.size())))
+	if ((cmp = MCR_CMP_INTEGRAL(_argsCount, rhs._argsCount)))
 		return cmp;
 	if ((cmp = file.compare(rhs.file)))
 		return cmp;
-	for (i = 0; i < args.size(); i++) {
-		if ((cmp = args[i].compare(rhs.args[i])))
+	for (size_t i = 0; i < _argsCount; i++) {
+		if ((cmp = _args[i].compare(rhs._args[i])))
 			return cmp;
 	}
 	return 0;
 }
 
-void Command::copy(const mcr::ISignalData *copytron) throw(int)
+void Command::copy(const mcr::ISignalData *copytron) MCR_THROWS
 {
 	if (copytron == this)
 		return;
 	if (copytron) {
 		const Command *mem = dynamic_cast<const Command *>(copytron);
-		clear();
+		setArgsCount(mem->argsCount());
 		_cryptic = mem->cryptic();
-		setFileText(mem->fileText());
-		setArgsText(mem->argsText());
+		file = mem->file;
+		setArgs(mem->_args, mem->argsCount());
 	} else {
 		clear();
 		_cryptic = false;
 	}
 }
 
-CommandRef::CommandRef(Libmacro *context, mcr_Signal *sigPt) throw(int)
+void Command::setArgsCount(size_t count)
+{
+	if (_argsBufferLen < count) {
+		delete []_args;
+		_argsBufferLen = _argsCount = count;
+		_args = new SafeString[_argsBufferLen];
+		for (size_t i = 0; i < _argsBufferLen; i++) {
+			_args[i].setKeyProvider(_keyProvider);
+			_args[i].setCryptic(cryptic());
+		}
+	} else {
+		_argsCount = count;
+		for (size_t i = 0; i < _argsCount; i++) {
+			_args[i].clear();
+		}
+	}
+}
+
+CommandRef::CommandRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
 	: SignalManager(context, sigPt)
 {
-	init(&this->context()->iCommand.isignal);
+	init(&this->context()->iCommand().isignal);
 }
 }

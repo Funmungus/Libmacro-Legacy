@@ -24,8 +24,8 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_MOD_EXTRAS_H
@@ -36,35 +36,26 @@
 
 namespace mcr
 {
-struct MCR_API Libmacro {
+struct MCR_EXTRAS_API Libmacro {
 	/*! \brief Base Libmacro context */
 	mcr_context context;
-	/*! \brief \ref Alarm */
-	ISignal<Alarm> iAlarm;
-	/*! \brief \ref Command */
-	ISignal<Command> iCommand;
-	/*! \brief \ref StringKey */
-	ISignal<StringKey> iStringKey;
-
-	/*! \brief Map index to set of signals for \ref StringKey */
-	vector<vector<Signal>> characters;
 
 	/*! \brief ctor
 	 * \param enabled Initial enabled state, must be disabled before
 	 * destruction
 	 */
-	Libmacro(bool enabled = true) throw(int);
+	Libmacro(bool enabled = true) MCR_THROWS;
 	/*! \brief dtor If this is enabled during destruction threading errors
 	 * are likely to happen
 	 */
-	~Libmacro() throw(int);
+	~Libmacro();
 	/*!
 	 * \brief Get the last created \ref Libmacro module
 	 *
 	 * Will throw EFAULT if no \ref Libmacro exists, and will not create a
 	 * singleton object
 	 */
-	static Libmacro *instance() throw(int);
+	static Libmacro *instance() MCR_THROWS;
 
 	inline const mcr_context *ptr() const
 	{
@@ -75,6 +66,18 @@ struct MCR_API Libmacro {
 		return &context;
 	}
 
+	inline CtxISignal &iAlarm() const
+	{
+		return *_iAlarm;
+	}
+	inline CtxISignal &iCommand() const
+	{
+		return *_iCommand;
+	}
+	inline CtxISignal &iStringKey() const
+	{
+		return *_iStringKey;
+	}
 	/*! \brief Generic enabler for mcr_context functions, such as
 	 * hardware hooks and any sort of threading.
 	 */
@@ -85,21 +88,48 @@ struct MCR_API Libmacro {
 	/*! \brief Set current enabled state.  Please disable before the
 	 * destructor to avoid threading errors.
 	 */
-	void setEnabled(bool val) throw(int);
+	void setEnabled(bool val) MCR_THROWS;
 
-	const vector<Signal> &character(int c) const throw(int)
+	inline size_t characterCount() const
 	{
-		if (c < 0 || c >= (signed)characters.size())
-			throw EINVAL;
-		return characters[c];
+		return _characters.used();
 	}
-	vector<Signal> &character(int c) throw(int)
+	inline size_t characterCount(int c) const
 	{
-		if (c < 0 || c >= (signed)characters.size())
-			throw EINVAL;
-		return characters[c];
+		auto mem = _characters.element<Array>(c);
+		return mem ? mem->used() : 0;
 	}
-	void setCharacter(int c, vector<Signal> &val) throw(int);
+	inline Signal *character(int c) MCR_THROWS
+	{
+		if (c < 0 || c >= (signed)characterCount())
+			throw EINVAL;
+		return _characters.element<Array>(c)->first<Signal>();
+	}
+	inline const Signal *character(int c) const MCR_THROWS
+	{
+		if (c < 0 || c >= (signed)characterCount())
+			throw EINVAL;
+		return _characters.element<Array>(c)->first<Signal>();
+	}
+	inline vector<Signal> characterSet(int c) MCR_THROWS
+	{
+		vector<Signal> ret;
+		if (c < 0 || c >= (signed)_characters.used())
+			throw EINVAL;
+		auto mem = _characters.element<Array>(c);
+		for (auto iter = mem->first<Signal>(), endPt = mem->end<Signal>();
+		     iter != endPt; iter++) {
+			ret.push_back(*iter);
+		}
+		return ret;
+	}
+	void setCharacter(int c, const Signal *valBuffer, size_t bufferLength) MCR_THROWS;
+	inline void setCharacterSet(int c, const vector<Signal> &val) MCR_THROWS
+	{
+		if (c < 0)
+			throw EINVAL;
+		setCharacter(c, val.data(), val.size());
+	}
 	/*!
 	 * \brief Set signals for a character that will press, pause, and release a
 	 * key.
@@ -111,23 +141,27 @@ struct MCR_API Libmacro {
 	 * release after the key.
 	 * \return \ref reterr
 	 */
-	void setKeyChar(int c, int key, long msecDelay, bool shiftFlag) throw(int);
+	void setCharacterKey(int c, int key, long msecDelay, bool shiftFlag) MCR_THROWS;
 	/*!
 	 * \brief Set all \ref mcr_NoOp delay values for \ref StringKey
 	 *
 	 * \param delayValue Apply this pause time
 	 */
-	void setCharacterDelays(mcr_NoOp delayValue) throw(int);
-	void removeCharacter(int c) throw(int);
+	void setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS;
+	void removeCharacter(int c) MCR_THROWS;
 	void trimCharacters();
 private:
-	static vector<Libmacro *> _registry;
+	CtxISignal *_iAlarm;
+	CtxISignal *_iCommand;
+	CtxISignal *_iStringKey;
+	/*! \brief Map index to set of signals for \ref StringKey */
+	Array _characters;
 	bool _enabled;
 
 	/*!
 	 * \brief \ref mcr_is_platform Platform initializer
 	 */
-	void initialize() throw(int);
+	void initialize() MCR_THROWS;
 	/*!
 	 * \brief \ref mcr_is_platform Platform deinitializer
 	 */

@@ -25,6 +25,6 @@
 #error Error!
 #elif __clang__
 #pragma GCC error "Error!"
-#else
+#elif _MSC_VER
 #pragma message "Error Msg: Error!"
 #endif

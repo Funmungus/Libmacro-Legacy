@@ -24,8 +24,8 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_SAFE_STRING_H
@@ -45,7 +45,7 @@ namespace mcr
 {
 class SafeString;
 /*! \brief Get an encryption key for a specific string object */
-class MCR_API IKeyProvider
+class MCR_EXTRAS_API IKeyProvider
 {
 public:
 	virtual ~IKeyProvider() {}
@@ -58,7 +58,7 @@ public:
 	 * \param keyOut Return a reference to the key
 	 */
 	virtual void key(const SafeString *obj,
-			 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) throw(int) = 0;
+			 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS = 0;
 	/*!
 	 * \brief Remove a string object.  If the key function is called again
 	 * the key should be regenerated.
@@ -70,19 +70,18 @@ public:
 	 * \brief \ref SafeString::generateKey
 	 * \param keyOut Buffer to write key to
 	 */
-	static inline void generate(unsigned char keyOut[MCR_AES_BLOCK_SIZE]) throw(
-		int);
+	static inline void generate(unsigned char keyOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS;
 	/*!
 	 * \brief \ref SafeString::sha
 	 * \param text Plain text to compute hash for
 	 * \param bufferOut Write hash to this buffer
 	 */
 	static inline void sha(const string &text,
-			       unsigned char bufferOut[MCR_AES_BLOCK_SIZE]) throw(int);
+			       unsigned char bufferOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS;
 };
 
 /*! \brief A string that can be encrypted in memory */
-class MCR_API SafeString
+class MCR_EXTRAS_API SafeString
 {
 public:
 	/*!
@@ -92,32 +91,44 @@ public:
 	 * \param cryptic \ref opt Initial encryption state
 	 */
 	SafeString(IKeyProvider *keyProvider = NULL, const string &str = string(),
-		   bool cryptic = true) throw(int)
+		   bool cryptic = true) MCR_THROWS
 		: _cryptic(cryptic
 			   && keyProvider), _encrypted(NULL), _encryptedBufferSize(0), _encryptedBytes(0),
-		  _keyProvider(keyProvider), _iv{0}, _lenMem(0), _plain(""),
-		  _stateless(false), _tag{0}
+		  _keyProvider(keyProvider), _lenMem(0), _plain(NULL), _plainBufferSize(0),
+		  _stateless(false)
 	{
+		memset(_iv, 0, sizeof(_iv));
+		memset(_tag, 0, sizeof(_tag));
 		if (cryptic)
 			resetIv();
 		setText(str);
 	}
 	//! Will IKeyProvider::deregister if a key provider is available
 	virtual ~SafeString();
-	SafeString(const SafeString &copytron) throw(int);
-	SafeString &operator =(const SafeString &copytron) throw(int)
+	SafeString(const SafeString &copytron) MCR_THROWS;
+	SafeString &operator =(const SafeString &copytron) MCR_THROWS
 	{
 		if (&copytron != this) {
 			setText(copytron.text());
 		}
 		return *this;
 	}
+	inline SafeString &operator =(const string &str) MCR_THROWS
+	{
+		setText(str);
+		return *this;
+	}
+	inline SafeString &operator =(const char *str) MCR_THROWS
+	{
+		if (!str)
+			str = "";
+		setText(str, strlen(str));
+		return *this;
+	}
 
 	/*!
-	 * \brief \ref mcr_is_platform Plain text => encrypted text
+	 * \brief Plain text => encrypted text
 	 *
-	 * This is usually defined in the ssl directory.  Redefine if not
-	 * linking to a libcrypto- or libssl-compatible library.
 	 * \param plainText String to be encrypted
 	 * \param key Encryption key, randomized bytes or hashed password
 	 * \param iv \ref opt Initializer that should not be shared between
@@ -129,17 +140,29 @@ public:
 	 * be greater than plain text length.  To be safe the byte length of
 	 * this buffer should be at least 1.5 times the plain text string
 	 * length.
-	 * \return Length of encrypted bytes written to bufferOut
+	 * \return Length of encrypted bytes written to bufferOut. Will be -1 for any errors.
 	 */
-	static int encrypt(const string &plainText,
-			   const unsigned char key[MCR_AES_BLOCK_SIZE],
-			   const unsigned char iv[MCR_AES_IV_SIZE],
-			   unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut) throw(int);
+	static inline int encrypt(const string &plainText,
+				  const unsigned char key[MCR_AES_BLOCK_SIZE],
+				  const unsigned char iv[MCR_AES_IV_SIZE],
+				  unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut) MCR_THROWS
+	{
+		return encrypt(bytes(plainText), plainText.size(), key, iv, tagOut, bufferOut);
+	}
 	/*!
-	 * \brief \ref mcr_is_platform Encrypted text => plain text
+	 * \brief \ref mcr_is_platform Plain text => encrypted text
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
+	 * \return Length of encrypted bytes written to bufferOut. Will be -1 for any errors.
+	 */
+	static int encrypt(const char *plain, size_t plainLen,
+			   const unsigned char key[MCR_AES_BLOCK_SIZE],
+			   const unsigned char iv[MCR_AES_IV_SIZE],
+			   unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut) MCR_THROWS;
+	/*!
+	 * \brief Encrypted text => plain text
+	 *
 	 * \param encrypted Encrypted bytes to decrypt as a string
 	 * \param encryptedLength Bytes to decrypt from encrypted string
 	 * \param key Encryption key, randomized bytes or hashed password
@@ -150,10 +173,40 @@ public:
 	 * stateless encryption.
 	 * \return Decrypted string
 	 */
-	static string decrypt(const unsigned char *encrypted, int encryptedLength,
+	static inline string decrypt(const unsigned char *encrypted,
+				     int encryptedLength,
+				     const unsigned char key[MCR_AES_BLOCK_SIZE],
+				     const unsigned char iv[MCR_AES_IV_SIZE],
+				     const unsigned char tag[]) MCR_THROWS
+	{
+		string ret = "";
+		size_t decLen = 0;
+		if (!encrypted || !encryptedLength)
+			return "";
+		char *buffer = new char[encryptedLength + 1];
+		try {
+			decLen = decrypt(encrypted, encryptedLength, key, iv, tag, buffer);
+		} catch (int e) {
+			delete []buffer;
+			buffer = NULL;
+			throw e;
+		}
+		if ((int)decLen != -1)
+			ret = buffer;
+		delete []buffer;
+		return ret;
+	}
+	/*!
+	 * \brief \ref mcr_is_platform Encrypted text => plain text
+	 *
+	 * This is usually defined in the ssl directory.  Redefine if not
+	 * linking to a libcrypto- or libssl-compatible library.
+	 * \return Length of decrypted bytes written to bufferOut.
+	 */
+	static size_t decrypt(const unsigned char *encrypted, int encryptedLength,
 			      const unsigned char key[MCR_AES_BLOCK_SIZE],
 			      const unsigned char iv[MCR_AES_IV_SIZE],
-			      const unsigned char tag[]) throw(int);
+			      const unsigned char tag[], char *bufferOut) MCR_THROWS;
 	/*!
 	 * \brief \ref mcr_is_platform Output pseudo randomized bytes
 	 *
@@ -162,35 +215,45 @@ public:
 	 * \param bufferOut Write bytes to this buffer
 	 * \param bufferSize Number of bytes to write to output buffer
 	 */
-	static void randomize(unsigned char *bufferOut, int bufferSize) throw(int);
+	static void randomize(unsigned char *bufferOut, int bufferSize) MCR_THROWS;
+	/*!
+	 * \brief Create a SHA hash suitable to use as an encryption key
+	 *
+	 * \param text Plain text to compute hash for
+	 * \param bufferOut Write hash to this buffer
+	 */
+	static inline void sha(const string &text,
+			unsigned char bufferOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS
+	{
+		sha(bytes(text), text.size(), bufferOut);
+	}
 	/*!
 	 * \brief \ref mcr_is_platform Create a SHA hash suitable to use as an encryption key
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
-	 * \param text Plain text to compute hash for
-	 * \param bufferOut Write hash to this buffer
 	 */
-	static void sha(const string &text,
-			unsigned char bufferOut[MCR_AES_BLOCK_SIZE]) throw(int);
-	/*! \brief \ref mcr_is_platform This is called in library initialization
+	static void sha(const char *text, size_t textLen,
+			unsigned char bufferOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS;
+	/*!
+	 * \brief \ref mcr_is_platform This is called in library initialization
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
-	static void initialize() throw(int);
-	/*! \brief \ref mcr_is_platform This is called in library cleanup
+	static void initialize() MCR_THROWS;
+	/*!
+	 * \brief \ref mcr_is_platform This is called in library cleanup
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
-	static void deinitialize() throw(int);
+	static void deinitialize() MCR_THROWS;
 	/*!
 	 * \brief Use randomize to generate a key
 	 * \param keyOut Byte array to use as an encryption key.
 	 */
-	static inline void generateKey(unsigned char keyOut[MCR_AES_BLOCK_SIZE]) throw(
-		int)
+	static inline void generateKey(unsigned char keyOut[MCR_AES_BLOCK_SIZE]) MCR_THROWS
 	{
 		if (keyOut)
 			randomize(keyOut, MCR_AES_BLOCK_SIZE);
@@ -199,14 +262,14 @@ public:
 	 * \brief Use randomize to generate an iv
 	 * \param ivOut Byte array to write iv to
 	 */
-	static inline void initializer(unsigned char ivOut[MCR_AES_IV_SIZE]) throw(int)
+	static inline void initializer(unsigned char ivOut[MCR_AES_IV_SIZE]) MCR_THROWS
 	{
 		if (ivOut)
 			randomize(ivOut, MCR_AES_IV_SIZE);
 	}
 
 	/*! \brief Compare cryptic and \ref strcmp plain text */
-	int compare(const SafeString &rhs) const throw(int);
+	int compare(const SafeString &rhs) const MCR_THROWS;
 
 	/*! \brief True for encrypted, otherwise plain text */
 	inline bool cryptic() const
@@ -220,7 +283,7 @@ public:
 	 * be false.
 	 * Current text will be preserved
 	 */
-	void setCryptic(bool val) throw(int);
+	void setCryptic(bool val) MCR_THROWS;
 	/*! \brief Get encryption keys from this object */
 	inline IKeyProvider *keyProvider() const
 	{
@@ -230,7 +293,7 @@ public:
 	 *
 	 * Current text will be preserved
 	 */
-	void setKeyProvider(IKeyProvider *provider) throw(int);
+	void setKeyProvider(IKeyProvider *provider) MCR_THROWS;
 	/*! \brief Initialization vector, added security for encryption */
 	inline const unsigned char *iv() const
 	{
@@ -241,12 +304,12 @@ public:
 	 *
 	 * Current text will be preserved
 	 */
-	void setIv(unsigned char *iv) throw(int);
+	void setIv(unsigned char *iv) MCR_THROWS;
 	/*! \brief Randomize iv
 	 *
 	 * Current text will be preserved
 	 */
-	void resetIv() throw(int);
+	void resetIv() MCR_THROWS;
 	/*! \brief A stateless string can always be decrypted to the same
 	 * value, as long as the key and iv are the same.  Tag is not used,
 	 * or ignored.
@@ -260,23 +323,65 @@ public:
 	 *
 	 * Current text will be preserved
 	 */
-	void setStateless(bool val) throw(int);
+	void setStateless(bool val) MCR_THROWS;
 
 	/*! \brief Byte length of plain text string, such as \ref strlen */
-	inline size_type length() const
+	inline size_t length() const
 	{
 		return _lenMem;
 	}
 	/*! \brief Get string as plain text */
-	string text() const throw(int);
+	inline string text() const MCR_THROWS
+	{
+		char *bufferOut;
+		string ret = "";
+		if (!_cryptic)
+			return _plain ? _plain : "";
+		if (!_lenMem)
+			return "";
+		bufferOut = new char[_lenMem + 1];
+		try {
+			text(bufferOut);
+			ret = bufferOut;
+		} catch (int e) {
+			delete []bufferOut;
+			bufferOut = NULL;
+			throw e;
+		}
+		delete []bufferOut;
+		return ret;
+	}
+	/*!
+	 * \brief Get string as plain text
+	 * \param bufferOut Buffer to write plain text, must be at least \ref length + 1 in byte size
+	 * \return String length of plain text
+	 */
+	size_t text(char *bufferOut) const MCR_THROWS;
 	/*! \brief Set string plain text, and will encrypt if currently
 	 * encrypting */
-	void setText(const string &str = string()) throw(int);
+	inline void setText(const string &str = string()) MCR_THROWS
+	{
+		setText(bytes(str), str.size());
+	}
+	/*!
+	 * \brief Set string plain text, and will encrypt if currently
+	 * encrypting
+	 * \param len \ref strlen of string, or -1 for entire string
+	 */
+	void setText(const char *str, size_t len) MCR_THROWS;
 	/*! \brief Set string plain text
 	 *
 	 * \param cryptic \ref setCryptic
 	 */
-	void setText(const string &str, bool cryptic) throw(int);
+	inline void setText(const string &str, bool cryptic) MCR_THROWS
+	{
+		setText(bytes(str), str.size(), cryptic);
+	}
+	/*! \brief Set string plain text
+	 *
+	 * \param cryptic \ref setCryptic
+	 */
+	void setText(const char *str, size_t len, bool cryptic) MCR_THROWS;
 
 	/*!
 	 * \brief Clear all strings, allocated data, and tag.  iv will not
@@ -290,18 +395,19 @@ private:
 	int _encryptedBytes;
 	IKeyProvider *_keyProvider;
 	unsigned char _iv[MCR_AES_IV_SIZE];
-	size_type _lenMem;
-	string _plain;
+	size_t _lenMem;
+	char *_plain;
+	size_t _plainBufferSize;
 	bool _stateless;
 	unsigned char _tag[MCR_AES_TAG_SIZE];
 };
 
-void IKeyProvider::generate(unsigned char keyOut[]) throw(int)
+void IKeyProvider::generate(unsigned char keyOut[]) MCR_THROWS
 {
 	SafeString::generateKey(keyOut);
 }
 
-void IKeyProvider::sha(const string &text, unsigned char bufferOut[]) throw(int)
+void IKeyProvider::sha(const string &text, unsigned char bufferOut[]) MCR_THROWS
 {
 	SafeString::sha(text, bufferOut);
 }

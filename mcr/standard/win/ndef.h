@@ -24,7 +24,7 @@
 
 /* For some reason hwheel is not always defined. */
 #ifndef MOUSEEVENTF_HWHEEL
-#define MOUSEEVENTF_HWHEEL 0x01000
+	#define MOUSEEVENTF_HWHEEL 0x01000
 #endif
 
 #endif

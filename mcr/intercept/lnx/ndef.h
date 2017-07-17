@@ -28,7 +28,7 @@
 #include "mcr/intercept/def.h"
 
 #ifndef MCR_GRAB_SET_LENGTH
-#define MCR_GRAB_SET_LENGTH 16
+	#define MCR_GRAB_SET_LENGTH 16
 #endif
 
 #define MCR_GRAB_SET_SIZE (sizeof(struct input_event) * \

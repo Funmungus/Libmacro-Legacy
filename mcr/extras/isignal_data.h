@@ -23,8 +23,8 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_ISIGNAL_DATA_H
@@ -38,19 +38,17 @@ namespace mcr
  * \brief Signal instance data, such as \ref mcr_Key.
  *
  * Functions to overload: \ref ISignalData.compare, \ref ISignalData.copy,
- * \ref ISignalData.name, and \ref ISignalData.send
+ * \ref ISignalData.name, and \ref ISignalData.send \n
+ * Optional overload: \ref ISignalData.addNamesCount and
+ * \ref ISignalData.addNames
  */
-class MCR_API ISignalData
+class MCR_EXTRAS_API ISignalData
 {
 public:
 	virtual ~ISignalData() {}
 	inline bool operator ==(const ISignalData &rhs)
 	{
 		return !compare(rhs);
-	}
-	inline bool operator !=(const ISignalData &rhs)
-	{
-		return !operator ==(rhs);
 	}
 	inline bool operator <(const ISignalData &rhs)
 	{
@@ -60,33 +58,32 @@ public:
 	{
 		return compare(rhs) > 0;
 	}
-	inline bool operator <=(const ISignalData &rhs)
-	{
-		return !operator >(rhs);
-	}
-	inline bool operator >=(const ISignalData &rhs)
-	{
-		return !operator <(rhs);
-	}
-	inline void operator ()() throw(int)
+	inline void operator ()() MCR_THROWS
 	{
 		send();
 	}
 
 	/* Instance */
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const throw(int) = 0;
-	/*! \brief \ref mcr_Signal_copy
+	virtual int compare(const ISignalData &rhs) const MCR_THROWS = 0;
+	/*!
+	 * \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) throw(int) = 0;
+	virtual void copy(const ISignalData *copytron) MCR_THROWS = 0;
 	/* Signal */
 	/*! \brief \ref mcr_ISignal_set_name */
-	virtual const char *name() = 0;
+	virtual const char *name() const = 0;
 	/*! \brief \ref mcr_ISignal_add_names */
-	virtual vector<string> addNames()
+	virtual size_t addNamesCount() const
 	{
-		return vector<string>();
+		return 0;
+	}
+	/*! \brief \ref mcr_ISignal_add_names */
+	virtual void addNames(const char **bufferOut, size_t bufferLength) const
+	{
+		UNUSED(bufferOut);
+		UNUSED(bufferLength);
 	}
 	/*!
 	 * \brief \ref mcr_send We highly suggest you inline this function,
@@ -95,7 +92,7 @@ public:
 	 * Inline is only suggested if the send function is
 	 * not complex.
 	 */
-	virtual void send() throw(int) = 0;
+	virtual void send() MCR_THROWS = 0;
 };
 }
 

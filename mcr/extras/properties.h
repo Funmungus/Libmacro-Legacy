@@ -23,8 +23,8 @@
  */
 
 #ifndef __cplusplus
-#pragma message "C++ support is required for extras module"
-#include "mcr/err.h"
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
 #endif
 
 #ifndef MCR_EXTRAS_PROPERTIES_H
@@ -35,14 +35,16 @@
 namespace mcr
 {
 /*! \brief Notifier object for property changes */
-class MCR_API IOnPropertyChanged {
+class MCR_EXTRAS_API IOnPropertyChanged
+{
 public:
 	virtual ~IOnPropertyChanged() {}
 	virtual void onPropertyChanged(const char *propertyName) = 0;
 };
 
 /*! \brief Object which has string properties to manage */
-class MCR_API IProperties {
+class MCR_EXTRAS_API IProperties
+{
 public:
 	virtual ~IProperties() {}
 	/*! \brief Enumerate list of properties this object manages */
@@ -56,7 +58,7 @@ public:
 	/*! \brief Copy an object reference to property */
 	virtual void setValue(const char *name, void *value) = 0;
 	/*! \brief Notify a property has changed */
-	virtual void setOnPropertyChanged(IOnPropertyChanged listener) = 0;
+	virtual void setOnPropertyChanged(IOnPropertyChanged *listener) = 0;
 };
 }
 

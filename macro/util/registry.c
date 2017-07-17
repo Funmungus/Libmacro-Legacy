@@ -127,7 +127,7 @@ int mcr_reg_add_name(struct mcr_IRegistry *iRegPt, void *interfacePt,
 	dassert(interfacePt);
 	if (!name)
 		return 0;
-	return mcr_Map_map(&iRegPt->name_map, &name, &interfacePt);
+	return mcr_Map_map(&iRegPt->name_map, (void *)&name, &interfacePt);
 }
 
 int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, void *interfacePt,
@@ -140,7 +140,7 @@ int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, void *interfacePt,
 	if (!names || !bufferLen)
 		return 0;
 	for (i = 0; i < bufferLen; i++) {
-		if ((err = mcr_Map_map(&iRegPt->name_map, names + i,
+		if ((err = mcr_Map_map(&iRegPt->name_map, (void *)(names + i),
 				       &interfacePt)))
 			return err;
 	}

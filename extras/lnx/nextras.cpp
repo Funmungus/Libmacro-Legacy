@@ -21,9 +21,9 @@
 
 namespace mcr
 {
-static void localAddKeys(Libmacro *ctx) throw(int);
+static void localAddKeys(Libmacro *ctx) MCR_THROWS;
 
-void Libmacro::initialize() throw(int)
+void Libmacro::initialize() MCR_THROWS
 {
 	localAddKeys(this);
 }
@@ -32,23 +32,24 @@ void Libmacro::deinitialize()
 {
 
 }
+
 static inline void add(Libmacro *ctx, int character, bool shiftFlag,
-	       const int keyVals[]) throw(int)
+		       const int keyVals[]) MCR_THROWS
 {
 	if (character <= 0x7E) {
-		ctx->setKeyChar(character, keyVals[character], 20, shiftFlag);
+		ctx->setCharacterKey(character, keyVals[character], 20, shiftFlag);
 	}
 }
 
 static inline void arange(Libmacro *ctx, int charMin, int charMax,
-		  bool shiftFlag, const int keyVals[]) throw(int)
+			  bool shiftFlag, const int keyVals[]) MCR_THROWS
 {
 	for (int i = charMin; i <= charMax; i++) {
 		add(ctx, i, shiftFlag, keyVals);
 	}
 }
 
-static void localAddKeys(Libmacro *ctx) throw(int)
+static void localAddKeys(Libmacro *ctx) MCR_THROWS
 {
 	const int keyVals[] = {
 		0,		/* Null character */

@@ -93,7 +93,7 @@ MCR_API int thrd_create(thrd_t * thr, thrd_start_t func, void *arg);
 MCR_API int thrd_equal(thrd_t lhs, thrd_t rhs);
 MCR_API thrd_t thrd_current();
 MCR_API int thrd_sleep(const struct timespec *time_point,
-	struct timespec *remaining);
+		       struct timespec *remaining);
 MCR_API void thrd_yield();
 _Noreturn void thrd_exit(int res);
 MCR_API int thrd_detach(thrd_t thr);
@@ -106,7 +106,7 @@ MCR_API void mcr_thrd_delete(thrd_t * thr);
 MCR_API int mtx_init(mtx_t * mutex, int type);
 MCR_API int mtx_lock(mtx_t * mutex);
 MCR_API int mtx_timedlock(mtx_t * restrict mutex,
-	const struct timespec *restrict time_point);
+			  const struct timespec *restrict time_point);
 MCR_API int mtx_trylock(mtx_t * mutex);
 MCR_API int mtx_unlock(mtx_t * mutex);
 MCR_API void mtx_destroy(mtx_t * mutex);
@@ -119,7 +119,7 @@ MCR_API int cnd_signal(cnd_t * cond);
 MCR_API int cnd_broadcast(cnd_t * cond);
 MCR_API int cnd_wait(cnd_t * cond, mtx_t * mutex);
 MCR_API int cnd_timedwait(cnd_t * restrict cond, mtx_t * restrict mutex,
-	const struct timespec *restrict time_point);
+			  const struct timespec *restrict time_point);
 MCR_API void cnd_destroy(cnd_t * cond);
 
 /* */
