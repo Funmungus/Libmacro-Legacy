@@ -54,138 +54,6 @@ typedef mcr_DispatchPair DispatchPair;
 /*! \brief Construct with \ref mcr_ITrigger_new */
 typedef mcr_ITrigger ITrigger;
 
-/* Wrappers for things with deinit requirements */
-/*! \brief \ref mcr_Array with C++ elements and initializers */
-struct MCR_EXTRAS_API Array {
-	mcr_Array array;
-
-	Array(mcr_compare_fnc compare = NULL, size_t elementSize = 1)
-	{
-		mcr_Array_init(&array);
-		initialize(compare, elementSize);
-	}
-	~Array()
-	{
-		mcr_Array_deinit(&array);
-	}
-
-	/*! \brief \ref mcr_Array_set_all */
-	inline void initialize(mcr_compare_fnc compare, size_t elementSize)
-	{
-		mcr_Array_set_all(&array, compare, elementSize);
-	}
-	/*! \brief Set \ref mcr_Array.element_size */
-	template<typename T>
-	inline void setElementSize()
-	{
-		clear<T>();
-		mcr_Array_deinit(&array);
-		array.element_size = sizeof(T);
-	}
-
-	/*! \brief \ref mcr_Array.used */
-	inline size_t used() const
-	{
-		return array.used;
-	}
-	/*! \brief STL compliant alias for \ref used */
-	inline size_t size() const
-	{
-		return array.used;
-	}
-
-	/*! \brief \ref mcr_Array_element */
-	template<typename T>
-	inline T *element(size_t pos) const
-	{
-		return (T *)mcr_Array_element(&array, pos);
-	}
-	/*! \brief \ref mcr_Array_first */
-	template<typename T>
-	inline T *first() const
-	{
-		return (T *)mcr_Array_first(&array);
-	}
-	/*! \brief \ref mcr_Array_last */
-	template<typename T>
-	inline T *last() const
-	{
-		return (T *)mcr_Array_last(&array);
-	}
-	/*! \brief \ref mcr_Array_end */
-	template<typename T>
-	inline T *end() const
-	{
-		return (T *)mcr_Array_end(&array);
-	}
-	/*! \brief \ref mcr_Array_next */
-	template<typename T>
-	inline T *next(void *posPt) const
-	{
-		return (T *)mcr_Array_next(&array, posPt);
-	}
-	/*! \brief \ref mcr_Array_prev */
-	template<typename T>
-	inline T *prev(void *posPt) const
-	{
-		return (T *)mcr_Array_prev(&array, posPt);
-	}
-	/*! \brief \ref mcr_Array_find */
-	template<typename T>
-	inline T *find(const void *elementPt) const
-	{
-		return (T *)mcr_Array_find(&array, elementPt);
-	}
-
-	template<typename T>
-	inline void minUsed(size_t minimum) MCR_THROWS
-	{
-		T *iter, *endPt;
-		size_t prev = used();
-		int err;
-		if (prev < minimum) {
-			if ((err = mcr_Array_minused(&array, minimum)))
-				throw err;
-			iter = element<T>(prev);
-			endPt = end<T>();
-			while (iter != endPt) {
-				new ((T *) iter++) T();
-			}
-		}
-	}
-	template<typename T>
-	inline void resize(size_t nSize) MCR_THROWS
-	{
-		if (nSize > used()) {
-			minUsed<T>(nSize);
-		} else {
-			T *rIt, *firstPt;
-			int err;
-			rIt = end<T>();
-			firstPt = first<T>();
-			/* While current element >= first,
-			 * iter points one past current iteration in logic */
-			while (rIt-- != firstPt) {
-				rIt->~T();
-			}
-			array.used = nSize;
-			if ((err = mcr_Array_resize(&array, nSize)))
-				throw err;
-		}
-	}
-	template<typename T>
-	inline void clear()
-	{
-		if (used()) {
-			T *iter = first<T>(), *endPt = end<T>();
-			while (iter != endPt) {
-				(iter++)->~T();
-			}
-			mcr_Array_clear(&array);
-		}
-	}
-};
-
 /*!
  * \brief \ref ISignal with \ref Libmacro reference
  *
@@ -342,26 +210,20 @@ struct MCR_EXTRAS_API Signal {
 	/*! \brief \ref mcr_Signal_copy */
 	Signal(const Signal &copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Signal_init(ptr());
-		if ((err = mcr_Signal_copy(ptr(), &copytron)))
-			throw err;
+		copy(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Signal_copy */
 	Signal(const mcr_Signal &copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Signal_init(ptr());
-		if ((err = mcr_Signal_copy(ptr(), &copytron)))
-			throw err;
+		copy(&copytron);
 	}
 	/*! \brief \ref mcr_Signal_copy */
 	Signal(const mcr_Signal *copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Signal_init(ptr());
-		if ((err = mcr_Signal_copy(ptr(), copytron)))
-			throw err;
+		copy(copytron);
 	}
 	/*! \brief \ref mcr_Signal_copy */
 	inline Signal &operator =(const Signal &copytron) MCR_THROWS
@@ -442,26 +304,20 @@ struct MCR_EXTRAS_API Trigger {
 	/*! \brief \ref mcr_Trigger_copy */
 	Trigger(const Trigger &copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Trigger_init(ptr());
-		if ((err = mcr_Trigger_copy(ptr(), &copytron)))
-			throw err;
+		copy(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Trigger_copy */
 	Trigger(const mcr_Trigger &copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Trigger_init(ptr());
-		if ((err = mcr_Trigger_copy(ptr(), &copytron)))
-			throw err;
+		copy(&copytron);
 	}
 	/*! \brief \ref mcr_Trigger_copy */
 	Trigger(const mcr_Trigger *copytron) MCR_THROWS
 	{
-		int err;
 		mcr_Trigger_init(ptr());
-		if ((err = mcr_Trigger_copy(ptr(), copytron)))
-			throw err;
+		copy(copytron);
 	}
 	/*! \brief \ref mcr_Trigger_copy */
 	inline Trigger &operator =(const Trigger &copytron) MCR_THROWS

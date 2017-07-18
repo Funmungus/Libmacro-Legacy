@@ -27,7 +27,7 @@ static vector<void *> _registry;
 Libmacro::Libmacro(bool enabled) MCR_THROWS
 	: _iAlarm(new ISignal<Alarm>(this)),
 	  _iCommand(new ISignal<Command>(this)),
-	  _iStringKey(new ISignal<StringKey>(this)), _characters(NULL, sizeof(Array)),
+	  _iStringKey(new ISignal<StringKey>(this)), _characters(new vector<vector<Signal>>()),
 	  _enabled(false)
 {
 	int err = mcr_initialize(ptr(), true, true);
@@ -69,11 +69,8 @@ Libmacro::~Libmacro()
 	delete _iAlarm;
 	delete _iCommand;
 	delete _iStringKey;
-	for (auto iter = _characters.first<Array>(), endPt = _characters.end<Array>();
-	     iter != endPt; iter++) {
-		iter->clear<Signal>();
-	}
-	_characters.clear<Array>();
+	delete &characters();
+	_characters = NULL;
 }
 
 Libmacro *Libmacro::instance() MCR_THROWS
@@ -97,72 +94,98 @@ void Libmacro::setEnabled(bool val) MCR_THROWS
 	}
 }
 
+size_type Libmacro::characterCount() const
+{
+	return characters().size();
+}
+
+size_type Libmacro::characterCount(int c) const
+{
+	auto mem = characters();
+	if (c < 0 || c >= (signed)mem.size())
+		return 0;
+	return mem[c].size();
+}
+
+Signal *Libmacro::character(int c) MCR_THROWS
+{
+	auto mem = characters();
+	if (c < 0 || c >= (signed)mem.size())
+		throw EINVAL;
+	return mem[c].data();
+}
+
+const Signal *Libmacro::character(int c) const MCR_THROWS
+{
+	auto mem = characters();
+	if (c < 0 || c >= (signed)mem.size())
+		throw EINVAL;
+	return mem[c].data();
+}
+
 void Libmacro::setCharacter(int c, const Signal *valBuffer, size_t bufferLength) MCR_THROWS
 {
+	auto mem = characters();
 	if (c < 0)
 		throw EINVAL;
-	if (c >= (signed)_characters.used())
-		_characters.minUsed<Array>(c + 1);
-	auto mem = _characters.element<Array>(c);
-	mem->clear<Signal>();
-	if (bufferLength) {
-		mem->minUsed<Signal>(bufferLength);
-		for (size_t i = 0; i < bufferLength; i++) {
-			*mem->element<Signal>(i) = valBuffer[i];
-		}
+	if (c >= (signed)mem.size())
+		mem.resize(c + 1);
+	auto arr = mem[c];
+	arr.resize(bufferLength);
+	for (size_t i = 0; i < bufferLength; i++) {
+		arr[i] = valBuffer[i];
 	}
 }
 
 void Libmacro::setCharacterKey(int c, int key, long msecDelay, bool shiftFlag) MCR_THROWS
 {
+	/* Sanity early to avoid object instances */
+	if (c < 0)
+		throw EINVAL;
+	auto mem = characters();
 	Signal delaySig, keySig;
 	NoOpRef nMan(this, delaySig.ptr());
 	KeyRef keyMan(this, keySig.ptr());
 	/* Signal pattern is always key + delay + key, which means an odd number */
-	size_t i, signalCount = shiftFlag ? 7 : 3;
+	size_type i;
+	vector<Signal> localSet(shiftFlag ? 7 : 3);
 	nMan.mkdata();
 	mcr_NoOp_set_all(nMan.data<mcr_NoOp>(), msecDelay / 1000, msecDelay % 1000);
 	keyMan.mkdata();
 	mcr_Key_set_all(keyMan.data<mcr_Key>(), key, 0, MCR_DOWN);
-	Signal *localSet = new Signal[signalCount];
-	try {
-		for (i = 0; i < signalCount; i++) {
-			/* Odd numbers are delays */
-			if (i % 2)
-				localSet[i] = delaySig;
-			else
-				localSet[i] = keySig;
-		}
-		if (shiftFlag) {
-			int shift = mcr_Key_mod_key(ptr(), MCR_SHIFT);
-			mcr_Key_set_all(MCR_KEY_DATA(localSet[0].signal), shift, shift, MCR_DOWN);
-			localSet[6] = localSet[0];
-			keyMan.setSignal(localSet[4].ptr());
-			keyMan.setUpType(MCR_UP);
-			keyMan.setSignal(localSet[6].ptr());
-			keyMan.setUpType(MCR_UP);
-		} else {
-			keyMan.setSignal(localSet[2].ptr());
-			keyMan.setUpType(MCR_UP);
-		}
-		setCharacter(c, localSet, signalCount);
-	} catch (int err) {
-		delete []localSet;
-		localSet = NULL;
-		throw err;
+	for (i = 0; i < localSet.size(); i++) {
+		/* Odd numbers are delays */
+		if (i % 2)
+			localSet[i] = delaySig;
+		else
+			localSet[i] = keySig;
 	}
-	if (localSet)
-		delete []localSet;
+	if (shiftFlag) {
+		int shift = mcr_Key_mod_key(ptr(), MCR_SHIFT);
+		mcr_Key_set_all(MCR_KEY_DATA(localSet[0].signal), shift, shift, MCR_DOWN);
+		localSet[6] = localSet[0];
+		keyMan.setSignal(localSet[4].ptr());
+		keyMan.setUpType(MCR_UP);
+		keyMan.setSignal(localSet[6].ptr());
+		keyMan.setUpType(MCR_UP);
+	} else {
+		keyMan.setSignal(localSet[2].ptr());
+		keyMan.setUpType(MCR_UP);
+	}
+	if (c >= (signed)mem.size())
+		mem.resize(c + 1);
+	mem[c] = localSet;
 }
 
 void Libmacro::setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS
 {
+	auto mem = characters();
 	SignalRef siggy;
 	mcr_ISignal *isigPt = mcr_iNoOp(ptr());
-	for (size_t i = 0; i < _characters.used(); i++) {
-		auto sigArr = _characters.element<Array>(i);
-		for (auto iter = sigArr->first<Signal>(), endPt = sigArr->end<Signal>();
-		     iter != endPt; iter++ ) {
+	for (size_type i = 0; i < mem.size(); i++) {
+		auto sigArr = mem[i];
+		for (auto iter = sigArr.begin(), endPt = sigArr.end();
+		     iter != endPt; iter++) {
 			siggy = iter->ptr();
 			if (siggy.isignal() == isigPt) {
 				siggy.mkdata();
@@ -174,35 +197,37 @@ void Libmacro::setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS
 
 void Libmacro::removeCharacter(int c) MCR_THROWS
 {
+	auto mem = characters();
 	if (c < 0)
 		throw EINVAL;
-	if (c < (signed)_characters.used())
-		_characters.element<Array>(c)->clear<Signal>();
+	if (c < (signed)mem.size())
+		mem[c].clear();
 }
 
 void Libmacro::trimCharacters()
 {
+	auto mem = characters();
 	size_t i;
-	if (!_characters.used())
+	if (!mem.size())
 		return;
 	/* Stop at last index with elements */
-	for (i = _characters.used() - 1; !_characters.element<Array>(i)->used(); i--);
+	for (i = mem.size() - 1; !mem[i].size(); i--);
 
 	/* i is either 0(with or without elements), or index has elements */
-	if (_characters.element<Array>(i)->used()) {
+	if (mem[i].size()) {
 		/* Index found with elements, all past this are empty */
 		/* For debugging make sure either this is already last element,
 		 * or next element is empty */
-		dassert(_characters.used() == i + 1 ||
-			!_characters.element<Array>(i + 1)->used());
-		_characters.resize<Array>(i + 1);
+		dassert(mem.size() == i + 1 ||
+			!mem[i + 1].size());
+		mem.resize(i + 1);
 	} else {
-		/* No index with any elements */
-		for (auto iter = _characters.first<Array>(), endPt = _characters.end<Array>();
-		     iter < endPt; iter++) {
-			iter->clear<Signal>();
-		}
-		_characters.clear<Array>();
+		mem.clear();
 	}
+}
+
+void Libmacro::clearCharacters()
+{
+	characters().clear();
 }
 }

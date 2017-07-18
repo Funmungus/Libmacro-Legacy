@@ -90,34 +90,17 @@ struct MCR_EXTRAS_API Libmacro {
 	 */
 	void setEnabled(bool val) MCR_THROWS;
 
-	inline size_t characterCount() const
-	{
-		return _characters.used();
-	}
-	inline size_t characterCount(int c) const
-	{
-		auto mem = _characters.element<Array>(c);
-		return mem ? mem->used() : 0;
-	}
-	inline Signal *character(int c) MCR_THROWS
-	{
-		if (c < 0 || c >= (signed)characterCount())
-			throw EINVAL;
-		return _characters.element<Array>(c)->first<Signal>();
-	}
-	inline const Signal *character(int c) const MCR_THROWS
-	{
-		if (c < 0 || c >= (signed)characterCount())
-			throw EINVAL;
-		return _characters.element<Array>(c)->first<Signal>();
-	}
+	size_type characterCount() const;
+	size_type characterCount(int c) const;
+	Signal *character(int c) MCR_THROWS;
+	const Signal *character(int c) const MCR_THROWS;
 	inline vector<Signal> characterSet(int c) MCR_THROWS
 	{
 		vector<Signal> ret;
-		if (c < 0 || c >= (signed)_characters.used())
+		if (c < 0 || c >= (signed)characterCount())
 			throw EINVAL;
-		auto mem = _characters.element<Array>(c);
-		for (auto iter = mem->first<Signal>(), endPt = mem->end<Signal>();
+		auto mem = character(c);
+		for (auto iter = mem, endPt = mem ? mem + characterCount(c) : NULL;
 		     iter != endPt; iter++) {
 			ret.push_back(*iter);
 		}
@@ -150,12 +133,13 @@ struct MCR_EXTRAS_API Libmacro {
 	void setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS;
 	void removeCharacter(int c) MCR_THROWS;
 	void trimCharacters();
+	void clearCharacters();
 private:
 	CtxISignal *_iAlarm;
 	CtxISignal *_iCommand;
 	CtxISignal *_iStringKey;
 	/*! \brief Map index to set of signals for \ref StringKey */
-	Array _characters;
+	void *_characters;  // vector<vector<Signal>>
 	bool _enabled;
 
 	/*!
@@ -166,6 +150,11 @@ private:
 	 * \brief \ref mcr_is_platform Platform deinitializer
 	 */
 	void deinitialize();
+	inline vector<vector<Signal>> &characters() const
+	{
+		dassert(_characters);
+		return *static_cast<vector<vector<Signal>> *>(_characters);
+	}
 };
 }
 

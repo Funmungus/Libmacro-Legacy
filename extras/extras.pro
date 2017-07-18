@@ -34,7 +34,7 @@ win {
 		}
 	} else {
 		# Ming does not require an import library
-		LIBS += -llibcrypto-1_1
+		LIBS += -llibcrypto
 	}
 } else {
 	# Resolve Libmacro main module
