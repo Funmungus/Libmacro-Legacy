@@ -219,7 +219,7 @@ struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt)
 }
 
 int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
-			  struct mcr_Signal *signalSet, size_t signalCount)
+			  const struct mcr_Signal *signalSet, size_t signalCount)
 {
 	dassert(mcrPt);
 	size_t i;
@@ -276,7 +276,7 @@ struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt, size_t index)
 	return ret;
 }
 
-int mcr_Macro_set_signal(struct mcr_Macro *mcrPt, struct mcr_Signal *copySig,
+int mcr_Macro_set_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *copySig,
 			 size_t index)
 {
 	dassert(mcrPt);
@@ -288,7 +288,7 @@ int mcr_Macro_set_signal(struct mcr_Macro *mcrPt, struct mcr_Signal *copySig,
 }
 
 int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
-			    struct mcr_Signal *copySig, size_t index)
+			    const struct mcr_Signal *copySig, size_t index)
 {
 	dassert(mcrPt);
 	int err;
@@ -319,7 +319,7 @@ int mcr_Macro_remove_signal(struct mcr_Macro *mcrPt, size_t index)
 	return err;
 }
 
-int mcr_Macro_push_signal(struct mcr_Macro *mcrPt, struct mcr_Signal *newSig)
+int mcr_Macro_push_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *newSig)
 {
 	int thrdErr = mtx_lock(&mcrPt->lock);
 	int err;

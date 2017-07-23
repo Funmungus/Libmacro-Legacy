@@ -1,34 +1,38 @@
 #!/bin/bash
 
-usage () {
+function usage () {
+  myName="$(basename "$0")"
   echo "Current working directory = $(pwd)
 "
-  echo "$0 - Use astyle to style source code.
+  echo "${myName} - Use astyle to style source code.
 "
   echo "Usage:";
-  echo "  $0 - No options, style all .h, .hpp, .c, and .cpp files in current working directory"
-  echo "  $0 [-h | --help | help | usage] - Show this help list"
-  echo "  $0 [file 1 [file 2 [...]]] - File list, style all files in the given file listing
+  echo "  ${myName} - No options, style all .h, .hpp, .c, and .cpp files in current working directory"
+  echo "  ${myName} [-h | --help | help | usage] - Show this help list"
+  echo "  ${myName} [file 1 [file 2 [...]]] - File list, style all files in the given file listing
 "
   exit 0;
 }
 
-while getopts 'h' opt; do
- if [ "$opt" = 'h' ]; then
-    usage
- fi
+while getopts h opt; do
+  case "$opt" in
+  h) usage
+    ;;
+  esac
 done
 
-if [ "$1" = '--help' ] || [ "$1" = 'help' ] || [ "$1" = 'usage' ];then
+if [ "$1" = --help ] || [ "$1" = help ] || [ "$1" = usage ];then
   usage
 fi
 
-DIR="$(readlink -f "$0")"
-DIR="$(dirname "$DIR")"
-optFile="$DIR/libmacro.astylerc"
-
+optFile="$(dirname $(readlink -f "$0"))/libmacro.astylerc"
 if [ $# -gt 0 ]; then
+  sed -si 's,MCR_THROWS$,//MCR_THROWS,g' "$@"
   astyle --options="$optFile" "$@"
+  sed -si 's,//MCR_THROWS$,MCR_THROWS,g' "$@"
 else
-  astyle --options="$optFile" $(find -name '*.cpp') $(find -name '*.c') $(find -name '*.h')
+  find . -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \
+    -exec sed -i 's,MCR_THROWS$,//MCR_THROWS,g' {} \; \
+    -exec astyle --options="$optFile" {} \; \
+    -exec sed -i 's,//MCR_THROWS$,MCR_THROWS,g' {} \;
 fi

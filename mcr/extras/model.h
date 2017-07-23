@@ -372,8 +372,9 @@ struct MCR_EXTRAS_API Trigger {
 struct MCR_EXTRAS_API Macro {
 	typedef mcr_Interrupt Interrupt;
 
-	Macro(Libmacro *_context, bool block, bool sticky, unsigned int threadMax,
-	      bool enable) MCR_THROWS;
+	Macro(Libmacro *context = NULL, bool block = false,
+	      bool sticky = false, unsigned int threadMax = 1,
+	      bool enable = false) MCR_THROWS;
 	virtual ~Macro() MCR_THROWS;
 	Macro(const Macro &copytron) MCR_THROWS;
 	Macro(const mcr_Macro &copytron) MCR_THROWS;
@@ -408,9 +409,32 @@ struct MCR_EXTRAS_API Macro {
 	{
 		return _macro.block;
 	}
-	inline bool sticky() const;
-	inline mcr_Array *signal_set() const;
-	/* Signal set can be accessed with functions */
+	void setBlock(bool val)
+	{
+		_macro.block = val;
+	}
+
+	inline bool sticky() const
+	{
+		return _macro.sticky;
+	}
+	void setSticky(bool val)
+	{
+		_macro.sticky = val;
+	}
+
+	inline size_t signalCount()
+	{
+		return _macro.signal_set.used;
+	}
+	inline mcr_Signal *signal(size_t index)
+	{
+		return mcr_Macro_signal(&_macro, index);
+	}
+	void setSignal(const mcr_Signal *sigPt, size_t index) MCR_THROWS;
+	void setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS;
+	/* Will clear all signals */
+	void resizeSignals(size_t count) MCR_THROWS;
 
 	inline unsigned int threadMax() const
 	{

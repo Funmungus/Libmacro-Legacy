@@ -193,7 +193,8 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 	return len;
 }
 
-void SafeString::randomize(unsigned char *bufferOut, int bufferSize) MCR_THROWS
+void SafeString::randomize(unsigned char *bufferOut,
+			   int bufferSize) MCR_THROWS
 {
 	if (!RAND_bytes(bufferOut, bufferSize)) {
 		localOnErr();

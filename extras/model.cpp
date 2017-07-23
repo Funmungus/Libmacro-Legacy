@@ -133,6 +133,33 @@ Macro::Macro(const mcr_Macro *copytron) MCR_THROWS
 		throw err;
 }
 
+void Macro::setSignal(const mcr_Signal *sigPt, size_t index) MCR_THROWS
+{
+	int err = mcr_Macro_set_signal(&_macro, sigPt, index);
+	if (err)
+		throw err;
+}
+
+void Macro::setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS
+{
+	int err = mcr_Macro_set_signals(&_macro, sigArr, count);
+	if (err)
+		throw err;
+}
+
+void Macro::resizeSignals(size_t count) MCR_THROWS
+{
+	mcr_Macro_set_signals(ptr(), NULL, 0);
+	int err = mcr_Array_resize(&ptr()->signal_set, count);
+	if (err)
+		throw err;
+	mcr_Signal initial;
+	mcr_Signal_init(&initial);
+	for (size_t n = 0; n < count; n++) {
+		mcr_Array_push(&ptr()->signal_set, &initial);
+	}
+}
+
 void Macro::setThreadMax(unsigned int val)
 {
 	if (val < MCR_THREAD_MAX)

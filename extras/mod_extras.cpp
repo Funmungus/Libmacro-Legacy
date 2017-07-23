@@ -27,7 +27,8 @@ static vector<void *> _registry;
 Libmacro::Libmacro(bool enabled) MCR_THROWS
 	: _iAlarm(new ISignal<Alarm>(this)),
 	  _iCommand(new ISignal<Command>(this)),
-	  _iStringKey(new ISignal<StringKey>(this)), _characters(new vector<vector<Signal>>()),
+	  _iStringKey(new ISignal<StringKey>(this)),
+	  _characters(new vector<vector<Signal>>()),
 	  _enabled(false)
 {
 	int err = mcr_initialize(ptr(), true, true);
@@ -123,7 +124,8 @@ const Signal *Libmacro::character(int c) const MCR_THROWS
 	return mem[c].data();
 }
 
-void Libmacro::setCharacter(int c, const Signal *valBuffer, size_t bufferLength) MCR_THROWS
+void Libmacro::setCharacter(int c, const Signal *valBuffer,
+			    size_t bufferLength) MCR_THROWS
 {
 	auto mem = characters();
 	if (c < 0)
@@ -137,7 +139,8 @@ void Libmacro::setCharacter(int c, const Signal *valBuffer, size_t bufferLength)
 	}
 }
 
-void Libmacro::setCharacterKey(int c, int key, long msecDelay, bool shiftFlag) MCR_THROWS
+void Libmacro::setCharacterKey(int c, int key, long msecDelay,
+			       bool shiftFlag) MCR_THROWS
 {
 	/* Sanity early to avoid object instances */
 	if (c < 0)
