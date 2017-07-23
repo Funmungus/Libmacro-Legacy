@@ -433,7 +433,6 @@ struct MCR_EXTRAS_API Macro {
 	}
 	void setSignal(const mcr_Signal *sigPt, size_t index) MCR_THROWS;
 	void setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS;
-	/* Will clear all signals */
 	void resizeSignals(size_t count) MCR_THROWS;
 
 	inline unsigned int threadMax() const

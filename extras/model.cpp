@@ -149,14 +149,20 @@ void Macro::setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS
 
 void Macro::resizeSignals(size_t count) MCR_THROWS
 {
-	mcr_Macro_set_signals(ptr(), NULL, 0);
-	int err = mcr_Array_resize(&ptr()->signal_set, count);
-	if (err)
-		throw err;
-	mcr_Signal initial;
-	mcr_Signal_init(&initial);
-	for (size_t n = 0; n < count; n++) {
-		mcr_Array_push(&ptr()->signal_set, &initial);
+	int err;
+	if (count != signalCount()) {
+		if (count < signalCount()) {
+			while (count < signalCount()) {
+				if ((err = mcr_Macro_pop_signal(ptr())))
+					throw err;
+			}
+		} else {
+			mcr_Signal initial;
+			mcr_Signal_init(&initial);
+			if ((err = mcr_Array_minfill(&ptr()->signal_set, count,
+						    &initial)))
+				throw err;
+		}
 	}
 }
 
