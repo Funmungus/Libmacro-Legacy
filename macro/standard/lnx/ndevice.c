@@ -234,7 +234,7 @@ static int device_open(struct mcr_Device *devPt)
 	/* Close in case previously opened. */
 	if ((err = device_close(devPt)))
 		return err;
-	devPt->fd = open(_uinputPath.array, O_RDWR | O_SYNC);
+	devPt->fd = open(_uinputPath.array, O_WRONLY | O_SYNC);
 	if (devPt->fd == -1) {
 		err = errno;
 		if (!err)
@@ -357,30 +357,34 @@ static int device_open_event_wd(struct mcr_Device *devPt)
 	memset(dev_name, 0, sizeof(dev_name));
 	/* if !entry then end of directory */
 	while ((entry = readdir(dirp))) {
-		if (stat(entry->d_name, &s) < 0) {
-			mset_error(errno);
-			continue;
-		}
-		/* Our uinput devices are always char devices. */
-		if (S_ISCHR(s.st_mode)) {
-			devPt->event_fd = open(entry->d_name, O_RDONLY);
-			if (devPt->event_fd == -1) {
+		/* Ignore files without access, and do not fail with lack
+		 * of permissions */
+		if (!access(entry->d_name, R_OK)) {
+			if (stat(entry->d_name, &s) < 0) {
 				mset_error(errno);
 				continue;
 			}
+			/* Our uinput devices are always char devices. */
+			if (S_ISCHR(s.st_mode)) {
+				devPt->event_fd = open(entry->d_name, O_RDONLY);
+				if (devPt->event_fd == -1) {
+					mset_error(errno);
+					continue;
+				}
 
-			isdev = !strncasecmp(entry->d_name, "js", 2) ||
-				!strncasecmp(entry->d_name, "joystick", 8);
-			/* Event fd is set.  If it is correct, finish out. */
-			if ((isdev = device_is_event_me(devPt, dev_name,
-							isdev))) {
-				err = 0;
-				mcr_set_error(0);
-				break;
+				isdev = !strncasecmp(entry->d_name, "js", 2) ||
+						!strncasecmp(entry->d_name, "joystick", 8);
+				/* Event fd is set.  If it is correct, finish out. */
+				if ((isdev = device_is_event_me(devPt, dev_name,
+								isdev))) {
+					err = 0;
+					mcr_set_error(0);
+					break;
+				}
+				/* Incorrect dev, continue */
+				if ((err = device_close_event(devPt)))
+					break;
 			}
-			/* Incorrect dev, continue */
-			if ((err = device_close_event(devPt)))
-				break;
 		}
 	}
 	closedir(dirp);
@@ -495,8 +499,15 @@ static inline int gen_dev_set(int arr[], size_t count, int uibit)
 
 static int genDevice_init()
 {
-	int i, j, err = 0;
+	int i, err = 0;
 	int evbits[KEY_CNT];
+	int uibits[] = {
+		EV_SYN, EV_KEY, EV_REL, EV_MSC, EV_SND, EV_REP
+	};
+	/* Does not handle abs, sw, led, ff, ff_status */
+	for (i = 0; i < KEY_CNT; i++) {
+		evbits[i] = i;
+	}
 
 	mcr_Device_init(&mcr_genDev);
 
@@ -507,30 +518,18 @@ static int genDevice_init()
 	mcr_genDev.device.id.product = 1;
 	mcr_genDev.device.id.version = 1;
 
-	for (i = j = 0; i < EV_CNT; i++) {
-		if (i != EV_ABS)
-			evbits[j++] = i;
-	}
-	if ((err = gen_dev_set(evbits, j - 1, UI_SET_EVBIT)))
+	if ((err = gen_dev_set(uibits, arrlen(uibits), UI_SET_EVBIT)))
 		return err;
-	for (i = KEY_CNT; i--;) {
-		evbits[i] = i;
-	}
 	/* Do not write 0 value */
-	if ((err = gen_dev_set(evbits, KEY_CNT, UI_SET_KEYBIT)))
+	if ((err = gen_dev_set(evbits + 1, KEY_CNT - 1, UI_SET_KEYBIT)))
 		return err;
 	if ((err = gen_dev_set(evbits, REL_CNT, UI_SET_RELBIT)))
 		return err;
 	if ((err = gen_dev_set(evbits, MSC_CNT, UI_SET_MSCBIT)))
 		return err;
-	if ((err = gen_dev_set(evbits, SW_CNT, UI_SET_SWBIT)))
-		return err;
-	if ((err = gen_dev_set(evbits, LED_CNT, UI_SET_LEDBIT)))
-		return err;
 	if ((err = gen_dev_set(evbits, SND_CNT, UI_SET_SNDBIT)))
 		return err;
-	if ((err = gen_dev_set(evbits, FF_CNT, UI_SET_FFBIT)))
-		return err;
+	/* On-screen pointer and mapped directly to screen coordinates */
 	evbits[0] = INPUT_PROP_POINTER;
 	evbits[1] = INPUT_PROP_DIRECT;
 	return gen_dev_set(evbits, 2, UI_SET_PROPBIT);
@@ -556,9 +555,11 @@ static int absDevice_init()
 
 	if ((err = mcr_Device_set_bits(&mcr_absDev, UI_SET_EVBIT, evbits, 3)))
 		return err;
+	/* Not used, but required to be set up correctly */
 	evbits[0] = BTN_LEFT;
 	if ((err = mcr_Device_set_bits(&mcr_absDev, UI_SET_KEYBIT, evbits, 1)))
 		return err;
+	/* On-screen pointer and mapped directly to screen coordinates */
 	evbits[0] = INPUT_PROP_POINTER;
 	evbits[1] = INPUT_PROP_DIRECT;
 	if ((err = mcr_Device_set_bits(&mcr_absDev, UI_SET_PROPBIT, evbits, 2)))

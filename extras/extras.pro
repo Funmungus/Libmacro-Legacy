@@ -28,9 +28,9 @@ win {
 	LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
 	msvc {
 		contains(QMAKE_TARGET.arch, x86_64) {
-			LIBS += -l$$qtLibraryTarget(libcrypto64MT)
+			LIBS += -l$$qtLibraryTarget(libcrypto64MD)
 		} else {
-			LIBS += -l$$qtLibraryTarget(libcrypto32MT)
+			LIBS += -l$$qtLibraryTarget(libcrypto32MD)
 		}
 	} else {
 		# Ming does not require an import library

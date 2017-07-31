@@ -42,14 +42,14 @@ using vector = std::vector<T>;
 template <typename Key, typename Value>
 using map = std::map<Key, Value>;
 
-inline const char *bytes(const string &str)
-{
-	return str.data();
-}
-
 inline char *bytes(string &str)
 {
 	return &str.front();
+}
+
+inline const char *bytes(const string &str)
+{
+	return str.data();
 }
 }
 

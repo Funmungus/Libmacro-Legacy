@@ -74,6 +74,7 @@ int mcr_initialize(struct mcr_context *ctx,
 		mset_error(EINVAL);
 		return EINVAL;
 	}
+	mcr_set_error(0);
 	memset(ctx, 0, sizeof(struct mcr_context));
 	dprint("Loading signal module\n");
 	/* No error functions yet on stack */

@@ -427,6 +427,10 @@ struct MCR_EXTRAS_API Macro {
 	{
 		return _macro.signal_set.used;
 	}
+	inline void clearSignals() MCR_THROWS
+	{
+		setSignals(NULL, 0);
+	}
 	inline mcr_Signal *signal(size_t index)
 	{
 		return mcr_Macro_signal(&_macro, index);

@@ -96,7 +96,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	}
 
 	/*! \brief Number of \ref args */
-	inline size_t argsCount() const noexcept
+	inline size_t argsCount() const throw()
 	{
 		return _argsCount;
 	}
@@ -151,7 +151,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	/*! \brief \ref mcr_is_platform \ref mcr_send */
 	virtual void send() MCR_THROWS override;
 
-	inline void clear() noexcept
+	inline void clear() throw()
 	{
 		file.clear();
 		setArgsCount(0);

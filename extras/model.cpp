@@ -160,7 +160,7 @@ void Macro::resizeSignals(size_t count) MCR_THROWS
 			mcr_Signal initial;
 			mcr_Signal_init(&initial);
 			if ((err = mcr_Array_minfill(&ptr()->signal_set, count,
-						    &initial)))
+						     &initial)))
 				throw err;
 		}
 	}

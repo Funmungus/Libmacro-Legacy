@@ -24,6 +24,8 @@ static int mcr_Key_deinitialize(struct mcr_context *ctx);
 static int mcr_HidEcho_initialize(struct mcr_context *ctx);
 static int mcr_HidEcho_deinitialize(struct mcr_context *ctx);
 
+#define SIZE(s) sizeof(struct s)
+#define SEND(s) s ## _send
 int mcr_standard_initialize(struct mcr_context *ctx)
 {
 	int err;
@@ -31,75 +33,49 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 		mcr_iEcho(ctx), mcr_iKey(ctx), mcr_iMods(ctx),
 		mcr_iMC(ctx), mcr_iNoOp(ctx), mcr_iScroll(ctx)
 	};
+	size_t sigSizes[] = {
+		SIZE(mcr_HidEcho), SIZE(mcr_Key),
+		SIZE(mcr_Mods), SIZE(mcr_MoveCursor),
+		SIZE(mcr_NoOp), SIZE(mcr_Scroll)
+	};
+	mcr_signal_fnc sendFns[] = {
+		SEND(mcr_HidEcho), SEND(mcr_Key), SEND(mcr_Mods),
+		SEND(mcr_MoveCursor), SEND(mcr_NoOp), SEND(mcr_Scroll)
+	};
 	struct mcr_ITrigger *trigs[] = {
 		mcr_iAction(ctx), mcr_iStaged(ctx)
 	};
-	struct mcr_ISignal *isigPt;
-	struct mcr_ITrigger *itrigPt;
 	/* signals */
 	size_t i = arrlen(sigs), count = arrlen(sigs);
-	struct mcr_IRegistry *regPt = mcr_ISignal_reg(ctx);
-	while (i--)
+	while (i--) {
 		mcr_ISignal_init(sigs[i]);
-
-	isigPt = mcr_iEcho(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_HidEcho),
-			      NULL, NULL, NULL, NULL);
-	isigPt->send = mcr_HidEcho_send;
-
-	isigPt = mcr_iKey(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Key), NULL,
-			      NULL, NULL, NULL);
-	isigPt->send = mcr_Key_send;
-
-	isigPt = mcr_iMods(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Mods), NULL, NULL,
-			      NULL, NULL);
-	isigPt->send = mcr_Mods_send;
-	((struct mcr_CtxISignal *)isigPt)->ctx = ctx;
-
-	isigPt = mcr_iMC(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_MoveCursor),
-			      NULL, NULL, NULL, NULL);
-	isigPt->send = mcr_MoveCursor_send;
-
-	isigPt = mcr_iNoOp(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_NoOp), NULL, NULL, NULL,
-			      NULL);
-	isigPt->send = mcr_NoOp_send;
-
-	isigPt = mcr_iScroll(ctx);
-	mcr_Interface_set_all(isigPt, sizeof(struct mcr_Scroll),
-			      NULL, NULL, NULL, NULL);
-	isigPt->send = mcr_Scroll_send;
-
-	count = arrlen(sigs);
-	for (i = 0; i < count; i++) {
-		if ((err = mcr_register(regPt, sigs[i], NULL, NULL, 0)))
+		mcr_Interface_set_all(sigs[i], sigSizes[i], NULL, NULL, NULL,
+				      NULL);
+		sigs[i]->send = sendFns[i];
+		if ((err = mcr_register(mcr_ISignal_reg(ctx), sigs[i], NULL, NULL, 0)))
 			return err;
 	}
+
+	((struct mcr_CtxISignal *)sigs[2])->ctx = ctx;
 
 	/* triggers */
-	i = arrlen(trigs);
-	while (i--)
-		mcr_ITrigger_init(trigs[i]);
-	itrigPt = mcr_iAction(ctx);
-	mcr_Interface_set_all(itrigPt, sizeof(struct mcr_Action),
+	mcr_ITrigger_init(trigs[0]);
+	mcr_Interface_set_all(trigs[0], sizeof(struct mcr_Action),
 			      mcr_Action_init, NULL, NULL, NULL);
-	itrigPt->receive = mcr_Action_receive;
+	trigs[0]->receive = mcr_Action_receive;
 
-	itrigPt = mcr_iStaged(ctx);
-	mcr_Interface_set_all(itrigPt, sizeof(struct mcr_Staged),
+	mcr_ITrigger_init(trigs[1]);
+	mcr_Interface_set_all(trigs[1], sizeof(struct mcr_Staged),
 			      mcr_Staged_init, mcr_Staged_deinit, mcr_Staged_compare,
 			      mcr_Staged_copy);
-	itrigPt->receive = mcr_Staged_receive;
+	trigs[1]->receive = mcr_Staged_receive;
 
 	count = arrlen(trigs);
-	regPt = mcr_ITrigger_reg(ctx);
 	for (i = 0; i < count; i++) {
-		if ((err = mcr_register(regPt, trigs[i], NULL, NULL, 0)))
+		if ((err = mcr_register(mcr_ITrigger_reg(ctx), trigs[i], NULL, NULL, 0)))
 			return err;
 	}
+
 	err = mcr_Key_initialize(ctx);
 	if (!err)
 		err = mcr_HidEcho_initialize(ctx);
@@ -107,6 +83,8 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 		err = mcr_standard_platform_initialize(ctx);
 	return err;
 }
+#undef SIZE
+#undef SEND
 
 int mcr_standard_deinitialize(struct mcr_context *ctx)
 {

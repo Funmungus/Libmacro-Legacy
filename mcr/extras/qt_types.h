@@ -45,7 +45,7 @@ inline char *bytes(string &str)
 }
 inline const char *bytes(const string &str)
 {
-	return str.data();
+	return str.constData();
 }
 }
 

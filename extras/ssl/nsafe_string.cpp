@@ -36,7 +36,10 @@ static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
 	if (!err)
 		err = EINTR;
 	mset_error(err);
+	/* Windows may crash with "no OPENSSL_Applink" */
+#ifndef WIN32
 	ERR_print_errors_fp(stderr);
+#endif
 	if (ctx)
 		EVP_CIPHER_CTX_free(ctx);
 	if (deleteBuffer)
@@ -54,7 +57,7 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 	int cipherLen = 0;
 	if (!bufferOut)
 		return 0;
-	if (!len || !plainText || plainText[0] == '\0') {
+	if (!pLen || !plainText || plainText[0] == '\0') {
 		bufferOut[0] = '\0';
 		return 0;
 	}
@@ -226,10 +229,9 @@ void SafeString::sha(const char *text, size_type length,
 void SafeString::initialize() MCR_THROWS
 {
 	if (!_initCount++) {
-		OPENSSL_init();
 		OPENSSL_no_config();
 		ERR_load_CRYPTO_strings();
-		OPENSSL_add_all_algorithms_noconf();
+//		OPENSSL_add_all_algorithms_noconf();
 		if (!EVP_add_cipher(EVP_aes_256_cbc()) ||
 		    !EVP_add_cipher(EVP_aes_256_gcm())) {
 			localOnErr();
@@ -250,9 +252,9 @@ void SafeString::initialize() MCR_THROWS
 void SafeString::deinitialize() MCR_THROWS
 {
 	if (!--_initCount) {
-		ERR_free_strings();
-		FIPS_mode_set(0);
-		CONF_modules_unload(1);
+//		ERR_free_strings();
+//		FIPS_mode_set(0);
+//		CONF_modules_unload(1);
 		EVP_cleanup();
 		CRYPTO_cleanup_all_ex_data();
 		ERR_free_strings();
