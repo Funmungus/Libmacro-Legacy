@@ -139,7 +139,7 @@ isToBlock)
 	if (stages->used == 1 || prev->activated) {
 		if (mcr_Stage_equals(rit, interceptPt, mods)) {
 			if (rit->block)
-				++isToBlock;
+				isToBlock = true;
 			mcr_Staged_deactivate(stagedPt);
 			return localOnComplete;
 		}
@@ -154,7 +154,7 @@ isToBlock)
 		if (rit->activated) {
 			if (mcr_Stage_resembles(rit, interceptPt)) {
 				if (!isToBlock && rit->block)
-					++isToBlock;
+					isToBlock = true;
 			} else {
 				rit->activated = false;
 			}
@@ -162,7 +162,7 @@ isToBlock)
 			if (mcr_Stage_equals(rit, interceptPt, mods)) {
 				rit->activated = true;
 				if (!isToBlock && rit->block)
-					++isToBlock;
+					isToBlock = true;
 			}
 		}
 		rit = prev;
@@ -173,7 +173,7 @@ isToBlock)
 	if (mcr_Stage_equals(rit, interceptPt, mods)) {
 		rit->activated = true;
 		if (!isToBlock && rit->block)
-			++isToBlock;
+			isToBlock = true;
 	} else {
 		rit->activated = true;
 	}

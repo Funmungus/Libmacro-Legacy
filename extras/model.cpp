@@ -21,7 +21,7 @@
 namespace mcr
 {
 CtxISignal::CtxISignal(mcr::Libmacro *context, mcr_signal_fnc send,
-		       mcr_Dispatcher *dispatcher, const Interface &interface) MCR_THROWS
+		       mcr_Dispatcher *dispatcher, const Interface &interface)
 	: _context(context ? context : Libmacro::instance())
 {
 	if (!send)
@@ -32,7 +32,7 @@ CtxISignal::CtxISignal(mcr::Libmacro *context, mcr_signal_fnc send,
 	isignal.interface = interface;
 }
 
-CtxISignal::CtxISignal(mcr_signal_fnc send) MCR_THROWS
+CtxISignal::CtxISignal(mcr_signal_fnc send)
 	: _context(Libmacro::instance())
 {
 	if (!send)
@@ -46,7 +46,7 @@ CtxDispatcher::CtxDispatcher(mcr::Libmacro *context, mcr_Dispatcher_add_fnc add,
 			     mcr_Dispatcher_dispatch_fnc dispatch,
 			     mcr_Dispatcher_modify_fnc modifier,
 			     mcr_Dispatcher_remove_fnc remove,
-			     mcr_Dispatcher_fnc trim) MCR_THROWS
+			     mcr_Dispatcher_fnc trim)
 	: _context(context ? context : Libmacro::instance())
 {
 	mcr_Dispatcher_init(ptr());
@@ -59,7 +59,7 @@ CtxDispatcher::CtxDispatcher(mcr::Libmacro *context, mcr_Dispatcher_add_fnc add,
 }
 
 CtxITrigger::CtxITrigger(Libmacro *context, mcr_Dispatcher_receive_fnc receive,
-			 const Interface &interface) MCR_THROWS
+			 const Interface &interface)
 	: _context(context ? context : Libmacro::instance())
 {
 	mcr_ITrigger_init(ptr());
@@ -67,7 +67,7 @@ CtxITrigger::CtxITrigger(Libmacro *context, mcr_Dispatcher_receive_fnc receive,
 	itrigger.receive = receive;
 }
 
-void Signal::setISignal(mcr_ISignal *isignal) MCR_THROWS
+void Signal::setISignal(mcr_ISignal *isignal)
 {
 	int err;
 	if (isignal != signal.isignal) {
@@ -77,7 +77,7 @@ void Signal::setISignal(mcr_ISignal *isignal) MCR_THROWS
 	}
 }
 
-void Trigger::setITrigger(mcr_ITrigger *itrigger) MCR_THROWS
+void Trigger::setITrigger(mcr_ITrigger *itrigger)
 {
 	int err;
 	if (itrigger != trigger.itrigger) {
@@ -88,7 +88,7 @@ void Trigger::setITrigger(mcr_ITrigger *itrigger) MCR_THROWS
 }
 
 Macro::Macro(Libmacro *context, bool block, bool sticky, unsigned int threadMax,
-	     bool enable) MCR_THROWS
+	     bool enable)
 	: _context(context ? context : Libmacro::instance())
 {
 	int err;
@@ -99,14 +99,12 @@ Macro::Macro(Libmacro *context, bool block, bool sticky, unsigned int threadMax,
 		throw err;
 }
 
-Macro::~Macro() MCR_THROWS
+Macro::~Macro()
 {
-	int err = mcr_Macro_deinit(ptr());
-	if (err)
-		throw err;
+	mcr_Macro_deinit(ptr());
 }
 
-Macro::Macro(const Macro &copytron) MCR_THROWS
+Macro::Macro(const Macro &copytron)
 {
 	int err = mcr_Macro_init(ptr());
 	if (err)
@@ -115,7 +113,7 @@ Macro::Macro(const Macro &copytron) MCR_THROWS
 		throw err;
 }
 
-Macro::Macro(const mcr_Macro &copytron) MCR_THROWS
+Macro::Macro(const mcr_Macro &copytron)
 {
 	int err = mcr_Macro_init(ptr());
 	if (err)
@@ -124,7 +122,7 @@ Macro::Macro(const mcr_Macro &copytron) MCR_THROWS
 		throw err;
 }
 
-Macro::Macro(const mcr_Macro *copytron) MCR_THROWS
+Macro::Macro(const mcr_Macro *copytron)
 {
 	int err = mcr_Macro_init(ptr());
 	if (err)
@@ -133,21 +131,21 @@ Macro::Macro(const mcr_Macro *copytron) MCR_THROWS
 		throw err;
 }
 
-void Macro::setSignal(const mcr_Signal *sigPt, size_t index) MCR_THROWS
+void Macro::setSignal(const mcr_Signal *sigPt, size_t index)
 {
 	int err = mcr_Macro_set_signal(&_macro, sigPt, index);
 	if (err)
 		throw err;
 }
 
-void Macro::setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS
+void Macro::setSignals(const mcr_Signal *sigArr, size_t count)
 {
 	int err = mcr_Macro_set_signals(&_macro, sigArr, count);
 	if (err)
 		throw err;
 }
 
-void Macro::resizeSignals(size_t count) MCR_THROWS
+void Macro::resizeSignals(size_t count)
 {
 	int err;
 	if (count != signalCount()) {
@@ -172,14 +170,14 @@ void Macro::setThreadMax(unsigned int val)
 		_macro.thread_max = val;
 }
 
-void Macro::setInterruptor(Interrupt val) MCR_THROWS
+void Macro::setInterruptor(Interrupt val)
 {
 	int err = mcr_Macro_interrupt(ptr(), val);
 	if (err)
 		throw err;
 }
 
-void Macro::setEnabled(bool val) MCR_THROWS
+void Macro::setEnabled(bool val)
 {
 	int err = mcr_Macro_set_enabled(ptr(), val);
 	if (err)
@@ -187,7 +185,7 @@ void Macro::setEnabled(bool val) MCR_THROWS
 }
 
 Stage::Stage(Libmacro *ctx, bool blocking, mcr_Signal *interceptPt,
-	     unsigned int measurementError, unsigned int mods, int trigFlags) MCR_THROWS
+	     unsigned int measurementError, unsigned int mods, int trigFlags)
 	: _context(ctx ? ctx : Libmacro::instance())
 {
 	int err;
@@ -198,14 +196,12 @@ Stage::Stage(Libmacro *ctx, bool blocking, mcr_Signal *interceptPt,
 		throw(err);
 }
 
-Stage::~Stage() MCR_THROWS
+Stage::~Stage()
 {
-	int err = mcr_Stage_deinit(ptr());
-	if (err)
-		throw(err);
+	mcr_Stage_deinit(ptr());
 }
 
-Stage::Stage(const Stage &copytron) MCR_THROWS
+Stage::Stage(const Stage &copytron)
 	: _context(copytron._context)
 {
 	int err;
@@ -215,7 +211,7 @@ Stage::Stage(const Stage &copytron) MCR_THROWS
 		throw(err);
 }
 
-Stage::Stage(const mcr_Stage *copytron) MCR_THROWS
+Stage::Stage(const mcr_Stage *copytron)
 	: _context(Libmacro::instance())
 {
 	int err;
@@ -225,14 +221,14 @@ Stage::Stage(const mcr_Stage *copytron) MCR_THROWS
 		throw(err);
 }
 
-void Stage::setIntercept(mcr_Signal *val) MCR_THROWS
+void Stage::setIntercept(mcr_Signal *val)
 {
 	int err = mcr_Stage_set_intercept(_context->ptr(), ptr(), val);
 	if (err)
 		throw(err);
 }
 
-void Stage::setGenericIntercept(mcr_Signal *val) MCR_THROWS
+void Stage::setGenericIntercept(mcr_Signal *val)
 {
 	int err = mcr_Stage_set_intercept_generic(_context->ptr(), ptr(), val);
 	if (err)

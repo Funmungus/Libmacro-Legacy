@@ -21,7 +21,7 @@
 
 namespace mcr
 {
-void Libmacro::initialize() MCR_THROWS
+void Libmacro::initialize()
 {
 }
 

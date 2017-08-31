@@ -58,19 +58,19 @@ public:
 	{
 		return compare(rhs) > 0;
 	}
-	inline void operator ()() MCR_THROWS
+	inline void operator ()()
 	{
 		send();
 	}
 
 	/* Instance */
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const MCR_THROWS = 0;
+	virtual int compare(const ISignalData &rhs) const = 0;
 	/*!
 	 * \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) MCR_THROWS = 0;
+	virtual void copy(const ISignalData *copytron) = 0;
 	/* Signal */
 	/*! \brief \ref mcr_ISignal_set_name */
 	virtual const char *name() const = 0;
@@ -92,7 +92,7 @@ public:
 	 * Inline is only suggested if the send function is
 	 * not complex.
 	 */
-	virtual void send() MCR_THROWS = 0;
+	virtual void send() = 0;
 };
 }
 

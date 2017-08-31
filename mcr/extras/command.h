@@ -41,18 +41,18 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	/*! \brief Executable file */
 	SafeString file;
 
-	Command(bool cryptic = false) MCR_THROWS
+	Command(bool cryptic = false)
 		: file(_keyProvider, "", cryptic), _args(NULL), _argsBufferLen(0),
 		  _argsCount(0), _cryptic(cryptic && _keyProvider)
 	{
 	}
-	Command(const Command &copytron) MCR_THROWS
+	Command(const Command &copytron)
 		: file(copytron.file), _args(NULL), _argsBufferLen(0), _argsCount(0),
 		  _cryptic(copytron.cryptic())
 	{
 		setArgsText(copytron.argsText());
 	}
-	Command &operator =(const Command &copytron) MCR_THROWS;
+	Command &operator =(const Command &copytron);
 
 	/*!
 	 * \brief Get command from signal
@@ -70,7 +70,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	 * \param Filename Executable file
 	 * \param ArgList Shell comman arguments
 	 */
-//	static void execvp(const char *Filename, char * const ArgList[]) MCR_THROWS;
+//	static void execvp(const char *Filename, char * const ArgList[]);
 	static void setKeyProvider(IKeyProvider *provider)
 	{
 		_keyProvider = provider;
@@ -82,28 +82,28 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		return _cryptic;
 	}
 	/*! \brief Set encryption state for all command strings */
-	void setCryptic(bool val) MCR_THROWS;
+	void setCryptic(bool val);
 
 	/*! \brief \ref file */
-	inline string fileText() const MCR_THROWS
+	inline string fileText() const
 	{
 		return file.text();
 	}
 	/*! \brief \ref file */
-	inline void setFileText(const string &val) MCR_THROWS
+	inline void setFileText(const string &val)
 	{
 		file.setText(val);
 	}
 
 	/*! \brief Number of \ref args */
-	inline size_t argsCount() const throw()
+	inline size_t argsCount() const
 	{
 		return _argsCount;
 	}
 	/*! \brief Shell command arguments, argv of execvp */
-	void args(SafeString *bufferOut, size_t bufferLen) const MCR_THROWS;
+	void args(SafeString *bufferOut, size_t bufferLen) const;
 	/*! \brief \ref args */
-	inline vector<string> argsText() const MCR_THROWS
+	inline vector<string> argsText() const
 	{
 		vector<string> ret;
 		for (size_t i = 0; i < _argsCount; i++) {
@@ -112,9 +112,9 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		return ret;
 	}
 	/*! \brief \ref args */
-	void setArgs(SafeString *bufferIn, size_t bufferLen) MCR_THROWS;
+	void setArgs(SafeString *bufferIn, size_t bufferLen);
 	/*! \brief \ref args */
-	inline void setArgsText(const vector<string> &val) MCR_THROWS
+	inline void setArgsText(const vector<string> &val)
 	{
 		setArgsCount(val.size());
 		for (size_t i = 0; i < _argsCount; i++) {
@@ -123,16 +123,16 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
+	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const Command &>(rhs));
 	}
 	/*! \brief \ref mcr_Signal_compare */
-	int compare(const Command &rhs) const MCR_THROWS;
+	int compare(const Command &rhs) const;
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
+	virtual void copy(const ISignalData *copytron) override;
 	/*! \brief \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
@@ -149,9 +149,9 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 			bufferOut[0] = "Cmd";
 	}
 	/*! \brief \ref mcr_is_platform \ref mcr_send */
-	virtual void send() MCR_THROWS override;
+	virtual void send() override;
 
-	inline void clear() throw()
+	inline void clear()
 	{
 		file.clear();
 		setArgsCount(0);
@@ -171,7 +171,7 @@ private:
 class MCR_EXTRAS_API CommandRef : public SignalManager
 {
 public:
-	CommandRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	CommandRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline const Command *data() const
 	{
@@ -188,7 +188,7 @@ public:
 			return data()->cryptic();
 		return false;
 	}
-	inline void setCryptic(bool val) MCR_THROWS
+	inline void setCryptic(bool val)
 	{
 		mkdata();
 		data()->setCryptic(val);
@@ -200,7 +200,7 @@ public:
 			return data()->fileText();
 		return "";
 	}
-	inline void setFile(const string &val) MCR_THROWS
+	inline void setFile(const string &val)
 	{
 		mkdata();
 		data()->setFileText(val);
@@ -212,7 +212,7 @@ public:
 			return data()->argsText();
 		return vector<string>();
 	}
-	inline void setArgs(const vector<string> &val) MCR_THROWS
+	inline void setArgs(const vector<string> &val)
 	{
 		mkdata();
 		data()->setArgsText(val);

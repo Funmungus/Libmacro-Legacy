@@ -43,18 +43,18 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	/*! \brief Set of characters to turn into signals */
 	SafeString string;
 
-	StringKey(bool cryptic = false) MCR_THROWS
+	StringKey(bool cryptic = false)
 		: string(_keyProvider, "", cryptic), _cryptic(cryptic && _keyProvider)
 	{
 		interval.sec = 0;
 		interval.msec = 40;
 	}
-	StringKey(const StringKey &copytron) MCR_THROWS
+	StringKey(const StringKey &copytron)
 		: interval(copytron.interval), string(_keyProvider, "", copytron.cryptic()),
 		  _cryptic(copytron.cryptic())
 	{
 	}
-	StringKey &operator =(const StringKey &copytron) MCR_THROWS;
+	StringKey &operator =(const StringKey &copytron);
 
 	/*!
 	 * \brief Get a StringKey from a signal
@@ -75,7 +75,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	{
 		return _cryptic;
 	}
-	void setCryptic(bool val) MCR_THROWS
+	void setCryptic(bool val)
 	{
 		if (val != cryptic() && _keyProvider) {
 			_cryptic = val;
@@ -84,27 +84,27 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	}
 
 	/*! \brief Set of characters to turn into signals */
-	inline mcr::string stringText() const MCR_THROWS
+	inline mcr::string stringText() const
 	{
 		return string.text();
 	}
 	/*! \brief Set the string to turn into signals */
-	inline void setStringText(const mcr::string &val) MCR_THROWS
+	inline void setStringText(const mcr::string &val)
 	{
 		string.setText(val);
 	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
+	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const StringKey &>(rhs));
 	}
 	/*! \brief \ref mcr_Signal_compare */
-	int compare(const StringKey &rhs) const MCR_THROWS;
+	int compare(const StringKey &rhs) const;
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
+	virtual void copy(const ISignalData *copytron) override;
 	/*! \brief \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
@@ -126,7 +126,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 		}
 	}
 	/*! \brief \ref mcr_send */
-	virtual void send() MCR_THROWS override;
+	virtual void send() override;
 
 	inline void clear()
 	{
@@ -141,7 +141,7 @@ private:
 class MCR_EXTRAS_API StringKeyRef : public SignalManager
 {
 public:
-	StringKeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	StringKeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline mcr_NoOp interval() const
 	{
@@ -186,7 +186,7 @@ public:
 			return data<StringKey>()->cryptic();
 		return false;
 	}
-	inline void setCryptic(bool val) MCR_THROWS
+	inline void setCryptic(bool val)
 	{
 		mkdata();
 		data<StringKey>()->setCryptic(val);
@@ -198,7 +198,7 @@ public:
 			return data<StringKey>()->stringText();
 		return "";
 	}
-	inline void setString(const mcr::string &val) MCR_THROWS
+	inline void setString(const mcr::string &val)
 	{
 		mkdata();
 		data<StringKey>()->setStringText(val);

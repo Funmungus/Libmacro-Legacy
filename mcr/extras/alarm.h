@@ -195,7 +195,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 
 	/*! \brief \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const MCR_THROWS override
+	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const Alarm &>(rhs));
 	}
@@ -209,14 +209,14 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	/*! \brief \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) MCR_THROWS override;
+	virtual void copy(const ISignalData *copytron) override;
 	/*! \brief \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "Alarm";
 	}
 	/*! \brief \ref mcr_send */
-	virtual inline void send() MCR_THROWS override
+	virtual inline void send() override
 	{
 		auto until_time = std::chrono::system_clock::from_time_t(::mktime(&time));
 		std::this_thread::sleep_until(until_time);
@@ -238,7 +238,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 class MCR_EXTRAS_API AlarmRef : public SignalManager
 {
 public:
-	AlarmRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	AlarmRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline const Alarm *data() const
 	{
@@ -255,7 +255,7 @@ public:
 			return data()->time;
 		return tm();
 	}
-	inline void setTime(tm &val) MCR_THROWS
+	inline void setTime(tm &val)
 	{
 		mkdata();
 		data()->time = val;
@@ -267,7 +267,7 @@ public:
 			return data()->sec();
 		return 0;
 	}
-	inline void setSec(int val) MCR_THROWS
+	inline void setSec(int val)
 	{
 		mkdata();
 		data()->sec() = val;
@@ -279,7 +279,7 @@ public:
 			return data()->min();
 		return 0;
 	}
-	inline void setMin(int val) MCR_THROWS
+	inline void setMin(int val)
 	{
 		mkdata();
 		data()->min() = val;
@@ -291,7 +291,7 @@ public:
 			return data()->hour();
 		return 0;
 	}
-	inline void setHour(int val) MCR_THROWS
+	inline void setHour(int val)
 	{
 		mkdata();
 		data()->hour() = val;
@@ -303,7 +303,7 @@ public:
 			return data()->mday();
 		return 0;
 	}
-	inline void setMday(int val) MCR_THROWS
+	inline void setMday(int val)
 	{
 		mkdata();
 		data()->mday() = val;
@@ -315,7 +315,7 @@ public:
 			return data()->mon();
 		return 0;
 	}
-	inline void setMon(int val) MCR_THROWS
+	inline void setMon(int val)
 	{
 		mkdata();
 		data()->mon() = val;
@@ -327,7 +327,7 @@ public:
 			return data()->year();
 		return 0;
 	}
-	inline void setYear(int val) MCR_THROWS
+	inline void setYear(int val)
 	{
 		mkdata();
 		data()->year() = val;
@@ -339,7 +339,7 @@ public:
 			return data()->wday();
 		return 0;
 	}
-	inline void setWday(int val) MCR_THROWS
+	inline void setWday(int val)
 	{
 		mkdata();
 		data()->wday() = val;
@@ -351,7 +351,7 @@ public:
 			return data()->yday();
 		return 0;
 	}
-	inline void setYday(int val) MCR_THROWS
+	inline void setYday(int val)
 	{
 		mkdata();
 		data()->yday() = val;
@@ -363,7 +363,7 @@ public:
 			return data()->isdst();
 		return 0;
 	}
-	inline void setIsdst(int val) MCR_THROWS
+	inline void setIsdst(int val)
 	{
 		mkdata();
 		data()->isdst() = val;

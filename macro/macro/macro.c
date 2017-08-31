@@ -170,8 +170,8 @@ int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 	 * If interrupting, macro will be reenabled from the reset thread */
 	switch (interruptType) {
 	case MCR_PAUSE:
-		/* Pausing while already paused? Somebody has concurrency issues. */
 #ifdef DEBUG
+		/* Pausing while already paused? Somebody has concurrency issues. */
 		if (prev == MCR_PAUSE) {
 			err = EBUSY;
 			mset_error(EBUSY);
@@ -179,6 +179,10 @@ int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 				" concurrency issue\n");
 		}
 #endif
+		/* Implicit fallthrough warning if not duplicated here and below */
+		if (prev != interruptType)
+			mcrPt->interruptor = interruptType;
+		break;
 	/* just do it, no reset */
 	case MCR_CONTINUE:
 	case MCR_DISABLE:

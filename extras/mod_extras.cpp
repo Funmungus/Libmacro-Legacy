@@ -24,7 +24,7 @@ namespace mcr
 /* Reduce bloating with private static void reference */
 static vector<void *> _registry;
 
-Libmacro::Libmacro(bool enabled) MCR_THROWS
+Libmacro::Libmacro(bool enabled)
 	: _iAlarm(new ISignal<Alarm>(this)),
 	  _iCommand(new ISignal<Command>(this)),
 	  _iStringKey(new ISignal<StringKey>(this)),
@@ -74,14 +74,14 @@ Libmacro::~Libmacro()
 	_characters = NULL;
 }
 
-Libmacro *Libmacro::instance() MCR_THROWS
+Libmacro *Libmacro::instance()
 {
 	if (_registry.size() == 0)
 		throw EFAULT;
 	return (Libmacro *)_registry[_registry.size() - 1];
 }
 
-void Libmacro::setEnabled(bool val) MCR_THROWS
+void Libmacro::setEnabled(bool val)
 {
 	int err;
 	if (val != _enabled) {
@@ -108,7 +108,7 @@ size_type Libmacro::characterCount(int c) const
 	return mem[c].size();
 }
 
-Signal *Libmacro::character(int c) MCR_THROWS
+Signal *Libmacro::character(int c)
 {
 	auto mem = characters();
 	if (c < 0 || c >= (signed)mem.size())
@@ -116,7 +116,7 @@ Signal *Libmacro::character(int c) MCR_THROWS
 	return mem[c].data();
 }
 
-const Signal *Libmacro::character(int c) const MCR_THROWS
+const Signal *Libmacro::character(int c) const
 {
 	auto mem = characters();
 	if (c < 0 || c >= (signed)mem.size())
@@ -125,7 +125,7 @@ const Signal *Libmacro::character(int c) const MCR_THROWS
 }
 
 void Libmacro::setCharacter(int c, const Signal *valBuffer,
-			    size_t bufferLength) MCR_THROWS
+			    size_t bufferLength)
 {
 	auto mem = characters();
 	if (c < 0)
@@ -140,7 +140,7 @@ void Libmacro::setCharacter(int c, const Signal *valBuffer,
 }
 
 void Libmacro::setCharacterKey(int c, int key, long msecDelay,
-			       bool shiftFlag) MCR_THROWS
+			       bool shiftFlag)
 {
 	/* Sanity early to avoid object instances */
 	if (c < 0)
@@ -180,7 +180,7 @@ void Libmacro::setCharacterKey(int c, int key, long msecDelay,
 	mem[c] = localSet;
 }
 
-void Libmacro::setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS
+void Libmacro::setCharacterDelays(mcr_NoOp delayValue)
 {
 	auto mem = characters();
 	SignalRef siggy;
@@ -198,7 +198,7 @@ void Libmacro::setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS
 	}
 }
 
-void Libmacro::removeCharacter(int c) MCR_THROWS
+void Libmacro::removeCharacter(int c)
 {
 	auto mem = characters();
 	if (c < 0)

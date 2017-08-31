@@ -465,7 +465,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	if (writeabs) \
 		writeabs = false; \
 } else if (!writeabs) { \
-	++writeabs; \
+	writeabs = true; \
 }
 	struct input_event events[MCR_GRAB_SET_LENGTH];
 	struct input_event *curVent, *end;
@@ -584,7 +584,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 					MCR_DIMENSIONS_ZERO(bAbs);
 				}
 				abs.pos[pos] = curVent->value;
-				++bAbs[pos];
+				bAbs[pos] = true;
 				break;
 			case EV_REL:
 				pos = relpos(curVent->code);
@@ -661,7 +661,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				return thrd_error;
 			}
 		} else {
-			++writegen;
+			writegen = true;
 		}
 		if (writeabs && write(mcr_absDev.fd, events, rdb) < 0) {
 			i = errno;

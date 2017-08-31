@@ -41,14 +41,6 @@
 	#endif
 #endif
 
-#ifndef MCR_THROWS
-	#ifdef _MSC_VER
-		#define MCR_THROWS throw(...)
-	#else
-		#define MCR_THROWS throw(int)
-	#endif
-#endif
-
 #include "mcr/libmacro.h"
 #include "mcr/extras/std.h"
 

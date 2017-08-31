@@ -56,7 +56,7 @@ template<typename T>
 class ISignal : public CtxISignal
 {
 public:
-	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL) MCR_THROWS
+	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL)
 		: CtxISignal(context, ISignal<T>::send, dispatcher,
 			     mcr_Interface_new(sizeof(T),
 					       ISignal<T>::init, ISignal<T>::deinit, ISignal<T>::compare,
@@ -128,7 +128,7 @@ public:
 	}
 
 	/*! \brief \ref mcr_register */
-	void registerType() MCR_THROWS
+	void registerType()
 	{
 		T inst;
 		size_t count = inst.addNamesCount();

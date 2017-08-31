@@ -24,7 +24,7 @@
 
 namespace mcr
 {
-void Command::send() MCR_THROWS
+void Command::send()
 {
 	int err = 0;
 	size_type i;

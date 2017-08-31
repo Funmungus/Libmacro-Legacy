@@ -181,7 +181,7 @@ int mcr_Device_enable(struct mcr_Device *devPt, bool enable)
 		return mtx_unlock_error(mtxErr, err);
 	/* Created and ready. valid true is all good, false means some */
 	/* non-UI_SET_EVBIT did not work. */
-	++devPt->enabled;
+	devPt->enabled = true;
 	err = device_open_event(devPt);
 	if (mtxErr == thrd_success)
 		mtx_unlock(&_deviceLock);

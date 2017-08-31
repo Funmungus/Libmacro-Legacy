@@ -23,7 +23,7 @@ namespace mcr
 {
 IKeyProvider *StringKey::_keyProvider = NULL;
 
-StringKey &StringKey::operator =(const StringKey &copytron) MCR_THROWS
+StringKey &StringKey::operator =(const StringKey &copytron)
 {
 	if (&copytron != this) {
 		clear();
@@ -33,7 +33,7 @@ StringKey &StringKey::operator =(const StringKey &copytron) MCR_THROWS
 	return *this;
 }
 
-int StringKey::compare(const StringKey &rhs) const MCR_THROWS
+int StringKey::compare(const StringKey &rhs) const
 {
 	int cmp;
 	if (&rhs == this)
@@ -43,7 +43,7 @@ int StringKey::compare(const StringKey &rhs) const MCR_THROWS
 	return string.compare(rhs.string);
 }
 
-void StringKey::copy(const mcr::ISignalData *copytron) MCR_THROWS
+void StringKey::copy(const mcr::ISignalData *copytron)
 {
 	const StringKey *cPt = dynamic_cast<const StringKey *>(copytron);
 	if (!cPt)
@@ -54,7 +54,7 @@ void StringKey::copy(const mcr::ISignalData *copytron) MCR_THROWS
 	}
 }
 
-void StringKey::send() MCR_THROWS
+void StringKey::send()
 {
 	Libmacro *context = Libmacro::instance();
 	size_type i, j, err;
@@ -74,7 +74,7 @@ void StringKey::send() MCR_THROWS
 	}
 }
 
-StringKeyRef::StringKeyRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+StringKeyRef::StringKeyRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(context->iStringKey().ptr());

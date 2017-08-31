@@ -25,7 +25,7 @@ extern "C" {
 
 namespace mcr
 {
-void Command::send() MCR_THROWS
+void Command::send()
 {
 	pid_t child, child2;
 	int err = 0;

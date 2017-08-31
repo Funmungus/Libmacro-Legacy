@@ -23,7 +23,7 @@ namespace mcr
 {
 IKeyProvider *Command::_keyProvider = NULL;
 
-Command &Command::operator =(const Command &copytron) MCR_THROWS
+Command &Command::operator =(const Command &copytron)
 {
 	if (&copytron != this) {
 		clear();
@@ -34,7 +34,7 @@ Command &Command::operator =(const Command &copytron) MCR_THROWS
 	return *this;
 }
 
-void Command::setCryptic(bool val) MCR_THROWS
+void Command::setCryptic(bool val)
 {
 	if (val != cryptic() && _keyProvider) {
 		_cryptic = val;
@@ -45,7 +45,7 @@ void Command::setCryptic(bool val) MCR_THROWS
 	}
 }
 
-void Command::args(SafeString *bufferOut, size_t bufferLen) const MCR_THROWS
+void Command::args(SafeString *bufferOut, size_t bufferLen) const
 {
 	if (!bufferOut || !bufferLen)
 		return;
@@ -56,7 +56,7 @@ void Command::args(SafeString *bufferOut, size_t bufferLen) const MCR_THROWS
 	}
 }
 
-void Command::setArgs(SafeString *bufferIn, size_t bufferLen) MCR_THROWS
+void Command::setArgs(SafeString *bufferIn, size_t bufferLen)
 {
 	if (!bufferIn || !bufferLen) {
 		setArgsCount(0);
@@ -68,7 +68,7 @@ void Command::setArgs(SafeString *bufferIn, size_t bufferLen) MCR_THROWS
 	}
 }
 
-int Command::compare(const Command &rhs) const MCR_THROWS
+int Command::compare(const Command &rhs) const
 {
 	int cmp;
 	if (&rhs == this)
@@ -86,7 +86,7 @@ int Command::compare(const Command &rhs) const MCR_THROWS
 	return 0;
 }
 
-void Command::copy(const mcr::ISignalData *copytron) MCR_THROWS
+void Command::copy(const mcr::ISignalData *copytron)
 {
 	if (copytron == this)
 		return;
@@ -120,7 +120,7 @@ void Command::setArgsCount(size_t count)
 	}
 }
 
-CommandRef::CommandRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+CommandRef::CommandRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(&this->context()->iCommand().isignal);

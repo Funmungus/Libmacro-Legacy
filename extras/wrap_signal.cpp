@@ -20,42 +20,42 @@
 
 namespace mcr
 {
-ISignalRef::ISignalRef(Libmacro *context, mcr_ISignal *isigPt) MCR_THROWS
+ISignalRef::ISignalRef(Libmacro *context, mcr_ISignal *isigPt)
 	: _context(context ? context : Libmacro::instance()), _isigPt(isigPt)
 {
 }
 
-ISignalRef::ISignalRef(mcr_ISignal *isigPt) MCR_THROWS
+ISignalRef::ISignalRef(mcr_ISignal *isigPt)
 	: _context(Libmacro::instance()), _isigPt(isigPt)
 {
 }
 
-ISignalRef::ISignalRef(Libmacro *context, size_t id) MCR_THROWS
+ISignalRef::ISignalRef(Libmacro *context, size_t id)
 	: _context(context ? context : Libmacro::instance()),
 	  _isigPt(mcr_ISignal_from_id(_context->ptr(), id))
 {
 }
 
-ISignalRef::ISignalRef(size_t id) MCR_THROWS
+ISignalRef::ISignalRef(size_t id)
 	: _context(Libmacro::instance()), _isigPt(mcr_ISignal_from_id(_context->ptr(),
 			id))
 {
 }
 
-ISignalRef::ISignalRef(Libmacro *context, const char *name) MCR_THROWS
+ISignalRef::ISignalRef(Libmacro *context, const char *name)
 	: _context(context ? context : Libmacro::instance()),
 	  _isigPt(mcr_ISignal_from_name(_context->ptr(), name))
 {
 }
 
-ISignalRef::ISignalRef(const char *name) MCR_THROWS
+ISignalRef::ISignalRef(const char *name)
 	: _context(Libmacro::instance()), _isigPt(mcr_ISignal_from_name(_context->ptr(),
 			name))
 {
 }
 
 void ISignalRef::registerType(const char *name, const char **addNames,
-			      size_t addNamesCount) MCR_THROWS
+			      size_t addNamesCount)
 {
 	int err = 0;
 	mcr_IRegistry *regPt = mcr_ISignal_reg(_context->ptr());
@@ -86,17 +86,17 @@ void ISignalRef::setName(const char *name)
 	_isigPt = mcr_ISignal_from_name(_context->ptr(), name);
 }
 
-SignalRef::SignalRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+SignalRef::SignalRef(Libmacro *context, mcr_Signal *sigPt)
 	: _context(context ? context : Libmacro::instance()), _sigPt(sigPt)
 {
 }
 
-SignalRef::SignalRef(mcr_Signal *sigPt) MCR_THROWS
+SignalRef::SignalRef(mcr_Signal *sigPt)
 	: _context(Libmacro::instance()), _sigPt(sigPt)
 {
 }
 
-void SignalRef::setISignal(mcr_ISignal *isigPt) MCR_THROWS
+void SignalRef::setISignal(mcr_ISignal *isigPt)
 {
 	int err;
 	if (_sigPt && _sigPt->isignal != isigPt) {
@@ -106,7 +106,7 @@ void SignalRef::setISignal(mcr_ISignal *isigPt) MCR_THROWS
 	}
 }
 
-void SignalRef::setId(size_t val) MCR_THROWS
+void SignalRef::setId(size_t val)
 {
 	int err;
 	mcr_ISignal *isigPt = mcr_ISignal_from_id(_context->ptr(), val);
@@ -117,7 +117,7 @@ void SignalRef::setId(size_t val) MCR_THROWS
 	}
 }
 
-void SignalRef::setName(const char *val) MCR_THROWS
+void SignalRef::setName(const char *val)
 {
 	int err;
 	mcr_ISignal *isigPt = mcr_ISignal_from_name(_context->ptr(), val);
@@ -135,7 +135,7 @@ bool SignalRef::dispatch()
 	return false;
 }
 
-void SignalRef::send() MCR_THROWS
+void SignalRef::send()
 {
 	int err;
 	if (_sigPt) {
@@ -144,7 +144,7 @@ void SignalRef::send() MCR_THROWS
 	}
 }
 
-void SignalRef::copy(const mcr_Signal *copytron) MCR_THROWS
+void SignalRef::copy(const mcr_Signal *copytron)
 {
 	int err;
 	if (_sigPt) {
@@ -153,7 +153,7 @@ void SignalRef::copy(const mcr_Signal *copytron) MCR_THROWS
 	}
 }
 
-void SignalRef::copy(const mcr::SignalRef &copytron) MCR_THROWS
+void SignalRef::copy(const mcr::SignalRef &copytron)
 {
 	int err;
 	if (_sigPt) {
@@ -162,7 +162,7 @@ void SignalRef::copy(const mcr::SignalRef &copytron) MCR_THROWS
 	}
 }
 
-void SignalManager::copy(const mcr_Signal *copytron) MCR_THROWS
+void SignalManager::copy(const mcr_Signal *copytron)
 {
 	int err = 0;
 	if (copytron && copytron->isignal == isignal()) {
@@ -174,12 +174,12 @@ void SignalManager::copy(const mcr_Signal *copytron) MCR_THROWS
 		throw err;
 }
 
-void SignalManager::copy(const mcr::SignalRef &copytron) MCR_THROWS
+void SignalManager::copy(const mcr::SignalRef &copytron)
 {
 	copy(copytron.signal());
 }
 
-HidEchoRef::HidEchoRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+HidEchoRef::HidEchoRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iHidEcho(this->context()->ptr()));
@@ -200,7 +200,7 @@ size_t HidEchoRef::echo(const char *name) const
 	return mcr_HidEcho_name_echo(context()->ptr(), name);
 }
 
-KeyRef::KeyRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+KeyRef::KeyRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iKey(this->context()->ptr()));
@@ -221,7 +221,7 @@ int KeyRef::key(const char *name) const
 	return mcr_Key_name_key(context()->ptr(), name);
 }
 
-ModsRef::ModsRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+ModsRef::ModsRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iMods(this->context()->ptr()));
@@ -242,19 +242,19 @@ int ModsRef::modifier(const char *name) const
 	return mcr_ModFlags_modifier(context()->ptr(), name);
 }
 
-MoveCursorRef::MoveCursorRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+MoveCursorRef::MoveCursorRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iMoveCursor(this->context()->ptr()));
 }
 
-NoOpRef::NoOpRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+NoOpRef::NoOpRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iNoOp(this->context()->ptr()));
 }
 
-ScrollRef::ScrollRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+ScrollRef::ScrollRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(mcr_iScroll(this->context()->ptr()));

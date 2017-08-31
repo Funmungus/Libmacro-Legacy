@@ -44,7 +44,7 @@ struct MCR_EXTRAS_API Libmacro {
 	 * \param enabled Initial enabled state, must be disabled before
 	 * destruction
 	 */
-	Libmacro(bool enabled = true) MCR_THROWS;
+	Libmacro(bool enabled = true);
 	/*! \brief dtor If this is enabled during destruction threading errors
 	 * are likely to happen
 	 */
@@ -55,7 +55,7 @@ struct MCR_EXTRAS_API Libmacro {
 	 * Will throw EFAULT if no \ref Libmacro exists, and will not create a
 	 * singleton object
 	 */
-	static Libmacro *instance() MCR_THROWS;
+	static Libmacro *instance();
 
 	inline const mcr_context *ptr() const
 	{
@@ -88,13 +88,13 @@ struct MCR_EXTRAS_API Libmacro {
 	/*! \brief Set current enabled state.  Please disable before the
 	 * destructor to avoid threading errors.
 	 */
-	void setEnabled(bool val) MCR_THROWS;
+	void setEnabled(bool val);
 
 	size_type characterCount() const;
 	size_type characterCount(int c) const;
-	Signal *character(int c) MCR_THROWS;
-	const Signal *character(int c) const MCR_THROWS;
-	inline vector<Signal> characterSet(int c) MCR_THROWS
+	Signal *character(int c);
+	const Signal *character(int c) const;
+	inline vector<Signal> characterSet(int c)
 	{
 		vector<Signal> ret;
 		if (c < 0 || c >= (signed)characterCount())
@@ -106,8 +106,8 @@ struct MCR_EXTRAS_API Libmacro {
 		}
 		return ret;
 	}
-	void setCharacter(int c, const Signal *valBuffer, size_t bufferLength) MCR_THROWS;
-	inline void setCharacterSet(int c, const vector<Signal> &val) MCR_THROWS
+	void setCharacter(int c, const Signal *valBuffer, size_t bufferLength);
+	inline void setCharacterSet(int c, const vector<Signal> &val)
 	{
 		if (c < 0)
 			throw EINVAL;
@@ -124,14 +124,14 @@ struct MCR_EXTRAS_API Libmacro {
 	 * release after the key.
 	 * \return \ref reterr
 	 */
-	void setCharacterKey(int c, int key, long msecDelay, bool shiftFlag) MCR_THROWS;
+	void setCharacterKey(int c, int key, long msecDelay, bool shiftFlag);
 	/*!
 	 * \brief Set all \ref mcr_NoOp delay values for \ref StringKey
 	 *
 	 * \param delayValue Apply this pause time
 	 */
-	void setCharacterDelays(mcr_NoOp delayValue) MCR_THROWS;
-	void removeCharacter(int c) MCR_THROWS;
+	void setCharacterDelays(mcr_NoOp delayValue);
+	void removeCharacter(int c);
 	void trimCharacters();
 	void clearCharacters();
 private:
@@ -145,7 +145,7 @@ private:
 	/*!
 	 * \brief \ref mcr_is_platform Platform initializer
 	 */
-	void initialize() MCR_THROWS;
+	void initialize();
 	/*!
 	 * \brief \ref mcr_is_platform Platform deinitializer
 	 */

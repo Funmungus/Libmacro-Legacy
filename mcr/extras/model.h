@@ -74,8 +74,8 @@ struct MCR_EXTRAS_API CtxISignal {
 	CtxISignal(Libmacro *context, mcr_signal_fnc send,
 		   mcr_Dispatcher *dispatcher = NULL,
 		   const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-						NULL)) MCR_THROWS;
-	CtxISignal(mcr_signal_fnc send) MCR_THROWS;
+						NULL));
+	CtxISignal(mcr_signal_fnc send);
 	virtual ~CtxISignal() {}
 	CtxISignal(const CtxISignal &) = default;
 	CtxISignal &operator =(const CtxISignal &) = default;
@@ -122,7 +122,7 @@ struct MCR_EXTRAS_API CtxDispatcher {
 		      mcr_Dispatcher_dispatch_fnc dispatch = NULL,
 		      mcr_Dispatcher_modify_fnc modifier = NULL,
 		      mcr_Dispatcher_remove_fnc remove = NULL,
-		      mcr_Dispatcher_fnc trim = NULL) MCR_THROWS;
+		      mcr_Dispatcher_fnc trim = NULL);
 	virtual ~CtxDispatcher() {}
 	CtxDispatcher(const CtxDispatcher &) = default;
 	CtxDispatcher &operator =(const CtxDispatcher &) = default;
@@ -161,7 +161,7 @@ struct MCR_EXTRAS_API CtxITrigger {
 	 */
 	CtxITrigger(Libmacro *context = NULL, mcr_Dispatcher_receive_fnc receive = NULL,
 		    const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-				    NULL)) MCR_THROWS;
+				    NULL));
 	virtual ~CtxITrigger() {}
 	CtxITrigger(const CtxITrigger &) = default;
 	CtxITrigger &operator =(const CtxITrigger &) = default;
@@ -201,46 +201,44 @@ struct MCR_EXTRAS_API Signal {
 		signal.isignal = isignal;
 		signal.is_dispatch = isDispatch;
 	}
-	virtual ~Signal() MCR_THROWS
+	virtual ~Signal()
 	{
-		int err = mcr_Signal_deinit(ptr());
-		if (err)
-			throw err;
+		mcr_Signal_deinit(ptr());
 	}
 	/*! \brief \ref mcr_Signal_copy */
-	Signal(const Signal &copytron) MCR_THROWS
+	Signal(const Signal &copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Signal_copy */
-	Signal(const mcr_Signal &copytron) MCR_THROWS
+	Signal(const mcr_Signal &copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(&copytron);
 	}
 	/*! \brief \ref mcr_Signal_copy */
-	Signal(const mcr_Signal *copytron) MCR_THROWS
+	Signal(const mcr_Signal *copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(copytron);
 	}
 	/*! \brief \ref mcr_Signal_copy */
-	inline Signal &operator =(const Signal &copytron) MCR_THROWS
+	inline Signal &operator =(const Signal &copytron)
 	{
 		return operator =(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Signal_copy */
-	inline Signal &operator =(const mcr_Signal &copytron) MCR_THROWS
+	inline Signal &operator =(const mcr_Signal &copytron)
 	{
 		return operator =(&copytron);
 	}
-	inline Signal &operator =(const mcr_Signal *copytron) MCR_THROWS
+	inline Signal &operator =(const mcr_Signal *copytron)
 	{
 		copy(copytron);
 		return *this;
 	}
-	inline Signal &operator =(mcr_ISignal *isignal) MCR_THROWS
+	inline Signal &operator =(mcr_ISignal *isignal)
 	{
 		setISignal(isignal);
 		return *this;
@@ -262,7 +260,7 @@ struct MCR_EXTRAS_API Signal {
 	}
 
 	/*! \brief \ref mcr_Signal_copy */
-	void copy(const mcr_Signal *copytron) MCR_THROWS
+	void copy(const mcr_Signal *copytron)
 	{
 		int err;
 		if (copytron != ptr()) {
@@ -271,7 +269,7 @@ struct MCR_EXTRAS_API Signal {
 		}
 	}
 	/*! \brief \ref mcr_Signal_deinit + set \ref mcr_Signal.isignal */
-	void setISignal(mcr_ISignal *isignal) MCR_THROWS;
+	void setISignal(mcr_ISignal *isignal);
 };
 
 /*!
@@ -295,48 +293,46 @@ struct MCR_EXTRAS_API Trigger {
 		this->trigger.trigger = trigger;
 		this->trigger.actor = actor;
 	}
-	virtual ~Trigger() MCR_THROWS
+	virtual ~Trigger()
 	{
-		int err;
-		if ((err = mcr_Trigger_deinit(ptr())))
-			throw err;
+		mcr_Trigger_deinit(ptr());
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	Trigger(const Trigger &copytron) MCR_THROWS
+	Trigger(const Trigger &copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	Trigger(const mcr_Trigger &copytron) MCR_THROWS
+	Trigger(const mcr_Trigger &copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(&copytron);
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	Trigger(const mcr_Trigger *copytron) MCR_THROWS
+	Trigger(const mcr_Trigger *copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(copytron);
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	inline Trigger &operator =(const Trigger &copytron) MCR_THROWS
+	inline Trigger &operator =(const Trigger &copytron)
 	{
 		return operator =(copytron.ptr());
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	inline Trigger &operator =(const mcr_Trigger &copytron) MCR_THROWS
+	inline Trigger &operator =(const mcr_Trigger &copytron)
 	{
 		return operator =(&copytron);
 	}
 	/*! \brief \ref mcr_Trigger_copy */
-	inline Trigger &operator =(const mcr_Trigger *copytron) MCR_THROWS
+	inline Trigger &operator =(const mcr_Trigger *copytron)
 	{
 		copy(copytron);
 		return *this;
 	}
 	/*! \brief \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
-	inline Trigger &operator =(mcr_ITrigger *itrigger) MCR_THROWS
+	inline Trigger &operator =(mcr_ITrigger *itrigger)
 	{
 		setITrigger(itrigger);
 		return *this;
@@ -352,7 +348,7 @@ struct MCR_EXTRAS_API Trigger {
 	}
 
 	/*! \brief \ref mcr_Trigger_copy */
-	void copy(const mcr_Trigger *copytron) MCR_THROWS
+	void copy(const mcr_Trigger *copytron)
 	{
 		int err;
 		if (copytron != ptr()) {
@@ -361,7 +357,7 @@ struct MCR_EXTRAS_API Trigger {
 		}
 	}
 	/*! \brief \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
-	void setITrigger(mcr_ITrigger *itrigger) MCR_THROWS;
+	void setITrigger(mcr_ITrigger *itrigger);
 };
 
 /*!
@@ -374,23 +370,23 @@ struct MCR_EXTRAS_API Macro {
 
 	Macro(Libmacro *context = NULL, bool block = false,
 	      bool sticky = false, unsigned int threadMax = 1,
-	      bool enable = false) MCR_THROWS;
-	virtual ~Macro() MCR_THROWS;
-	Macro(const Macro &copytron) MCR_THROWS;
-	Macro(const mcr_Macro &copytron) MCR_THROWS;
-	Macro(const mcr_Macro *copytron) MCR_THROWS;
-	inline Macro &operator =(const Macro &copytron) MCR_THROWS
+	      bool enable = false);
+	virtual ~Macro();
+	Macro(const Macro &copytron);
+	Macro(const mcr_Macro &copytron);
+	Macro(const mcr_Macro *copytron);
+	inline Macro &operator =(const Macro &copytron)
 	{
 		copy(copytron);
 		return *this;
 	}
 
-	inline Macro &operator =(const mcr_Macro &copytron) MCR_THROWS
+	inline Macro &operator =(const mcr_Macro &copytron)
 	{
 		copy(&copytron);
 		return *this;
 	}
-	inline Macro &operator =(const mcr_Macro *copytron) MCR_THROWS
+	inline Macro &operator =(const mcr_Macro *copytron)
 	{
 		copy(copytron);
 		return *this;
@@ -427,7 +423,7 @@ struct MCR_EXTRAS_API Macro {
 	{
 		return _macro.signal_set.used;
 	}
-	inline void clearSignals() MCR_THROWS
+	inline void clearSignals()
 	{
 		setSignals(NULL, 0);
 	}
@@ -435,9 +431,9 @@ struct MCR_EXTRAS_API Macro {
 	{
 		return mcr_Macro_signal(&_macro, index);
 	}
-	void setSignal(const mcr_Signal *sigPt, size_t index) MCR_THROWS;
-	void setSignals(const mcr_Signal *sigArr, size_t count) MCR_THROWS;
-	void resizeSignals(size_t count) MCR_THROWS;
+	void setSignal(const mcr_Signal *sigPt, size_t index);
+	void setSignals(const mcr_Signal *sigArr, size_t count);
+	void resizeSignals(size_t count);
 
 	inline unsigned int threadMax() const
 	{
@@ -448,12 +444,12 @@ struct MCR_EXTRAS_API Macro {
 	{
 		return _macro.interruptor;
 	}
-	void setInterruptor(Interrupt val) MCR_THROWS;
+	void setInterruptor(Interrupt val);
 	inline bool isEnabled() const
 	{
 		return mcr_Macro_is_enabled(ptr());
 	}
-	void setEnabled(bool val) MCR_THROWS;
+	void setEnabled(bool val);
 	/* Read-only */
 	inline mcr_context *ctx() const
 	{
@@ -468,11 +464,11 @@ struct MCR_EXTRAS_API Macro {
 		return _macro.queued;
 	}
 
-	void copy(const Macro &copytron) MCR_THROWS
+	void copy(const Macro &copytron)
 	{
 		copy(copytron.ptr());
 	}
-	void copy(const mcr_Macro *copytron) MCR_THROWS
+	void copy(const mcr_Macro *copytron)
 	{
 		int err;
 		if (copytron != &_macro) {
@@ -496,17 +492,17 @@ struct MCR_EXTRAS_API Stage {
 	Stage(Libmacro *ctx = NULL,
 	      bool blocking = false,
 	      mcr_Signal *interceptPt = NULL, unsigned int measurementError = 0,
-	      unsigned int mods = 0, int trigFlags = MCR_TF_ALL) MCR_THROWS;
-	~Stage() MCR_THROWS;
-	Stage(const Stage &copytron) MCR_THROWS;
-	Stage(const mcr_Stage *copytron) MCR_THROWS;
-	Stage &operator =(const Stage &copytron) MCR_THROWS
+	      unsigned int mods = 0, int trigFlags = MCR_TF_ALL);
+	~Stage();
+	Stage(const Stage &copytron);
+	Stage(const mcr_Stage *copytron);
+	Stage &operator =(const Stage &copytron)
 	{
 		_context = copytron._context;
 		copy(copytron.ptr());
 		return *this;
 	}
-	Stage &operator =(const mcr_Stage *copytron) MCR_THROWS
+	Stage &operator =(const mcr_Stage *copytron)
 	{
 		copy(copytron);
 		return *this;
@@ -521,14 +517,14 @@ struct MCR_EXTRAS_API Stage {
 		return &stage;
 	}
 
-	void setIntercept(mcr_Signal *val) MCR_THROWS;
-	void setGenericIntercept(mcr_Signal *val) MCR_THROWS;
+	void setIntercept(mcr_Signal *val);
+	void setGenericIntercept(mcr_Signal *val);
 
 	int compare(const mcr_Stage *rhsPt)
 	{
 		return mcr_Stage_compare(ptr(), rhsPt);
 	}
-	void copy(const mcr_Stage *copytron) MCR_THROWS
+	void copy(const mcr_Stage *copytron)
 	{
 		int err;
 		if (copytron != ptr()) {

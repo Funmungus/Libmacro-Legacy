@@ -21,7 +21,7 @@
 
 namespace mcr
 {
-void Alarm::copy(const mcr::ISignalData *copytron) MCR_THROWS
+void Alarm::copy(const mcr::ISignalData *copytron)
 {
 	if (copytron == this)
 		return;
@@ -35,7 +35,7 @@ void Alarm::copy(const mcr::ISignalData *copytron) MCR_THROWS
 	}
 }
 
-AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt) MCR_THROWS
+AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt)
 	: SignalManager(context, sigPt)
 {
 	init(&this->context()->iAlarm().isignal);

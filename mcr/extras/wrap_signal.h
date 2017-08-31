@@ -48,12 +48,12 @@ public:
 	 * Throws EINVAL if no context exists
 	 * \param isigPt ISignal reference to edit
 	 */
-	ISignalRef(Libmacro *context = NULL, mcr_ISignal *isigPt = NULL) MCR_THROWS;
-	ISignalRef(mcr_ISignal *isigPt) MCR_THROWS;
-	ISignalRef(Libmacro *context, size_t id) MCR_THROWS;
-	ISignalRef(size_t id) MCR_THROWS;
-	ISignalRef(Libmacro *context, const char *name) MCR_THROWS;
-	ISignalRef(const char *name) MCR_THROWS;
+	ISignalRef(Libmacro *context = NULL, mcr_ISignal *isigPt = NULL);
+	ISignalRef(mcr_ISignal *isigPt);
+	ISignalRef(Libmacro *context, size_t id);
+	ISignalRef(size_t id);
+	ISignalRef(Libmacro *context, const char *name);
+	ISignalRef(const char *name);
 	virtual ~ISignalRef() {}
 	ISignalRef(const ISignalRef &) = default;
 	inline ISignalRef &operator =(const ISignalRef &copytron)
@@ -106,7 +106,7 @@ public:
 	 * mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
-				  const char **addNames = NULL, size_t addNamesCount = 0) MCR_THROWS;
+				  const char **addNames = NULL, size_t addNamesCount = 0);
 	/*! \brief TODO Create mcr_unregister function */
 	virtual void unregisterType() {}
 
@@ -221,8 +221,8 @@ public:
 	 * Throws EINVAL if no context exists
 	 * \param sigPt Signal reference to edit
 	 */
-	SignalRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
-	SignalRef(mcr_Signal *sigPt) MCR_THROWS;
+	SignalRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
+	SignalRef(mcr_Signal *sigPt);
 	virtual ~SignalRef() {}
 	SignalRef(const SignalRef &) = default;
 	inline SignalRef &operator =(const SignalRef &copytron)
@@ -232,7 +232,7 @@ public:
 		return *this;
 	}
 	/*! \brief Change ISignal of Signal reference */
-	inline SignalRef &operator =(ISignalRef &isignal) MCR_THROWS
+	inline SignalRef &operator =(ISignalRef &isignal)
 	{
 		setISignal(isignal.isignal());
 		return *this;
@@ -244,19 +244,19 @@ public:
 		return *this;
 	}
 	/*! \brief Change ISignal of Signal reference */
-	inline SignalRef &operator =(mcr_ISignal *isigPt) MCR_THROWS
+	inline SignalRef &operator =(mcr_ISignal *isigPt)
 	{
 		setISignal(isigPt);
 		return *this;
 	}
 	/*! \brief Change ISignal of Signal reference */
-	inline SignalRef &operator =(size_t id) MCR_THROWS
+	inline SignalRef &operator =(size_t id)
 	{
 		setId(id);
 		return *this;
 	}
 	/*! \brief Change ISignal of Signal reference */
-	inline SignalRef &operator =(const char *name) MCR_THROWS
+	inline SignalRef &operator =(const char *name)
 	{
 		setName(name);
 		return *this;
@@ -298,7 +298,7 @@ public:
 	}
 
 	/*! \brief \ref send, non-virtual */
-	inline void operator ()() MCR_THROWS
+	inline void operator ()()
 	{
 		send();
 	}
@@ -321,18 +321,18 @@ public:
 	{
 		return ISignalRef(_context, isignal());
 	}
-	virtual void setISignal(mcr_ISignal *isigPt) MCR_THROWS;
+	virtual void setISignal(mcr_ISignal *isigPt);
 
 	virtual inline size_t id() const
 	{
 		return mcr_iid(isignal());
 	}
-	virtual void setId(size_t val) MCR_THROWS;
+	virtual void setId(size_t val);
 	virtual inline const char *name() const
 	{
 		return isignalRef().name();
 	}
-	virtual void setName(const char *val) MCR_THROWS;
+	virtual void setName(const char *val);
 
 	/* Signal properties */
 	virtual inline mcr_Signal *signal() const
@@ -365,7 +365,7 @@ public:
 	{
 		return (T *)mcr_Instance_data(_sigPt);
 	}
-	virtual inline void mkdata() MCR_THROWS
+	virtual inline void mkdata()
 	{
 		int err;
 		/* Only create new data if it does not already exist */
@@ -379,9 +379,9 @@ public:
 	}
 
 	virtual bool dispatch();
-	virtual void send() MCR_THROWS;
-	virtual void copy(const mcr_Signal *copytron) MCR_THROWS;
-	virtual void copy(const SignalRef &copytron) MCR_THROWS;
+	virtual void send();
+	virtual void copy(const mcr_Signal *copytron);
+	virtual void copy(const SignalRef &copytron);
 	virtual inline int compare(const mcr_Signal *rhs) const
 	{
 		return mcr_Signal_compare(_sigPt, rhs);
@@ -409,19 +409,19 @@ public:
 	{
 		return _isigPt;
 	}
-	virtual inline void setISignal(mcr_ISignal *isigPt) MCR_THROWS override
+	virtual inline void setISignal(mcr_ISignal *isigPt) override
 	{
 		if (isigPt != _isigPt)
 			throw EPERM;
 		SignalRef::setISignal(_isigPt);
 	}
-	virtual inline void setId(size_t val) MCR_THROWS override
+	virtual inline void setId(size_t val) override
 	{
 		if (val != id())
 			throw EPERM;
 		SignalRef::setISignal(_isigPt);
 	}
-	virtual inline void setName(const char *val) MCR_THROWS override
+	virtual inline void setName(const char *val) override
 	{
 		UNUSED(val);
 		SignalRef::setISignal(_isigPt);
@@ -433,8 +433,8 @@ public:
 			SignalRef::setISignal(_isigPt);
 		}
 	}
-	virtual void copy(const mcr_Signal *copytron) MCR_THROWS override;
-	virtual void copy(const SignalRef &copytron) MCR_THROWS override;
+	virtual void copy(const mcr_Signal *copytron) override;
+	virtual void copy(const SignalRef &copytron) override;
 protected:
 	/*!
 	 * \brief Please call \ref init after construction
@@ -443,7 +443,7 @@ protected:
 	 * \param sigPt Signal reference to manage
 	 */
 	SignalManager(Libmacro *context = NULL, mcr_Signal *sigPt = NULL,
-		      mcr_ISignal *isigPt = NULL) MCR_THROWS
+		      mcr_ISignal *isigPt = NULL)
 		: SignalRef(context, sigPt), _isigPt(isigPt)
 	{
 		if (_isigPt)
@@ -453,14 +453,14 @@ protected:
 //	 * \brief Please call \ref init after construction
 //	 * \param sigPt Signal reference to manage
 //	 */
-//	SignalManager(mcr_Signal *sigPt) MCR_THROWS
+//	SignalManager(mcr_Signal *sigPt)
 //		: SignalRef(sigPt), _isigPt(sigPt ? sigPt->isignal : NULL)
 //	{
 //		if (_isigPt)
 //			SignalRef::setISignal(_isigPt);
 //	}
 	/*! \param isigPt ISignal used to manage Signal reference */
-	inline void init(mcr_ISignal *isigPt) MCR_THROWS
+	inline void init(mcr_ISignal *isigPt)
 	{
 		if (!isigPt)
 			throw EFAULT;
@@ -474,7 +474,7 @@ private:
 class MCR_EXTRAS_API HidEchoRef : public SignalManager
 {
 public:
-	HidEchoRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	HidEchoRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	size_t count() const;
 	const char *name(size_t id) const;
@@ -486,7 +486,7 @@ public:
 			return data<mcr_HidEcho>()->echo;
 		return MCR_ECHO_ANY;
 	}
-	inline void setEcho(size_t val) MCR_THROWS
+	inline void setEcho(size_t val)
 	{
 		mkdata();
 		data<mcr_HidEcho>()->echo = val;
@@ -496,7 +496,7 @@ public:
 	{
 		return name(echo());
 	}
-	inline void setEchoName(const char *name) MCR_THROWS
+	inline void setEchoName(const char *name)
 	{
 		setEcho(echo(name));
 	}
@@ -506,7 +506,7 @@ typedef HidEchoRef EchoRef;
 class MCR_EXTRAS_API KeyRef : public SignalManager
 {
 public:
-	KeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	KeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	size_t count() const;
 	const char *name(int keyCode) const;
@@ -518,7 +518,7 @@ public:
 			return data<mcr_Key>()->key;
 		return MCR_KEY_ANY;
 	}
-	inline void setKey(int val) MCR_THROWS
+	inline void setKey(int val)
 	{
 		mkdata();
 		data<mcr_Key>()->key = val;
@@ -530,7 +530,7 @@ public:
 			return data<mcr_Key>()->scan;
 		return MCR_KEY_ANY;
 	}
-	inline void setScan(int val) MCR_THROWS
+	inline void setScan(int val)
 	{
 		mkdata();
 		data<mcr_Key>()->scan = val;
@@ -542,7 +542,7 @@ public:
 			return data<mcr_Key>()->up_type;
 		return (mcr_KeyUpType)0;
 	}
-	inline void setUpType(mcr_KeyUpType val) MCR_THROWS
+	inline void setUpType(mcr_KeyUpType val)
 	{
 		mkdata();
 		data<mcr_Key>()->up_type = val;
@@ -552,7 +552,7 @@ public:
 	{
 		return name(key());
 	}
-	inline void setKeyName(const char *name) MCR_THROWS
+	inline void setKeyName(const char *name)
 	{
 		setKey(key(name));
 	}
@@ -561,7 +561,7 @@ public:
 class MCR_EXTRAS_API ModsRef : public SignalManager
 {
 public:
-	ModsRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	ModsRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	size_t count() const;
 	const char *name(int modifier) const;
@@ -573,7 +573,7 @@ public:
 			return data<mcr_Mods>()->up_type;
 		return (mcr_KeyUpType)0;
 	}
-	inline void setUpType(mcr_KeyUpType val) MCR_THROWS
+	inline void setUpType(mcr_KeyUpType val)
 	{
 		mkdata();
 		data<mcr_Mods>()->up_type = val;
@@ -585,17 +585,17 @@ public:
 			return data<mcr_Mods>()->modifiers;
 		return 0;
 	}
-	inline void setModifiers(unsigned int val) MCR_THROWS
+	inline void setModifiers(unsigned int val)
 	{
 		mkdata();
 		data<mcr_Mods>()->modifiers = val;
 	}
-	inline void addModifiers(unsigned int val) MCR_THROWS
+	inline void addModifiers(unsigned int val)
 	{
 		mkdata();
 		data<mcr_Mods>()->modifiers |= val;
 	}
-	inline void removeModifiers(unsigned int val) MCR_THROWS
+	inline void removeModifiers(unsigned int val)
 	{
 		mkdata();
 		data<mcr_Mods>()->modifiers &= (~val);
@@ -605,15 +605,15 @@ public:
 	{
 		return name(modifiers());
 	}
-	inline void setModifierName(const char *name) MCR_THROWS
+	inline void setModifierName(const char *name)
 	{
 		setModifiers(modifier(name));
 	}
-	inline void addModifierName(const char *name) MCR_THROWS
+	inline void addModifierName(const char *name)
 	{
 		addModifiers(modifier(name));
 	}
-	inline void removeModifierName(const char *name) MCR_THROWS
+	inline void removeModifierName(const char *name)
 	{
 		removeModifiers(modifier(name));
 	}
@@ -622,7 +622,7 @@ public:
 class MCR_EXTRAS_API MoveCursorRef : public SignalManager
 {
 public:
-	MoveCursorRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	MoveCursorRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline bool isJustify() const
 	{
@@ -630,7 +630,7 @@ public:
 			return data<mcr_MoveCursor>()->is_justify;
 		return false;
 	}
-	inline void setJustify(bool val) MCR_THROWS
+	inline void setJustify(bool val)
 	{
 		mkdata();
 		data<mcr_MoveCursor>()->is_justify = val;
@@ -642,7 +642,7 @@ public:
 			return data<mcr_MoveCursor>()->pos[MCR_X];
 		return 0;
 	}
-	inline void setX(long long val) MCR_THROWS
+	inline void setX(long long val)
 	{
 		mkdata();
 		data<mcr_MoveCursor>()->pos[MCR_X] = val;
@@ -654,7 +654,7 @@ public:
 			return data<mcr_MoveCursor>()->pos[MCR_Y];
 		return 0;
 	}
-	inline void setY(long long val) MCR_THROWS
+	inline void setY(long long val)
 	{
 		mkdata();
 		data<mcr_MoveCursor>()->pos[MCR_Y] = val;
@@ -666,7 +666,7 @@ public:
 			return data<mcr_MoveCursor>()->pos[MCR_Z];
 		return 0;
 	}
-	inline void setZ(long long val) MCR_THROWS
+	inline void setZ(long long val)
 	{
 		mkdata();
 		data<mcr_MoveCursor>()->pos[MCR_Z] = val;
@@ -677,7 +677,7 @@ typedef MoveCursorRef MCRef;
 class MCR_EXTRAS_API NoOpRef : public SignalManager
 {
 public:
-	NoOpRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	NoOpRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline int sec() const
 	{
@@ -685,7 +685,7 @@ public:
 			return data<mcr_NoOp>()->sec;
 		return 0;
 	}
-	inline void setSec(int val) MCR_THROWS
+	inline void setSec(int val)
 	{
 		mkdata();
 		data<mcr_NoOp>()->sec = val;
@@ -697,7 +697,7 @@ public:
 			return data<mcr_NoOp>()->msec;
 		return 0;
 	}
-	inline void setMsec(int val) MCR_THROWS
+	inline void setMsec(int val)
 	{
 		mkdata();
 		data<mcr_NoOp>()->msec = val;
@@ -707,7 +707,7 @@ public:
 class MCR_EXTRAS_API ScrollRef : public SignalManager
 {
 public:
-	ScrollRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL) MCR_THROWS;
+	ScrollRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 
 	inline long long x() const
 	{
@@ -715,7 +715,7 @@ public:
 			return data<mcr_Scroll>()->dm[MCR_X];
 		return 0;
 	}
-	inline void setX(long long val) MCR_THROWS
+	inline void setX(long long val)
 	{
 		mkdata();
 		data<mcr_Scroll>()->dm[MCR_X] = val;
@@ -727,7 +727,7 @@ public:
 			return data<mcr_Scroll>()->dm[MCR_Y];
 		return 0;
 	}
-	inline void setY(long long val) MCR_THROWS
+	inline void setY(long long val)
 	{
 		mkdata();
 		data<mcr_Scroll>()->dm[MCR_Y] = val;
@@ -739,7 +739,7 @@ public:
 			return data<mcr_Scroll>()->dm[MCR_Z];
 		return 0;
 	}
-	inline void setZ(long long val) MCR_THROWS
+	inline void setZ(long long val)
 	{
 		mkdata();
 		data<mcr_Scroll>()->dm[MCR_Z] = val;

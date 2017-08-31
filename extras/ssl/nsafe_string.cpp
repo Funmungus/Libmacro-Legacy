@@ -30,7 +30,7 @@ namespace mcr
 {
 static unsigned int _initCount = 0;
 static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
-			      unsigned char *deleteBuffer = NULL) MCR_THROWS
+			      unsigned char *deleteBuffer = NULL)
 {
 	int err = errno;
 	if (!err)
@@ -50,7 +50,7 @@ static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
 int SafeString::encrypt(const char *plainText, size_type pLen,
 			const unsigned char key[],
 			const unsigned char iv[], unsigned char tagOut[],
-			unsigned char *bufferOut) MCR_THROWS
+			unsigned char *bufferOut)
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
@@ -123,7 +123,7 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 size_type SafeString::decrypt(const unsigned char *encrypted,
 			      int encryptedLength,
 			      const unsigned char key[], const unsigned char iv[],
-			      const unsigned char tag[], char *bufferOut) MCR_THROWS
+			      const unsigned char tag[], char *bufferOut)
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
@@ -197,7 +197,7 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 }
 
 void SafeString::randomize(unsigned char *bufferOut,
-			   int bufferSize) MCR_THROWS
+			   int bufferSize)
 {
 	if (!RAND_bytes(bufferOut, bufferSize)) {
 		localOnErr();
@@ -206,7 +206,7 @@ void SafeString::randomize(unsigned char *bufferOut,
 }
 
 void SafeString::sha(const char *text, size_type length,
-		     unsigned char bufferOut[]) MCR_THROWS
+		     unsigned char bufferOut[])
 {
 	SHA256_CTX ctx;
 	if (!text) {
@@ -226,7 +226,7 @@ void SafeString::sha(const char *text, size_type length,
 	}
 }
 
-void SafeString::initialize() MCR_THROWS
+void SafeString::initialize()
 {
 	if (!_initCount++) {
 		OPENSSL_no_config();
@@ -249,7 +249,7 @@ void SafeString::initialize() MCR_THROWS
 	}
 }
 
-void SafeString::deinitialize() MCR_THROWS
+void SafeString::deinitialize()
 {
 	if (!--_initCount) {
 //		ERR_free_strings();
