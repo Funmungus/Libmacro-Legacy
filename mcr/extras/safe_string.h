@@ -57,7 +57,7 @@ public:
 	 * \param obj String object which is requesting a key
 	 * \param keyOut Return a reference to the key
 	 */
-	virtual void key(const SafeString *obj,
+	virtual void key(const void *obj,
 			 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) = 0;
 	/*!
 	 * \brief Remove a string object.  If the key function is called again
@@ -65,7 +65,7 @@ public:
 	 *
 	 * \param obj String object to remove key for
 	 */
-	virtual void deregister(const SafeString *obj) = 0;
+	virtual void deregister(const void *obj) = 0;
 	/*!
 	 * \brief \ref SafeString::generateKey
 	 * \param keyOut Buffer to write key to
