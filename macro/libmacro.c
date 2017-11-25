@@ -76,48 +76,36 @@ int mcr_initialize(struct mcr_context *ctx,
 	}
 	mcr_set_error(0);
 	memset(ctx, 0, sizeof(struct mcr_context));
-	dprint("Loading signal module\n");
 	/* No error functions yet on stack */
 	if ((err = mcr_signal_initialize(ctx)))
 		return err;
 	++stackCount;
-	dprint("Loading trigger module\n");
 	if ((err = mcr_macro_initialize(ctx)))
 		return local_err(ctx, err, errStack, stackCount);
 	++stackCount;
-	dprint("Loading standard types\n");
 	if ((err = mcr_standard_initialize(ctx)))
 		return local_err(ctx, err, errStack, stackCount);
 	++stackCount;
-	dprint("Loading intercept module\n");
 	if ((err = mcr_intercept_initialize(ctx)))
 		return local_err(ctx, err, errStack, stackCount);
 	++stackCount;
 	if (flagLoadContracts) {
-		dprint("Loading contracts\n");
 		if ((err = mcr_load_contracts(ctx)))
 			return local_err(ctx, err, errStack, stackCount);
 	}
 	if (flagTrimFinish) {
-		dprint("Trimming allocation\n");
 		mcr_trim(ctx);
 	}
-	dprint("Initialization complete\n");
 	return 0;
 }
 
 int mcr_deinitialize(struct mcr_context *ctx)
 {
 	mcr_set_error(0);
-	dprint("Cleaning intercept module\n");
 	mcr_intercept_deinitialize(ctx);
-	dprint("Cleaning standard module\n");
 	mcr_standard_deinitialize(ctx);
-	dprint("Cleaning macro module\n");
 	mcr_macro_deinitialize(ctx);
-	dprint("Cleaning signal module\n");
 	mcr_signal_deinitialize(ctx);
-	dprint("Cleaning complete\n");
 	return mcr_error();
 }
 

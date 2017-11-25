@@ -72,3 +72,5 @@ none {
 		standard/none/nstandard_names.c \
 		standard/none/nmods.c
 }
+
+include(../installs.pri)

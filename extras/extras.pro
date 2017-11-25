@@ -73,3 +73,5 @@ none {
 # using ssl libs
 SOURCES += \
 	ssl/nsafe_string.cpp
+
+include(../installs.pri)
