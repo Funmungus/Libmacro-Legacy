@@ -27,10 +27,17 @@
 #define MCR_SIGNAL_MOD_SIGNAL_H
 
 #include "mcr/util/util.h"
+#include "mcr/signal/dispatcher.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct mcr_GenericDispatcher {
+	struct mcr_Dispatcher dispatcher;
+	struct mcr_Array receivers;
+	struct mcr_Map signal_receivers;
+};
 
 struct mcr_ISignal;
 struct mcr_Dispatcher;
@@ -48,6 +55,11 @@ struct mcr_mod_signal {
 	 * \brief Generic dispatcher which may be used after the specific
 	 * dispatcher has been called */
 	struct mcr_Dispatcher *dispatcher_generic_pt;
+	/*!
+	 * \brief Default generic dispatcher with logic for all dispatches,
+	 * and signal reference-specific.
+	 */
+	struct mcr_GenericDispatcher generic_dispatcher;
 	/*! \brief All modifiers known by Libmacro to be set */
 	unsigned int internal_mods;
 	/*! \brief Map from modifiers to names */
