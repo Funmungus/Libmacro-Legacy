@@ -46,7 +46,7 @@ static struct mcr_Signal *_signal_set[] = { &_echoSig, &_keySig, &_mcSig,
 	       &_scrSig
 };
 
-static const DWORD _echo_WM[] = {
+static const WPARAM _echo_WM[] = {
 	WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MBUTTONDOWN,
 	WM_MBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP,
 	WM_XBUTTONDOWN, WM_XBUTTONUP
@@ -163,30 +163,37 @@ static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 		DWORD flags = p->flags;
 		WORD delta = GET_WHEEL_DELTA_WPARAM
 			     ((p->mouseData >> sizeof(WORD)));
-		if (wParam == WM_MOUSEMOVE) {
+		switch (wParam) {
+		case WM_MOUSEMOVE:
 			_mc.pos[MCR_X] = p->pt.x;
 			_mc.pos[MCR_Y] = p->pt.y;
 			_mc.is_justify = !(flags & MOUSE_MOVE_ABSOLUTE);
 			if (mcr_dispatch(_hook_context, &_mcSig))
 				return -1;
-		} else if (wParam == WM_MOUSEWHEEL) {
+			break;
+		case WM_MOUSEWHEEL:
 			_scr.dm[MCR_X] = 0;
 			_scr.dm[MCR_Y] = delta;
 			if (mcr_dispatch(_hook_context, &_scrSig))
 				return -1;
-		} else if (wParam == WM_MOUSEHWHEEL) {
+			break;
+		case WM_MOUSEHWHEEL:
 			_scr.dm[MCR_X] = delta;
 			_scr.dm[MCR_Y] = 0;
 			if (mcr_dispatch(_hook_context, &_scrSig))
 				return -1;
-		} else {
-			for (unsigned int i = arrlen(_echo_WM); i--;) {
-				if ((flags & _echo_WM[i])) {
-					_echo.echo = i;
-					if (mcr_dispatch(_hook_context, &_echoSig))
-						return -1;
+			break;
+		default:
+			if (wParam >= WM_MOUSEFIRST && wParam <= WM_MOUSELAST) {
+				for (unsigned int i = arrlen(_echo_WM); i--;) {
+					if (wParam == _echo_WM[i]) {
+						_echo.echo = i;
+						if (mcr_dispatch(_hook_context, &_echoSig))
+							return -1;
+					}
 				}
 			}
+			break;
 		}
 	}
 	return CallNextHookEx(nPt->grab_mouse->id, nCode, wParam, lParam);

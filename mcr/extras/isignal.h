@@ -135,7 +135,7 @@ public:
 		const char **addN = count ? new const char *[count] : NULL;
 		inst.addNames(addN,
 			      count); /* If not implemented this will do nothing \ref ISignalData.addNames */
-		ISignalRef(ptr()).registerType(inst.name(), addN, count);
+		ISignalRef(context(), ptr()).registerType(inst.name(), addN, count);
 		if (addN)
 			delete []addN;
 	}

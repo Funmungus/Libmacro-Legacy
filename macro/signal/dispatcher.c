@@ -45,7 +45,7 @@ bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 {
 	struct mcr_mod_signal *modSignal = &ctx->signal;
 	struct mcr_Dispatcher *dispPt =
-			sigPt ? sigPt->isignal->dispatcher : NULL, *genPt =
+			sigPt && sigPt->isignal ? sigPt->isignal->dispatcher : NULL, *genPt =
 				modSignal->dispatcher_generic_pt;
 	bool isGen = genPt && modSignal->dispatcher_generic_enabled;
 	unsigned int mods = modSignal->internal_mods;
