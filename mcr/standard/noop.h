@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds
  */
 
@@ -30,33 +29,32 @@
 extern "C" {
 #endif
 
-/*! \brief Pause execution in seconds and milliseconds. */
+/*! Pause execution in seconds and milliseconds. */
 struct mcr_NoOp {
-	/*! \brief Seconds */
+	/*! Seconds */
 	int sec;
-	/*! \brief Milliseconds */
+	/*! Milliseconds */
 	int msec;
 };
 
-/*! \brief Set both seconds and milliseconds. */
+/*! Set both seconds and milliseconds. */
 MCR_API void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec);
-/*!
- * \pre Signal has data member \ref mcr_NoOp
+/*! \pre Signal has data member \ref mcr_NoOp
  * \brief Pause execution in seconds and milliseconds.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_NoOp_send(struct mcr_Signal *sigPt);
-/*! \brief \ref mcr_NoOp_send */
+/*! \ref mcr_NoOp_send */
 MCR_API int mcr_NoOp_send_data(struct mcr_NoOp *dataPt);
 /* Default init, deinit, copy, and compare */
 
-/*! \brief Signal interface of \ref mcr_NoOp */
+/*! Signal interface of \ref mcr_NoOp */
 MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
-/*! \brief Signal data casted \ref mcr_NoOp * */
+/*! Signal data casted \ref mcr_NoOp * */
 #define mcr_NoOp_data(sigPt) \
 ((struct mcr_NoOp *)mcr_Instance_data(sigPt))
-/*! \brief Signal data casted \ref mcr_NoOp * */
+/*! Signal data casted \ref mcr_NoOp * */
 #define MCR_NOOP_DATA(sig) \
 ((struct mcr_NoOp *)(sig).instance.data.data)
 

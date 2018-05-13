@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref ISignal - Abstraction to \ref mcr_register a new ISignal in
  * C++.
  */
@@ -35,8 +34,7 @@
 
 namespace mcr
 {
-/*!
- * \brief \ref mcr_ISignal C++ indirection for \ref ISignalData classes
+/*! \ref mcr_ISignal C++ indirection for \ref ISignalData classes
  *
  * Usage: \n
  * \code
@@ -64,7 +62,7 @@ public:
 	{
 	}
 
-	/*! \brief \ref mcr_Interface.init */
+	/*! \ref mcr_Interface.init */
 	static int init(void *dataPt)
 	{
 		if (dataPt) {
@@ -76,7 +74,7 @@ public:
 		}
 		return 0;
 	}
-	/*! \brief \ref mcr_Interface.deinit */
+	/*! \ref mcr_Interface.deinit */
 	static int deinit(void *dataPt)
 	{
 		if (dataPt) {
@@ -88,7 +86,7 @@ public:
 		}
 		return 0;
 	}
-	/*! \brief \ref mcr_Interface.compare */
+	/*! \ref mcr_Interface.compare */
 	static int compare(const void *lhsPt, const void *rhsPt)
 	{
 		if (rhsPt) {
@@ -99,7 +97,7 @@ public:
 		}
 		return !!lhsPt;
 	}
-	/*! \brief \ref mcr_Interface.copy */
+	/*! \ref mcr_Interface.copy */
 	static int copy(void *dstPt, const void *srcPt)
 	{
 		if (!dstPt)
@@ -112,7 +110,7 @@ public:
 		return 0;
 	}
 
-	/*! \brief \ref mcr_ISignal.send */
+	/*! \ref mcr_ISignal.send */
 	static int send(mcr_Signal * signalPt)
 	{
 		dassert(signalPt->isignal);
@@ -127,7 +125,7 @@ public:
 		return 0;
 	}
 
-	/*! \brief \ref mcr_register */
+	/*! \ref mcr_register */
 	void registerType()
 	{
 		T inst;

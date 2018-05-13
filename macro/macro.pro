@@ -1,33 +1,27 @@
 TEMPLATE = lib
 TARGET = $$qtLibraryTarget(macro)
+
 CONFIG += console
-CONFIG -= app_bundle
-CONFIG -= qt
-CONFIG += thread c++11 c11
+CONFIG -= app_bundle qt
 
-include(../libmacro.pri)
 include(../common.pri)
-VERSION = $${MCR_VERSION}
+include(../installs.pri)
 
+# Windows target and linkage
 win {
-	# our name is Libmacro, use it
+	# Our name is Libmacro, use it
 	TARGET = lib$$TARGET
-	# resolve imports on windows
-	# linkage callspec
+	# import/export on windows
 	DEFINES += MCR_EXPORTS
-	# At this time Windows does not have C threads
+	# win32 libs not implicitly linked with VC
+	msvc: LIBS += -lAdvapi32 -luser32
+	# Mingw and VC < 2017 do not have C threads
 	SOURCES += util/cppthread.cpp
-	msvc {
-		LIBS += -lAdvapi32 -luser32
-	}
 }
 
-prefix=$${prefix}
-isEmpty(prefix) {
-    prefix=/usr
-}
-
-HEADERS += $$files(../mcr/*.h, false) \
+# util, signal, macro, standard, intercept
+# exclude extras headers
+HEADERS += $$files(../mcr/*.h) \
 	$$files(../mcr/lnx/*.h, true) \
 	$$files(../mcr/win/*.h, true) \
 	$$files(../mcr/none/*.h, true) \
@@ -37,7 +31,6 @@ HEADERS += $$files(../mcr/*.h, false) \
 	$$files(../mcr/standard/*.h, true) \
 	$$files(../mcr/intercept/*.h, true) \
 
-# util, signal, macro, standard, intercept
 # platform-agnostic
 SOURCES += $$files(util/*.c) \
 	$$files(signal/*.c) \
@@ -47,6 +40,8 @@ SOURCES += $$files(util/*.c) \
 	$$files(*.c)
 
 # platform-specific
+# Change to $$files when stable, which effectively hides other
+# platforms in QtCreator
 win {
 	SOURCES += \
 		util/win/npriv.c \
@@ -54,7 +49,6 @@ win {
 		intercept/win/ngrabber.c \
 		intercept/win/nintercept.c
 }
-
 lnx {
 	SOURCES += \
 		util/lnx/npriv.c \
@@ -63,7 +57,6 @@ lnx {
 		intercept/lnx/ngrabber.c \
 		intercept/lnx/nintercept.c
 }
-
 none {
 	SOURCES += \
 		util/none/npriv.c \
@@ -73,4 +66,3 @@ none {
 		standard/none/nmods.c
 }
 
-include(../installs.pri)

@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * Temporary solution. Until threading is implemented in C
  * we have to use either C++ or native threading. For standard C reference
  * please use a C11 reference.

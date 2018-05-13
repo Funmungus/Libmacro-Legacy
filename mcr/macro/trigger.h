@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_Trigger - Receive dispatch and trigger actions.
  *
  * Receive dispatch from \ref mcr_ITrigger.receive.
@@ -33,28 +32,26 @@ extern "C" {
 #endif
 
 struct mcr_Macro;
-/*! \brief Register to be triggered for \ref mcr_Signal or modifiers */
+/*! Register to be triggered for \ref mcr_Signal or modifiers */
 struct mcr_Trigger {
-	/*! \brief \ref mcr_Instance of \ref mcr_ITrigger */
+	/*! \ref mcr_Instance of \ref mcr_ITrigger */
 	union {
 		struct mcr_ITrigger *itrigger;
 		struct mcr_Instance instance;
 		struct mcr_Interface *interface;
 	};
 	/* Trigger specific */
-	/*!
-	 * \brief Function to call when triggered.
+	/*! Function to call when triggered.
 	 *
 	 * This will be called from \ref mcr_ITrigger.receive
 	 * First argument is the \ref mcr_Trigger object.
 	 */
 	mcr_Dispatcher_receive_fnc trigger;
-	/*! \brief \ref opt Object which receives trigger action */
+	/*! \ref opt Object which receives trigger action */
 	void *actor;
 };
 
-/*!
- * \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
+/*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
  * \pre \ref mcr_DispatchPair.dispatch must be \ref mcr_Trigger_receive
  * \brief \ref mcr_Dispatcher_receive_fnc for triggers
  *
@@ -69,22 +66,19 @@ struct mcr_Trigger {
 MCR_API bool mcr_Trigger_receive(void *triggerPt,
 				 struct mcr_Signal *dispatchSignal, unsigned int mods);
 
-/*!
- * \brief Data interface of trigger structures
+/*! Data interface of trigger structures
  *
  * \return Interface to manage trigger objects
  */
 MCR_API const struct mcr_Interface *mcr_Trigger_interface();
 
-/*!
- * \brief \ref mcr_Trigger ctor
+/*! \ref mcr_Trigger ctor
  *
  * \param triggerPt \ref opt \ref mcr_Trigger *
  * \return 0
  */
 MCR_API int mcr_Trigger_init(void *triggerPt);
-/*!
- * \brief \ref mcr_Trigger_init and \ref mcr_Trigger_set_all
+/*! \ref mcr_Trigger_init and \ref mcr_Trigger_set_all
  *
  * \param trigger \ref opt \ref mcr_Trigger.trigger
  * \param actor \ref opt \ref mcr_Trigger.actor
@@ -92,22 +86,19 @@ MCR_API int mcr_Trigger_init(void *triggerPt);
  */
 MCR_API struct mcr_Trigger mcr_Trigger_new(mcr_Dispatcher_receive_fnc trigger,
 		void *actor);
-/*!
- * \brief \ref mcr_Trigger dtor
+/*! \ref mcr_Trigger dtor
  *
  * \return 0
  */
 MCR_API int mcr_Trigger_deinit(void *trigPt);
-/*!
- * \brief Set initial values
+/*! Set initial values
  *
  * \param trigger \ref opt \ref mcr_Trigger.trigger
  * \param actor \ref opt \ref mcr_Trigger.actor
  */
 MCR_API void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
 				 mcr_Dispatcher_receive_fnc trigger, void *actor);
-/*!
- * \brief Set trigger dispatch to a macro, and the correct macro receiving
+/*! Set trigger dispatch to a macro, and the correct macro receiving
  * function.
  *
  * This will also install this macro into the trigger. That means
@@ -116,16 +107,14 @@ MCR_API void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
 MCR_API void mcr_Trigger_set_macro(struct mcr_Trigger *triggerPt,
 				   struct mcr_Macro *mcrPt);
 
-/*!
- * \brief \ref mcr_Instance_copy, then copy trigger and actor
+/*! \ref mcr_Instance_copy, then copy trigger and actor
  *
  * \param dstPt \ref mcr_Trigger * Destination to copy to
  * \param srcPt \ref opt \ref mcr_Trigger * Source to copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Trigger_copy(void *dstPt, const void *srcPt);
-/*!
- * \brief Compare two triggers
+/*! Compare two triggers
  *
  * \param lhsTriggerPt \ref opt mcr_Trigger *
  * \param rhsTriggerPt \ref opt mcr_Trigger *
@@ -133,8 +122,7 @@ MCR_API int mcr_Trigger_copy(void *dstPt, const void *srcPt);
  */
 MCR_API int mcr_Trigger_compare(const void *lhsTriggerPt,
 				const void *rhsTriggerPt);
-/*!
- * \brief Compare two signal references
+/*! Compare two signal references
  *
  * \param lhsPtPt \ref opt \ref mcr_Trigger **
  * \param rhsPtPt \ref opt \ref mcr_Trigger **
@@ -143,8 +131,7 @@ MCR_API int mcr_Trigger_compare(const void *lhsTriggerPt,
 MCR_API int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt);
 
 /* Dispatch utilities */
-/*!
- * \brief Add trigger as receiver and dispatch function into
+/*! Add trigger as receiver and dispatch function into
  * \ref mcr_Dispatcher_add
  *
  * \param interceptPt \ref opt Signal to determine dispatch logic
@@ -152,8 +139,7 @@ MCR_API int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt);
  */
 MCR_API int mcr_Trigger_add_dispatch(struct mcr_context *ctx,
 				     struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
-/*!
- * \brief Remove trigger from \ref mcr_Dispatcher_remove
+/*! Remove trigger from \ref mcr_Dispatcher_remove
  *
  * \param isigPt \ref opt Signal interface to find dispatcher to remove from
  * \return \ref reterr

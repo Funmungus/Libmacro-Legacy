@@ -42,6 +42,9 @@ static struct mcr_Signal _echoSig = { 0 }, _keySig = {
 	0
 };
 
+LONG _lastX = 0;
+LONG _lastY = 0;
+
 static struct mcr_Signal *_signal_set[] = { &_echoSig, &_keySig, &_mcSig,
 	       &_scrSig
 };
@@ -161,15 +164,24 @@ static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
 		DWORD flags = p->flags;
-		WORD delta = GET_WHEEL_DELTA_WPARAM
-			     ((p->mouseData >> sizeof(WORD)));
+		short delta = GET_WHEEL_DELTA_WPARAM(p->mouseData);
+		POINT current;
 		switch (wParam) {
 		case WM_MOUSEMOVE:
-			_mc.pos[MCR_X] = p->pt.x;
-			_mc.pos[MCR_Y] = p->pt.y;
-			_mc.is_justify = !(flags & MOUSE_MOVE_ABSOLUTE);
-			if (mcr_dispatch(_hook_context, &_mcSig))
-				return -1;
+			if (GetCursorPos(&current)) {
+				_mc.is_justify = !(flags & MOUSE_MOVE_ABSOLUTE);
+				if (_mc.is_justify) {
+					_mc.pos[MCR_X] = current.x - _lastX;
+					_mc.pos[MCR_Y] = current.y - _lastY;
+				} else {
+					_mc.pos[MCR_X] = current.x;
+					_mc.pos[MCR_Y] = current.y;
+				}
+				_lastX = current.x;
+				_lastY = current.y;
+				if (mcr_dispatch(_hook_context, &_mcSig))
+					return -1;
+			}
 			break;
 		case WM_MOUSEWHEEL:
 			_scr.dm[MCR_X] = 0;

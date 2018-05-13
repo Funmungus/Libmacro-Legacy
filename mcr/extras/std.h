@@ -16,11 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Resolve standard library classes
  *
- * Default to standard library, use QT if \ref nostl is defined
+ * Default to standard library, use QT if \ref MCR_NOSTL is defined
  */
 
 #ifndef __cplusplus
@@ -31,7 +30,7 @@
 #ifndef MCR_EXTRAS_STD_H
 	#define MCR_EXTRAS_STD_H
 
-	#ifdef nostl
+	#ifdef MCR_NOSTL
 		#include "mcr/extras/qt_types.h"
 	#else
 		#include "mcr/extras/stl_types.h"

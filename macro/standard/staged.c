@@ -60,10 +60,10 @@ int mcr_Staged_compare(const void *lhs, const void *rhs)
 		if (lhs) {
 			if (lhs == rhs)
 				return 0;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->stages.used,
+			if ((ret = MCR_CMP(lPt->stages.used,
 						    rPt->stages.used)))
 				return ret;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->style, rPt->style)))
+			if ((ret = MCR_CMP(lPt->style, rPt->style)))
 				return ret;
 			lSt = MCR_ARR_FIRST(lPt->stages);
 			rSt = MCR_ARR_FIRST(rPt->stages);

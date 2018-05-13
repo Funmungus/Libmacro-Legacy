@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * Set current operating permissions.
  */
 
@@ -30,8 +29,7 @@
 extern "C" {
 #endif
 
-/*!
- * \brief Disable privileges, and remove the ability to
+/*! Disable privileges, and remove the ability to
  * enable them.
  *
  * \ref mcr_is_platform

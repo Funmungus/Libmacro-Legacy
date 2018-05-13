@@ -151,15 +151,15 @@ int mcr_Stage_compare(const void *lhs, const void *rhs)
 			if ((ret = mcr_Signal_compare(&lPt->intercept,
 						      &rPt->intercept)))
 				return ret;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->modifiers,
+			if ((ret = MCR_CMP(lPt->modifiers,
 						    rPt->modifiers)))
 				return ret;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->trigger_flags,
+			if ((ret = MCR_CMP(lPt->trigger_flags,
 						    rPt->trigger_flags)))
 				return ret;
-			if ((ret = MCR_CMP_INTEGRAL(lPt->block, rPt->block)))
+			if ((ret = MCR_CMP(lPt->block, rPt->block)))
 				return ret;
-			return MCR_CMP_INTEGRAL(lPt->measurement_error,
+			return MCR_CMP(lPt->measurement_error,
 						rPt->measurement_error);
 		}
 		return -1;

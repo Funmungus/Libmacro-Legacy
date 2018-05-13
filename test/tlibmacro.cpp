@@ -4,13 +4,13 @@
 
 void TLibmacro::initTestCase()
 {
-	_ctx = mcr_allocate(false, false);
+	_ctx = mcr_allocate();
 	QVERIFY(_ctx);
-	QCOMPARE(0, mcr_error());
+	QCOMPARE(0, mcr_err);
 }
 
 void TLibmacro::cleanupTestCase()
 {
 	QCOMPARE(0, mcr_deallocate(_ctx));
-	QCOMPARE(0, mcr_error());
+	QCOMPARE(0, mcr_err);
 }

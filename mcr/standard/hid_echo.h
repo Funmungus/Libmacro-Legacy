@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_HidEcho - Simulate human interface with spatial
  * coordinates.
  */
@@ -31,24 +30,22 @@
 extern "C" {
 #endif
 
-/*! \brief Simulate human interface with spatial position activation. */
+/*! Simulate human interface with spatial position activation. */
 struct mcr_HidEcho {
-	/*! \brief \ref retind Echo code */
+	/*! \ref retind Echo code */
 	size_t echo;
 };
-/*! \brief \ref mcr_HidEcho shorthand */
+/*! \ref mcr_HidEcho shorthand */
 typedef struct mcr_HidEcho mcr_Echo;
 
-/*!
- * \pre Signal data is \ref mcr_HidEcho
+/*! \pre Signal data is \ref mcr_HidEcho
  * \brief Send human interface signal
  *
  * \param signalPt Has data member \ref mcr_HidEcho
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_send(struct mcr_Signal *signalPt);
-/*!
- * \brief \ref mcr_HidEcho_send
+/*! \ref mcr_HidEcho_send
  *
  * \ref mcr_is_platform
  * \return \ref reterr
@@ -57,27 +54,24 @@ MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
 /* Default init, deinit, copy, compare */
 
 /* Echo names */
-/*!
- * \brief Get event code from its name.
+/*! Get event code from its name.
  *
  * \param eventName \ref opt Name of echo code
  * \return Echo code, or \ref MCR_ECHO_ANY if it is not found
  */
 MCR_API size_t mcr_HidEcho_name_echo(struct mcr_context *ctx,
 				     const char *eventName);
-/*!
- * \brief Get the name of an echo code.
+/*! Get the name of an echo code.
  *
  * \param eventCode \ref mcr_HidEcho.echo
  * \return Echo name, or null if not found
  */
 MCR_API const char *mcr_HidEcho_name(struct mcr_context *ctx, size_t eventCode);
-/*! \brief Get the number of registered echo codes. */
+/*! Get the number of registered echo codes. */
 MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
 
 /* Code development */
-/*!
- * \brief Set the name mapped by an echo code.
+/*! Set the name mapped by an echo code.
  *
  * The name will also map to this echo code.
  * \param eventcode Echo code to map
@@ -86,8 +80,7 @@ MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
  */
 MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
 				 const char *eventName);
-/*!
- * \brief Add a set of names to map to an echo code.
+/*! Add a set of names to map to an echo code.
  *
  * \param eventCode Event code to add names for
  * \param addNames \ref opt Set of names to add
@@ -96,37 +89,34 @@ MCR_API int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
  */
 MCR_API int mcr_HidEcho_add(struct mcr_context *ctx, size_t eventCode,
 			    const char **addNames, size_t bufferLen);
-/*!
- * \brief \ref mcr_Echo_set_name and \ref mcr_Echo_add_names
+/*! \ref mcr_Echo_set_name and \ref mcr_Echo_add_names
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_map(struct mcr_context *ctx, size_t eventCode,
 			    const char *eventName, const char **addNames, size_t bufferLen);
-/*!
- * \brief Rename an echo code
+/*! Rename an echo code
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_reecho(struct mcr_context *ctx, size_t eventCode,
 			       size_t newCode);
-/*!
- * \brief Rename an echo code. The code is first found from its
+/*! Rename an echo code. The code is first found from its
  * old name.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_HidEcho_rename(struct mcr_context *ctx, const char *oldName,
 			       const char *newName);
-/*! \brief Minimize name allocation */
+/*! Minimize name allocation */
 MCR_API void mcr_HidEcho_trim(struct mcr_context *ctx);
-/*! \brief Remove all mapped echo codes. */
+/*! Remove all mapped echo codes. */
 MCR_API void mcr_HidEcho_clear(struct mcr_context *ctx);
 
 /* mcr_HidEcho -> mcr_Echo */
-/*! \brief \ref mcr_HidEcho_send */
+/*! \ref mcr_HidEcho_send */
 #define mcr_Echo_send mcr_HidEcho_send
-/*! \brief \ref mcr_HidEcho_send_data */
+/*! \ref mcr_HidEcho_send_data */
 #define mcr_Echo_send_data mcr_HidEcho_send_data
 #define mcr_Echo_name_echo mcr_HidEcho_name_echo
 #define mcr_Echo_name mcr_HidEcho_name
@@ -139,14 +129,14 @@ MCR_API void mcr_HidEcho_clear(struct mcr_context *ctx);
 #define mcr_Echo_trim mcr_HidEcho_trim
 #define mcr_Echo_clear mcr_HidEcho_clear
 
-/*! \brief Get the \ref mcr_ISignal of \ref mcr_HidEcho */
+/*! Get the \ref mcr_ISignal of \ref mcr_HidEcho */
 MCR_API struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx);
-/*! \brief Get the \ref mcr_ISignal of \ref mcr_HidEcho */
+/*! Get the \ref mcr_ISignal of \ref mcr_HidEcho */
 #define mcr_iEcho mcr_iHidEcho
-/*! \brief Signal data casted \ref mcr_HidEcho * */
+/*! Signal data casted \ref mcr_HidEcho * */
 #define mcr_HidEcho_data(sigPt) \
 ((struct mcr_HidEcho *)mcr_Instance_data(sigPt))
-/*! \brief Signal data casted \ref mcr_HidEcho * */
+/*! Signal data casted \ref mcr_HidEcho * */
 #define mcr_Echo_data(sigPt) mcr_HidEcho_data(sigPt)
 
 #ifdef __cplusplus

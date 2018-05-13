@@ -31,9 +31,14 @@ Libmacro::Libmacro(bool enabled)
 	  _characters(new vector<vector<Signal>>()),
 	  _enabled(false)
 {
-	int err = mcr_initialize(ptr(), true, true);
+	int err = mcr_initialize(ptr());
 	if (err)
 		throw(err);
+	if ((err = mcr_load_contracts(ptr()))) {
+		mcr_deinitialize(ptr());
+		throw(err);
+	}
+	mcr_trim(ptr());
 	/* Register */
 	_registry.push_back(this);
 	((ISignal<Alarm> *)_iAlarm)->registerType();
@@ -51,7 +56,7 @@ Libmacro::~Libmacro()
 	deinitialize();
 	/* Unregister context that is being removed */
 	for (auto iter = _registry.begin(), endPt = _registry.end(); iter != endPt;
-	     iter++) {
+		 iter++) {
 		/* Assume placed only once */
 		if (*iter == this) {
 			_registry.erase(iter);
@@ -60,8 +65,8 @@ Libmacro::~Libmacro()
 	}
 	if (isEnabled()) {
 		fprintf(stderr, "Error: Libmacro context was not disabled "
-			"before destruction.  "
-			"Threading errors may occur.\n");
+				"before destruction.  "
+				"Threading errors may occur.\n");
 		fprintf(stderr, "Warning: mcr_deinitialize errors are ignored\n");
 		mcr_deinitialize(ptr());
 	} else if ((err = mcr_deinitialize(ptr()))) {
@@ -89,7 +94,7 @@ void Libmacro::setEnabled(bool val)
 		mcr_Dispatcher_set_enabled_all(ptr(), val);
 		/* Operation not permitted if not elevated permissions */
 		if ((err = mcr_intercept_set_enabled(ptr(), val)) &&
-		    err != EPERM) {
+			err != EPERM) {
 			throw err;
 		}
 	}
@@ -125,7 +130,7 @@ const Signal *Libmacro::character(int c) const
 }
 
 void Libmacro::setCharacter(int c, const Signal *valBuffer,
-			    size_t bufferLength)
+							size_t bufferLength)
 {
 	auto mem = characters();
 	if (c < 0)
@@ -140,7 +145,7 @@ void Libmacro::setCharacter(int c, const Signal *valBuffer,
 }
 
 void Libmacro::setCharacterKey(int c, int key, long msecDelay,
-			       bool shiftFlag)
+							   bool shiftFlag)
 {
 	/* Sanity early to avoid object instances */
 	if (c < 0)
@@ -188,7 +193,7 @@ void Libmacro::setCharacterDelays(mcr_NoOp delayValue)
 	for (size_type i = 0; i < mem.size(); i++) {
 		auto sigArr = mem[i];
 		for (auto iter = sigArr.begin(), endPt = sigArr.end();
-		     iter != endPt; iter++) {
+			 iter != endPt; iter++) {
 			siggy = iter->ptr();
 			if (siggy.isignal() == isigPt) {
 				siggy.mkdata();
@@ -222,7 +227,7 @@ void Libmacro::trimCharacters()
 		/* For debugging make sure either this is already last element,
 		 * or next element is empty */
 		dassert(mem.size() == i + 1 ||
-			!mem[i + 1].size());
+				!mem[i + 1].size());
 		mem.resize(i + 1);
 	} else {
 		mem.clear();

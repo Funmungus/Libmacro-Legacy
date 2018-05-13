@@ -1,14 +1,12 @@
 TEMPLATE = lib
+
 CONFIG += console
 CONFIG -= app_bundle
-CONFIG += thread c++11 c11
 
-include(../libmacro.pri)
 include(../common.pri)
-VERSION = $${MCR_VERSION}
 
+# Compile with STL?
 nostl|stl_off {
-	DEFINES += nostl
 	QT += core
 	TARGET = $$qtLibraryTarget(macro-extras-nostl)
 } else {
@@ -16,37 +14,30 @@ nostl|stl_off {
 	TARGET = $$qtLibraryTarget(macro-extras)
 }
 
+LIBS += "-L$${OUT_PWD}/../macro$${DIR_POSTFIX}/"
+# Windows target and linkage
 win {
-	# our name is Libmacro, use it
+	# Our name is Libmacro, use it
 	TARGET = lib$$TARGET
-	# resolve imports on windows
-	# linkage callspec
+	# import/export on windows
 	DEFINES += MCR_EXTRAS_EXPORTS
-	# Resolve Libmacro main module
-	CONFIG(debug,debug|release):LIBS += -L$$OUT_PWD/../macro/debug/
-	else:LIBS += -L$$OUT_PWD/../macro/release/
 	LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
-	msvc {
-		contains(QMAKE_TARGET.arch, x86_64) {
-			LIBS += -l$$qtLibraryTarget(libcrypto64MD)
-		} else {
-			LIBS += -l$$qtLibraryTarget(libcrypto32MD)
-		}
-	} else {
-		# Ming does not require an import library
+#	msvc {
+#		contains(QMAKE_TARGET.arch, x86_64) {
+#			LIBS += -l$$qtLibraryTarget(libcrypto64MD)
+#		} else {
+#			LIBS += -l$$qtLibraryTarget(libcrypto32MD)
+#		}
+#	} else {
+		# Mingw does not require an import library
 		LIBS += -llibcrypto
-	}
+#	}
 } else {
 	# Resolve Libmacro main module
-	LIBS += -L$$OUT_PWD/../macro/
-	LIBS += -l$$qtLibraryTarget(macro)
-	unix:LIBS += -l$$qtLibraryTarget(crypto)
+	LIBS += -l$$qtLibraryTarget(macro) -l$$qtLibraryTarget(crypto)
 }
 
-prefix=$${prefix}
-isEmpty(prefix) {
-    prefix=/usr
-}
+include(../installs.pri)
 
 HEADERS += $$files(../mcr/extras/*.h, true)
 
@@ -54,6 +45,8 @@ HEADERS += $$files(../mcr/extras/*.h, true)
 SOURCES += $$files(*.cpp)
 
 # platform-specific
+# Change to $$files when stable, which effectively hides other
+# platforms in QtCreator
 lnx {
 	SOURCES += \
 		lnx/nsignal_extras.cpp \
@@ -74,4 +67,3 @@ none {
 SOURCES += \
 	ssl/nsafe_string.cpp
 
-include(../installs.pri)

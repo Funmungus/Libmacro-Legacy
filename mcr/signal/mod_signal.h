@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_mod_signal - Signal module
  *
  * In cases of extreme complexity, please break glass.
@@ -41,30 +40,27 @@ struct mcr_GenericDispatcher {
 
 struct mcr_ISignal;
 struct mcr_Dispatcher;
-/*! \brief Signal module */
+/*! Signal module */
 struct mcr_mod_signal {
-	/*! \brief \ref mcr_ISignal registry */
+	/*! \ref mcr_ISignal registry */
 	struct mcr_IRegistry isignals;
-	/*! \brief Set of \ref mcr_Dispatcher * for each signal */
+	/*! Set of \ref mcr_Dispatcher * for each signal */
 	struct mcr_Array dispatchers;
-	/*!
-	 * \brief If enabled, the generic dispatcher will be used for all
+	/*! If enabled, the generic dispatcher will be used for all
 	 * signals */
 	bool dispatcher_generic_enabled;
-	/*!
-	 * \brief Generic dispatcher which may be used after the specific
+	/*! Generic dispatcher which may be used after the specific
 	 * dispatcher has been called */
 	struct mcr_Dispatcher *dispatcher_generic_pt;
-	/*!
-	 * \brief Default generic dispatcher with logic for all dispatches,
+	/*! Default generic dispatcher with logic for all dispatches,
 	 * and signal reference-specific.
 	 */
 	struct mcr_GenericDispatcher generic_dispatcher;
-	/*! \brief All modifiers known by Libmacro to be set */
+	/*! All modifiers known by Libmacro to be set */
 	unsigned int internal_mods;
-	/*! \brief Map from modifiers to names */
+	/*! Map from modifiers to names */
 	struct mcr_Map map_mod_name;
-	/*! \brief Map from names to modifiers */
+	/*! Map from names to modifiers */
 	struct mcr_Map map_name_mod;
 };
 

@@ -21,7 +21,7 @@
 namespace mcr
 {
 CtxISignal::CtxISignal(mcr::Libmacro *context, mcr_signal_fnc send,
-		       mcr_Dispatcher *dispatcher, const Interface &interface)
+					   mcr_Dispatcher *dispatcher, const Interface &interface)
 	: _context(context ? context : Libmacro::instance())
 {
 	if (!send)
@@ -42,11 +42,11 @@ CtxISignal::CtxISignal(mcr_signal_fnc send)
 }
 
 CtxDispatcher::CtxDispatcher(mcr::Libmacro *context, mcr_Dispatcher_add_fnc add,
-			     mcr_Dispatcher_fnc clear,
-			     mcr_Dispatcher_dispatch_fnc dispatch,
-			     mcr_Dispatcher_modify_fnc modifier,
-			     mcr_Dispatcher_remove_fnc remove,
-			     mcr_Dispatcher_fnc trim)
+							 mcr_Dispatcher_fnc clear,
+							 mcr_Dispatcher_dispatch_fnc dispatch,
+							 mcr_Dispatcher_modify_fnc modifier,
+							 mcr_Dispatcher_remove_fnc remove,
+							 mcr_Dispatcher_fnc trim)
 	: _context(context ? context : Libmacro::instance())
 {
 	mcr_Dispatcher_init(ptr());
@@ -59,7 +59,7 @@ CtxDispatcher::CtxDispatcher(mcr::Libmacro *context, mcr_Dispatcher_add_fnc add,
 }
 
 CtxITrigger::CtxITrigger(Libmacro *context, mcr_Dispatcher_receive_fnc receive,
-			 const Interface &interface)
+						 const Interface &interface)
 	: _context(context ? context : Libmacro::instance())
 {
 	mcr_ITrigger_init(ptr());
@@ -88,14 +88,14 @@ void Trigger::setITrigger(mcr_ITrigger *itrigger)
 }
 
 Macro::Macro(Libmacro *context, bool block, bool sticky, unsigned int threadMax,
-	     bool enable)
+			 bool enable)
 	: _context(context ? context : Libmacro::instance())
 {
 	int err;
 	if ((err = mcr_Macro_init(ptr())))
 		throw err;
 	if ((err = mcr_Macro_set_all(ptr(), block, sticky, threadMax, enable,
-				     _context->ptr())))
+								 _context->ptr())))
 		throw err;
 }
 
@@ -158,7 +158,7 @@ void Macro::resizeSignals(size_t count)
 			mcr_Signal initial;
 			mcr_Signal_init(&initial);
 			if ((err = mcr_Array_minfill(&ptr()->signal_set, count,
-						     &initial)))
+										 &initial)))
 				throw err;
 		}
 	}
@@ -185,13 +185,13 @@ void Macro::setEnabled(bool val)
 }
 
 Stage::Stage(Libmacro *ctx, bool blocking, mcr_Signal *interceptPt,
-	     unsigned int measurementError, unsigned int mods, int trigFlags)
+			 unsigned int measurementError, unsigned int mods, int trigFlags)
 	: _context(ctx ? ctx : Libmacro::instance())
 {
 	int err;
 	mcr_Stage_init(ptr());
 	err = mcr_Stage_set_all(_context->ptr(), ptr(), blocking, interceptPt,
-				measurementError, mods, trigFlags);
+							measurementError, mods, trigFlags);
 	if (err)
 		throw(err);
 }

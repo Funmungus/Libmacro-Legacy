@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Structures used by Libmacro
  */
 
@@ -34,7 +33,7 @@
 extern "C" {
 #endif
 
-/*! \brief Required for Libmacro functions */
+/*! Required library context for Libmacro functions */
 struct mcr_context {
 	struct mcr_mod_signal signal;
 	struct mcr_mod_macro macro;

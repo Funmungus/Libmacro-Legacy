@@ -28,9 +28,7 @@
 #include <vector>
 #include <map>
 
-extern "C" {
 #include "mcr/util/def.h"
-}
 #include "mcr/extras/def.h"
 
 namespace mcr

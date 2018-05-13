@@ -25,8 +25,7 @@
 extern "C" {
 #endif
 
-/*!
- * \brief Set the user id used when removing root permissions.
+/*! Set the user id used when removing root permissions.
  *
  * Linux only
  * \ref uid User id to set

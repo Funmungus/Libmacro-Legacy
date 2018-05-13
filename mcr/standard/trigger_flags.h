@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
  */
 
@@ -30,8 +29,7 @@
 extern "C" {
 #endif
 
-/*!
- * \brief Logical triggering bahavior of modifiers.
+/*! Logical triggering bahavior of modifiers.
  *
  * This will define behaviour of how modifiers may or may not trigger a
  * dispatch to receivers.\n
@@ -49,51 +47,49 @@ extern "C" {
  * 111 none, some, or all of (trigger any)
  */
 enum mcr_TriggerFlags {
-	/*! \brief Invalid flags */
+	/*! Invalid flags */
 	MCR_TF_UNDEFINED = 0,
-	/*! \brief None of this modifier may be included. */
+	/*! None of this modifier may be included. */
 	MCR_TF_NONE = 1,
-	/*! \brief Some flag of this modifier must be included, but not all. */
+	/*! Some flag of this modifier must be included, but not all. */
 	MCR_TF_SOME = 1 << 1,
-	/*! \brief Anything except an exact match */
+	/*! Anything except an exact match */
 	MCR_TF_INEQUAL = MCR_TF_NONE | MCR_TF_SOME,
-	/*! \brief All flags of this modifier must be included. */
+	/*! All flags of this modifier must be included, and not any others. */
 	MCR_TF_ALL = 1 << 2,
-	/*! \brief All or nothing match */
+	/*! All or nothing match */
 	MCR_TF_ALL_OR_NOTHING = MCR_TF_NONE | MCR_TF_ALL,
-	/*! \brief At least one mod flag matches */
+	/*! At least one mod flag matches */
 	MCR_TF_MATCH = MCR_TF_SOME | MCR_TF_ALL,
-	/*! \brief All flags set (-1 also works) */
+	/*! All flags set (-1 also works) */
 	MCR_TF_ANY = MCR_TF_NONE | MCR_TF_SOME | MCR_TF_ALL,
-	/*! \brief At this number and above may be used to extend flag logic. */
+	/*! At this number and above may be used to extend flag logic. */
 	MCR_TF_USER = MCR_TF_ANY + 1
 };
-/*! \brief Make valid \ref mcr_TriggerFlags from any number */
+/*! Make valid \ref mcr_TriggerFlags from any number */
 #define MCR_TF_mask(number) (MCR_TF_ANY & (number))
-/*!
- * \brief Remove valid \ref mcr_TriggerFlags from any number, leaving
+/*! Remove valid \ref mcr_TriggerFlags from any number, leaving
  * only user defined flags.
  */
 #define MCR_TF_user_mask(number) ((number) & (~MCR_TF_ANY))
-/*! \brief bool, \ref MCR_TF_NONE */
+/*! bool, \ref MCR_TF_NONE */
 #define MCR_TF_IS_NONE(lhs, rhs) (!((lhs) & (rhs)))
-/*! \brief bool, \ref MCR_TF_SOME */
+/*! bool, \ref MCR_TF_SOME */
 #define MCR_TF_IS_SOME(lhs, rhs) \
 ((lhs) != (rhs) && ((lhs) & (rhs)))
-/*! \brief bool, \ref MCR_TF_INEQUAL */
+/*! bool, \ref MCR_TF_INEQUAL */
 #define MCR_TF_IS_INEQUAL(lhs, rhs) ((lhs) != (rhs))
-/*! \brief bool, \ref MCR_TF_ALL */
+/*! bool, \ref MCR_TF_ALL */
 #define MCR_TF_IS_ALL(lhs, rhs) ((lhs) == (rhs))
-/*! \brief bool, \ref MCR_TF_ALL_OR_NOTHING */
+/*! bool, \ref MCR_TF_ALL_OR_NOTHING */
 #define MCR_TF_IS_ALL_OR_NOTHING(lhs, rhs) \
 (MCR_TF_IS_ALL(lhs, rhs) || MCR_TF_IS_NONE(lhs, rhs))
-/*! \brief bool, \ref MCR_TF_MATCH */
+/*! bool, \ref MCR_TF_MATCH */
 #define MCR_TF_IS_MATCH(lhs, rhs) (!!((lhs) & (rhs)))
-/*! \brief bool, \ref MCR_TF_ANY */
+/*! bool, \ref MCR_TF_ANY */
 #define MCR_TF_IS_ANY(lhs, rhs) true
 
-/*!
- * \brief Match modifiers using \ref mcr_TriggerFlags logic.
+/*! Match modifiers using \ref mcr_TriggerFlags logic.
  *
  * \param lhs uint Modifiers that must be matched
  * \param rhs uint Modifiers that are used to match

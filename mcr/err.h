@@ -16,15 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
- * Raise a compiler error
+/*! \file
+ * \brief Raise a compiler error.
+ * Usage:
+ * #include "mcr/err.h"
  */
 
 #ifdef __GNUC__
-#error Error!
+	#error Error!
 #elif __clang__
-#pragma GCC error "Error!"
-#elif _MSC_VER
-#pragma message "Error Msg: Error!"
+	#pragma GCC error "Error!"
+#else
+	/* MSVC-specific error, but will at least print a message for
+	 * unknown compilers.
+	 */
+	#pragma message "Error Msg: Error!"
 #endif

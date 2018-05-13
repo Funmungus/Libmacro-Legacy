@@ -73,9 +73,9 @@ int Command::compare(const Command &rhs) const
 	int cmp;
 	if (&rhs == this)
 		return 0;
-	if ((cmp = MCR_CMP_INTEGRAL(cryptic(), rhs.cryptic())))
+	if ((cmp = MCR_CMP(cryptic(), rhs.cryptic())))
 		return cmp;
-	if ((cmp = MCR_CMP_INTEGRAL(_argsCount, rhs._argsCount)))
+	if ((cmp = MCR_CMP(_argsCount, rhs._argsCount)))
 		return cmp;
 	if ((cmp = file.compare(rhs.file)))
 		return cmp;

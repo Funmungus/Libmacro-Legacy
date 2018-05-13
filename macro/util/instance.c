@@ -91,7 +91,7 @@ int mcr_Instance_compare(const void *lhsPt, const void *rhsPt)
 			if (lhsInst->interface == rhsInst->interface)
 				return mcr_icmp(lhsInst->interface, lhsPt,
 						rhsPt);
-			return MCR_CMP_INTEGRAL(mcr_iid(lhsInst->interface),
+			return MCR_CMP(mcr_iid(lhsInst->interface),
 						mcr_iid(rhsInst->interface));
 		}
 		return -1;

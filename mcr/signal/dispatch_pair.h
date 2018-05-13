@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_DispatchPair - Receiver and receiving function pair which
  * intercepts signals before they are sent
  */
@@ -32,8 +31,7 @@ extern "C" {
 #endif
 
 struct mcr_Signal;
-/*!
- * \brief Receive dispatch before signal is sent
+/*! Receive dispatch before signal is sent
  *
  * \param receiver Object to receive signal.  The receiver might
  * be optional for some receiving functions.
@@ -43,20 +41,18 @@ struct mcr_Signal;
  */
 typedef bool(*mcr_Dispatcher_receive_fnc) (void *receiver,
 		struct mcr_Signal * dispatchSignal, unsigned int mods);
-/*!
- * \brief Generic receiver and function that may block or intercept a sending
+/*! Generic receiver and function that may block or intercept a sending
  * signal
  *
  * Receiver is first, to compare with \ref mcr_ref_compare.
  */
 struct mcr_DispatchPair {
-	/*! \brief Object to receive signal */
+	/*! Object to receive signal */
 	void *receiver;
-	/*! \brief Function to act on receiver */
+	/*! Function to act on receiver */
 	mcr_Dispatcher_receive_fnc dispatch;
 };
-/*!
- * \brief Create new \ref mcr_DispatchPair
+/*! Create new \ref mcr_DispatchPair
  *
  * \param receiver \ref opt \ref mcr_DispatchPair.receiver
  * \param dispatch \ref opt \ref mcr_DispatchPair.dispatch
@@ -64,11 +60,10 @@ struct mcr_DispatchPair {
  */
 MCR_API struct mcr_DispatchPair mcr_DispatchPair_new(void *receiver,
 		mcr_Dispatcher_receive_fnc dispatch);
-/*! \brief Compare \ref mcr_DispatchPair, only compare receivers. */
+/*! Compare \ref mcr_DispatchPair, only compare receivers. */
 #define mcr_DispatchPair_compare mcr_ref_compare
 
-/*!
- * \brief Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
+/*! Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
  *
  * Dispatch maps should always end with this array.
  */

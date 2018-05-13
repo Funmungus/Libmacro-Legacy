@@ -118,10 +118,10 @@ int mcr_Trigger_compare(const void *lhsTriggerPt, const void *rhsTriggerPt)
 			valHolder = mcr_Instance_compare(lTrigPt, rTrigPt);
 			if (valHolder)
 				return valHolder;
-			if ((valHolder = MCR_CMP_INTEGRAL(lTrigPt->trigger,
+			if ((valHolder = MCR_CMP(lTrigPt->trigger,
 							  rTrigPt->trigger)))
 				return valHolder;
-			return MCR_CMP_INTEGRAL(lTrigPt->actor, rTrigPt->actor);
+			return MCR_CMP(lTrigPt->actor, rTrigPt->actor);
 		}
 		return -1;
 	}

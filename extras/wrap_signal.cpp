@@ -55,7 +55,7 @@ ISignalRef::ISignalRef(const char *name)
 }
 
 void ISignalRef::registerType(const char *name, const char **addNames,
-			      size_t addNamesCount)
+							  size_t addNamesCount)
 {
 	int err = 0;
 	mcr_IRegistry *regPt = mcr_ISignal_reg(_context->ptr());

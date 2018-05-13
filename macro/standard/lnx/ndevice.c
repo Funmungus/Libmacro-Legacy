@@ -207,7 +207,7 @@ int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType, int *bits,
 	dassert(devPt);
 	dassert(bits);
 	dassert(bitLen != (size_t) ~ 0);
-	return element ? mcr_Array_replace(element, bits, bitLen) : mcr_error();
+	return element ? mcr_Array_replace(element, bits, bitLen) : mcr_err;
 }
 
 struct mcr_Array *mcr_Device_bits(struct mcr_Device *devPt, int bitType)
@@ -377,8 +377,7 @@ static int device_open_event_wd(struct mcr_Device *devPt)
 				/* Event fd is set.  If it is correct, finish out. */
 				if ((isdev = device_is_event_me(devPt, dev_name,
 								isdev))) {
-					err = 0;
-					mcr_set_error(0);
+					mcr_err = err = 0;
 					break;
 				}
 				/* Incorrect dev, continue */

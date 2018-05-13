@@ -264,7 +264,7 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 			err = EINTR;
 		mset_error(err);
 		free(modArr);
-		return MCR_MOD_ANY;
+		return MCR_MF_NONE;
 	}
 	/* handle MCR_MOD_ANY as an error */
 	fixme;

@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief C++ wrappers for Libmacro structures
  *
  * All POD's not intended to subclass.  Implement different types with
@@ -37,25 +36,24 @@
 namespace mcr
 {
 /* Typedefs for things without deinit requirements */
-/*! \brief Construct with \ref mcr_Interface_new */
+/*! Construct with \ref mcr_Interface_new */
 typedef mcr_Interface Interface;
-/*! \brief Construct with \ref mcr_Instance_new */
+/*! Construct with \ref mcr_Instance_new */
 typedef mcr_Instance Instance;
-/*! \brief Construct with \ref mcr_Data_new */
+/*! Construct with \ref mcr_Data_new */
 typedef mcr_Data Data;
-/*! \brief Construct with \ref mcr_ISignal_new */
+/*! Construct with \ref mcr_ISignal_new */
 typedef mcr_ISignal CISignal;
-/*! \brief Construct with \ref mcr_ModFlags_new */
+/*! Construct with \ref mcr_ModFlags_new */
 typedef mcr_ModFlags ModFlags;
-/*! \brief Construct with \ref mcr_Dispatcher_new */
+/*! Construct with \ref mcr_Dispatcher_new */
 typedef mcr_Dispatcher Dispatcher;
-/*! \brief Construct with \ref mcr_DispatchPair_new */
+/*! Construct with \ref mcr_DispatchPair_new */
 typedef mcr_DispatchPair DispatchPair;
-/*! \brief Construct with \ref mcr_ITrigger_new */
+/*! Construct with \ref mcr_ITrigger_new */
 typedef mcr_ITrigger ITrigger;
 
-/*!
- * \brief \ref ISignal with \ref Libmacro reference
+/*! \ref ISignal with \ref Libmacro reference
  *
  * \ref mcr_CtxISignal
  * Not typedef because this is a C++ Libmacro context
@@ -63,8 +61,7 @@ typedef mcr_ITrigger ITrigger;
 struct MCR_EXTRAS_API CtxISignal {
 	mcr_ISignal isignal;
 
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param send \ref mcr_ISignal.send
 	 * \param dispatcher \ref opt mcr_ISignal.dispatcher
@@ -97,8 +94,7 @@ private:
 	Libmacro *_context;
 };
 
-/*!
- * \brief \ref Dispatcher with \ref Libmacro reference
+/*! \ref Dispatcher with \ref Libmacro reference
  *
  * \ref mcr_CtxDispatcher
  * Not typedef because this is a C++ Libmacro context
@@ -106,8 +102,7 @@ private:
 struct MCR_EXTRAS_API CtxDispatcher {
 	mcr_Dispatcher dispatcher;
 
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param add \ref mcr_Dispatcher.add
 	 * \param clear \ref opt mcr_Dispatcher.clear
@@ -144,8 +139,7 @@ private:
 	Libmacro *_context;
 };
 
-/*!
- * \brief \ref ITrigger with \ref Libmacro reference
+/*! \ref ITrigger with \ref Libmacro reference
  *
  * \ref mcr_CtxITrigger
  * Not typedef because this is a C++ Libmacro context
@@ -153,8 +147,7 @@ private:
 struct MCR_EXTRAS_API CtxITrigger {
 	mcr_ITrigger itrigger;
 
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param receive \ref opt mcr_ITrigger.receive
 	 * \param interface \ref opt mcr_ITrigger.interface
@@ -183,16 +176,14 @@ private:
 	Libmacro *_context;
 };
 
-/*!
- * \brief \ref mcr_Signal
+/*! \ref mcr_Signal
  *
  * Edit with \ref SignalRef
  */
 struct MCR_EXTRAS_API Signal {
 	mcr_Signal signal;
 
-	/*!
-	 * \param isignal \ref mcr_Signal.isignal
+	/*! \param isignal \ref mcr_Signal.isignal
 	 * \param isDispatch \ref mcr_Signal.is_dispatch
 	 */
 	Signal(mcr_ISignal *isignal = NULL, bool isDispatch = false)
@@ -205,30 +196,30 @@ struct MCR_EXTRAS_API Signal {
 	{
 		mcr_Signal_deinit(ptr());
 	}
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	Signal(const Signal &copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(copytron.ptr());
 	}
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	Signal(const mcr_Signal &copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(&copytron);
 	}
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	Signal(const mcr_Signal *copytron)
 	{
 		mcr_Signal_init(ptr());
 		copy(copytron);
 	}
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	inline Signal &operator =(const Signal &copytron)
 	{
 		return operator =(copytron.ptr());
 	}
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	inline Signal &operator =(const mcr_Signal &copytron)
 	{
 		return operator =(&copytron);
@@ -253,13 +244,13 @@ struct MCR_EXTRAS_API Signal {
 		return &signal;
 	}
 
-	/*! \brief Alias \ref mcr_Signal.is_dispatch */
+	/*! Alias \ref mcr_Signal.is_dispatch */
 	inline bool &isDispatch()
 	{
 		return signal.is_dispatch;
 	}
 
-	/*! \brief \ref mcr_Signal_copy */
+	/*! \ref mcr_Signal_copy */
 	void copy(const mcr_Signal *copytron)
 	{
 		int err;
@@ -268,20 +259,18 @@ struct MCR_EXTRAS_API Signal {
 				throw err;
 		}
 	}
-	/*! \brief \ref mcr_Signal_deinit + set \ref mcr_Signal.isignal */
+	/*! \ref mcr_Signal_deinit + set \ref mcr_Signal.isignal */
 	void setISignal(mcr_ISignal *isignal);
 };
 
-/*!
- * \brief \ref mcr_Trigger
+/*! \ref mcr_Trigger
  *
  * Edit with \ref TriggerRef
  */
 struct MCR_EXTRAS_API Trigger {
 	mcr_Trigger trigger;
 
-	/*!
-	 * \param itrigger \ref mcr_Trigger.itrigger
+	/*! \param itrigger \ref mcr_Trigger.itrigger
 	 * \param trigger \ref mcr_Trigger.trigger
 	 * \param actor \ref mcr_Trigger.actor
 	 */
@@ -297,41 +286,41 @@ struct MCR_EXTRAS_API Trigger {
 	{
 		mcr_Trigger_deinit(ptr());
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	Trigger(const Trigger &copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(copytron.ptr());
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	Trigger(const mcr_Trigger &copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(&copytron);
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	Trigger(const mcr_Trigger *copytron)
 	{
 		mcr_Trigger_init(ptr());
 		copy(copytron);
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	inline Trigger &operator =(const Trigger &copytron)
 	{
 		return operator =(copytron.ptr());
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	inline Trigger &operator =(const mcr_Trigger &copytron)
 	{
 		return operator =(&copytron);
 	}
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	inline Trigger &operator =(const mcr_Trigger *copytron)
 	{
 		copy(copytron);
 		return *this;
 	}
-	/*! \brief \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
+	/*! \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
 	inline Trigger &operator =(mcr_ITrigger *itrigger)
 	{
 		setITrigger(itrigger);
@@ -347,7 +336,7 @@ struct MCR_EXTRAS_API Trigger {
 		return &trigger;
 	}
 
-	/*! \brief \ref mcr_Trigger_copy */
+	/*! \ref mcr_Trigger_copy */
 	void copy(const mcr_Trigger *copytron)
 	{
 		int err;
@@ -356,12 +345,11 @@ struct MCR_EXTRAS_API Trigger {
 				throw err;
 		}
 	}
-	/*! \brief \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
+	/*! \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
 	void setITrigger(mcr_ITrigger *itrigger);
 };
 
-/*!
- * \brief \ref mcr_Macro
+/*! \ref mcr_Macro
  *
  * Edit with \ref MacroRef
  */

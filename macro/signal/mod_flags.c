@@ -23,7 +23,7 @@
 unsigned int mcr_ModFlags_modifier(struct mcr_context *ctx, const char *name)
 {
 	unsigned int *found = mcr_Map_value(&ctx->signal.map_name_mod, &name);
-	return found ? *found : MCR_MOD_ANY;
+	return found ? *found : MCR_MF_NONE;
 }
 
 const char *mcr_ModFlags_name(struct mcr_context *ctx, unsigned int modifier)

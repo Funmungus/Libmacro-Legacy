@@ -18,8 +18,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * C11 threads.h file wrapper based on project
  * https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
  * by the compiler, we will wrap pthread function calls (required to link

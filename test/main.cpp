@@ -2,7 +2,8 @@
 #include "tlibmacro.h"
 #include "signal/tgendispatch.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	TLibmacro tlibmacro;
 	TGenDispatch tgendispatch;
 	QTest::qExec(&tlibmacro, argc, argv);

@@ -32,10 +32,10 @@ void Command::send()
 	STARTUPINFOA sInfo;
 	PROCESS_INFORMATION pInfo;
 	if (!file.length()) {
-		mcr_set_error(ENOENT);
+		mcr_err = ENOENT;
 		throw(ENOENT);
 	}
-	mcr_set_error(0);
+	mcr_err = 0;
 	std::memset(&sInfo, 0, sizeof(sInfo));
 	std::memset(&pInfo, 0, sizeof(pInfo));
 	cmdline = "\"" + file.text() + "\"";
@@ -49,15 +49,15 @@ void Command::send()
 	/* Create as user, lower securty rights */
 	fixme;
 	if (!CreateProcessA(NULL, bytes(cmdline), NULL, NULL, FALSE,
-			    PROFILE_USER | DETACHED_PROCESS | NORMAL_PRIORITY_CLASS,
-			    NULL, NULL, &sInfo, &pInfo)) {
+						PROFILE_USER | DETACHED_PROCESS | NORMAL_PRIORITY_CLASS,
+						NULL, NULL, &sInfo, &pInfo)) {
 		winerr;
 		err = errno;
 		if (!err)
 			err = EINTR;
 		mset_error(err);
 	} else if (WaitForSingleObject(pInfo.hProcess,
-				       MCR_INTERCEPT_WAIT_MILLIS) != WAIT_OBJECT_0) {
+								   MCR_INTERCEPT_WAIT_MILLIS) != WAIT_OBJECT_0) {
 		winerr;
 		err = errno;
 		if (!err)

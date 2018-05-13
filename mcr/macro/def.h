@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Definitions for macros
  */
 
@@ -27,8 +26,7 @@
 #include "mcr/signal/signal.h"
 
 #ifndef MCR_THREAD_MAX
-	/*!
-	* \brief Maximum thread count for macros
+	/*! Maximum thread count for macros
 	*
 	* For better security macros will never create more than this number of
 	* threads
@@ -37,16 +35,14 @@
 #endif
 
 #ifndef MCR_MACRO_JOIN_TIMEOUT
-	/*!
-	* \brief Seconds to wait for macros to respond when they are being
+	/*! Seconds to wait for macros to respond when they are being
 	* interrupted or paused
 	*/
 	#define MCR_MACRO_JOIN_TIMEOUT 2
 #endif
 
 #ifndef MCR_MAX_PAUSE_COUNT
-	/*!
-	* \brief The number of times a macro will wait while paused until it resumes
+	/*! The number of times a macro will wait while paused until it resumes
 	*/
 	#define MCR_MAX_PAUSE_COUNT 5
 #endif

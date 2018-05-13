@@ -51,7 +51,7 @@ int SafeString::compare(const SafeString &rhs) const
 	mcr::string lMem, rMem;
 	if (&rhs == this)
 		return 0;
-	if ((cmp = MCR_CMP_INTEGRAL(cryptic(), rhs.cryptic())))
+	if ((cmp = MCR_CMP(cryptic(), rhs.cryptic())))
 		return cmp;
 	lMem = text();
 	rMem = rhs.text();
@@ -145,7 +145,7 @@ size_type SafeString::text(char *bufferOut) const
 	if (!key)
 		throw EFAULT;
 	return decrypt(_encrypted, _encryptedBytes, key, _iv,
-		       stateless() ? NULL : _tag, bufferOut);
+				   stateless() ? NULL : _tag, bufferOut);
 }
 
 void SafeString::setText(const char *str, size_t len)
@@ -173,7 +173,7 @@ void SafeString::setText(const char *str, size_t len)
 			_encrypted = new unsigned char[_encryptedBufferSize];
 		}
 		_encryptedBytes = encrypt(str, len, key, _iv,
-					  stateless() ? NULL : _tag, _encrypted);
+								  stateless() ? NULL : _tag, _encrypted);
 		/* Error, but encrypt function will throw an error so this will
 		 * not be used */
 		if (_encryptedBytes == -1)

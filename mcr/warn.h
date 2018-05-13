@@ -16,15 +16,19 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
- * Raise a compiler warning
+/*! \file
+ * \brief Raise a compiler warning
+ * Usage:
+ * #include "mcr/warn.h"
  */
 
 #ifdef __GNUC__
-#warning Warning!
+	#warning Warning!
 #elif __clang__
-#pragma GCC warning "Warning!"
+	#pragma GCC warning "Warning!"
 #else
-#pragma message "Warning Msg: Warning!"
+	/* MSVC-specific warning, but will at least print a message for
+	 * unknown compilers.
+	 */
+	#pragma message "Warning Msg: Warning!"
 #endif

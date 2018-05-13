@@ -58,7 +58,7 @@ int mcr_signal_deinitialize(struct mcr_context *ctx)
 {
 	struct mcr_mod_signal *modSignal = &ctx->signal;
 	dassert(ctx);
-	mcr_set_error(0);
+	mcr_err = 0;
 	mcr_Array_deinit(&modSignal->dispatchers);
 	mcr_Map_deinit(&modSignal->map_mod_name);
 	mcr_Map_deinit(&modSignal->map_name_mod);
@@ -70,7 +70,7 @@ int mcr_signal_deinitialize(struct mcr_context *ctx)
 			modSignal->dispatcher_generic_pt->trim(modSignal->dispatcher_generic_pt);
 	}
 	gendisp_deinit(&modSignal->generic_dispatcher);
-	return mcr_error();
+	return mcr_err;
 }
 
 int mcr_signal_load_contract(struct mcr_context *ctx)
@@ -87,10 +87,10 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 				   "Graph", "Hyper", "Meta", "Shift", "Super",
 				   "Symbol", "Top", "Win", "User"
 				 };
-	unsigned int addMods[6] = { MCR_MOD_ANY,
+	unsigned int addMods[6] = { //MCR_MOD_ANY,
 				    MCR_ALT, MCR_ALTGR, MCR_CMD, MCR_CTRL, MCR_WIN
 				  };
-	const char *addNames[][2] = { {"Any", ""},
+	const char *addNames[][2] = { //{"Any", ""},
 		{"Option", ""}, {"Alt Gr", "alt_gr"}, {"Command", ""},
 		{"Control", ""}, {"Window", "Windows"}
 	};
@@ -164,7 +164,7 @@ static int gendisp_add(void *dispPt,
 		elementPt = mcr_Map_element_ensured(&genDisp->signal_receivers,
 					  &sigPt);
 		if (!elementPt)
-			return mcr_error();
+			return mcr_err;
 		return mcr_Array_add(MCR_MAP_VALUEOF(genDisp->signal_receivers, elementPt), &disp, 1, true);
 	}
 	return mcr_Array_add(&genDisp->receivers, &disp, 1, true);
@@ -173,10 +173,10 @@ static int gendisp_add(void *dispPt,
 static int gendisp_clear(void *dispPt)
 {
 	struct mcr_GenericDispatcher *genDisp = dispPt;
-	mcr_set_error(0);
+	mcr_err = 0;
 	mcr_Map_clear(&genDisp->signal_receivers);
 	mcr_Array_clear(&genDisp->receivers);
-	return mcr_error();
+	return mcr_err;
 }
 
 static bool gendisp_dispatch(void *dispPt,
@@ -189,7 +189,7 @@ static bool gendisp_dispatch(void *dispPt,
 
 	struct mcr_GenericDispatcher *genDisp = dispPt;
 	struct mcr_Array *arrPt = mcr_Map_value(&genDisp->signal_receivers, &sigPt);
-	mcr_set_error(0);
+	mcr_err = 0;
 	if (arrPt) {
 		MCR_ARR_FOR_EACH(*arrPt, localDispAll);
 	}
@@ -208,19 +208,19 @@ static void gendisp_modifier(void *dispPt,
 static int gendisp_remove(void *dispPt, void *remReceiver)
 {
 	struct mcr_GenericDispatcher *genDisp = dispPt;
-	mcr_set_error(0);
+	mcr_err = 0;
 #define localRemove(itPt) \
 	mcr_Array_remove((struct mcr_Array *)itPt, &remReceiver);
 	MCR_MAP_FOR_EACH_VALUE(genDisp->signal_receivers, localRemove);
 	mcr_Array_remove(&genDisp->receivers, &remReceiver);
-	return mcr_error();
+	return mcr_err;
 }
 
 static int gendisp_trim(void *dispPt)
 {
 	struct mcr_GenericDispatcher *genDisp = dispPt;
-	mcr_set_error(0);
+	mcr_err = 0;
 	mcr_Map_trim(&genDisp->signal_receivers);
 	mcr_Array_trim(&genDisp->receivers);
-	return mcr_error();
+	return mcr_err;
 }

@@ -27,8 +27,16 @@
 	#include <shlobj.h>
 #endif
 
-#define winerr \
-ddo(fprintf(stderr, "Windows Error: %ld\n", GetLastError()));
+/*! Print windows error, \ref mcr_errno, and set err to mcr_err
+ *
+ * Do not change original error of mcr_err */
+#define winerr(err, fallbackError) { \
+	ddo(fprintf(stderr, "Windows Error: %ld\n", GetLastError())); \
+	if (!mcr_err) { \
+		mcr_errno(fallbackError) \
+		err = mcr_err; \
+	} \
+}
 
 static bool mcr_is_privileged();
 static int enable_impl(struct mcr_Grabber *grabPt, bool enable);
@@ -40,12 +48,13 @@ static int disable_impl(struct mcr_Grabber *grabPt);
 
 int mcr_Grabber_init(void *grabDataPt)
 {
+	int err = 0;
 	struct mcr_Grabber *grabPt = grabDataPt;
 	if (grabPt) {
 		memset(grabPt, 0, sizeof(struct mcr_Grabber));
 		if (!(grabPt->hMutex = CreateMutex(NULL, FALSE, NULL))) {
-			winerr;
-			return mset_errno(EINTR);
+			winerr(err, EINTR);
+			return err;
 		}
 	}
 	return 0;
@@ -54,21 +63,19 @@ int mcr_Grabber_init(void *grabDataPt)
 int mcr_Grabber_deinit(void *grabDataPt)
 {
 	bool locked;
-	int err = 0;
 	struct mcr_Grabber *grabPt = grabDataPt;
+	int err = 0;
 	if (!grabPt)
 		return 0;
 
 	locked = WaitForSingleObject(grabPt->hMutex,
-				     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+								 MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	if (!locked) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	disable_impl(grabPt);
 	if (!CloseHandle(grabPt->hMutex)) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	memset(grabPt, 0, sizeof(struct mcr_Grabber));
 	return err;
@@ -91,20 +98,25 @@ int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable)
 	int err = 0;
 	bool locked;
 	dassert(grabPt);
+	/* No change, no need to lock */
+	if (MCR_GRABBER_IS_ENABLED(*grabPt) == enable)
+		return 0;
+	/* Cannot grab without permissions, so no need to lock */
 	if (!mcr_is_privileged()) {
 		mset_error(EPERM);
 		return EPERM;
 	}
 	locked = WaitForSingleObject(grabPt->hMutex,
-				     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+								 MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	if (!locked) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	err = enable_impl(grabPt, enable);
+	/* Previous error, but not fatal */
+	if (!err && !locked)
+		err = mcr_err;
 	if (locked && !ReleaseMutex(grabPt->hMutex)) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	return err;
 }
@@ -122,15 +134,20 @@ static bool mcr_is_privileged()
 	HANDLE hToken = NULL;
 	if(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
 		TOKEN_ELEVATION Elevation;
-		DWORD cbSize = sizeof(TOKEN_ELEVATION);
-		if(GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation),
-				       &cbSize)) {
+		DWORD uiAccess = 0;
+		DWORD cbSize = sizeof(DWORD);
+		/* Intended use, uiAccess */
+		if(GetTokenInformation(hToken, TokenUIAccess, &uiAccess, sizeof(DWORD),
+							   &cbSize))
+			fRet = !!uiAccess;
+		/* Another possibility is Admin */
+		if(!fRet && GetTokenInformation(hToken, TokenElevation, &Elevation,
+										sizeof(Elevation),
+										&cbSize))
 			fRet = Elevation.TokenIsElevated;
-		}
 	}
-	if(hToken) {
+	if(hToken)
 		CloseHandle(hToken);
-	}
 	return fRet;
 #else
 	return !!IsUserAnAdmin();
@@ -147,33 +164,31 @@ static int enable_impl(struct mcr_Grabber *grabPt, bool enable)
 		 * an intercepting thread. */
 		if (!isEnabled) {
 			if (grabPt->hThread) {
-				err = mset_errno(EPERM);
+				winerr(err, EPERM);
 				CloseHandle(grabPt->hThread);
 				grabPt->hThread = NULL;
 				grabPt->dwThread = 0;
 			}
 			if (!(grabPt->hThread = CreateThread(NULL, 0,
-							     (LPTHREAD_START_ROUTINE)
-							     thread_receive_hooking,
-							     (LPVOID) grabPt, 0,
-							     &grabPt->dwThread))) {
-				winerr;
-				err = mset_errno(EINTR);
+												 (LPTHREAD_START_ROUTINE)
+												 thread_receive_hooking,
+												 (LPVOID) grabPt, 0,
+												 &grabPt->dwThread))) {
+				winerr(err, EINTR);
 			}
 		}
 	} else if (isEnabled) {
 		DWORD dwThread = 0;
 		/* Disabling from intercepting thread would block */
 		HANDLE hThread = CreateThread(NULL, 0,
-					      (LPTHREAD_START_ROUTINE) thread_disable,
-					      (LPVOID) grabPt, 0, &dwThread);
+									  (LPTHREAD_START_ROUTINE) thread_disable,
+									  (LPVOID) grabPt, 0, &dwThread);
 		if (!hThread) {
-			winerr;
-			return mset_errno(EINTR);
+			winerr(err, EINTR);
+			return err;
 		}
 		if (!CloseHandle(hThread)) {
-			winerr;
-			err = mset_errno(EINTR);
+			winerr(err, EINTR);
 		}
 	}
 	return err;
@@ -193,16 +208,15 @@ static int grab_hook(struct mcr_Grabber *grabPt)
 			return EPERM;
 		}
 		if (!(grabPt->hModule = GetModuleHandle(NULL))) {
-			winerr;
-			return mset_errno(EINTR);
+			winerr(err, EINTR);
+			return err;
 		}
 		/* This can return null if invalid values. */
 		/* Will also be null if admin permissions are not raised */
 		if (!(grabPt->id = SetWindowsHookEx(grabPt->type,
-						    grabPt->proc, grabPt->hModule,
-						    0))) {
-			winerr;
-			err = mset_errno(EINTR);
+											grabPt->proc, grabPt->hModule,
+											0))) {
+			winerr(err, EINTR);
 			grabPt->hModule = NULL;
 		}
 	}
@@ -215,8 +229,7 @@ static int grab_unhook(struct mcr_Grabber *grabPt)
 	dassert(grabPt);
 	if (MCR_GRABBER_IS_ENABLED(*grabPt)) {
 		if (!UnhookWindowsHookEx(grabPt->id)) {
-			winerr;
-			err = mset_errno(EINTR);
+			winerr(err, EINTR);
 		}
 		grabPt->id = 0;
 		grabPt->hModule = NULL;
@@ -229,7 +242,7 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 	struct mcr_Grabber *me = (struct mcr_Grabber *)lpParam;
 	MSG message;
 	bool locked = WaitForSingleObject(me->hMutex,
-					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+									  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	int err = grab_hook(me);
 	if (locked)
 		ReleaseMutex(me->hMutex);
@@ -240,8 +253,8 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 	memset(&message, 0, sizeof(message));
 	while (MCR_GRABBER_IS_ENABLED(*me)) {
 		if (MsgWaitForMultipleObjects(0, NULL, FALSE,
-					      MCR_INTERCEPT_WAIT_MILLIS, QS_ALLINPUT)
-		    == WAIT_OBJECT_0) {
+									  MCR_INTERCEPT_WAIT_MILLIS, QS_ALLINPUT)
+			== WAIT_OBJECT_0) {
 			while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
 				TranslateMessage(&message);
 				DispatchMessage(&message);
@@ -251,17 +264,16 @@ static DWORD WINAPI thread_receive_hooking(LPVOID lpParam)
 
 	if (!MCR_GRABBER_IS_ENABLED(*me)) {
 		locked = WaitForSingleObject(me->hMutex,
-					     MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+									 MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 		if (!locked) {
-			winerr;
-			err = mset_errno(EINTR);
+			winerr(err, EINTR);
 		}
-		if ((err = grab_unhook(me))) {
-			mset_error(err);
-		}
+		err = grab_unhook(me);
+		/* Previous error, but not fatal */
+		if (!err && !locked)
+			err = mcr_err;
 		if (locked && !ReleaseMutex(me->hMutex)) {
-			winerr;
-			err = mset_errno(EINTR);
+			winerr(err, EINTR);
 		}
 	}
 	return err;
@@ -272,15 +284,16 @@ static DWORD WINAPI thread_disable(LPVOID lpParam)
 	struct mcr_Grabber *grabPt = (struct mcr_Grabber *)lpParam;
 	int err = 0;
 	bool locked = WaitForSingleObject(grabPt->hMutex,
-					  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
+									  MCR_INTERCEPT_WAIT_MILLIS) == WAIT_OBJECT_0;
 	if (!locked) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	err = disable_impl(grabPt);
+	/* Previous error, but not fatal */
+	if (!err && !locked)
+		err = mcr_err;
 	if (locked && !ReleaseMutex(grabPt->hMutex)) {
-		winerr;
-		err = mset_errno(EINTR);
+		winerr(err, EINTR);
 	}
 	return err;
 }
@@ -291,8 +304,7 @@ static int disable_impl(struct mcr_Grabber *grabPt)
 
 	if (grabPt->hThread) {
 		if (!CloseHandle(grabPt->hThread)) {
-			winerr;
-			err = mset_errno(EINTR);
+			winerr(err, EINTR);
 		}
 		grabPt->hThread = NULL;
 		grabPt->dwThread = 0;

@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Standard signal and trigger types
  *
  * \ref mcr_Signal data types: \ref mcr_HidEcho,
@@ -48,14 +47,12 @@ extern "C" {
 #endif
 
 /* Some extra, possibly useful, utilities */
-/*!
- * \brief For both positions, either may be 0, or the same coordinate
+/*! For both positions, either may be 0, or the same coordinate
  * array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
 				     const mcr_Dimensions second);
-/*!
- * \brief For both positions, the same coordinate array member must
+/*! For both positions, the same coordinate array member must
  * be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,

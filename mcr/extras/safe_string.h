@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref SafeString - A string that can be encrypted in memory
  * \ref IKeyProvider - Application-defined objects that store encryption
  * keys to be used by SafeString.
@@ -44,13 +43,12 @@
 namespace mcr
 {
 class SafeString;
-/*! \brief Get an encryption key for a specific string object */
+/*! Get an encryption key for a specific string object */
 class MCR_EXTRAS_API IKeyProvider
 {
 public:
 	virtual ~IKeyProvider() {}
-	/*!
-	 * \brief Get an encryption key for a specific string object
+	/*! Get an encryption key for a specific string object
 	 *
 	 * If the object is not yet registered the key should be generated
 	 * before given to the string object.
@@ -59,20 +57,17 @@ public:
 	 */
 	virtual void key(const void *obj,
 			 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) = 0;
-	/*!
-	 * \brief Remove a string object.  If the key function is called again
+	/*! Remove a string object.  If the key function is called again
 	 * the key should be regenerated.
 	 *
 	 * \param obj String object to remove key for
 	 */
 	virtual void deregister(const void *obj) = 0;
-	/*!
-	 * \brief \ref SafeString::generateKey
+	/*! \ref SafeString::generateKey
 	 * \param keyOut Buffer to write key to
 	 */
 	static inline void generate(unsigned char keyOut[MCR_AES_BLOCK_SIZE]);
-	/*!
-	 * \brief \ref SafeString::sha
+	/*! \ref SafeString::sha
 	 * \param text Plain text to compute hash for
 	 * \param bufferOut Write hash to this buffer
 	 */
@@ -80,12 +75,11 @@ public:
 			       unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
 };
 
-/*! \brief A string that can be encrypted in memory */
+/*! A string that can be encrypted in memory */
 class MCR_EXTRAS_API SafeString
 {
 public:
-	/*!
-	 * \param keyProvider \ref opt Provider of encryption keys.  If null then
+	/*! \param keyProvider \ref opt Provider of encryption keys.  If null then
 	 * encryption is not possible and text will remain plain text.
 	 * \param str \ref opt Initial text
 	 * \param cryptic \ref opt Initial encryption state
@@ -126,8 +120,7 @@ public:
 		return *this;
 	}
 
-	/*!
-	 * \brief Plain text => encrypted text
+	/*! Plain text => encrypted text
 	 *
 	 * \param plainText String to be encrypted
 	 * \param key Encryption key, randomized bytes or hashed password
@@ -149,8 +142,7 @@ public:
 	{
 		return encrypt(bytes(plainText), plainText.size(), key, iv, tagOut, bufferOut);
 	}
-	/*!
-	 * \brief \ref mcr_is_platform Plain text => encrypted text
+	/*! \ref mcr_is_platform Plain text => encrypted text
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
@@ -160,8 +152,7 @@ public:
 			   const unsigned char key[MCR_AES_BLOCK_SIZE],
 			   const unsigned char iv[MCR_AES_IV_SIZE],
 			   unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut);
-	/*!
-	 * \brief Encrypted text => plain text
+	/*! Encrypted text => plain text
 	 *
 	 * \param encrypted Encrypted bytes to decrypt as a string
 	 * \param encryptedLength Bytes to decrypt from encrypted string
@@ -196,8 +187,7 @@ public:
 		delete []buffer;
 		return ret;
 	}
-	/*!
-	 * \brief \ref mcr_is_platform Encrypted text => plain text
+	/*! \ref mcr_is_platform Encrypted text => plain text
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
@@ -207,8 +197,7 @@ public:
 			      const unsigned char key[MCR_AES_BLOCK_SIZE],
 			      const unsigned char iv[MCR_AES_IV_SIZE],
 			      const unsigned char tag[], char *bufferOut);
-	/*!
-	 * \brief \ref mcr_is_platform Output pseudo randomized bytes
+	/*! \ref mcr_is_platform Output pseudo randomized bytes
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
@@ -216,8 +205,7 @@ public:
 	 * \param bufferSize Number of bytes to write to output buffer
 	 */
 	static void randomize(unsigned char *bufferOut, int bufferSize);
-	/*!
-	 * \brief Create a SHA hash suitable to use as an encryption key
+	/*! Create a SHA hash suitable to use as an encryption key
 	 *
 	 * \param text Plain text to compute hash for
 	 * \param bufferOut Write hash to this buffer
@@ -227,30 +215,26 @@ public:
 	{
 		sha(bytes(text), text.size(), bufferOut);
 	}
-	/*!
-	 * \brief \ref mcr_is_platform Create a SHA hash suitable to use as an encryption key
+	/*! \ref mcr_is_platform Create a SHA hash suitable to use as an encryption key
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
 	static void sha(const char *text, size_t textLen,
 			unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
-	/*!
-	 * \brief \ref mcr_is_platform This is called in library initialization
+	/*! \ref mcr_is_platform This is called in library initialization
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
 	static void initialize();
-	/*!
-	 * \brief \ref mcr_is_platform This is called in library cleanup
+	/*! \ref mcr_is_platform This is called in library cleanup
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
 	static void deinitialize();
-	/*!
-	 * \brief Use randomize to generate a key
+	/*! Use randomize to generate a key
 	 * \param keyOut Byte array to use as an encryption key.
 	 */
 	static inline void generateKey(unsigned char keyOut[MCR_AES_BLOCK_SIZE])
@@ -258,8 +242,7 @@ public:
 		if (keyOut)
 			randomize(keyOut, MCR_AES_BLOCK_SIZE);
 	}
-	/*!
-	 * \brief Use randomize to generate an iv
+	/*! Use randomize to generate an iv
 	 * \param ivOut Byte array to write iv to
 	 */
 	static inline void initializer(unsigned char ivOut[MCR_AES_IV_SIZE])
@@ -268,49 +251,47 @@ public:
 			randomize(ivOut, MCR_AES_IV_SIZE);
 	}
 
-	/*! \brief Compare cryptic and \ref strcmp plain text */
+	/*! Compare cryptic and \ref strcmp plain text */
 	int compare(const SafeString &rhs) const;
 
-	/*! \brief True for encrypted, otherwise plain text */
+	/*! True for encrypted, otherwise plain text */
 	inline bool cryptic() const
 	{
 		return _cryptic;
 	}
-	/*!
-	 * \brief Set encryption state
+	/*! Set encryption state
 	 *
 	 * If key provider is not available encryption state will always
 	 * be false.
 	 * Current text will be preserved
 	 */
 	void setCryptic(bool val);
-	/*! \brief Get encryption keys from this object */
+	/*! Get encryption keys from this object */
 	inline IKeyProvider *keyProvider() const
 	{
 		return _keyProvider;
 	}
-	/*! \brief Set encryption key provider
+	/*! Set encryption key provider
 	 *
 	 * Current text will be preserved
 	 */
 	void setKeyProvider(IKeyProvider *provider);
-	/*! \brief Initialization vector, added security for encryption */
+	/*! Initialization vector, added security for encryption */
 	inline const unsigned char *iv() const
 	{
 		return _iv;
 	}
-	/*!
-	 * \brief Set initialization vector
+	/*! Set initialization vector
 	 *
 	 * Current text will be preserved
 	 */
 	void setIv(unsigned char *iv);
-	/*! \brief Randomize iv
+	/*! Randomize iv
 	 *
 	 * Current text will be preserved
 	 */
 	void resetIv();
-	/*! \brief A stateless string can always be decrypted to the same
+	/*! A stateless string can always be decrypted to the same
 	 * value, as long as the key and iv are the same.  Tag is not used,
 	 * or ignored.
 	 */
@@ -318,19 +299,18 @@ public:
 	{
 		return _stateless;
 	}
-	/*!
-	 * \brief Set stateless ability of this string
+	/*! Set stateless ability of this string
 	 *
 	 * Current text will be preserved
 	 */
 	void setStateless(bool val);
 
-	/*! \brief Byte length of plain text string, such as \ref strlen */
+	/*! Byte length of plain text string, such as \ref strlen */
 	inline size_t length() const
 	{
 		return _lenMem;
 	}
-	/*! \brief Get string as plain text */
+	/*! Get string as plain text */
 	inline string text() const
 	{
 		char *bufferOut;
@@ -351,25 +331,23 @@ public:
 		delete []bufferOut;
 		return ret;
 	}
-	/*!
-	 * \brief Get string as plain text
+	/*! Get string as plain text
 	 * \param bufferOut Buffer to write plain text, must be at least \ref length + 1 in byte size
 	 * \return String length of plain text
 	 */
 	size_t text(char *bufferOut) const;
-	/*! \brief Set string plain text, and will encrypt if currently
+	/*! Set string plain text, and will encrypt if currently
 	 * encrypting */
 	inline void setText(const string &str = string())
 	{
 		setText(bytes(str), str.size());
 	}
-	/*!
-	 * \brief Set string plain text, and will encrypt if currently
+	/*! Set string plain text, and will encrypt if currently
 	 * encrypting
 	 * \param len \ref strlen of string, or -1 for entire string
 	 */
 	void setText(const char *str, size_t len);
-	/*! \brief Set string plain text
+	/*! Set string plain text
 	 *
 	 * \param cryptic \ref setCryptic
 	 */
@@ -377,14 +355,13 @@ public:
 	{
 		setText(bytes(str), str.size(), cryptic);
 	}
-	/*! \brief Set string plain text
+	/*! Set string plain text
 	 *
 	 * \param cryptic \ref setCryptic
 	 */
 	void setText(const char *str, size_t len, bool cryptic);
 
-	/*!
-	 * \brief Clear all strings, allocated data, and tag.  iv will not
+	/*! Clear all strings, allocated data, and tag.  iv will not
 	 * be changed.
 	 */
 	void clear();

@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Definitions for signals
  */
 
@@ -26,7 +25,7 @@
 
 #include "mcr/util/util.h"
 
-/*! \brief Any or invalid modifier */
+/*! Any or invalid modifier */
 #define MCR_MOD_ANY ((const unsigned int)-1)
 
 #endif

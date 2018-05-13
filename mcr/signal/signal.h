@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_Signal - Signal to send or dispatch
  *
  * See \ref mcr_send
@@ -34,45 +33,40 @@
 extern "C" {
 #endif
 
-/*!
- * \brief Use functions in \ref mcr_ISignal to dispatch and
+/*! Use functions in \ref mcr_ISignal to dispatch and
  * send the whole object, mcr_ISignal + data members.
  */
 struct mcr_Signal {
-	/*! \brief \ref mcr_Instance of \ref mcr_ISignal */
+	/*! \ref mcr_Instance of \ref mcr_ISignal */
 	union {
 		struct mcr_ISignal *isignal;
 		struct mcr_Instance instance;
 		struct mcr_Interface *interface;
 	};
 	/* Signal specific */
-	/*! \brief False to not dispatch, otherwise do dispatch */
+	/*! False to not dispatch, otherwise do dispatch */
 	bool is_dispatch;
 };
 
-/*!
- * \brief Data interface of mcr_Signal structures
+/*! Data interface of mcr_Signal structures
  *
  * \return Interface to manage mcr_Signal objects
  */
 MCR_API const struct mcr_Interface *mcr_Signal_interface();
 
-/*!
- * \brief \ref mcr_Signal ctor
+/*! \ref mcr_Signal ctor
  *
  * \param signalPt \ref opt \ref mcr_Signal *
  * \return 0
  */
 MCR_API int mcr_Signal_init(void *signalPt);
-/*!
- * \brief \ref mcr_Signal dtor
+/*! \ref mcr_Signal dtor
  *
  * \param signalPt \ref opt \ref mcr_Signal *
  * \return 0
  */
 MCR_API int mcr_Signal_deinit(void *signalPt);
-/*!
- * \brief Dispatch, and then call the signal interface send function.
+/*! Dispatch, and then call the signal interface send function.
  *
  * If dispatch blocks, the interface send function will not be called.
  * \param signalPt \ref opt Signal to dispatch and send
@@ -80,16 +74,14 @@ MCR_API int mcr_Signal_deinit(void *signalPt);
  */
 MCR_API int mcr_send(struct mcr_context *ctx, struct mcr_Signal *signalPt);
 
-/*!
- * \brief \ref mcr_Instance_copy, then copy \ref mcr_Signal.is_dispatch
+/*! \ref mcr_Instance_copy, then copy \ref mcr_Signal.is_dispatch
  *
  * \param dstPt \ref mcr_Signal * Destination to copy to
  * \param srcPt \ref opt \ref mcr_Signal * Source to copy from
  * \return \ref reterr
  */
 MCR_API int mcr_Signal_copy(void *dstPt, const void *srcPt);
-/*!
- * \brief Compare two signals
+/*! Compare two signals
  *
  * \param lhsSignalPt \ref opt mcr_Signal *
  * \param rhsSignalPt \ref opt mcr_Signal *
@@ -97,8 +89,7 @@ MCR_API int mcr_Signal_copy(void *dstPt, const void *srcPt);
  */
 MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
 			       const void *rhsSignalPt);
-/*!
- * \brief Compare two signal references
+/*! Compare two signal references
  *
  * \param lhsPtPt \ref opt \ref mcr_Signal **
  * \param rhsPtPt \ref opt \ref mcr_Signal **

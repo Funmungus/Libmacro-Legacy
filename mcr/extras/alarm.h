@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref Alarm - Pause execution until a specific date-time.
  */
 
@@ -34,7 +33,7 @@
 
 namespace mcr
 {
-/*! \brief Pause execution until a specific date-time. */
+/*! Pause execution until a specific date-time. */
 struct MCR_EXTRAS_API Alarm : public ISignalData {
 	tm time;
 
@@ -45,8 +44,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	Alarm(const Alarm &) = default;
 	Alarm &operator =(const Alarm &) = default;
 
-	/*!
-	 * \brief Get an alarm from signal
+	/*! Get an alarm from signal
 	 *
 	 * \param sigPt \ref opt \ref mcr_Signal *
 	 */
@@ -55,7 +53,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 		return (Alarm *)(sigPt ? sigPt->instance.data.data : NULL);
 	}
 
-	/*! \brief Seconds
+	/*! Seconds
 	 *
 	 * [0-60] (1 leap second)
 	 */
@@ -63,7 +61,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_sec;
 	}
-	/*! \brief Seconds
+	/*! Seconds
 	 *
 	 * [0-60] (1 leap second)
 	 */
@@ -71,7 +69,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_sec;
 	}
-	/*! \brief Minutes
+	/*! Minutes
 	 *
 	 * [0-59]
 	 */
@@ -79,7 +77,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_min;
 	}
-	/*! \brief Minutes
+	/*! Minutes
 	 *
 	 * [0-59]
 	 */
@@ -87,7 +85,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_min;
 	}
-	/*! \brief Hours
+	/*! Hours
 	 *
 	 * [0-23]
 	 */
@@ -95,7 +93,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_hour;
 	}
-	/*! \brief Hours
+	/*! Hours
 	 *
 	 * [0-23]
 	 */
@@ -103,7 +101,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_hour;
 	}
-	/*! \brief Day
+	/*! Day
 	 *
 	 * [1-31]
 	 */
@@ -111,7 +109,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_mday;
 	}
-	/*! \brief Day
+	/*! Day
 	 *
 	 * [1-31]
 	 */
@@ -119,7 +117,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_mday;
 	}
-	/*! \brief Month
+	/*! Month
 	 *
 	 * [0-11]
 	 */
@@ -127,7 +125,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_mon;
 	}
-	/*! \brief Month
+	/*! Month
 	 *
 	 * [0-11]
 	 */
@@ -135,17 +133,17 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_mon;
 	}
-	/*! \brief Year, 0 = 1900 */
+	/*! Year, 0 = 1900 */
 	inline int &year()
 	{
 		return time.tm_year;
 	}
-	/*! \brief Year, 0 = 1900 */
+	/*! Year, 0 = 1900 */
 	inline int year() const
 	{
 		return time.tm_year;
 	}
-	/*! \brief Day of week
+	/*! Day of week
 	 *
 	 * [0-6]
 	 */
@@ -153,7 +151,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_wday;
 	}
-	/*! \brief Day of week
+	/*! Day of week
 	 *
 	 * [0-6]
 	 */
@@ -161,7 +159,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_wday;
 	}
-	/*! \brief Days in year
+	/*! Days in year
 	 *
 	 * [0-365]
 	 */
@@ -169,7 +167,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_yday;
 	}
-	/*! \brief Days in year
+	/*! Days in year
 	 *
 	 * [0-365]
 	 */
@@ -177,7 +175,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_yday;
 	}
-	/*! \brief DST
+	/*! DST
 	 *
 	 * [-1,0,1]
 	 */
@@ -185,7 +183,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	{
 		return time.tm_isdst;
 	}
-	/*! \brief DST
+	/*! DST
 	 *
 	 * [-1,0,1]
 	 */
@@ -194,28 +192,28 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 		return time.tm_isdst;
 	}
 
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const Alarm &>(rhs));
 	}
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	inline int compare(const Alarm &rhs) const
 	{
 		tm lMem = time, rMem = rhs.time;
 		time_t lT = ::mktime(&lMem), rT = ::mktime(&rMem);
 		return lT < rT ? -1 : rT > lT;
 	}
-	/*! \brief \ref mcr_Signal_copy
+	/*! \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
-	/*! \brief \ref mcr_ISignal_set_name */
+	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "Alarm";
 	}
-	/*! \brief \ref mcr_send */
+	/*! \ref mcr_send */
 	virtual inline void send() override
 	{
 		auto until_time = std::chrono::system_clock::from_time_t(::mktime(&time));
@@ -234,7 +232,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 };
 
-/*! \brief Modify \ref Alarm signals */
+/*! Modify \ref Alarm signals */
 class MCR_EXTRAS_API AlarmRef : public SignalManager
 {
 public:

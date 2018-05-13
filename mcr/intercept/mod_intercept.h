@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_mod_intercept - Intercept module
  *
  * In cases of extreme complexity, please break glass.
@@ -32,7 +31,7 @@
 extern "C" {
 #endif
 
-/*! \brief Intercept module */
+/*! Intercept module */
 struct mcr_mod_intercept {
 	/*! All data reserved for platform definitions */
 	void *platform;

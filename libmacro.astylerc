@@ -1,5 +1,6 @@
 style=linux
-indent=force-tab=8
+#indent=force-tab=8
+indent=force-tab
 #do not backup
 -n
 #indent namespaces

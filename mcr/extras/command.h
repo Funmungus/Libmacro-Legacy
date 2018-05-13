@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref Command - Execute a shell command, similar to \ref execvp,
  * with restrictions and without closing current process.
  */
@@ -36,9 +35,9 @@
 
 namespace mcr
 {
-/*! \brief Execute a shell command, similar to \ref execvp */
+/*! Execute a shell command, similar to \ref execvp */
 struct MCR_EXTRAS_API Command : public ISignalData {
-	/*! \brief Executable file */
+	/*! Executable file */
 	SafeString file;
 
 	Command(bool cryptic = false)
@@ -54,8 +53,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	}
 	Command &operator =(const Command &copytron);
 
-	/*!
-	 * \brief Get command from signal
+	/*! Get command from signal
 	 *
 	 * \param sigPt \ref opt \ref mcr_Signal *
 	 */
@@ -64,8 +62,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		return (Command *)(sigPt ? sigPt->instance.data.data : NULL);
 	}
 
-	/*!
-	 * \brief \ref mcr_is_platform Same as standard execvp, except raised
+	/*! \ref mcr_is_platform Same as standard execvp, except raised
 	 * permissions are removed in the program that executes
 	 * \param Filename Executable file
 	 * \param ArgList Shell comman arguments
@@ -76,33 +73,33 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		_keyProvider = provider;
 	}
 
-	/*! \brief If true, encrypt all command strings */
+	/*! If true, encrypt all command strings */
 	inline bool cryptic() const
 	{
 		return _cryptic;
 	}
-	/*! \brief Set encryption state for all command strings */
+	/*! Set encryption state for all command strings */
 	void setCryptic(bool val);
 
-	/*! \brief \ref file */
+	/*! \ref file */
 	inline string fileText() const
 	{
 		return file.text();
 	}
-	/*! \brief \ref file */
+	/*! \ref file */
 	inline void setFileText(const string &val)
 	{
 		file.setText(val);
 	}
 
-	/*! \brief Number of \ref args */
+	/*! Number of \ref args */
 	inline size_t argsCount() const
 	{
 		return _argsCount;
 	}
-	/*! \brief Shell command arguments, argv of execvp */
+	/*! Shell command arguments, argv of execvp */
 	void args(SafeString *bufferOut, size_t bufferLen) const;
-	/*! \brief \ref args */
+	/*! \ref args */
 	inline vector<string> argsText() const
 	{
 		vector<string> ret;
@@ -111,9 +108,9 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		}
 		return ret;
 	}
-	/*! \brief \ref args */
+	/*! \ref args */
 	void setArgs(SafeString *bufferIn, size_t bufferLen);
-	/*! \brief \ref args */
+	/*! \ref args */
 	inline void setArgsText(const vector<string> &val)
 	{
 		setArgsCount(val.size());
@@ -122,18 +119,18 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		}
 	}
 
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const Command &>(rhs));
 	}
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	int compare(const Command &rhs) const;
-	/*! \brief \ref mcr_Signal_copy
+	/*! \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
-	/*! \brief \ref mcr_ISignal_set_name */
+	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "Command";
@@ -148,7 +145,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		if (bufferOut && bufferLength)
 			bufferOut[0] = "Cmd";
 	}
-	/*! \brief \ref mcr_is_platform \ref mcr_send */
+	/*! \ref mcr_is_platform \ref mcr_send */
 	virtual void send() override;
 
 	inline void clear()
@@ -167,7 +164,7 @@ private:
 	void setArgsCount(size_t count);
 };
 
-/*! \brief Modify \ref Command signals */
+/*! Modify \ref Command signals */
 class MCR_EXTRAS_API CommandRef : public SignalManager
 {
 public:

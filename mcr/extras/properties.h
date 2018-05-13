@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref IProperties - String based property manager, and a common
  * interface to flatten objects
  */
@@ -34,7 +33,7 @@
 
 namespace mcr
 {
-/*! \brief Notifier object for property changes */
+/*! Notifier object for property changes */
 class MCR_EXTRAS_API IOnPropertyChanged
 {
 public:
@@ -42,22 +41,22 @@ public:
 	virtual void onPropertyChanged(const char *propertyName) = 0;
 };
 
-/*! \brief Object which has string properties to manage */
+/*! Object which has string properties to manage */
 class MCR_EXTRAS_API IProperties
 {
 public:
 	virtual ~IProperties() {}
-	/*! \brief Enumerate list of properties this object manages */
+	/*! Enumerate list of properties this object manages */
 	virtual const char **properties() const = 0;
-	/*! \brief String value of a property */
+	/*! String value of a property */
 	virtual const char *property(const char *name) const = 0;
-	/*! \brief Set value of a property from a string */
+	/*! Set value of a property from a string */
 	virtual void setProperty(const char *name, const char *value) = 0;
-	/*! \brief Get a reference to actual value of a property */
+	/*! Get a reference to actual value of a property */
 	virtual void *value(const char *name) = 0;
-	/*! \brief Copy an object reference to property */
+	/*! Copy an object reference to property */
 	virtual void setValue(const char *name, void *value) = 0;
-	/*! \brief Notify a property has changed */
+	/*! Notify a property has changed */
 	virtual void setOnPropertyChanged(IOnPropertyChanged *listener) = 0;
 };
 }

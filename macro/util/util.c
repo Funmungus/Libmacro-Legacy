@@ -20,6 +20,23 @@
 #include "mcr/util/c11threads.h"
 #include <errno.h>
 
+#ifdef _MSC_VER
+	#undef mcr_err
+#else
+	MCR_API
+	#ifdef __GNUC__
+		__thread
+	#else
+		thread_local
+	#endif
+#endif
+int mcr_err;
+
+int *mcr_err_tls()
+{
+	return &mcr_err;
+}
+
 unsigned int mcr_bit_index(unsigned int bitval)
 {
 	if (bitval == 0)

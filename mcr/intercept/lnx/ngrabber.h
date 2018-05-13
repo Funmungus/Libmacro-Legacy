@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
@@ -30,11 +29,11 @@
 extern "C" {
 #endif
 
-/*! \brief Take exclusive access to a /dev/input event. */
+/*! Take exclusive access to a /dev/input event. */
 struct mcr_Grabber {
-	/*! \brief File of input event to read */
+	/*! File of input event to read */
 	int fd;
-	/*! \brief File path of input event */
+	/*! File path of input event */
 	struct mcr_Array path;
 };
 
@@ -44,13 +43,11 @@ MCR_API int mcr_Grabber_deinit(void *grabPt);
 
 MCR_API const char *mcr_Grabber_path(struct mcr_Grabber *grabPt);
 MCR_API int mcr_Grabber_set_path(struct mcr_Grabber *grabPt, const char *path);
-/*!
- * \brief Get enabled state, and set the grabber enabled
+/*! Get enabled state, and set the grabber enabled
  * state to the same.
  */
 MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);
-/*!
- * \brief Allow or disallow this object to function.
+/*! Allow or disallow this object to function.
  *
  * \return \ref reterr
  */

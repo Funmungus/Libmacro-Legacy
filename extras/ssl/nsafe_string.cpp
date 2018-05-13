@@ -30,7 +30,7 @@ namespace mcr
 {
 static unsigned int _initCount = 0;
 static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
-			      unsigned char *deleteBuffer = NULL)
+							  unsigned char *deleteBuffer = NULL)
 {
 	int err = errno;
 	if (!err)
@@ -48,9 +48,9 @@ static inline void localOnErr(EVP_CIPHER_CTX *ctx = NULL,
 }
 
 int SafeString::encrypt(const char *plainText, size_type pLen,
-			const unsigned char key[],
-			const unsigned char iv[], unsigned char tagOut[],
-			unsigned char *bufferOut)
+						const unsigned char key[],
+						const unsigned char iv[], unsigned char tagOut[],
+						unsigned char *bufferOut)
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
@@ -68,19 +68,19 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 	}
 	if (tagOut) {
 		if (!EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL,
-					NULL)) {
+								NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
 		/* Set IV length 16 bytes */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-					 MCR_AES_IV_SIZE, NULL)) {
+								 MCR_AES_IV_SIZE, NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
 	} else {
 		if (!EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, NULL,
-					NULL)) {
+								NULL)) {
 			localOnErr(ctx);
 			return -1;
 		}
@@ -93,8 +93,8 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 	}
 	/* Encrypt */
 	if (!EVP_EncryptUpdate(ctx, bufferOut, &len,
-			       (const unsigned char *)bytes(plainText),
-			       ((int)pLen) + 1)) {
+						   (const unsigned char *)bytes(plainText),
+						   ((int)pLen) + 1)) {
 		localOnErr(ctx);
 		return -1;
 	}
@@ -110,7 +110,7 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 	if (tagOut) {
 		/* If using gcm, get the tag */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
-					 MCR_AES_TAG_SIZE, tagOut)) {
+								 MCR_AES_TAG_SIZE, tagOut)) {
 			localOnErr(ctx);
 			return -1;
 		}
@@ -121,9 +121,9 @@ int SafeString::encrypt(const char *plainText, size_type pLen,
 }
 
 size_type SafeString::decrypt(const unsigned char *encrypted,
-			      int encryptedLength,
-			      const unsigned char key[], const unsigned char iv[],
-			      const unsigned char tag[], char *bufferOut)
+							  int encryptedLength,
+							  const unsigned char key[], const unsigned char iv[],
+							  const unsigned char tag[], char *bufferOut)
 {
 	EVP_CIPHER_CTX *ctx;
 	int len = 0;
@@ -142,21 +142,21 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 	}
 	if (tag) {
 		if (!EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL,
-					NULL)) {
+								NULL)) {
 			localOnErr(ctx);
 			bufferOut[0] = '\0';
 			return 0;
 		}
 		/* Set IV length 16 bytes */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN,
-					 MCR_AES_IV_SIZE, NULL)) {
+								 MCR_AES_IV_SIZE, NULL)) {
 			localOnErr(ctx);
 			bufferOut[0] = '\0';
 			return 0;
 		}
 	} else {
 		if (!EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, NULL,
-					NULL)) {
+								NULL)) {
 			localOnErr(ctx);
 			bufferOut[0] = '\0';
 			return 0;
@@ -171,7 +171,7 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 	}
 	/* Decrypt */
 	if (!EVP_DecryptUpdate(ctx, (unsigned char *)bufferOut, &len, encrypted,
-			       encryptedLength)) {
+						   encryptedLength)) {
 		localOnErr(ctx);
 		bufferOut[0] = '\0';
 		return 0;
@@ -179,7 +179,7 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 	if (tag) {
 		/* If using gcm, set the encryption-paired tag */
 		if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG,
-					 MCR_AES_TAG_SIZE, (void *)tag)) {
+								 MCR_AES_TAG_SIZE, (void *)tag)) {
 			localOnErr(ctx);
 			bufferOut[0] = '\0';
 			return 0;
@@ -197,7 +197,7 @@ size_type SafeString::decrypt(const unsigned char *encrypted,
 }
 
 void SafeString::randomize(unsigned char *bufferOut,
-			   int bufferSize)
+						   int bufferSize)
 {
 	if (!RAND_bytes(bufferOut, bufferSize)) {
 		localOnErr();
@@ -206,7 +206,7 @@ void SafeString::randomize(unsigned char *bufferOut,
 }
 
 void SafeString::sha(const char *text, size_type length,
-		     unsigned char bufferOut[])
+					 unsigned char bufferOut[])
 {
 	SHA256_CTX ctx;
 	if (!text) {
@@ -233,7 +233,7 @@ void SafeString::initialize()
 		ERR_load_CRYPTO_strings();
 //		OPENSSL_add_all_algorithms_noconf();
 		if (!EVP_add_cipher(EVP_aes_256_cbc()) ||
-		    !EVP_add_cipher(EVP_aes_256_gcm())) {
+			!EVP_add_cipher(EVP_aes_256_gcm())) {
 			localOnErr();
 			return;
 		}

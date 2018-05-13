@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref ISignalData - Data type for signal instances
  * C++.
  */
@@ -34,8 +33,7 @@
 
 namespace mcr
 {
-/*!
- * \brief Signal instance data, such as \ref mcr_Key.
+/*! Signal instance data, such as \ref mcr_Key.
  *
  * Functions to overload: \ref ISignalData.compare, \ref ISignalData.copy,
  * \ref ISignalData.name, and \ref ISignalData.send \n
@@ -64,29 +62,27 @@ public:
 	}
 
 	/* Instance */
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	virtual int compare(const ISignalData &rhs) const = 0;
-	/*!
-	 * \brief \ref mcr_Signal_copy
+	/*! \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) = 0;
 	/* Signal */
-	/*! \brief \ref mcr_ISignal_set_name */
+	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const = 0;
-	/*! \brief \ref mcr_ISignal_add_names */
+	/*! \ref mcr_ISignal_add_names */
 	virtual size_t addNamesCount() const
 	{
 		return 0;
 	}
-	/*! \brief \ref mcr_ISignal_add_names */
+	/*! \ref mcr_ISignal_add_names */
 	virtual void addNames(const char **bufferOut, size_t bufferLength) const
 	{
 		UNUSED(bufferOut);
 		UNUSED(bufferLength);
 	}
-	/*!
-	 * \brief \ref mcr_send We highly suggest you inline this function,
+	/*! \ref mcr_send We highly suggest you inline this function,
 	 * as it will be called as the fully quallified class from \ref SignalType.send.
 	 *
 	 * Inline is only suggested if the send function is

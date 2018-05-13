@@ -55,7 +55,7 @@ ITriggerRef::ITriggerRef(const char *name)
 }
 
 void ITriggerRef::registerType(const char *name, const char **addNames,
-			       size_t addNamesCount)
+							   size_t addNamesCount)
 {
 	int err = 0;
 	mcr_IRegistry *regPt = mcr_ITrigger_reg(_context->ptr());

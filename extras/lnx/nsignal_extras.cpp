@@ -35,10 +35,10 @@ void Command::send()
 	size_type i, argsLen = args.size() + 2;
 	char **strArgs;
 	if (!file.length()) {
-		mcr_set_error(ENOENT);
+		mcr_err = ENOENT;
 		throw(ENOENT);
 	}
-	mcr_set_error(0);
+	mcr_err = 0;
 	strArgs = new char *[argsLen];
 	strArgs[0] = bytes(f);
 	for (i = 0; i < args.size(); i++) {

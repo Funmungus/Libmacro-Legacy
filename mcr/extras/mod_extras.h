@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_mod_extras - Extras module
  *
  * In case of extreme complexity, break glass
@@ -37,20 +36,19 @@
 namespace mcr
 {
 struct MCR_EXTRAS_API Libmacro {
-	/*! \brief Base Libmacro context */
+	/*! Base Libmacro context */
 	mcr_context context;
 
-	/*! \brief ctor
+	/*! ctor
 	 * \param enabled Initial enabled state, must be disabled before
 	 * destruction
 	 */
 	Libmacro(bool enabled = true);
-	/*! \brief dtor If this is enabled during destruction threading errors
+	/*! dtor If this is enabled during destruction threading errors
 	 * are likely to happen
 	 */
 	~Libmacro();
-	/*!
-	 * \brief Get the last created \ref Libmacro module
+	/*! Get the last created \ref Libmacro module
 	 *
 	 * Will throw EFAULT if no \ref Libmacro exists, and will not create a
 	 * singleton object
@@ -78,14 +76,14 @@ struct MCR_EXTRAS_API Libmacro {
 	{
 		return *_iStringKey;
 	}
-	/*! \brief Generic enabler for mcr_context functions, such as
+	/*! Generic enabler for mcr_context functions, such as
 	 * hardware hooks and any sort of threading.
 	 */
 	inline bool isEnabled() const
 	{
 		return _enabled;
 	}
-	/*! \brief Set current enabled state.  Please disable before the
+	/*! Set current enabled state.  Please disable before the
 	 * destructor to avoid threading errors.
 	 */
 	void setEnabled(bool val);
@@ -113,8 +111,7 @@ struct MCR_EXTRAS_API Libmacro {
 			throw EINVAL;
 		setCharacter(c, val.data(), val.size());
 	}
-	/*!
-	 * \brief Set signals for a character that will press, pause, and release a
+	/*! Set signals for a character that will press, pause, and release a
 	 * key.
 	 *
 	 * \param c Character to set signals for
@@ -125,8 +122,7 @@ struct MCR_EXTRAS_API Libmacro {
 	 * \return \ref reterr
 	 */
 	void setCharacterKey(int c, int key, long msecDelay, bool shiftFlag);
-	/*!
-	 * \brief Set all \ref mcr_NoOp delay values for \ref StringKey
+	/*! Set all \ref mcr_NoOp delay values for \ref StringKey
 	 *
 	 * \param delayValue Apply this pause time
 	 */
@@ -138,16 +134,14 @@ private:
 	CtxISignal *_iAlarm;
 	CtxISignal *_iCommand;
 	CtxISignal *_iStringKey;
-	/*! \brief Map index to set of signals for \ref StringKey */
+	/*! Map index to set of signals for \ref StringKey */
 	void *_characters;  // vector<vector<Signal>>
 	bool _enabled;
 
-	/*!
-	 * \brief \ref mcr_is_platform Platform initializer
+	/*! \ref mcr_is_platform Platform initializer
 	 */
 	void initialize();
-	/*!
-	 * \brief \ref mcr_is_platform Platform deinitializer
+	/*! \ref mcr_is_platform Platform deinitializer
 	 */
 	void deinitialize();
 	inline vector<vector<Signal>> &characters() const

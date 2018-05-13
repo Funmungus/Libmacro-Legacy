@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref StringKey - Turn a string into a set of signals, such as a key
  * press
  */
@@ -36,11 +35,11 @@
 
 namespace mcr
 {
-/*! \brief Turn a string into a set of signals, such as a key press */
+/*! Turn a string into a set of signals, such as a key press */
 struct MCR_EXTRAS_API StringKey: public ISignalData {
-	/*! \brief Pause in-between characters */
+	/*! Pause in-between characters */
 	mcr_NoOp interval;
-	/*! \brief Set of characters to turn into signals */
+	/*! Set of characters to turn into signals */
 	SafeString string;
 
 	StringKey(bool cryptic = false)
@@ -56,8 +55,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	}
 	StringKey &operator =(const StringKey &copytron);
 
-	/*!
-	 * \brief Get a StringKey from a signal
+	/*! Get a StringKey from a signal
 	 *
 	 * \param sigPt \ref opt \ref mcr_Signal *
 	 */
@@ -83,29 +81,29 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 		}
 	}
 
-	/*! \brief Set of characters to turn into signals */
+	/*! Set of characters to turn into signals */
 	inline mcr::string stringText() const
 	{
 		return string.text();
 	}
-	/*! \brief Set the string to turn into signals */
+	/*! Set the string to turn into signals */
 	inline void setStringText(const mcr::string &val)
 	{
 		string.setText(val);
 	}
 
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	virtual int compare(const ISignalData &rhs) const override
 	{
 		return compare(dynamic_cast<const StringKey &>(rhs));
 	}
-	/*! \brief \ref mcr_Signal_compare */
+	/*! \ref mcr_Signal_compare */
 	int compare(const StringKey &rhs) const;
-	/*! \brief \ref mcr_Signal_copy
+	/*! \ref mcr_Signal_copy
 	 * \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
-	/*! \brief \ref mcr_ISignal_set_name */
+	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "StringKey";
@@ -125,7 +123,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 			bufferOut[i] = names[i];
 		}
 	}
-	/*! \brief \ref mcr_send */
+	/*! \ref mcr_send */
 	virtual void send() override;
 
 	inline void clear()
@@ -137,7 +135,7 @@ private:
 	bool _cryptic;
 };
 
-/*! \brief Modify \ref StringKey signals */
+/*! Modify \ref StringKey signals */
 class MCR_EXTRAS_API StringKeyRef : public SignalManager
 {
 public:

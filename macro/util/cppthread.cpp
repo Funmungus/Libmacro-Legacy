@@ -64,7 +64,7 @@ int thrd_equal(thrd_t lhs, thrd_t rhs)
 {
 	if (lhs && rhs)
 		return ((std::thread *) lhs)->get_id() ==
-		       ((std::thread *) rhs)->get_id();
+			   ((std::thread *) rhs)->get_id();
 	return !(lhs || rhs);
 }
 
@@ -168,7 +168,7 @@ int mtx_lock(mtx_t * mutex)
 }
 
 int mtx_timedlock(mtx_t * restrict mutex,
-		  const struct timespec *restrict time_point)
+				  const struct timespec *restrict time_point)
 {
 	dassert(mutex);
 	dassert(time_point);
@@ -206,7 +206,7 @@ int mtx_trylock(mtx_t * mutex)
 	switch (mutex->type) {
 	case mtx_recursive | mtx_timed:
 		locked = ((std::recursive_timed_mutex *) mutex->mtx)->
-			 try_lock();
+				 try_lock();
 		break;
 	case mtx_recursive:
 		locked = ((std::recursive_mutex *) mutex->mtx)->try_lock();
@@ -309,7 +309,7 @@ int cnd_wait(cnd_t * cond, mtx_t * mutex)
 }
 
 int cnd_timedwait(cnd_t * restrict cond, mtx_t * restrict mutex,
-		  const struct timespec *restrict time_point)
+				  const struct timespec *restrict time_point)
 {
 	dassert(cond);
 	dassert(mutex);
@@ -322,7 +322,7 @@ int cnd_timedwait(cnd_t * restrict cond, mtx_t * restrict mutex,
 	std::condition_variable * caster = *((std::condition_variable **) cond);
 	std::chrono::seconds sec = std::chrono::seconds(time_point->tv_sec);
 	std::chrono::nanoseconds nsec = std::chrono::nanoseconds
-					(time_point->tv_nsec);
+									(time_point->tv_nsec);
 	std::cv_status ret = std::cv_status::no_timeout;
 	std::unique_lock < std::mutex > lock
 	(*((std::mutex *) mutex->mtx), std::adopt_lock_t());

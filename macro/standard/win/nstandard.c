@@ -149,21 +149,21 @@ static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
 {
 	/* Left defaults */
 	const unsigned int types[] = {
-		MCR_ALT, MCR_ALTGR,
-		MCR_CTRL, MCR_SHIFT,
-		MCR_WIN, MCR_META
+		MCR_ALT, MCR_CTRL, MCR_SHIFT,
+		MCR_WIN
 	};
 	const int modKeys[] = {
-		VK_LMENU, VK_RMENU,
-		VK_LCONTROL, VK_LSHIFT,
-		VK_LWIN, VK_RWIN
+		VK_LMENU, VK_LCONTROL, VK_LSHIFT,
+		VK_LWIN
 	};
 	/* Right extras */
 	const unsigned int extraTypes[] = {
-		MCR_CTRL, MCR_SHIFT
+		MCR_ALT, MCR_CTRL, MCR_SHIFT,
+		MCR_WIN
 	};
 	const int extraModKeys[] = {
-		VK_RCONTROL, VK_RSHIFT
+		VK_RMENU, VK_RCONTROL, VK_RSHIFT,
+		VK_RWIN
 	};
 	int i, err = 0, len = arrlen(types);
 	for (i = 0; i < len; i++) {
@@ -201,7 +201,7 @@ static int add_key_names(struct mcr_context *ctx)
 		"Shift",	/*0x10 */
 		"Control",	/*0x11 */
 		"Menu",		/* ALT, 0x12 */
-		"PAUSE",	/*0x13 */
+		"Pause",	/*0x13 */
 		"Capital",	/*0x14 */
 		"Kana",		/* HANGUL, 0x15 */
 		"",		/*0x16 */
@@ -240,13 +240,13 @@ static int add_key_names(struct mcr_context *ctx)
 		"7",		/*0x37 */
 		"8",		/*0x38 */
 		"9",		/*0x39 */
-		"",		/*0x3A */
-		"",		/*0x3B */
-		"",		/*0x3C */
-		"",		/*0x3D */
-		"",		/*0x3E */
-		"",		/*0x3F */
-		"",		/*0x40 */
+		"",			/*0x3A */
+		"",			/*0x3B */
+		"",			/*0x3C */
+		"",			/*0x3D */
+		"",			/*0x3E */
+		"",			/*0x3F */
+		"",			/*0x40 */
 		"A",		/*0x41 */
 		"B",		/*0x42 */
 		"C",		/*0x43 */
@@ -276,7 +276,7 @@ static int add_key_names(struct mcr_context *ctx)
 		"LWin",		/*0x5B */
 		"RWin",		/*0x5C */
 		"Apps",		/*0x5D */
-		"",		/*0x5E */
+		"",			/*0x5E */
 		"Sleep",	/*0x5F */
 		"Numpad0",	/*0x60 */
 		"Numpad1",	/*0x61 */
@@ -290,7 +290,7 @@ static int add_key_names(struct mcr_context *ctx)
 		"Numpad9",	/*0x69 */
 		"Multiply",	/*0x6A */
 		"Add",		/*0x6B */
-		"Seperator",	/*0x6C */
+		"Seperator",/*0x6C */
 		"Subtract",	/*0x6D */
 		"Decimal",	/*0x6E */
 		"Divide",	/*0x6F */
@@ -318,30 +318,30 @@ static int add_key_names(struct mcr_context *ctx)
 		"F22",		/*0x85 */
 		"F23",		/*0x86 */
 		"F24",		/*0x87 */
-		"",		/*0x88 */
-		"",		/*0x89 */
-		"",		/*0x8A */
-		"",		/*0x8B */
-		"",		/*0x8C */
-		"",		/*0x8D */
-		"",		/*0x8E */
-		"",		/*0x8F */
+		"",			/*0x88 */
+		"",			/*0x89 */
+		"",			/*0x8A */
+		"",			/*0x8B */
+		"",			/*0x8C */
+		"",			/*0x8D */
+		"",			/*0x8E */
+		"",			/*0x8F */
 		"Numlock",	/*0x90 */
 		"Scroll",	/*0x91 */
-		"",		/*0x92 -96 */
-		"",		/*0x93 */
-		"",		/*0x94 */
-		"",		/*0x95 */
-		"",		/*0x96 */
-		"",		/*0x97 -9F */
-		"",		/*0x98 */
-		"",		/*0x99 */
-		"",		/*0x9A */
-		"",		/*0x9B */
-		"",		/*0x9C */
-		"",		/*0x9D */
-		"",		/*0x9E */
-		"",		/*0x9F */
+		"",			/*0x92 -96 */
+		"",			/*0x93 */
+		"",			/*0x94 */
+		"",			/*0x95 */
+		"",			/*0x96 */
+		"",			/*0x97 -9F */
+		"",			/*0x98 */
+		"",			/*0x99 */
+		"",			/*0x9A */
+		"",			/*0x9B */
+		"",			/*0x9C */
+		"",			/*0x9D */
+		"",			/*0x9E */
+		"",			/*0x9F */
 		"LShift",	/*0xA0 */
 		"RShift",	/*0xA1 */
 		"LControl",	/*0xA2 */
@@ -368,13 +368,13 @@ static int add_key_names(struct mcr_context *ctx)
 		"LaunchApp2",	/*0xB7 */
 		"",		/*0xB8 */
 		"",		/*0xB9 */
-		"OEM_1 (US ' ; :') ",	/*0xBA US ' ; :' */
+		";",	/*0xBA US ' ; :' */
 		"+",		/*0xBB '+' */
-		",",		/*0xBC ', ' */
+		",",		/*0xBC ',' */
 		"-",		/*0xBD '-' */
 		".",		/*0xBE '.' */
-		"OEM_2 (US '/?') ",	/*0xBF US '/?' */
-		"OEM_3 (US '`~') ",	/*0xC0 US '`~' */
+		"/",	/*0xBF US '/?' */
+		"`",	/*0xC0 US '`~' */
 		"",		/*0xC1 */
 		"",		/*0xC2 */
 		"",		/*0xC3 */
@@ -401,14 +401,14 @@ static int add_key_names(struct mcr_context *ctx)
 		"",		/*0xD8 */
 		"",		/*0xD9 */
 		"",		/*0xDA */
-		"OEM_4 (US ' [ {') ",	/*0xDB US ' [ {' */
-		"OEM_5 (US '¥¥|') ",	/*0xDC US '¥|' */
-		"OEM_6 (US ' ] }') ",	/*0xDD US ' ] }' */
-		"OEM_7 (US '/¥'') ",	/*0xDE US 'single -quote/double -quote' */
-		"OEM_8",	/*0xDF */
+		"[",	/*0xDB US ' [ {' */
+		"\\",	/*0xDC US '\\|' */
+		"]",	/*0xDD US ' ] }' */
+		"'",	/*0xDE US 'single -quote/double -quote' */
+		"OEM_8",/*0xDF */
 		"",		/*0xE0 */
 		"",		/*0xE1 */
-		"OEM_102 ('¥¥|') ",	/*0xE2 ¥| */
+		"¥",	/*0xE2 ¥| */
 		"",		/*0xE3 */
 		"",		/*0xE4 */
 		"Process",	/*0xE5 */
@@ -439,10 +439,25 @@ static int add_key_names(struct mcr_context *ctx)
 		"OEM_CLEAR",	/*0xFE */
 		/*"None", 0xFF */
 	};
+	const char *addNames[] = {
+		" ", ":", "?",
+		"~", "{", "|",
+		"}", "\""
+	};
+	const int addKeys[] = {
+		VK_SPACE, VK_OEM_1, VK_OEM_2,
+		VK_OEM_3, VK_OEM_4, VK_OEM_5,
+		VK_OEM_6, VK_OEM_7
+	};
 	int count = arrlen(names);
 	int i, err = 0;
 	for (i = count; i--;) {
 		if ((err = mcr_Key_set_name(ctx, i, names[i])))
+			return err;
+	}
+	count = arrlen(addNames);
+	for (i = count; i--;) {
+		if ((err = mcr_Key_add(ctx, addKeys[i], addNames + i, 1)))
 			return err;
 	}
 	return err;

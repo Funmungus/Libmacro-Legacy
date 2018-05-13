@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_ITrigger - Interface for triggers
  *
  * Use \ref mcr_Dispatcher_receive_fnc to dispatch into triggers.
@@ -32,27 +31,24 @@
 extern "C" {
 #endif
 
-/*! \brief Interface for \ref mcr_Trigger */
+/*! Interface for \ref mcr_Trigger */
 struct mcr_ITrigger {
-	/*! \brief \ref mcr_Trigger interface */
+	/*! \ref mcr_Trigger interface */
 	struct mcr_Interface interface;
-	/*!
-	 * \brief Filter dispatch before triggering.
+	/*! Filter dispatch before triggering.
 	 *
 	 * This is to dispatch and do required logic before the final
 	 * trigger.  It cannot be NULL.  First argument is \ref mcr_Trigger. */
 	mcr_Dispatcher_receive_fnc receive;
 };
 
-/*!
- * \brief \ref mcr_ITrigger ctor
+/*! \ref mcr_ITrigger ctor
  *
  * \param itrigPt \ref opt \ref mcr_ITrigger
  * \return 0
  */
 MCR_API int mcr_ITrigger_init(void *itrigPt);
-/*!
- * \brief Construct a trigger interface and set \ref mcr_ITrigger.receive
+/*! Construct a trigger interface and set \ref mcr_ITrigger.receive
  *
  * \param receiveFnc \ref mcr_ITrigger.receive
  * \return Constructed trigger interface
@@ -60,33 +56,29 @@ MCR_API int mcr_ITrigger_init(void *itrigPt);
 MCR_API struct mcr_ITrigger mcr_ITrigger_new(mcr_Dispatcher_receive_fnc
 		receiveFnc);
 
-/*! \brief Get the \ref mcr_IRegistry of \ref mcr_ITrigger */
+/*! Get the \ref mcr_IRegistry of \ref mcr_ITrigger */
 MCR_API struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx);
-/*!
- * \brief Get the id of a trigger interface.
+/*! Get the id of a trigger interface.
  *
  * \param itrigPt \ref opt \ref mcr_ITrigger *
  * \return \ref retid
  */
 #define mcr_ITrigger_id(itrigPt) mcr_iid(itrigPt)
-/*!
- * \brief Get the name of a trigger interface.
+/*! Get the name of a trigger interface.
  *
  * \param itrigPt \ref opt
  * \return Name of the trigger interface, or null if not found
  */
 MCR_API const char *mcr_ITrigger_name(struct mcr_context *ctx,
 				      struct mcr_ITrigger *itrigPt);
-/*!
- * \brief Get a trigger interface from its id
+/*! Get a trigger interface from its id
  *
  * \param id Id of the trigger interface
  * \return Trigger interface, or null if not found
  */
 MCR_API struct mcr_ITrigger *mcr_ITrigger_from_id(struct mcr_context *ctx,
 		size_t id);
-/*!
- * \brief Get a trigger interface from its name
+/*! Get a trigger interface from its name
  *
  * \param name \ref opt Name of the trigger interface
  * \return Trigger interface, or null if not found

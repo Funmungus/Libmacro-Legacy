@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_MoveCursor - Change spatial coordinates of cursor
  */
 
@@ -30,30 +29,27 @@
 extern "C" {
 #endif
 
-/*! \brief Change spatial coordinates of ursor.*/
+/*! Change spatial coordinates of ursor.*/
 struct mcr_MoveCursor {
-	/*! \brief Spatial coordinates to set or modify with */
+	/*! Spatial coordinates to set or modify with */
 	mcr_SpacePosition pos;
-	/*!
-	 * \brief If false coordinates will be set, otherwise coordinates
+	/*! If false coordinates will be set, otherwise coordinates
 	 * adjust the cursor for current position. */
 	bool is_justify;
 };
-/*! \brief \ref mcr_MoveCursor shorthand */
+/*! \ref mcr_MoveCursor shorthand */
 typedef struct mcr_MoveCursor mcr_MC;
 
-/*! \brief Set initial values */
+/*! Set initial values */
 MCR_API void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
 				    const mcr_SpacePosition pos, bool flagJustify);
-/*!
- * \pre Signal data is  \ref mcr_MoveCursor
+/*! \pre Signal data is  \ref mcr_MoveCursor
  * \brief Move HID cursor position.
  *
  * \return \ref reterr
  */
 MCR_API int mcr_MoveCursor_send(struct mcr_Signal *sigPt);
-/*!
- * \brief \ref mcr_MoveCursor_send
+/*! \ref mcr_MoveCursor_send
  *
  * \ref mcr_is_platform
  * \return \ref reterr
@@ -61,14 +57,12 @@ MCR_API int mcr_MoveCursor_send(struct mcr_Signal *sigPt);
 MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt);
 /* Default init, deinit, compare, and copy */
 
-/*!
- * \brief Current cursor position
+/*! Current cursor position
  *
  * \ref mcr_is_platform
  */
 MCR_API void mcr_cursor_position(mcr_SpacePosition buffer);
-/*!
- * \brief If justified then \ref mcr_resembles_justified,
+/*! If justified then \ref mcr_resembles_justified,
  * else \ref mcr_resembles_absolute
  *
  * \param lhs \ref opt
@@ -80,27 +74,27 @@ MCR_API bool mcr_resembles(const struct mcr_MoveCursor *lhs,
 			   const struct mcr_MoveCursor *rhs, const unsigned int measurementError);
 
 /* mcr_MoveCursor -> mcr_MC */
-/*! \brief \ref mcr_MoveCursor_set_all */
+/*! \ref mcr_MoveCursor_set_all */
 #define mcr_MC_set_all mcr_MoveCursor_set_all
-/*! \brief \ref mcr_MoveCursor_send */
+/*! \ref mcr_MoveCursor_send */
 #define mcr_MC_send mcr_MoveCursor_send
-/*! \brief \ref mcr_MoveCursor_send_data */
+/*! \ref mcr_MoveCursor_send_data */
 #define mcr_MC_send_data mcr_MoveCursor_send_data
 
-/*! \brief Signal interface of \ref mcr_MoveCursor */
+/*! Signal interface of \ref mcr_MoveCursor */
 MCR_API struct mcr_ISignal *mcr_iMoveCursor(struct mcr_context *ctx);
-/*! \brief Signal interface of \ref mcr_MoveCursor */
+/*! Signal interface of \ref mcr_MoveCursor */
 #define mcr_iMC mcr_iMoveCursor
-/*! \brief Signal data casted \ref mcr_MoveCursor * */
+/*! Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MoveCursor_data(sigPt) \
 ((struct mcr_MoveCursor *)mcr_Instance_data(sigPt))
-/*! \brief Signal data casted \ref mcr_MoveCursor * */
+/*! Signal data casted \ref mcr_MoveCursor * */
 #define MCR_MOVECURSOR_DATA(sig) \
 ((struct mcr_MoveCursor *)(sig).instance.data.data)
 
-/*! \brief Signal data casted \ref mcr_MoveCursor * */
+/*! Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MC_data(sigPt) mcr_MoveCursor_data (sigPt)
-/*! \brief Signal data casted \ref mcr_MoveCursor * */
+/*! Signal data casted \ref mcr_MoveCursor * */
 #define MCR_MC_DATA(sig) MCR_MOVECURSOR_DATA (sig)
 
 #ifdef __cplusplus

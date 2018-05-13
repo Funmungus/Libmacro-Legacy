@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief C++ wrapper for \ref itrigger.h and \ref trigger.h functions
  */
 
@@ -34,8 +33,7 @@
 namespace mcr
 {
 class TriggerRef;
-/*!
- * \brief \ref mcr_ITrigger reference editor
+/*! \ref mcr_ITrigger reference editor
  *
  * \ref itrigger.h
  * Will not unregister ITrigger on destruction
@@ -44,8 +42,7 @@ class TriggerRef;
 class MCR_EXTRAS_API ITriggerRef
 {
 public:
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param itrigPt ITrigger reference to edit
 	 */
@@ -79,12 +76,12 @@ public:
 		return *this;
 	}
 
-	/*! \brief Get ITrigger reference, non-virtual */
+	/*! Get ITrigger reference, non-virtual */
 	inline mcr_ITrigger &operator *() const
 	{
 		return *_itrigPt;
 	}
-	/*! \brief Get ITrigger reference, non-virtual */
+	/*! Get ITrigger reference, non-virtual */
 	inline mcr_ITrigger *operator ->() const
 	{
 		return _itrigPt;
@@ -99,18 +96,17 @@ public:
 		return _context;
 	}
 
-	/*!
-	 * \brief \ref mcr_register this ITrigger
+	/*! \ref mcr_register this ITrigger
 	 *
 	 * If the ITrigger id is not -1, then mcr_reg_set_name and
 	 * mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
 				  const char **addNames = NULL, size_t addNamesCount = 0);
-	/*! \brief TODO Create mcr_unregister function */
+	/*! TODO Create mcr_unregister function */
 	virtual void unregisterType() {}
 
-	/*! \brief Get ITrigger reference */
+	/*! Get ITrigger reference */
 	virtual inline mcr_ITrigger *itrigger() const
 	{
 		return _itrigPt;
@@ -121,7 +117,7 @@ public:
 	}
 
 	/* Interface */
-	/*! \brief \ref mcr_Interface.id */
+	/*! \ref mcr_Interface.id */
 	virtual inline size_t id()
 	{
 		return mcr_ITrigger_id(_itrigPt);
@@ -130,7 +126,7 @@ public:
 	/* TODO set/change id/name */
 	virtual const char *name();
 	virtual void setName(const char *name);
-	/*! \brief \ref mcr_Interface.data_size */
+	/*! \ref mcr_Interface.data_size */
 	virtual inline size_t dataSize() const
 	{
 		return _itrigPt ? _itrigPt->interface.data_size : 0;
@@ -196,8 +192,7 @@ private:
 	mcr_ITrigger *_itrigPt;
 };
 
-/*!
- * \brief \ref mcr_Trigger reference editor
+/*! \ref mcr_Trigger reference editor
  *
  * \ref trigger.h
  * Will not deinit Trigger on destruction
@@ -206,8 +201,7 @@ private:
 class MCR_EXTRAS_API TriggerRef
 {
 public:
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param trigPt Trigger reference to edit
 	 */
@@ -221,31 +215,31 @@ public:
 			setTriggerRef(copytron.triggerRef());
 		return *this;
 	}
-	/*! \brief Change ITrigger of Trigger reference */
+	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(ITriggerRef &itrigger)
 	{
 		setITrigger(itrigger.itrigger());
 		return *this;
 	}
-	/*! \brief Change Trigger to reference */
+	/*! Change Trigger to reference */
 	inline TriggerRef &operator =(mcr_Trigger *trigPt)
 	{
 		setTriggerRef(trigPt);
 		return *this;
 	}
-	/*! \brief Change ITrigger of Trigger reference */
+	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(mcr_ITrigger *itrigPt)
 	{
 		setITrigger(itrigPt);
 		return *this;
 	}
-	/*! \brief Change ITrigger of Trigger reference */
+	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(size_t id)
 	{
 		setId(id);
 		return *this;
 	}
-	/*! \brief Change ITrigger of Trigger reference */
+	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(const char *name)
 	{
 		setName(name);
@@ -276,18 +270,18 @@ public:
 //	localComparison(>=,,>= 0)
 #undef localComparison
 
-	/*! \brief Get Trigger reference, non-virtual */
+	/*! Get Trigger reference, non-virtual */
 	inline mcr_Trigger &operator *() const
 	{
 		return *_trigPt;
 	}
-	/*! \brief Get Trigger reference, non-virtual */
+	/*! Get Trigger reference, non-virtual */
 	inline mcr_Trigger *operator ->() const
 	{
 		return _trigPt;
 	}
 
-	/*! \brief Get Trigger reference, non-virtual */
+	/*! Get Trigger reference, non-virtual */
 	inline mcr_Trigger *ptr() const
 	{
 		return _trigPt;
@@ -367,7 +361,7 @@ public:
 			if ((err = mcr_Instance_reset(_trigPt)))
 				throw err;
 			if (!data<void *>())
-				throw mcr_error();
+				throw mcr_err;
 		}
 	}
 
@@ -386,8 +380,7 @@ private:
 	mcr_Trigger *_trigPt;
 };
 
-/*!
- * \brief Reference to Trigger of specific type.
+/*! Reference to Trigger of specific type.
  *
  * This class is intended to always have the same ITrigger. Setting
  * a trigger reference of a different type should reset it to the correct
@@ -427,8 +420,7 @@ public:
 	virtual void copy(const mcr_Trigger *copytron) override;
 	virtual void copy(const TriggerRef &copytron) override;
 protected:
-	/*!
-	 * \brief Please call \ref init after construction
+	/*! Please call \ref init after construction
 	 * \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param trigPt Trigger reference to manage
@@ -440,8 +432,7 @@ protected:
 		if (_itrigPt)
 			TriggerRef::setITrigger(_itrigPt);
 	}
-//	/*!
-//	 * \brief Please call \ref init after construction
+//	/*!//	 * \brief Please call \ref init after construction
 //	 * \param trigPt Trigger reference to manage
 //	 */
 //	TriggerManager(mcr_Trigger *trigPt)

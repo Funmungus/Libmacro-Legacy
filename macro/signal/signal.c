@@ -100,7 +100,7 @@ int mcr_Signal_compare(const void *lhsSignalPt, const void *rhsSignalPt)
 			int valHolder =
 				mcr_Instance_compare(lhsSignalPt, rhsSignalPt);
 			return valHolder ? valHolder :
-			       MCR_CMP_INTEGRAL(lSigPt->is_dispatch,
+				   MCR_CMP(lSigPt->is_dispatch,
 						rSigPt->is_dispatch);
 		}
 		return -1;

@@ -16,26 +16,21 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Include all Libmacro functionality
  */
 
-/*!
- * \namespace mcr
+/*! \namespace mcr
  * \brief Libmacro, by Jonathan Pelletier 2013.  Alpha version.
  *
- * 1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using
- * \ref mcr_dispatch.\n
- * 2. If signal is not blocked by dispatching, it is then sent to cause
- * action.\n
- * 3. Dispatching may be received by \ref mcr_DispatchPair.\n
- * 4. \ref mcr_Trigger_receive may be used to dispatch into \ref mcr_Trigger.
- * 5. Triggered action may be a \ref mcr_Macro, which sends a list of
- * \ref mcr_Signal.
- * 6. Repeat at step 1, or disable signal dispatch by
- * setting either \ref mcr_ISignal.dispatcher, or \ref mcr_Signal.is_dispatch
- * to 0.\n
+ * 1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using \ref mcr_dispatch.\n
+ *		1.0.a Disable dispatch for a signal by setting \ref mcr_Signal.is_dispatch to false.\n
+ *		1.0.b Disable dispatch of an ISignal type by setting \ref mcr_ISignal.dispatcher to NULL.\n
+ *		1.0.c Disable Libmacro generic dispatch by setting \ref mcr_mod_signal.dispatcher_generic_enabled to false.\n
+ * 	1.1 Dispatching may be received by \ref mcr_DispatchPair.\n
+ * 	1.2 \ref mcr_Trigger_receive may be used to dispatch into \ref mcr_Trigger.\n
+ * 	1.3 Triggered action may be a \ref mcr_Macro, which sends a list of \ref mcr_Signal.\n
+ * 2. If signal is not blocked by dispatching, it is then sent to cause an action.\n
  */
 
 #ifndef MCR_LIBMACRO_H
@@ -51,61 +46,57 @@
 extern "C" {
 #endif
 
-/*! \brief Libmacro context, required for Libmacro functions */
+/*! Libmacro context, required for Libmacro functions */
 struct mcr_context;
-/*!
- * \brief \ref malloc and \ref mcr_initialize
+/*! \ref malloc and \ref mcr_initialize a \ref mcr_context
  *
- * \param flagLoadContracts If true, also load string contracts in
- * all modules.  Useful for string-mapped or scripted applications.
- * \param flagTrimFinish If true, \ref mcr_trim after initializing.
- * \return Initialized Libmacro context, or NULL on error
+ * Will also \ref mcr_load_contracts and \ref mcr_trim.
+ * Will set \ref mcr_err.
+ * \return Dynamic and initialized Libmacro context, or NULL on error
  */
-MCR_API struct mcr_context *mcr_allocate(bool flagLoadContracts,
-		bool flagTrimFinish);
-/*!
- * \brief \ref mcr_deinitialize and \ref free
+MCR_API struct mcr_context *mcr_allocate();
+/*! \ref mcr_deinitialize and \ref free.
  *
+ * Only use with a context created by malloc or \ref mcr_allocate.
  * Because of threading do not deallocate in a deconstructor or on program
  * exit.
- * \param ctx Libmacro context
- */
-MCR_API int mcr_deallocate(struct mcr_context *ctx);
-/*!
- * \brief Initialize Libmacro resources
- *
+ * Will set \ref mcr_err.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
-MCR_API int mcr_initialize(struct mcr_context *ctx,
-			   bool flagLoadContracts, bool flagTrimFinish);
-/*!
- * \brief Clean all resources used by Libmacro.
+MCR_API int mcr_deallocate(struct mcr_context *ctx);
+/*! Initialize Libmacro resources
+ *
+ * Will set \ref mcr_err.
+ * \param ctx Libmacro context
+ * \return \ref reterr
+ */
+MCR_API int mcr_initialize(struct mcr_context *ctx);
+/*! Clean all resources used by Libmacro.
  *
  * Because of threading do not deinitialize in a deconstructor or on program
  * exit.
+ * Will set \ref mcr_err.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
 MCR_API int mcr_deinitialize(struct mcr_context *ctx);
-/*!
- * \brief Load string contracts
+/*! Load string contracts
  *
  * String contracts map string names or keys to types and instances.
+ * Will set \ref mcr_err.
  * \param ctx Libmacro context
  * \return \ref reterr
  */
 MCR_API int mcr_load_contracts(struct mcr_context *ctx);
-/*!
- * \brief Minimize allocation used by Libmacro.
+/*! Minimize allocation used by Libmacro.
  *
  * \param ctx Libmacro context
  */
 MCR_API void mcr_trim(struct mcr_context *ctx);
 
 #ifndef MCR_PLATFORM_INC
-/*!
- * \brief Include this file to access platform declarations.
+/*! Include this file to access platform declarations.
  *
  * In case of emergency break glass
  */

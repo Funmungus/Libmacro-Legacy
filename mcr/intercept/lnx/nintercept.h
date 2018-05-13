@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief Read from grabbers and dispatch signals. This may block
  * incoming events.
  */
@@ -31,16 +30,15 @@
 extern "C" {
 #endif
 
-/*! \brief Linux intercept platform structure */
+/*! Linux intercept platform structure */
 struct mcr_mod_intercept_platform {
-	/*! \brief Intercept critical sections */
+	/*! Intercept critical sections */
 	mtx_t lock;
-	/*! \brief Ordered list so each grab can remove itself */
+	/*! Ordered list so each grab can remove itself */
 	struct mcr_Array grab_contexts;
-	/*! \brief Set of input event paths to try grabbing */
+	/*! Set of input event paths to try grabbing */
 	mcr_StringSet grab_paths;
-	/*!
-	 * \brief Get key pressed values from a device
+	/*! Get key pressed values from a device
 	 *
 	 * KEY_CNT / 8 is a floor value, and may have remainder of keys. */
 	char bit_retrieval[MCR_EVENTINDEX(KEY_CNT) + 1];

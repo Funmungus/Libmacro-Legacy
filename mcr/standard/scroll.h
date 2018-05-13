@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_Scroll - Scroll visible area
  */
 
@@ -30,29 +29,28 @@
 extern "C" {
 #endif
 
-/*! \brief Scroll visible area */
+/*! Scroll visible area */
 struct mcr_Scroll {
-	/*! \brief Magnitude to scroll in each direciton */
+	/*! Magnitude to scroll in each direciton */
 	mcr_Dimensions dm;
 };
 
-/*!
- * \pre Signal has data member \ref mcr_Scroll
+/*! \pre Signal has data member \ref mcr_Scroll
  * \brief Scroll through visible area
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Scroll_send(struct mcr_Signal *sigPt);
-/*! \brief \ref mcr_Scroll_send */
+/*! \ref mcr_Scroll_send */
 MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 /* Default init, deinit, compare, copy */
 
-/*! \brief Signal interface of \ref mcr_Scroll */
+/*! Signal interface of \ref mcr_Scroll */
 MCR_API struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx);
-/*! \brief Signal data casted \ref mcr_Scroll * */
+/*! Signal data casted \ref mcr_Scroll * */
 #define mcr_Scroll_data(sigPt) \
 ((struct mcr_Scroll *)mcr_Instance_data(sigPt))
-/*! \brief Signal data casted \ref mcr_Scroll * */
+/*! Signal data casted \ref mcr_Scroll * */
 #define MCR_SCROLL_DATA(sig) \
 ((struct mcr_Scroll *)(sig).instance.data.data)
 

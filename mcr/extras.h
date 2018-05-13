@@ -16,9 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
- * \brief Include Libmacro c++ extra module
+/*! \file
+ * \brief Include Libmacro c++ extras module
  */
 
 #ifndef __cplusplus
@@ -30,5 +29,4 @@
 	#define MCR_EXTRAS_H
 
 	#include "mcr/extras/mod_extras.h"
-
 #endif

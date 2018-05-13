@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_mod_standard - Standard signal and trigger types module
  *
  * In cases of extreme complexity, please break glass.
@@ -51,10 +50,9 @@ struct mcr_mod_standard {
 	/* Trigger types */
 	struct mcr_ITrigger iaction;
 	struct mcr_ITrigger istaged;
-	/*! \brief Set of \ref mcr_IsStage */
+	/*! Set of \ref mcr_IsStage */
 	struct mcr_Array stage_matchers;
-	/*!
-	 * \brief Stage matcher for no specific type
+	/*! Stage matcher for no specific type
 	 *
 	 * By default this matches signal by address */
 	struct mcr_IsStage *stage_generic;
@@ -73,14 +71,12 @@ MCR_API void mcr_standard_trim(struct mcr_context *ctx);
 /* Platform directory */
 #define MCR_STANDARD_PLATFORM_INC \
 MCR_STR(mcr/standard/MCR_PLATFORM/nstandard.h)
-/*!
- * \brief Initialize platform requirements for standard signals.
+/*! Initialize platform requirements for standard signals.
  *
  * Called by \ref mcr_standard_initialize
  */
 MCR_API int mcr_standard_platform_initialize(struct mcr_context *ctx);
-/*!
- * \brief Clean up platform requirements for standard signals.
+/*! Clean up platform requirements for standard signals.
  *
  * Called by \ref mcr_standard_deinitialize
  */

@@ -25,9 +25,7 @@
 #define MCR_EXTRAS_QT_TYPES_H
 
 #include <QtCore>
-extern "C" {
 #include "mcr/util/def.h"
-}
 #include "mcr/extras/def.h"
 
 namespace mcr

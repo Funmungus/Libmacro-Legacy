@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_mod_macro - Macro module
  */
 
@@ -30,9 +29,9 @@
 extern "C" {
 #endif
 
-/*! \brief Macro module */
+/*! Macro module */
 struct mcr_mod_macro {
-	/*! \brief \ref mcr_ITrigger registry */
+	/*! \ref mcr_ITrigger registry */
 	struct mcr_IRegistry itriggers;
 };
 

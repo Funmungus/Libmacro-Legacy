@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief C++ wrapper for \ref mcr/signal/isignal.h and \ref mcr/signal/signal.h functions
  */
 
@@ -34,8 +33,7 @@
 namespace mcr
 {
 class SignalRef;
-/*!
- * \brief \ref mcr_ISignal reference editor
+/*! \ref mcr_ISignal reference editor
  *
  * Will not unregister ISignal on destruction
  * Virtual and concrete class
@@ -43,8 +41,7 @@ class SignalRef;
 class MCR_EXTRAS_API ISignalRef
 {
 public:
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param isigPt ISignal reference to edit
 	 */
@@ -78,18 +75,18 @@ public:
 		return *this;
 	}
 
-	/*! \brief Get ISignal reference, non-virtual */
+	/*! Get ISignal reference, non-virtual */
 	inline mcr_ISignal &operator *() const
 	{
 		return *_isigPt;
 	}
-	/*! \brief Get ISignal reference, non-virtual */
+	/*! Get ISignal reference, non-virtual */
 	inline mcr_ISignal *operator ->() const
 	{
 		return _isigPt;
 	}
 
-	/*! \brief Get ISignal reference, non-virtual */
+	/*! Get ISignal reference, non-virtual */
 	inline mcr_ISignal *ptr() const
 	{
 		return _isigPt;
@@ -99,18 +96,17 @@ public:
 		return _context;
 	}
 
-	/*!
-	 * \brief \ref mcr_register this ISignal
+	/*! \ref mcr_register this ISignal
 	 *
 	 * If the ISignal id is not -1, then mcr_reg_set_name and
 	 * mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
 				  const char **addNames = NULL, size_t addNamesCount = 0);
-	/*! \brief TODO Create mcr_unregister function */
+	/*! TODO Create mcr_unregister function */
 	virtual void unregisterType() {}
 
-	/*! \brief Get ISignal reference */
+	/*! Get ISignal reference */
 	virtual inline mcr_ISignal *isignal()
 	{
 		return _isigPt;
@@ -121,7 +117,7 @@ public:
 	}
 
 	/* Interface */
-	/*! \brief \ref mcr_Interface.id */
+	/*! \ref mcr_Interface.id */
 	virtual inline size_t id()
 	{
 		return mcr_ISignal_id(_isigPt);
@@ -130,7 +126,7 @@ public:
 	/* TODO set/change id/name */
 	virtual const char *name();
 	virtual void setName(const char *name);
-	/*! \brief \ref mcr_Interface.data_size */
+	/*! \ref mcr_Interface.data_size */
 	virtual inline size_t dataSize() const
 	{
 		return _isigPt ? _isigPt->interface.data_size : 0;
@@ -206,8 +202,7 @@ private:
 	mcr_ISignal *_isigPt;
 };
 
-/*!
- * \brief \ref mcr_Signal reference editor
+/*! \ref mcr_Signal reference editor
  *
  * \ref signal.h
  * Will not deinit Signal on destruction
@@ -216,8 +211,7 @@ private:
 class MCR_EXTRAS_API SignalRef
 {
 public:
-	/*!
-	 * \param context If null the last created context will be used.
+	/*! \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param sigPt Signal reference to edit
 	 */
@@ -231,31 +225,31 @@ public:
 			setSignal(copytron.signal());
 		return *this;
 	}
-	/*! \brief Change ISignal of Signal reference */
+	/*! Change ISignal of Signal reference */
 	inline SignalRef &operator =(ISignalRef &isignal)
 	{
 		setISignal(isignal.isignal());
 		return *this;
 	}
-	/*! \brief Change Signal to reference */
+	/*! Change Signal to reference */
 	inline SignalRef &operator =(mcr_Signal *sigPt)
 	{
 		setSignal(sigPt);
 		return *this;
 	}
-	/*! \brief Change ISignal of Signal reference */
+	/*! Change ISignal of Signal reference */
 	inline SignalRef &operator =(mcr_ISignal *isigPt)
 	{
 		setISignal(isigPt);
 		return *this;
 	}
-	/*! \brief Change ISignal of Signal reference */
+	/*! Change ISignal of Signal reference */
 	inline SignalRef &operator =(size_t id)
 	{
 		setId(id);
 		return *this;
 	}
-	/*! \brief Change ISignal of Signal reference */
+	/*! Change ISignal of Signal reference */
 	inline SignalRef &operator =(const char *name)
 	{
 		setName(name);
@@ -286,18 +280,18 @@ public:
 //	localComparison(>=,,>= 0)
 #undef localComparison
 
-	/*! \brief Get Signal reference, non-virtual */
+	/*! Get Signal reference, non-virtual */
 	inline mcr_Signal &operator *() const
 	{
 		return *_sigPt;
 	}
-	/*! \brief Get Signal reference, non-virtual */
+	/*! Get Signal reference, non-virtual */
 	inline mcr_Signal *operator ->() const
 	{
 		return _sigPt;
 	}
 
-	/*! \brief \ref send, non-virtual */
+	/*! \ref send, non-virtual */
 	inline void operator ()()
 	{
 		send();
@@ -374,7 +368,7 @@ public:
 			if ((err = mcr_Instance_reset(_sigPt)))
 				throw err;
 			if (!data<void *>())
-				throw mcr_error();
+				throw mcr_err;
 		}
 	}
 
@@ -395,8 +389,7 @@ private:
 	mcr_Signal *_sigPt;
 };
 
-/*!
- * \brief Reference to Signal of specific type.
+/*! Reference to Signal of specific type.
  *
  * This class is intended to always have the same ISignal. Setting
  * a signal reference of a different type should reset it to the correct
@@ -436,8 +429,7 @@ public:
 	virtual void copy(const mcr_Signal *copytron) override;
 	virtual void copy(const SignalRef &copytron) override;
 protected:
-	/*!
-	 * \brief Please call \ref init after construction
+	/*! Please call \ref init after construction
 	 * \param context If null the last created context will be used.
 	 * Throws EINVAL if no context exists
 	 * \param sigPt Signal reference to manage
@@ -449,8 +441,7 @@ protected:
 		if (_isigPt)
 			SignalRef::setISignal(_isigPt);
 	}
-//	/*!
-//	 * \brief Please call \ref init after construction
+//	/*!//	 * \brief Please call \ref init after construction
 //	 * \param sigPt Signal reference to manage
 //	 */
 //	SignalManager(mcr_Signal *sigPt)

@@ -16,8 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/*!
- * \file
+/*! \file
  * \brief \ref mcr_Instance Example and abstraction of an
  * interface instance.
  *
@@ -37,16 +36,15 @@
 extern "C" {
 #endif
 
-/*! \brief Example of an interface instance. */
+/*! Example of an interface instance. */
 struct mcr_Instance {
-	/*! \brief A reference to the interface */
+	/*! A reference to the interface */
 	struct mcr_Interface *interface;
-	/*! \brief Actual data of this instance */
+	/*! Actual data of this instance */
 	struct mcr_Data data;
 };
 
-/*!
- * \brief \ref mcr_Instance ctor
+/*! \ref mcr_Instance ctor
  *
  * Use \ref mcr_Instance_set_interface and \ref mcr_Instance_reset to
  * create new, empty data.
@@ -56,16 +54,14 @@ struct mcr_Instance {
 MCR_API int mcr_Instance_init(void *instPt);
 MCR_API struct mcr_Instance mcr_Instance_new(void *iPt, void *dataPt,
 		void (*deallocate) (void *));
-/*!
- * \brief \ref mcr_Instance dtor
+/*! \ref mcr_Instance dtor
  *
  * Free resources of an instance
  * \param instPt \ref opt \ref mcr_Instance *
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_deinit(void *instPt);
-/*!
- * \brief \ref mcr_Instance_set_interface and \ref mcr_Instance_set_data
+/*! \ref mcr_Instance_set_interface and \ref mcr_Instance_set_data
  *
  * \param instPt \ref mcr_Instance *
  * \param iPt \ref opt \ref mcr_Instance.interface
@@ -76,8 +72,7 @@ MCR_API int mcr_Instance_deinit(void *instPt);
 MCR_API int mcr_Instance_set_all(void *instPt, void *iPt,
 				 void *dataPt, void (*deallocate) (void *));
 
-/*!
- * \brief Get \ref mcr_Data.data
+/*! Get \ref mcr_Data.data
  *
  * \param instPt \ref opt \ref mcr_Instance *
  * \return void *
@@ -87,8 +82,7 @@ MCR_API int mcr_Instance_set_all(void *instPt, void *iPt,
 	((struct mcr_Instance *)(instPt))->data.data : \
 NULL)
 
-/*!
- * \brief \ref mcr_Data_is_heap
+/*! \ref mcr_Data_is_heap
  *
  * \param instPt \ref opt \ref mcr_Instance *
  * \return bool
@@ -98,8 +92,7 @@ NULL)
 	MCR_DATA_IS_HEAP((instPt)->data) : \
 false)
 
-/*!
- * \brief Get the id of an instance's interface
+/*! Get the id of an instance's interface
  *
  * \ref mcr_iid
  * \param instPt \ref opt \ref mcr_Instance *
@@ -107,8 +100,7 @@ false)
  */
 #define mcr_Instance_id(instPt) mcr_iref_id(instPt)
 
-/*!
- * \brief Change the interface of an instance
+/*! Change the interface of an instance
  *
  * Existing data will be deinitialized before setting the new interface.
  * \param instPt \ref mcr_Instance *
@@ -116,8 +108,7 @@ false)
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_set_interface(void *instPt, void *iPt);
-/*!
- * \ref Change current data of an instance
+/*! \ref Change current data of an instance
  *
  * Existing data will be deinitialized before setting the new data.
  * \ref mcr_iset_data
@@ -128,24 +119,21 @@ MCR_API int mcr_Instance_set_interface(void *instPt, void *iPt);
  */
 MCR_API int mcr_Instance_set_data(void *instPt, void *dataPt,
 				  void (*deallocate) (void *));
-/*!
- * \brief Compare two instances
+/*! Compare two instances
  *
  * \param lhsPt \ref opt \ref mcr_Instance *
  * \param rhsPt \ref opt \ref mcr_Instance *
  * \return \ref retcmp
  */
 MCR_API int mcr_Instance_compare(const void *lhsPt, const void *rhsPt);
-/*!
- * \ref Copy from source instance to destination instance
+/*! \ref Copy from source instance to destination instance
  *
  * \param dstPt \ref mcr_Instance *
  * \param srcPt \ref opt \ref mcr_Instance *
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_copy(void *dstPt, const void *srcPt);
-/*!
- * \brief Free existing data and reinitialize
+/*! Free existing data and reinitialize
  *
  * \ref mcr_ireset
  * \param instPt \ref mcr_Instance *

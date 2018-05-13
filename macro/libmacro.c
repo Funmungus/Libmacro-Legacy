@@ -15,6 +15,7 @@
 
 #include "mcr/libmacro.h"
 #include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,100 +24,91 @@
 #pragma message("TODO: Optimize for intercept, dispatch, and send." \
 	" SIMPLIFY(function instead of inline) everywhere else.")
 
-struct mcr_context *mcr_allocate(bool flagLoadContracts, bool flagTrimFinish)
+struct mcr_context *mcr_allocate()
 {
+	int err;
 	struct mcr_context *ctx = malloc(sizeof(struct mcr_context));
 	if (!ctx) {
-		mset_error(ENOMEM);
+		mcr_errno(ENOMEM);
 		return NULL;
 	}
-	if (mcr_initialize(ctx, flagLoadContracts, flagTrimFinish)) {
+	if (mcr_initialize(ctx)) {
 		free(ctx);
 		return NULL;
 	}
+	if ((err = mcr_load_contracts(ctx))) {
+		mcr_deinitialize(ctx);
+		mcr_err = err;
+		return NULL;
+	}
+	mcr_trim(ctx);
 	return ctx;
 }
 
 int mcr_deallocate(struct mcr_context *ctx)
 {
-	int err;
-	if (!ctx) {
-		mset_error(EINVAL);
-		return EINVAL;
-	}
-	err = mcr_deinitialize(ctx);
+	if (!ctx)
+		return (mcr_err = EINVAL);
+	mcr_deinitialize(ctx);
 	free(ctx);
-	return err;
+	return mcr_err;
 }
 
 #define local_err_stack_size 4
-static int local_err(struct mcr_context *ctx, int errorOut,
-		     int (**errStack) (struct mcr_context *), int stackCount)
+static int local_err(struct mcr_context *ctx, int (**errStack) (struct mcr_context *), int stackCount)
 {
 	dassert(stackCount <= local_err_stack_size);
 	/* Traverse backwards through stack */
 	while (stackCount--) {
 		errStack[stackCount] (ctx);
 	}
-	return errorOut;
+	return mcr_err;
 }
 
-int mcr_initialize(struct mcr_context *ctx,
-		   bool flagLoadContracts, bool flagTrimFinish)
+int mcr_initialize(struct mcr_context *ctx)
 {
-	int err = 0, stackCount = 0;
+	int stackCount = 0;
 	int (*errStack[local_err_stack_size]) (struct mcr_context *) = {
 		mcr_signal_deinitialize, mcr_macro_deinitialize,
-		mcr_standard_deinitialize,
-		mcr_intercept_deinitialize
+		mcr_standard_deinitialize
 	};
-	if (!ctx) {
-		mset_error(EINVAL);
-		return EINVAL;
-	}
-	mcr_set_error(0);
+	if (!ctx)
+		return (mcr_err = EINVAL);
+	mcr_err = 0;
 	memset(ctx, 0, sizeof(struct mcr_context));
 	/* No error functions yet on stack */
-	if ((err = mcr_signal_initialize(ctx)))
-		return err;
+	if (mcr_signal_initialize(ctx))
+		return mcr_err;
 	++stackCount;
-	if ((err = mcr_macro_initialize(ctx)))
-		return local_err(ctx, err, errStack, stackCount);
+	if (mcr_macro_initialize(ctx))
+		return local_err(ctx, errStack, stackCount);
 	++stackCount;
-	if ((err = mcr_standard_initialize(ctx)))
-		return local_err(ctx, err, errStack, stackCount);
+	if (mcr_standard_initialize(ctx))
+		return local_err(ctx, errStack, stackCount);
 	++stackCount;
-	if ((err = mcr_intercept_initialize(ctx)))
-		return local_err(ctx, err, errStack, stackCount);
-	++stackCount;
-	if (flagLoadContracts) {
-		if ((err = mcr_load_contracts(ctx)))
-			return local_err(ctx, err, errStack, stackCount);
-	}
-	if (flagTrimFinish) {
-		mcr_trim(ctx);
-	}
+	if (mcr_intercept_initialize(ctx))
+		return local_err(ctx, errStack, stackCount);
 	return 0;
 }
 
 int mcr_deinitialize(struct mcr_context *ctx)
 {
-	mcr_set_error(0);
+	mcr_err = 0;
 	mcr_intercept_deinitialize(ctx);
 	mcr_standard_deinitialize(ctx);
 	mcr_macro_deinitialize(ctx);
 	mcr_signal_deinitialize(ctx);
-	return mcr_error();
+	return mcr_err;
 }
 
 int mcr_load_contracts(struct mcr_context *ctx)
 {
-	int err = mcr_signal_load_contract(ctx);
-	if (err)
-		return err;
-	if ((err = mcr_standard_load_contract(ctx)))
-		return err;
-	return err;
+	mcr_err = 0;
+	if (mcr_signal_load_contract(ctx))
+		return mcr_err;
+	if (mcr_standard_load_contract(ctx))
+		return mcr_err;
+	return 0;
 }
 
 void mcr_trim(struct mcr_context *ctx)

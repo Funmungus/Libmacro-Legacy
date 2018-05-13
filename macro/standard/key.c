@@ -132,7 +132,7 @@ unsigned int mcr_Key_mod(struct mcr_context *ctx, int key)
 {
 	unsigned int *found =
 		mcr_Map_value(&ctx->standard.map_key_modifier, &key);
-	return found ? *found : MCR_MOD_ANY;
+	return found ? *found : MCR_MF_NONE;
 }
 
 int mcr_Key_mod_key(struct mcr_context *ctx, unsigned int modifier)
@@ -237,7 +237,7 @@ static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
 	struct mcr_DispatchPair dispPair = { newTrigger, receiveFnc };
 	arrPt = mcr_Map_element_ensured(keyMap, &key);
 	if (!arrPt)
-		return mcr_error();	// Expect ENOMEM
+		return mcr_err;	// Expect ENOMEM
 	arrPt = MCR_MAP_VALUEOF(*keyMap, arrPt);
 	/* Multiple object references may exist */
 	return mcr_Array_add(arrPt, &dispPair, 1, false);
