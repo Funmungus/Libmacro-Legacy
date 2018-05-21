@@ -160,7 +160,7 @@ void Libmacro::setCharacterKey(int c, int key, long msecDelay,
 	nMan.mkdata();
 	mcr_NoOp_set_all(nMan.data<mcr_NoOp>(), msecDelay / 1000, msecDelay % 1000);
 	keyMan.mkdata();
-	mcr_Key_set_all(keyMan.data<mcr_Key>(), key, 0, MCR_DOWN);
+	mcr_Key_set_all(keyMan.data<mcr_Key>(), key, MCR_DOWN);
 	for (i = 0; i < localSet.size(); i++) {
 		/* Odd numbers are delays */
 		if (i % 2)
@@ -170,7 +170,7 @@ void Libmacro::setCharacterKey(int c, int key, long msecDelay,
 	}
 	if (shiftFlag) {
 		int shift = mcr_Key_mod_key(ptr(), MCR_SHIFT);
-		mcr_Key_set_all(MCR_KEY_DATA(localSet[0].signal), shift, shift, MCR_DOWN);
+		mcr_Key_set_all(MCR_KEY_DATA(localSet[0].signal), shift, MCR_DOWN);
 		localSet[6] = localSet[0];
 		keyMan.setSignal(localSet[4].ptr());
 		keyMan.setUpType(MCR_UP);

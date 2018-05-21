@@ -515,18 +515,6 @@ public:
 		data<mcr_Key>()->key = val;
 	}
 
-	inline int scan() const
-	{
-		if (data<mcr_Key>())
-			return data<mcr_Key>()->scan;
-		return MCR_KEY_ANY;
-	}
-	inline void setScan(int val)
-	{
-		mkdata();
-		data<mcr_Key>()->scan = val;
-	}
-
 	inline mcr_KeyUpType upType() const
 	{
 		if (data<mcr_Key>())

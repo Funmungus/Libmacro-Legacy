@@ -82,17 +82,14 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 
 int mcr_Key_send_data(struct mcr_Key *keyPt)
 {
-	struct input_event events[3] = { 0 };
+	struct input_event events[2] = { 0 };
 	ssize_t err;
-	events[0].type = EV_MSC;
-	events[0].code = MSC_SCAN;
-	events[0].value = keyPt->scan;
-	events[1].type = EV_KEY;
-	events[1].code = keyPt->key;
-	events[2].type = EV_SYN;
-	events[2].code = SYN_REPORT;
+	events[0].type = EV_KEY;
+	events[0].code = keyPt->key;
+	events[1].type = EV_SYN;
+	events[1].code = SYN_REPORT;
 	if (keyPt->up_type != MCR_UP) {
-		events[1].value = 1;
+		events[0].value = 1;
 		err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
@@ -100,7 +97,7 @@ int mcr_Key_send_data(struct mcr_Key *keyPt)
 		}
 	}
 	if (keyPt->up_type != MCR_DOWN) {
-		events[1].value = 0;
+		events[0].value = 0;
 		err = MCR_DEV_SEND(mcr_genDev, events, sizeof(events));
 		if (err == -1) {
 			mset_error(EINTR);
@@ -551,7 +548,7 @@ static int add_echo_keys()
 	int i, ret, echoCode = 0;
 	struct mcr_Key k = { 0 };
 	for (i = 0; i < count; i++) {
-		k.key = k.scan = echokeys[i];
+		k.key = echokeys[i];
 		k.up_type = MCR_DOWN;
 		if ((ret = mcr_Echo_set_key(echoCode++, &k)))
 			return ret;

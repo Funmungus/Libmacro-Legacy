@@ -85,11 +85,11 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 int mcr_Key_send_data(struct mcr_Key *keyPt)
 {
 	if (keyPt->up_type != MCR_UP) {
-		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->scan,
+		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->key,
 			    KEYEVENTF_EXTENDEDKEY, 0);
 	}
 	if (keyPt->up_type != MCR_DOWN) {
-		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->scan,
+		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->key,
 			    KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 	}
 	return 0;

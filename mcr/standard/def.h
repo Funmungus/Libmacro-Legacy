@@ -64,7 +64,7 @@ typedef mcr_SpacePosition mcr_Dimensions;
 
 /*! Any or invalid echo code */
 #define MCR_ECHO_ANY ((const size_t)-1)
-/*! Any or invalid scan or key code */
+/*! Any or invalid key code */
 #define MCR_KEY_ANY ((const int)0)
 
 #endif

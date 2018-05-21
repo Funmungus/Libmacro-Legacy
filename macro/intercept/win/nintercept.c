@@ -149,7 +149,6 @@ static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
 		_key.key = p->vkCode;
-		_key.scan = p->scanCode;
 		_key.up_type = (WPARAM_UPTYPE(wParam));
 		if (mcr_dispatch(_hook_context, &_keySig))
 			return -1;

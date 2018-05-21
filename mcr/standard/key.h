@@ -31,22 +31,19 @@ extern "C" {
 
 /*! Simulate keyboard keys
  *
- * One or both of key and scan code may be used.\n
- * A 0 value of both key code and scan code should be logically
+ * A 0 value of key code should be logically
  * interpreted as either, "no key available, do not send,"
- * or "either a key code or scan code of any value."
+ * or "key code of any value."
  */
 struct mcr_Key {
 	/*! Key code, specified by platform */
 	int key;
-	/*! Scan code, specified by hardware */
-	int scan;
 	/*! Key press or release */
 	enum mcr_KeyUpType up_type;
 };
 
-/*! Set key, scan and key up type. */
-MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
+/*! Set key, and key up type. */
+MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key,
 			     enum mcr_KeyUpType keyUp);
 /*! \pre Signal instance data is \ref mcr_Key
  * \brief Simulate keyboard keys.

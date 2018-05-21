@@ -26,12 +26,11 @@
 const int mcr_Key_gen_key = MCR_KEY_ANY;
 const unsigned int mcr_Key_gen_up = MCR_BOTH;
 
-void mcr_Key_set_all(struct mcr_Key *keyPt, int key, int scan,
+void mcr_Key_set_all(struct mcr_Key *keyPt, int key,
 		     enum mcr_KeyUpType keyUp)
 {
 	dassert(keyPt);
 	keyPt->key = key;
-	keyPt->scan = scan;
 	keyPt->up_type = keyUp;
 }
 

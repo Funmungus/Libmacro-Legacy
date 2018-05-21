@@ -531,20 +531,6 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		end = (struct input_event *)(((char *)events) + rdb);
 		while (curVent < end) {
 			switch (curVent->type) {
-			/* Handle MSC */
-			case EV_MSC:
-				if (curVent->code == MSC_SCAN) {
-					/* Consume a key that already has scan code. */
-					if (key.scan) {
-						DISP_WRITEMEM(keysig);
-						key.key = 0;
-						key.scan = curVent->value;
-						key.up_type = MCR_BOTH;
-					} else {
-						key.scan = curVent->value;
-					}
-				}
-				break;
 			/* Handle KEY */
 			case EV_KEY:
 				if (key.key) {
@@ -564,7 +550,6 @@ if (mcr_dispatch(ctx, &(signal))) { \
 					}
 					DISP_WRITEMEM(keysig);
 					key.key = curVent->code;
-					key.scan = 0;
 					key.up_type =
 						curVent->value ? MCR_DOWN :
 						MCR_UP;
@@ -612,25 +597,20 @@ if (mcr_dispatch(ctx, &(signal))) { \
 			++curVent;
 		}
 		/* Call final event, it was not called yet. */
-		if (key.key || key.scan) {
-			if (key.key) {
+		if (key.key) {
+			echoFound =
+				MCR_MAP_ELEMENT(mcr_keyToEcho
+						[key.up_type], &key.key);
+			if (echoFound) {
 				echoFound =
-					MCR_MAP_ELEMENT(mcr_keyToEcho
-							[key.up_type], &key.key);
-				if (echoFound) {
-					echoFound =
-						MCR_MAP_VALUEOF(mcr_keyToEcho
-								[key.up_type], echoFound);
-					echo.echo = *echoFound;
-					if (mcr_dispatch(ctx, &echosig)) {
-						if (writegen)
-							writegen = false;
-					}
-				}
+					MCR_MAP_VALUEOF(mcr_keyToEcho
+							[key.up_type], echoFound);
+				echo.echo = *echoFound;
+				if (mcr_dispatch(ctx, &echosig) && writegen)
+					writegen = false;
 			}
 			DISP_WRITEMEM(keysig);
 			key.key = 0;
-			key.scan = 0;
 			key.up_type = MCR_BOTH;
 		}
 		if (bAbs[MCR_X] || bAbs[MCR_Y] || bAbs[MCR_Z]) {
