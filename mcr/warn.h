@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Raise a compiler warning
+ * \brief Raise a compiler warning.
  * Usage:
  * #include "mcr/warn.h"
  */

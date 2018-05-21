@@ -55,8 +55,8 @@ int mcr_send(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 	struct mcr_mod_signal *modSignal = &ctx->signal;
 	struct mcr_Dispatcher *dispPt =
 			sigPt ? sigPt->isignal->dispatcher : NULL, *genPt =
-				modSignal->dispatcher_generic_pt;
-	bool isGen = genPt && modSignal->dispatcher_generic_enabled;
+				modSignal->generic_dispatcher_pt;
+	bool isGen = genPt && modSignal->is_generic_dispatcher;
 	unsigned int mods = modSignal->internal_mods;
 	if (dispPt) {
 		if (dispPt->dispatch(dispPt, sigPt, mods))

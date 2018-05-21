@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Structures used by Libmacro
+ * \brief Structures used by Libmacro.
  */
 
 #ifndef MCR_MODULES_H

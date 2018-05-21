@@ -38,7 +38,7 @@ static int gendisp_trim(void *dispPt);
 int mcr_signal_initialize(struct mcr_context *ctx)
 {
 	struct mcr_mod_signal *modSignal = &ctx->signal;
-	modSignal->dispatcher_generic_pt = &modSignal->generic_dispatcher.dispatcher;
+	modSignal->generic_dispatcher_pt = &modSignal->generic_dispatcher.dispatcher;
 	int err = mcr_reg_init(mcr_ISignal_reg(ctx));
 	dassert(ctx);
 	if (err)
@@ -63,11 +63,11 @@ int mcr_signal_deinitialize(struct mcr_context *ctx)
 	mcr_Map_deinit(&modSignal->map_mod_name);
 	mcr_Map_deinit(&modSignal->map_name_mod);
 	mcr_reg_deinit(mcr_ISignal_reg(ctx));
-	if (modSignal->dispatcher_generic_pt) {
-		if (modSignal->dispatcher_generic_pt->clear)
-			modSignal->dispatcher_generic_pt->clear(modSignal->dispatcher_generic_pt);
-		if (modSignal->dispatcher_generic_pt->trim)
-			modSignal->dispatcher_generic_pt->trim(modSignal->dispatcher_generic_pt);
+	if (modSignal->generic_dispatcher_pt) {
+		if (modSignal->generic_dispatcher_pt->clear)
+			modSignal->generic_dispatcher_pt->clear(modSignal->generic_dispatcher_pt);
+		if (modSignal->generic_dispatcher_pt->trim)
+			modSignal->generic_dispatcher_pt->trim(modSignal->generic_dispatcher_pt);
 	}
 	gendisp_deinit(&modSignal->generic_dispatcher);
 	return mcr_err;
@@ -87,10 +87,10 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 				   "Graph", "Hyper", "Meta", "Shift", "Super",
 				   "Symbol", "Top", "Win", "User"
 				 };
-	unsigned int addMods[6] = { //MCR_MOD_ANY,
+	unsigned int addMods[] = {  MCR_MOD_ANY,
 				    MCR_ALT, MCR_ALTGR, MCR_CMD, MCR_CTRL, MCR_WIN
 				  };
-	const char *addNames[][2] = { //{"Any", ""},
+	const char *addNames[][2] = { {"Any", ""},
 		{"Option", ""}, {"Alt Gr", "alt_gr"}, {"Command", ""},
 		{"Control", ""}, {"Window", "Windows"}
 	};

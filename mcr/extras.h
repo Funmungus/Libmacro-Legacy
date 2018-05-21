@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Include Libmacro c++ extras module
+ * \brief Include Libmacro c++ extras module.
  */
 
 #ifndef __cplusplus

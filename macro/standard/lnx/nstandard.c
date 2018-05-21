@@ -464,7 +464,7 @@ static int add_key_names(struct mcr_context *context)
 		BTN_MISC, BTN_MOUSE, BTN_JOYSTICK,
 		BTN_GAMEPAD, BTN_SOUTH, BTN_EAST,
 		BTN_NORTH, BTN_WEST, BTN_DIGI,
-		BTN_WHEEL, BTN_TRIGGER_HAPPY1
+		BTN_WHEEL, BTN_TRIGGER_HAPPY1, KEY_GRAVE, KEY_MINUS, KEY_EQUAL
 	};
 	const char *extraNames[][6] = {
 		{"Escape"}, {"One"}, {"Two"}, {"Three"}, {"Four"},
@@ -499,7 +499,7 @@ static int add_key_names(struct mcr_context *context)
 		{"BTN_Misc"}, {"BTN_Mouse"}, {"BTN_Joystick"},
 		{"BTN_Gamepad"}, {"BTN_South"}, {"BTN_East"},
 		{"BTN_North"}, {"BTN_West"}, {"BTN_Digi"},
-		{"BTN_Wheel"}, {"TriggerHappy1"},
+		{"BTN_Wheel"}, {"TriggerHappy1"}, {"`"}, {"-"}, {"="}
 	};
 	const size_t extraLens[] = {
 		1, 1, 1, 1, 1,
@@ -517,7 +517,7 @@ static int add_key_names(struct mcr_context *context)
 		1, 1, 1,
 		1, 1, 1,
 		1, 1, 1,
-		1, 1
+		1, 1, 1, 1, 1
 	};
 	size_t i = arrlen(names);
 	int err = 0;

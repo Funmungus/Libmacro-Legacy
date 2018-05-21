@@ -48,10 +48,10 @@ struct mcr_mod_signal {
 	struct mcr_Array dispatchers;
 	/*! If enabled, the generic dispatcher will be used for all
 	 * signals */
-	bool dispatcher_generic_enabled;
+	bool is_generic_dispatcher;
 	/*! Generic dispatcher which may be used after the specific
 	 * dispatcher has been called */
-	struct mcr_Dispatcher *dispatcher_generic_pt;
+	struct mcr_Dispatcher *generic_dispatcher_pt;
 	/*! Default generic dispatcher with logic for all dispatches,
 	 * and signal reference-specific.
 	 */

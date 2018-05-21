@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Include all Libmacro functionality
+ * \brief Include all Libmacro functionality.
  */
 
 /*! \namespace mcr
@@ -26,7 +26,7 @@
  * 1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using \ref mcr_dispatch.\n
  *		1.0.a Disable dispatch for a signal by setting \ref mcr_Signal.is_dispatch to false.\n
  *		1.0.b Disable dispatch of an ISignal type by setting \ref mcr_ISignal.dispatcher to NULL.\n
- *		1.0.c Disable Libmacro generic dispatch by setting \ref mcr_mod_signal.dispatcher_generic_enabled to false.\n
+ *		1.0.c Disable Libmacro generic dispatch (listen to all types) by setting \ref mcr_context.signal.is_generic_dispatcher to false.\n
  * 	1.1 Dispatching may be received by \ref mcr_DispatchPair.\n
  * 	1.2 \ref mcr_Trigger_receive may be used to dispatch into \ref mcr_Trigger.\n
  * 	1.3 Triggered action may be a \ref mcr_Macro, which sends a list of \ref mcr_Signal.\n

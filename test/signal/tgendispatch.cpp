@@ -6,8 +6,8 @@
 void TGenDispatch::initTestCase()
 {
 	_ctx = mcr_allocate();
-	_ctx->signal.dispatcher_generic_enabled = true;
-	QCOMPARE(_ctx->signal.dispatcher_generic_pt,
+	_ctx->signal.is_generic_dispatcher = true;
+	QCOMPARE(_ctx->signal.generic_dispatcher_pt,
 			 (mcr_Dispatcher *)&_ctx->signal.generic_dispatcher);
 }
 

@@ -46,8 +46,8 @@ bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 	struct mcr_mod_signal *modSignal = &ctx->signal;
 	struct mcr_Dispatcher *dispPt =
 			sigPt && sigPt->isignal ? sigPt->isignal->dispatcher : NULL, *genPt =
-				modSignal->dispatcher_generic_pt;
-	bool isGen = genPt && modSignal->dispatcher_generic_enabled;
+				modSignal->generic_dispatcher_pt;
+	bool isGen = genPt && modSignal->is_generic_dispatcher;
 	unsigned int mods = modSignal->internal_mods;
 	/* If found only dispatch to enabled methods. */
 	if (dispPt) {
@@ -78,8 +78,8 @@ bool mcr_Dispatcher_is_enabled(struct mcr_context * ctx,
 {
 	dassert(ctx);
 	return isigPt ? ! !isigPt->dispatcher :
-	       ctx->signal.dispatcher_generic_enabled &&
-	       ctx->signal.dispatcher_generic_pt;
+		   ctx->signal.is_generic_dispatcher &&
+	       ctx->signal.generic_dispatcher_pt;
 }
 
 void mcr_Dispatcher_set_enabled(struct mcr_context *ctx,
@@ -93,7 +93,7 @@ void mcr_Dispatcher_set_enabled(struct mcr_context *ctx,
 		else
 			isigPt->dispatcher = NULL;
 	} else {
-		ctx->signal.dispatcher_generic_enabled = enable;
+		ctx->signal.is_generic_dispatcher = enable;
 	}
 }
 
@@ -130,7 +130,7 @@ int mcr_Dispatcher_add_generic(struct mcr_context *ctx,
 			       struct mcr_Signal *interceptPt,
 			       void *receiver, mcr_Dispatcher_receive_fnc receiveFnc)
 {
-	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
+	struct mcr_Dispatcher *genPt = ctx->signal.generic_dispatcher_pt;
 	if (!receiveFnc)
 		receiveFnc = mcr_Trigger_receive;
 	/* mcr_Trigger_receive requires an object */
@@ -153,7 +153,7 @@ int mcr_Dispatcher_clear(struct mcr_context *ctx, struct mcr_ISignal *isigPt)
 int mcr_Dispatcher_clear_all(struct mcr_context *ctx)
 {
 	struct mcr_Dispatcher *dispPt;
-	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
+	struct mcr_Dispatcher *genPt = ctx->signal.generic_dispatcher_pt;
 	size_t i = mcr_Dispatcher_count(ctx);
 	int err;
 	while (i--) {
@@ -188,7 +188,7 @@ int mcr_Dispatcher_remove(struct mcr_context *ctx,
 int mcr_Dispatcher_remove_all(struct mcr_context *ctx, void *remReceiver)
 {
 	struct mcr_Dispatcher *dispPt;
-	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
+	struct mcr_Dispatcher *genPt = ctx->signal.generic_dispatcher_pt;
 	size_t i = mcr_Dispatcher_count(ctx);
 	int err;
 	while (i--) {
@@ -214,7 +214,7 @@ int mcr_Dispatcher_trim(struct mcr_context *ctx, struct mcr_ISignal *isigPt)
 int mcr_Dispatcher_trim_all(struct mcr_context *ctx)
 {
 	struct mcr_Dispatcher *dispPt;
-	struct mcr_Dispatcher *genPt = ctx->signal.dispatcher_generic_pt;
+	struct mcr_Dispatcher *genPt = ctx->signal.generic_dispatcher_pt;
 	size_t i = mcr_Dispatcher_count(ctx);
 	int err;
 	while (i--) {
@@ -278,7 +278,7 @@ int mcr_Dispatcher_register(struct mcr_context *ctx, void *dispPt,
 	struct mcr_Dispatcher *prevPt, **prevPtPt;
 	dassert(ctx);
 	if (signalTypeId == (size_t) ~ 0) {
-		prevPtPt = &ctx->signal.dispatcher_generic_pt;
+		prevPtPt = &ctx->signal.generic_dispatcher_pt;
 	} else {
 		if ((err = mcr_Array_minfill(&ctx->signal.dispatchers,
 					     signalTypeId + 1, NULL)))
@@ -306,7 +306,7 @@ struct mcr_Dispatcher *mcr_Dispatcher_from_id(struct mcr_context *ctx,
 {
 	dassert(ctx);
 	if (signalTypeId == (size_t) ~ 0)
-		return ctx->signal.dispatcher_generic_pt;
+		return ctx->signal.generic_dispatcher_pt;
 	if (signalTypeId > MCR_ARR_LAST_INDEX(ctx->signal.dispatchers))
 		return NULL;
 	struct mcr_Dispatcher **ret =
