@@ -22,9 +22,9 @@
 #endif
 
 #ifndef MCR_EXTRAS_WIN_NDEF_H_
-#define MCR_EXTRAS_WIN_NDEF_H_
+	#define MCR_EXTRAS_WIN_NDEF_H_
 
-#include "mcr/intercept/win/nintercept.h"
-#include "mcr/extras/def.h"
+	#include "mcr/intercept/win/nintercept.h"
+	#include "mcr/extras/def.h"
 
 #endif

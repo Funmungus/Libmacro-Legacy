@@ -22,9 +22,9 @@
 #endif
 
 #ifndef MCR_EXTRAS_LNX_NDEF_H_
-#define MCR_EXTRAS_LNX_NDEF_H_
+	#define MCR_EXTRAS_LNX_NDEF_H_
 
-#include "mcr/intercept/lnx/ndef.h"
-#include "mcr/extras/def.h"
+	#include "mcr/intercept/lnx/ndef.h"
+	#include "mcr/extras/def.h"
 
 #endif
