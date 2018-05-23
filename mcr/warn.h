@@ -28,7 +28,7 @@
 	#pragma GCC warning "Warning!"
 #else
 	/* MSVC-specific warning, but will at least print a message for
-	 * unknown compilers.
-	 */
+	* unknown compilers.
+	*/
 	#pragma message "Warning Msg: Warning!"
 #endif

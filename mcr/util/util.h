@@ -20,8 +20,8 @@
  * \brief Utilities for Libmacro
  */
 
-#ifndef MCR_UTIL_UTIL_H
-#define MCR_UTIL_UTIL_H
+#ifndef MCR_UTIL_UTIL_H_
+#define MCR_UTIL_UTIL_H_
 
 #include "mcr/util/instance.h"
 #include "mcr/util/map.h"
@@ -54,4 +54,5 @@ MCR_API int mcr_thrd_errno(int thrdError);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

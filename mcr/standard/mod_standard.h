@@ -22,8 +22,8 @@
  * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_STANDARD_MOD_STANDARD_H
-#define MCR_STANDARD_MOD_STANDARD_H
+#ifndef MCR_STANDARD_MOD_STANDARD_H_
+#define MCR_STANDARD_MOD_STANDARD_H_
 
 #include "mcr/macro/macro.h"
 
@@ -96,4 +96,5 @@ MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

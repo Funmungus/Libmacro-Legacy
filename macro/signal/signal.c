@@ -17,8 +17,10 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/modules.h"
+
 #include <string.h>
+
+#include "mcr/modules.h"
 
 static const struct mcr_Interface _MCR_SIGNAL_IFACE = {
 	.id = ~0,
@@ -73,8 +75,8 @@ int mcr_send(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 		genPt->modifier(genPt, sigPt, &modSignal->internal_mods);
 	}
 	return sigPt->isignal ? sigPt->is_dispatch
-	       && mcr_dispatch(ctx,
-			       sigPt) ? 0 : sigPt->isignal->send(sigPt) : 0;
+		   && mcr_dispatch(ctx,
+						   sigPt) ? 0 : sigPt->isignal->send(sigPt) : 0;
 }
 
 int mcr_Signal_copy(void *dstPt, const void *srcPt)
@@ -96,12 +98,12 @@ int mcr_Signal_compare(const void *lhsSignalPt, const void *rhsSignalPt)
 			if (lhsSignalPt == rhsSignalPt)
 				return 0;
 			const struct mcr_Signal *lSigPt = lhsSignalPt, *rSigPt =
-						rhsSignalPt;
+													  rhsSignalPt;
 			int valHolder =
 				mcr_Instance_compare(lhsSignalPt, rhsSignalPt);
 			return valHolder ? valHolder :
 				   MCR_CMP(lSigPt->is_dispatch,
-						rSigPt->is_dispatch);
+						   rSigPt->is_dispatch);
 		}
 		return -1;
 	}
@@ -115,7 +117,7 @@ int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt)
 			if (lhsPtPt == rhsPtPt)
 				return 0;
 			return mcr_Signal_compare(*(const void **)lhsPtPt,
-						  *(const void **)rhsPtPt);
+									  *(const void **)rhsPtPt);
 		}
 		return -1;
 	}

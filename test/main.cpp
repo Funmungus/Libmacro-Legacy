@@ -1,4 +1,5 @@
 #include <QtTest/QtTest>
+
 #include "tlibmacro.h"
 #include "signal/tgendispatch.h"
 

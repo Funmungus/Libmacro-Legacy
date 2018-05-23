@@ -21,8 +21,8 @@
  * incoming events.
  */
 
-#ifndef MCR_INTERCEPT_WIN_NINTERCEPT_H
-#define MCR_INTERCEPT_WIN_NINTERCEPT_H
+#ifndef MCR_INTERCEPT_WIN_NINTERCEPT_H_
+#define MCR_INTERCEPT_WIN_NINTERCEPT_H_
 
 #include "mcr/intercept/win/ngrabber.h"
 
@@ -47,4 +47,5 @@ MCR_API int mcr_intercept_move_set_enabled(struct mcr_context *ctx,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -17,6 +17,7 @@
 */
 
 #include "mcr/macro/macro.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +40,7 @@ static int thread_wait_reset(void *);
 /* Will attempt to gently detach all threads, but force termination
  * if timed out. */
 static void clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
-			  bool stickyInterrupt);
+						  bool stickyInterrupt);
 
 static int resetthread(struct mcr_Macro *mcrPt)
 {
@@ -74,8 +75,8 @@ int mcr_Macro_init(void *mcrPt)
 	/* Instead of mutex locking, disable macro when modifying */
 	fixme;
 	if ((thrdErr = cnd_init(&localPt->cnd)) != thrd_success ||
-	    (thrdErr =
-		     mtx_init(&localPt->lock, mtx_plain)) != thrd_success) {
+		(thrdErr =
+			 mtx_init(&localPt->lock, mtx_plain)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		return thrdErr;
 	}
@@ -101,7 +102,7 @@ int mcr_Macro_deinit(void *mcrPt)
 	MCR_ARR_FOR_EACH(localPt->signal_set, mcr_Signal_deinit);
 	mcr_Array_deinit(&localPt->signal_set);
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&localPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&localPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		ddo(exit(thrdErr));
 	}
@@ -111,8 +112,8 @@ int mcr_Macro_deinit(void *mcrPt)
 }
 
 int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool block,
-		      bool sticky, unsigned int threadMax, bool enable,
-		      struct mcr_context *ctx)
+					  bool sticky, unsigned int threadMax, bool enable,
+					  struct mcr_context *ctx)
 {
 	dassert(mcrPt);
 	mcrPt->block = block;
@@ -141,14 +142,14 @@ int mcr_Macro_copy(void *dstPt, const void *srcPt)
 	dPt->sticky = sPt->sticky;
 	dPt->thread_max = sPt->thread_max;
 	if ((err = mcr_Macro_set_signals(dPt,
-					 (struct mcr_Signal *)sPt->signal_set.array,
-					 sPt->signal_set.used)))
+									 (struct mcr_Signal *)sPt->signal_set.array,
+									 sPt->signal_set.used)))
 		return err;
 	if ((err = mcr_Macro_set_enabled(dPt, MCR_MACRO_IS_ENABLED(*sPt))))
 		return err;
 	/* Leave queued at 0.  Copying data will not trigger */
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock((mtx_t *)&sPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock((mtx_t *)&sPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		return thrdErr;
 	}
@@ -156,7 +157,7 @@ int mcr_Macro_copy(void *dstPt, const void *srcPt)
 }
 
 int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
-			enum mcr_Interrupt interruptType)
+						enum mcr_Interrupt interruptType)
 {
 	int thrdErr = mtx_lock(&mcrPt->lock), err = 0;
 	enum mcr_Interrupt prev = mcrPt->interruptor;
@@ -176,7 +177,7 @@ int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 			err = EBUSY;
 			mset_error(EBUSY);
 			fprintf(stderr, "Possible " MCR_STR(MCR_PAUSE)
-				" concurrency issue\n");
+					" concurrency issue\n");
 		}
 #endif
 		/* Implicit fallthrough warning if not duplicated here and below */
@@ -203,7 +204,7 @@ int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 		mset_error(EINVAL);
 	}
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		ddo(return thrdErr);
 	}
@@ -223,7 +224,7 @@ struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt)
 }
 
 int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
-			  const struct mcr_Signal *signalSet, size_t signalCount)
+						  const struct mcr_Signal *signalSet, size_t signalCount)
 {
 	dassert(mcrPt);
 	size_t i;
@@ -241,8 +242,8 @@ int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
 	MCR_ARR_FOR_EACH(mcrPt->signal_set, mcr_Signal_deinit);
 	mcrPt->signal_set.used = 0;
 	if (!(err = mcr_Array_resize(&mcrPt->signal_set, signalCount)) &&
-	    !(err = mcr_Array_fill(&mcrPt->signal_set, 0,
-				   &initial, signalCount))) {
+		!(err = mcr_Array_fill(&mcrPt->signal_set, 0,
+							   &initial, signalCount))) {
 		itPt = MCR_ARR_FIRST(mcrPt->signal_set);
 		for (i = signalCount; i--;) {
 			if ((err = mcr_Signal_copy(itPt + i, signalSet + i))) {
@@ -257,7 +258,7 @@ int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
 		err = resetthread(mcrPt);
 	}
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 		mset_error(thrdErr);
 		err = thrdErr;
 	}
@@ -273,15 +274,16 @@ struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt, size_t index)
 	thrdErr = mtx_lock(&mcrPt->lock);
 	ret = MCR_ARR_ELEMENT(mcrPt->signal_set, index);
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		ddo(return NULL);
 	}
 	return ret;
 }
 
-int mcr_Macro_set_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *copySig,
-			 size_t index)
+int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
+						 const struct mcr_Signal *copySig,
+						 size_t index)
 {
 	dassert(mcrPt);
 	struct mcr_Signal *sigPt = mcr_Macro_signal(mcrPt, index);
@@ -292,7 +294,7 @@ int mcr_Macro_set_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *copyS
 }
 
 int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
-			    const struct mcr_Signal *copySig, size_t index)
+							const struct mcr_Signal *copySig, size_t index)
 {
 	dassert(mcrPt);
 	int err;
@@ -303,7 +305,7 @@ int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
 	} else {
 		mcr_Signal_copy(&addSig, copySig);
 		if ((err = mcr_Array_insert(&mcrPt->signal_set, index, &addSig,
-					    1))) {
+									1))) {
 			mset_error(err);
 			mcr_Signal_deinit(&addSig);
 			return err;
@@ -323,7 +325,8 @@ int mcr_Macro_remove_signal(struct mcr_Macro *mcrPt, size_t index)
 	return err;
 }
 
-int mcr_Macro_push_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *newSig)
+int mcr_Macro_push_signal(struct mcr_Macro *mcrPt,
+						  const struct mcr_Signal *newSig)
 {
 	int thrdErr = mtx_lock(&mcrPt->lock);
 	int err;
@@ -338,7 +341,7 @@ int mcr_Macro_push_signal(struct mcr_Macro *mcrPt, const struct mcr_Signal *newS
 		mset_error(err);
 	}
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		err = thrdErr;
 	}
@@ -356,7 +359,7 @@ int mcr_Macro_pop_signal(struct mcr_Macro *mcrPt)
 		--mcrPt->signal_set.used;
 	}
 	if (thrdErr == thrd_success &&
-	    (thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+		(thrdErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		ddo(exit(thrdErr));
 	}
@@ -375,16 +378,16 @@ int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable)
 }
 
 int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
-			   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt)
+						   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt)
 {
 	struct mcr_DispatchPair disp = mcr_Macro_dispatcher(mcrPt, trigPt);
 	dassert(mcrPt);
 	return mcr_Dispatcher_add(mcrPt->ctx, interceptPt, disp.receiver,
-				  disp.dispatch);
+							  disp.dispatch);
 }
 
 int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
-			      struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
+							  struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
 {
 	dassert(mcrPt);
 	mcr_err = 0;
@@ -410,7 +413,7 @@ struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,
 }
 
 bool mcr_Macro_receive(void *mcrPt, struct mcr_Signal * sigPt,
-		       unsigned int mods)
+					   unsigned int mods)
 {
 	/* Error unlock and exit on debug builds */
 #define onErr \
@@ -431,19 +434,19 @@ ddo( \
 	case MCR_CONTINUE:
 	case MCR_PAUSE:
 		if (!localPt->thread_max
-		    || localPt->thread_max > MCR_THREAD_MAX) {
+			|| localPt->thread_max > MCR_THREAD_MAX) {
 			mset_error(EINVAL);
 			localPt->thread_max = 1;
 		}
 		if (localPt->thread_count < localPt->thread_max &&
-		    localPt->thread_count < MCR_THREAD_MAX) {
+			localPt->thread_count < MCR_THREAD_MAX) {
 			/* TODO: Possible unused threads if only one queued item. */
 			if ((thrdErr = thrd_create(&trd, thread_macro,
-						   localPt)) == thrd_success) {
+									   localPt)) == thrd_success) {
 				++localPt->queued;
 				++localPt->thread_count;
 				if ((thrdErr = thrd_detach(trd)) !=
-				    thrd_success) {
+					thrd_success) {
 					thrd_conv_err(thrdErr);
 					onErr;
 				}
@@ -465,7 +468,7 @@ ddo( \
 		break;
 	}
 	if (mtxErr == thrd_success
-	    && (mtxErr = mtx_unlock(&localPt->lock) != thrd_success)) {
+		&& (mtxErr = mtx_unlock(&localPt->lock) != thrd_success)) {
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
@@ -474,7 +477,7 @@ ddo( \
 }
 
 bool mcr_Macro_trigger(void *trigPt, struct mcr_Signal * sigPt,
-		       unsigned int mods)
+					   unsigned int mods)
 {
 	/* Error unlock and exit on debug builds */
 #define onErr \
@@ -500,14 +503,14 @@ ddo( \
 			mcrPt->thread_max = 1;
 		}
 		if (mcrPt->thread_count < mcrPt->thread_max &&
-		    mcrPt->thread_count < MCR_THREAD_MAX) {
+			mcrPt->thread_count < MCR_THREAD_MAX) {
 			/* TODO: Possible unused threads if only one queued item. */
 			if ((thrdErr = thrd_create(&trd, thread_macro,
-						   mcrPt)) == thrd_success) {
+									   mcrPt)) == thrd_success) {
 				++mcrPt->queued;
 				++mcrPt->thread_count;
 				if ((thrdErr = thrd_detach(trd)) !=
-				    thrd_success) {
+					thrd_success) {
 					thrd_conv_err(thrdErr);
 					onErr;
 				}
@@ -529,7 +532,7 @@ ddo( \
 		break;
 	}
 	if (mtxErr == thrd_success
-	    && (mtxErr = mtx_unlock(&mcrPt->lock) != thrd_success)) {
+		&& (mtxErr = mtx_unlock(&mcrPt->lock) != thrd_success)) {
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
@@ -580,17 +583,17 @@ ddo( \
 
 	mtxErr = mtx_lock(&mcrPt->lock);
 	if (mcrPt->interruptor == MCR_PAUSE &&
-	    (thrdErr = pause_max_count(mcrPt))) {
+		(thrdErr = pause_max_count(mcrPt))) {
 		onErr;
 	}
 	ceptloop(mcrPt->interruptor, continueFlag);
 	/* Loop only while triggers queued, or last thread is sticky. */
 	while (continueFlag && (mcrPt->queued ||
-				(mcrPt->sticky && mcrPt->thread_count == 1))) {
+							(mcrPt->sticky && mcrPt->thread_count == 1))) {
 		if (mcrPt->queued)
 			--mcrPt->queued;
 		if (mtxErr == thrd_success &&
-		    (mtxErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
+			(mtxErr = mtx_unlock(&mcrPt->lock)) != thrd_success) {
 			onErr;
 		}
 		/* If sig set is changed, all threads should end. */
@@ -601,14 +604,14 @@ ddo( \
 		fixme;
 		while (continueFlag && index < mcrPt->signal_set.used) {
 			if (mcrPt->interruptor == MCR_INTERRUPT &&
-			    mtx_trylock(&mcrPt->lock) == thrd_success) {
+				mtx_trylock(&mcrPt->lock) == thrd_success) {
 				/* Interrupt may change before locking. */
 				if (mcrPt->interruptor == MCR_INTERRUPT) {
 					mcrPt->interruptor = MCR_CONTINUE;
 					index = mcrPt->signal_set.used;
 				}
 				if ((mtxErr = mtx_unlock(&mcrPt->lock)) !=
-				    thrd_success) {
+					thrd_success) {
 					onErr;
 				}
 			}
@@ -619,14 +622,14 @@ ddo( \
 			}
 			++index;
 			if (mcrPt->interruptor == MCR_PAUSE &&
-			    (thrdErr = pause_max_count(mcrPt))) {
+				(thrdErr = pause_max_count(mcrPt))) {
 				onErr;
 			}
 			ceptloop(mcrPt->interruptor, continueFlag);
 		}
 		mtxErr = mtx_lock(&mcrPt->lock);
 		if (mcrPt->interruptor == MCR_PAUSE &&
-		    (thrdErr = pause_max_count(mcrPt))) {
+			(thrdErr = pause_max_count(mcrPt))) {
 			onErr;
 		}
 		ceptloop(mcrPt->interruptor, continueFlag);
@@ -658,7 +661,7 @@ static int thread_wait_reset(void *data)
 }
 
 static void clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
-			  bool stickyInterrupt)
+						  bool stickyInterrupt)
 {
 	/* Do not rely on a timeout to say no threads exist */
 	fixme;
@@ -674,7 +677,7 @@ static void clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
 	while (mcrPt->thread_count && timedout != thrd_timedout) {
 		/* Wait to be notified, or time out to destroy. */
 		timedout = cnd_timedwait(&mcrPt->cnd, &mcrPt->lock,
-					 &cndTimeout);
+								 &cndTimeout);
 		if (stickyInterrupt)
 			mcrPt->interruptor = clearType;
 		/* Changed interrupt. Exit only if not sticking our interrupt. */

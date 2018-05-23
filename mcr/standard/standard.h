@@ -29,8 +29,8 @@
  * \ref mcr_ITrigger: \ref mcr_iAction, \ref mcr_iStaged
  */
 
-#ifndef MCR_STANDARD_STANDARD_H
-#define MCR_STANDARD_STANDARD_H
+#ifndef MCR_STANDARD_STANDARD_H_
+#define MCR_STANDARD_STANDARD_H_
 
 #include "mcr/standard/def.h"
 #include "mcr/standard/hid_echo.h"
@@ -51,14 +51,15 @@ extern "C" {
  * array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
-				     const mcr_Dimensions second);
+									 const mcr_Dimensions second);
 /*! For both positions, the same coordinate array member must
  * be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
-				    const mcr_Dimensions second, const unsigned int measurementError);
+									const mcr_Dimensions second, const unsigned int measurementError);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif

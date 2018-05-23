@@ -26,8 +26,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_PROPERTIES_H
-#define MCR_EXTRAS_PROPERTIES_H
+#ifndef MCR_EXTRAS_PROPERTIES_H_
+#define MCR_EXTRAS_PROPERTIES_H_
 
 #include "mcr/extras/def.h"
 

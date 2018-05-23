@@ -21,8 +21,8 @@
  * intercepts signals before they are sent
  */
 
-#ifndef MCR_SIGNAL_DISPATCH_PAIR_H
-#define MCR_SIGNAL_DISPATCH_PAIR_H
+#ifndef MCR_SIGNAL_DISPATCH_PAIR_H_
+#define MCR_SIGNAL_DISPATCH_PAIR_H_
 
 #include "mcr/signal/def.h"
 
@@ -72,4 +72,5 @@ MCR_API const struct mcr_Interface *mcr_Array_DispatchPair_interface();
 #ifdef __cplusplus
 }
 #endif
+
 #endif

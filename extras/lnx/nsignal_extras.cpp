@@ -16,12 +16,15 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <cstring>
 #include "mcr/extras/lnx/nextras.h"
-#include "mcr/extras/mod_extras.h"
+#include "mcr/extras/extras.h"
+
+#include <cstring>
 extern "C" {
 #include <sys/wait.h>
 }
+
+#include "mcr/extras/mod_extras.h"
 
 namespace mcr
 {

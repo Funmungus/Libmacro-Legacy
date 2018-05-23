@@ -20,10 +20,10 @@
  * \brief Utility definitions
  */
 
-#ifndef MCR_UTIL_DEF_H
-#define MCR_UTIL_DEF_H
+#ifndef MCR_UTIL_DEF_H_
+#define MCR_UTIL_DEF_H_
 
-/* Needed for some functions on linux */
+/* Needed for some functions with GCC */
 #ifndef _GNU_SOURCE
 	#define _GNU_SOURCE
 #endif
@@ -33,15 +33,19 @@
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifdef __cplusplus
+#include <ctime>
+#include <cstdbool>
+#ifdef DEBUG
+	#include <cassert>
+#endif
+extern "C" {
+#else
 #include <time.h>
 #include <stdbool.h>
 #ifdef DEBUG
 	#include <assert.h>
 #endif
-
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /* Doxygen in-document references */
@@ -102,9 +106,9 @@ extern "C" {
 #endif
 
 #ifndef MCR_PLATFORM
-#define MCR_PLATFORM none
-#pragma message "Warning: MCR_PLATFORM is not defined.  Please provide MCR_PLATFORM as a preprocessor definition for your platform."
-#include "mcr/warn.h"
+	#define MCR_PLATFORM none
+	#pragma message "Warning: MCR_PLATFORM is not defined.  Please provide MCR_PLATFORM as a preprocessor definition for your platform."
+	#include "mcr/warn.h"
 #endif
 #ifndef UNUSED
 	/*! Remove compiler warning for unused variable. */
@@ -161,13 +165,13 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
 	#define mcr_dassert(expression) mcr_ddo(assert(expression))
 #endif
 #ifndef mcr_fixme
-	#ifdef _MSC_VER
-		#define mcr_fixme
-	#else
-		/*! Debug compile message indicating future changes */
-		#define mcr_fixme \
+#ifdef _MSC_VER
+#define mcr_fixme
+#else
+/*! Debug compile message indicating future changes */
+#define mcr_fixme \
 		mcr_ddo(_Pragma("message MCR_LINE \": Fix Me!\""))
-	#endif
+#endif
 #endif
 #ifndef mcr_arrlen
 /*! For a static array definition get the number of elements.
@@ -300,7 +304,7 @@ typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 	#define MCR_UTIL_PLATFORM_INC MCR_STR(mcr/util/MCR_PLATFORM/nutil.h)
 #endif
 
-/* Define string comparison aliases, because Windows has too many options */
+/* Machine, platform, and some alias definitions. */
 #include MCR_STR(mcr/util/MCR_PLATFORM/ndef.h)
 
 #ifdef __cplusplus

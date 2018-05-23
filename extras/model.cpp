@@ -16,6 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/extras/extras.h"
+
 #include "mcr/extras/mod_extras.h"
 
 namespace mcr

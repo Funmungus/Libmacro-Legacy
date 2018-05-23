@@ -22,8 +22,8 @@
  * Use \ref mcr_Dispatcher_receive_fnc to dispatch into triggers.
  */
 
-#ifndef MCR_MACRO_ITRIGGER_H
-#define MCR_MACRO_ITRIGGER_H
+#ifndef MCR_MACRO_ITRIGGER_H_
+#define MCR_MACRO_ITRIGGER_H_
 
 #include "mcr/macro/def.h"
 
@@ -70,7 +70,7 @@ MCR_API struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx);
  * \return Name of the trigger interface, or null if not found
  */
 MCR_API const char *mcr_ITrigger_name(struct mcr_context *ctx,
-				      struct mcr_ITrigger *itrigPt);
+									  struct mcr_ITrigger *itrigPt);
 /*! Get a trigger interface from its id
  *
  * \param id Id of the trigger interface
@@ -89,4 +89,5 @@ MCR_API struct mcr_ITrigger *mcr_ITrigger_from_name(struct mcr_context *ctx,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -16,13 +16,14 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/intercept/win/nintercept.h"
 #include "mcr/intercept/intercept.h"
-#include "mcr/modules.h"
-#include MCR_INTERCEPT_PLATFORM_INC
-#include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "mcr/modules.h"
 
 #define WPARAM_UPTYPE(wParam) \
 ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? \
@@ -46,7 +47,7 @@ LONG _lastX = 0;
 LONG _lastY = 0;
 
 static struct mcr_Signal *_signal_set[] = { &_echoSig, &_keySig, &_mcSig,
-	       &_scrSig
+		   &_scrSig
 };
 
 static const WPARAM _echo_WM[] = {
@@ -80,7 +81,7 @@ int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 	int err = 0;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		if ((err = mcr_Grabber_set_enabled(nPt->all_grabbers[i],
-						   enable)))
+										   enable)))
 			return err;
 	}
 	return err;

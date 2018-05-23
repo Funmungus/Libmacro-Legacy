@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +32,7 @@ static const struct mcr_Interface _MCR_IARRAY_REF = {
 
 static void mcr_Array_sort_memcmp(struct mcr_Array *arrPt);
 static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
-				   const void *elementPt);
+								   const void *elementPt);
 
 const struct mcr_Interface *mcr_Array_ref_interface()
 {
@@ -81,7 +82,7 @@ int mcr_Array_deinit(void *arrPt)
 }
 
 void mcr_Array_set_all(struct mcr_Array *arrPt, mcr_compare_fnc compare,
-		       size_t elementSize)
+					   size_t elementSize)
 {
 	dassert(arrPt);
 	if (arrPt->array)
@@ -121,7 +122,7 @@ int mcr_Array_smartsize(struct mcr_Array *arrPt, size_t increasingCount)
 		/* Double size if no space left */
 		if (arrPt->used == arrPt->size)
 			return mcr_Array_resize(arrPt, arrPt->size ?
-						arrPt->size << 1 : 8);
+									arrPt->size << 1 : 8);
 	}
 	/* New size = increasing + current used */
 	increasingCount += arrPt->used;
@@ -132,7 +133,7 @@ int mcr_Array_smartsize(struct mcr_Array *arrPt, size_t increasingCount)
 }
 
 int mcr_Array_minfill(struct mcr_Array *arrPt, size_t minUsed,
-		      const void *fillerElementPt)
+					  const void *fillerElementPt)
 {
 	size_t prevUsed = arrPt->used;
 	int err;
@@ -142,7 +143,7 @@ int mcr_Array_minfill(struct mcr_Array *arrPt, size_t minUsed,
 			return err;
 		arrPt->used = minUsed;
 		return mcr_Array_fill(arrPt, prevUsed, fillerElementPt,
-				      minUsed - prevUsed);
+							  minUsed - prevUsed);
 	}
 	return 0;
 }
@@ -237,7 +238,7 @@ size_t mcr_Array_last_index(const struct mcr_Array * arrPt)
 }
 
 void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
-		    char **endPt, size_t * bytesPt)
+					char **endPt, size_t * bytesPt)
 {
 	if (iterPt)
 		*iterPt = mcr_Array_first(arrPt);
@@ -248,7 +249,7 @@ void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
 }
 
 void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
-			  char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex)
+						  char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex)
 {
 	if (iterPt)
 		*iterPt = mcr_Array_element(arrPt, firstIndex);
@@ -260,7 +261,7 @@ void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
 
 /* Add/remove */
 int mcr_Array_insert(struct mcr_Array *arrPt, size_t pos,
-		     const void *elementArr, size_t count)
+					 const void *elementArr, size_t count)
 {
 	size_t prevUsed = arrPt->used;
 	int err;
@@ -278,7 +279,7 @@ int mcr_Array_insert(struct mcr_Array *arrPt, size_t pos,
 		/* Avoid fillers during move */
 		arrPt->used += count;
 		if ((err = mcr_Array_move(arrPt, pos + count, arrPt, pos,
-					  prevUsed - pos)))
+								  prevUsed - pos)))
 			return err;
 	}
 	/* Copy inserting elements */
@@ -303,7 +304,7 @@ void mcr_Array_remove_index(struct mcr_Array *arrPt, size_t pos, size_t count)
 }
 
 int mcr_Array_append(struct mcr_Array *arrPt, const void *elementArr,
-		     size_t count)
+					 size_t count)
 {
 	int err;
 	dassert(arrPt);
@@ -328,7 +329,7 @@ void mcr_Array_pop(struct mcr_Array *arrPt)
 
 /* Replace current elements */
 int mcr_Array_replace(struct mcr_Array *arrPt, const void *arraySource,
-		      size_t count)
+					  size_t count)
 {
 	int err;
 	dassert(arrPt);
@@ -342,7 +343,7 @@ int mcr_Array_replace(struct mcr_Array *arrPt, const void *arraySource,
 }
 
 int mcr_Array_copy(struct mcr_Array *dstPt, size_t dstPos,
-		   const void *srcArray, size_t count)
+				   const void *srcArray, size_t count)
 {
 	int err;
 	void *copyDst;
@@ -370,7 +371,7 @@ int mcr_Array_set(struct mcr_Array *arrPt, size_t pos, const void *elementPt)
 }
 
 int mcr_Array_fill(struct mcr_Array *arrPt, size_t dstPos,
-		   const void *copyElementPt, size_t count)
+				   const void *copyElementPt, size_t count)
 {
 	int err;
 	char *itPt, *endPt;
@@ -400,7 +401,7 @@ int mcr_Array_fill(struct mcr_Array *arrPt, size_t dstPos,
 }
 
 int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
-		   const struct mcr_Array *srcPt, size_t srcPos, size_t count)
+				   const struct mcr_Array *srcPt, size_t srcPos, size_t count)
 {
 	int err;
 	void *copyDst, *copySrc;
@@ -418,7 +419,7 @@ int mcr_Array_move(struct mcr_Array *dstPt, size_t dstPos,
 		count = srcPt->used - srcPos;
 	if (dstPos > dstPt->used) {
 		if ((err = mcr_Array_fill(dstPt, dstPt->used, NULL,
-					  dstPos - dstPt->used)))
+								  dstPos - dstPt->used)))
 			return err;
 	}
 	if ((err = mcr_Array_minused(dstPt, dstPos + count)))
@@ -442,7 +443,7 @@ void mcr_Array_sort(struct mcr_Array *arrPt)
 	if (arrPt->used > 1) {
 		if (arrPt->compare)
 			qsort(arrPt->array, arrPt->used, arrPt->element_size,
-			      arrPt->compare);
+				  arrPt->compare);
 		else
 			mcr_Array_sort_memcmp(arrPt);
 	}
@@ -465,7 +466,7 @@ void *mcr_Array_find(const struct mcr_Array *arrPt, const void *elementPt)
 	}
 	if (arrPt->compare)
 		ret = bsearch(elHolder, arrPt->array, arrPt->used,
-			      arrPt->element_size, arrPt->compare);
+					  arrPt->element_size, arrPt->compare);
 	else
 		ret = mcr_Array_find_memcmp(arrPt, elHolder);
 	if (!elementPt)
@@ -474,7 +475,7 @@ void *mcr_Array_find(const struct mcr_Array *arrPt, const void *elementPt)
 }
 
 int mcr_Array_add(struct mcr_Array *arrPt,
-		  const void *elementArr, size_t count, bool flagUnique)
+				  const void *elementArr, size_t count, bool flagUnique)
 {
 	int err;
 	char *itPt;
@@ -560,7 +561,7 @@ static void mcr_Array_sort_memcmp(struct mcr_Array *arrPt)
 }
 
 static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
-				   const void *elementPt)
+								   const void *elementPt)
 {
 	char *itPt, *endPt;
 	size_t bytes;
@@ -569,7 +570,7 @@ static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
 	fixme;
 	/* TODO: quicksort */
 	for (mcr_Array_iter(arrPt, &itPt, &endPt, &bytes);
-	     itPt < endPt; itPt += bytes) {
+		 itPt < endPt; itPt += bytes) {
 		if (!memcmp(itPt, elementPt, bytes))
 			return itPt;
 	}

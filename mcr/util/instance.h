@@ -27,8 +27,8 @@
  * the same element names.
  */
 
-#ifndef MCR_UTIL_INSTANCE_H
-#define MCR_UTIL_INSTANCE_H
+#ifndef MCR_UTIL_INSTANCE_H_
+#define MCR_UTIL_INSTANCE_H_
 
 #include "mcr/util/interface.h"
 
@@ -70,7 +70,7 @@ MCR_API int mcr_Instance_deinit(void *instPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_set_all(void *instPt, void *iPt,
-				 void *dataPt, void (*deallocate) (void *));
+								 void *dataPt, void (*deallocate) (void *));
 
 /*! Get \ref mcr_Data.data
  *
@@ -118,7 +118,7 @@ MCR_API int mcr_Instance_set_interface(void *instPt, void *iPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Instance_set_data(void *instPt, void *dataPt,
-				  void (*deallocate) (void *));
+								  void (*deallocate) (void *));
 /*! Compare two instances
  *
  * \param lhsPt \ref opt \ref mcr_Instance *
@@ -144,4 +144,5 @@ MCR_API int mcr_Instance_reset(void *instPt);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

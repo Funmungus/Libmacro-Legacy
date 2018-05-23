@@ -17,17 +17,19 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcr/modules.h"
+
 const int mcr_Key_gen_key = MCR_KEY_ANY;
 const unsigned int mcr_Key_gen_up = MCR_BOTH;
 
 void mcr_Key_set_all(struct mcr_Key *keyPt, int key,
-		     enum mcr_KeyUpType keyUp)
+					 enum mcr_KeyUpType keyUp)
 {
 	dassert(keyPt);
 	keyPt->key = key;
@@ -46,7 +48,7 @@ int mcr_Key_name_key(struct mcr_context *ctx, const char *keyName)
 	if (!keyName)
 		return MCR_KEY_ANY;
 	int ret = (int)mcr_StringIndex_index(&ctx->standard.key_name_index,
-					     keyName);
+										 keyName);
 	return ret == -1 ? MCR_KEY_ANY : ret;
 }
 
@@ -69,33 +71,33 @@ int mcr_Key_set_name(struct mcr_context *ctx, int keyCode, const char *newName)
 	if (keyCode == MCR_KEY_ANY) {
 		if (newName)
 			return mcr_String_replace(&ctx->standard.key_name_any,
-						  newName);
+									  newName);
 		mcr_String_deinit(&ctx->standard.key_name_any);
 		return 0;
 	}
 	if (newName)
 		return mcr_StringIndex_map(&ctx->standard.key_name_index,
-					   keyCode, newName, NULL, 0);
+								   keyCode, newName, NULL, 0);
 	mcr_StringIndex_unmap(&ctx->standard.key_name_index, keyCode, 1);
 	return 0;
 }
 
 int mcr_Key_add(struct mcr_context *ctx, int keyCode, const char **addNames,
-		size_t bufferLen)
+				size_t bufferLen)
 {
 	return mcr_StringIndex_add(&ctx->standard.key_name_index, keyCode,
-				   addNames, bufferLen);
+							   addNames, bufferLen);
 }
 
 int mcr_Key_map(struct mcr_context *ctx, int keyCode,
-		const char *newName, const char **addNames, size_t bufferLen)
+				const char *newName, const char **addNames, size_t bufferLen)
 {
 	if (keyCode == MCR_KEY_ANY) {
 		return mcr_Key_set_name(ctx, keyCode, newName) &&
-		       mcr_Key_add(ctx, keyCode, addNames, bufferLen);
+			   mcr_Key_add(ctx, keyCode, addNames, bufferLen);
 	}
 	return mcr_StringIndex_map(&ctx->standard.key_name_index, keyCode,
-				   newName, addNames, bufferLen);
+							   newName, addNames, bufferLen);
 }
 
 int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode)
@@ -110,10 +112,10 @@ int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode)
 }
 
 int mcr_Key_rename(struct mcr_context *ctx, const char *oldName,
-		   const char *newName)
+				   const char *newName)
 {
 	return mcr_StringIndex_remap(&ctx->standard.key_name_index, oldName,
-				     newName);
+								 newName);
 }
 
 void mcr_Key_trim(struct mcr_context *ctx)
@@ -146,7 +148,7 @@ size_t mcr_Key_mod_count(struct mcr_context * ctx)
 }
 
 void mcr_Key_mod_all(struct mcr_context *ctx, unsigned int *modBuffer,
-		     size_t bufferLength)
+					 size_t bufferLength)
 {
 	size_t i = ctx->standard.map_key_modifier.set.used;
 	unsigned int *modPt;
@@ -167,13 +169,13 @@ void mcr_Key_mod_clear(struct mcr_context *ctx)
 }
 
 int mcr_Key_mod_set_key(struct mcr_context *ctx, unsigned int modifiers,
-			int key)
+						int key)
 {
 	int err =
 		mcr_Map_map(&ctx->standard.map_key_modifier, &key, &modifiers);
 	if (!err)
 		err = mcr_Map_map(&ctx->standard.map_modifier_key, &modifiers,
-				  &key);
+						  &key);
 	return err;
 }
 
@@ -183,12 +185,12 @@ int mcr_Key_mod_add(struct mcr_context *ctx, unsigned int modifiers, int key)
 }
 
 int mcr_Key_mod_map(struct mcr_context *ctx, unsigned int modifiers,
-		    int key, int *addKeys, size_t bufferLen)
+					int key, int *addKeys, size_t bufferLen)
 {
 	int err = mcr_Key_mod_set_key(ctx, modifiers, key);
 	if (!err)
 		err = mcr_Map_fill(&ctx->standard.map_key_modifier, addKeys,
-				   bufferLen, &modifiers);
+						   bufferLen, &modifiers);
 	return err;
 }
 
@@ -199,25 +201,25 @@ int mcr_Key_mod_rekey(struct mcr_context *ctx, int oldKey, int newKey)
 		mcr_Map_value(&ctx->standard.map_key_modifier, &oldKey);
 	if (modPt) {
 		if ((err = mcr_Map_map(&ctx->standard.map_modifier_key, modPt,
-				       &newKey)))
+							   &newKey)))
 			return err;
 		return mcr_Map_remap(&ctx->standard.map_key_modifier, &oldKey,
-				     &newKey);
+							 &newKey);
 	}
 	return 0;
 }
 
 int mcr_Key_mod_remod(struct mcr_context *ctx, unsigned int modifiers,
-		      unsigned int newMods)
+					  unsigned int newMods)
 {
 	int err;
 	int *found = mcr_Map_value(&ctx->standard.map_modifier_key, &modifiers);
 	if (found) {
 		if ((err = mcr_Map_map(&ctx->standard.map_key_modifier, found,
-				       &newMods)))
+							   &newMods)))
 			return err;
 		return mcr_Map_remap(&ctx->standard.map_modifier_key,
-				     &modifiers, &newMods);
+							 &modifiers, &newMods);
 	}
 	return 0;
 }
@@ -229,7 +231,7 @@ void mcr_Key_mod_trim(struct mcr_context *ctx)
 }
 
 static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
-				       void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
+									   void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	/* first map int => map, second unsigned => dispatch array */
 	struct mcr_Array *arrPt;
@@ -244,7 +246,7 @@ static int mcr_Key_Dispatcher_add_keys(struct mcr_Map *keyMap, int key,
 
 /* Key */
 int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
-			   void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
+						   void *newTrigger, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	struct mcr_CtxDispatcher *dispPt = dispDataPt;
 	struct mcr_Key *keyPt = mcr_Key_data(signalPt);
@@ -260,20 +262,20 @@ int mcr_Key_Dispatcher_add(void *dispDataPt, struct mcr_Signal *signalPt,
 		upType = keyPt->up_type;
 		if (upType < MCR_BOTH)
 			return mcr_Key_Dispatcher_add_keys(dispMaps + upType,
-							   keyPt->key, newTrigger, receiveFnc);
+											   keyPt->key, newTrigger, receiveFnc);
 		/* Generic up, add to both */
 		if ((err = mcr_Key_Dispatcher_add_keys(dispMaps,
-						       keyPt->key, newTrigger, receiveFnc)))
+											   keyPt->key, newTrigger, receiveFnc)))
 			return err;
 		return mcr_Key_Dispatcher_add_keys(dispMaps + 1,
-						   keyPt->key, newTrigger, receiveFnc);
+										   keyPt->key, newTrigger, receiveFnc);
 	}
 	/* Generic up, add to both */
 	if ((err = mcr_Key_Dispatcher_add_keys(dispMaps, MCR_KEY_ANY,
-					       newTrigger, receiveFnc)))
+										   newTrigger, receiveFnc)))
 		return err;
 	return mcr_Key_Dispatcher_add_keys(dispMaps + 1, MCR_KEY_ANY,
-					   newTrigger, receiveFnc);
+									   newTrigger, receiveFnc);
 }
 
 int mcr_Key_Dispatcher_clear(void *dispDataPt)
@@ -289,7 +291,7 @@ int mcr_Key_Dispatcher_clear(void *dispDataPt)
 /* Optimize this function as much as possible, TODO: iterator instead of
  * "for each" */
 bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
-				 struct mcr_Signal * signalPt, unsigned int mods)
+								 struct mcr_Signal * signalPt, unsigned int mods)
 {
 #define localDispAll(itPt) \
 	dassert(((struct mcr_DispatchPair *)itPt)->dispatch); \
@@ -339,7 +341,7 @@ bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 }
 
 void mcr_Key_Dispatcher_modifier(void *dispDataPt,
-				 struct mcr_Signal *sigPt, unsigned int *modsPt)
+								 struct mcr_Signal *sigPt, unsigned int *modsPt)
 {
 	dassert(dispDataPt);
 	dassert(modsPt);

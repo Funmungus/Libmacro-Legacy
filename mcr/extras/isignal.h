@@ -26,8 +26,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_ISIGNAL_H
-#define MCR_EXTRAS_ISIGNAL_H
+#ifndef MCR_EXTRAS_ISIGNAL_H_
+#define MCR_EXTRAS_ISIGNAL_H_
 
 #include "mcr/extras/wrap_signal.h"
 #include "mcr/extras/isignal_data.h"
@@ -56,9 +56,9 @@ class ISignal : public CtxISignal
 public:
 	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL)
 		: CtxISignal(context, ISignal<T>::send, dispatcher,
-			     mcr_Interface_new(sizeof(T),
-					       ISignal<T>::init, ISignal<T>::deinit, ISignal<T>::compare,
-					       ISignal<T>::copy))
+					 mcr_Interface_new(sizeof(T),
+									   ISignal<T>::init, ISignal<T>::deinit, ISignal<T>::compare,
+									   ISignal<T>::copy))
 	{
 	}
 
@@ -132,7 +132,7 @@ public:
 		size_t count = inst.addNamesCount();
 		const char **addN = count ? new const char *[count] : NULL;
 		inst.addNames(addN,
-			      count); /* If not implemented this will do nothing \ref ISignalData.addNames */
+					  count); /* If not implemented this will do nothing \ref ISignalData.addNames */
 		ISignalRef(context(), ptr()).registerType(inst.name(), addN, count);
 		if (addN)
 			delete []addN;

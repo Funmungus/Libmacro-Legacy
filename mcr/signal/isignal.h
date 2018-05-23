@@ -22,8 +22,8 @@
  * Use signals with \ref mcr_send.
  */
 
-#ifndef MCR_SIGNAL_ISIGNAL_H
-#define MCR_SIGNAL_ISIGNAL_H
+#ifndef MCR_SIGNAL_ISIGNAL_H_
+#define MCR_SIGNAL_ISIGNAL_H_
 
 #include "mcr/signal/def.h"
 
@@ -85,7 +85,7 @@ MCR_API struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
  * \param sender \ref opt \ref mcr_ISignal.send
  */
 MCR_API void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
-				 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
+								 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender);
 
 /*! Get the \ref mcr_IRegistry of \ref mcr_ISignal */
 MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
@@ -101,7 +101,7 @@ MCR_API struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx);
  * \return Name of the mcr_ISignal, or null if not found
  */
 MCR_API const char *mcr_ISignal_name(struct mcr_context *ctx,
-				     struct mcr_ISignal *isigPt);
+									 struct mcr_ISignal *isigPt);
 /*! Get a \ref mcr_ISignal from its id
  *
  * \param id Id of the signal interface
@@ -120,4 +120,5 @@ MCR_API struct mcr_ISignal *mcr_ISignal_from_name(struct mcr_context *ctx,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

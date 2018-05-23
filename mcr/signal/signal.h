@@ -23,8 +23,8 @@
  * See \ref mcr_dispatch
  */
 
-#ifndef MCR_SIGNAL_SIGNAL_H
-#define MCR_SIGNAL_SIGNAL_H
+#ifndef MCR_SIGNAL_SIGNAL_H_
+#define MCR_SIGNAL_SIGNAL_H_
 
 #include "mcr/signal/mod_flags.h"
 #include "mcr/signal/dispatcher.h"
@@ -88,7 +88,7 @@ MCR_API int mcr_Signal_copy(void *dstPt, const void *srcPt);
  * \return \ref retcmp
  */
 MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
-			       const void *rhsSignalPt);
+							   const void *rhsSignalPt);
 /*! Compare two signal references
  *
  * \param lhsPtPt \ref opt \ref mcr_Signal **
@@ -100,4 +100,5 @@ MCR_API int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -25,8 +25,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_WRAP_TRIGGER_H
-#define MCR_EXTRAS_WRAP_TRIGGER_H
+#ifndef MCR_EXTRAS_WRAP_TRIGGER_H_
+#define MCR_EXTRAS_WRAP_TRIGGER_H_
 
 #include "mcr/extras/model.h"
 
@@ -102,7 +102,7 @@ public:
 	 * mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
-				  const char **addNames = NULL, size_t addNamesCount = 0);
+							  const char **addNames = NULL, size_t addNamesCount = 0);
 	/*! TODO Create mcr_unregister function */
 	virtual void unregisterType() {}
 
@@ -357,7 +357,7 @@ public:
 	{
 		int err;
 		if (_trigPt && _trigPt->itrigger && _trigPt->itrigger->interface.data_size
-		    && !data<void *>()) {
+			&& !data<void *>()) {
 			if ((err = mcr_Instance_reset(_trigPt)))
 				throw err;
 			if (!data<void *>())
@@ -426,7 +426,7 @@ protected:
 	 * \param trigPt Trigger reference to manage
 	 */
 	TriggerManager(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL,
-		      mcr_ITrigger *itrigPt = NULL)
+				   mcr_ITrigger *itrigPt = NULL)
 		: TriggerRef(context, trigPt), _itrigPt(itrigPt)
 	{
 		if (_itrigPt)

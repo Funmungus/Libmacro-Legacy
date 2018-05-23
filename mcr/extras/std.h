@@ -27,8 +27,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_STD_H
-	#define MCR_EXTRAS_STD_H
+#ifndef MCR_EXTRAS_STD_H_
+	#define MCR_EXTRAS_STD_H_
 
 	#ifdef MCR_NOSTL
 		#include "mcr/extras/qt_types.h"

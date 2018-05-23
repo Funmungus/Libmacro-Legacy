@@ -20,8 +20,8 @@
  * \brief \ref mcr_Mods - Signal to modify internal modifiers
  */
 
-#ifndef MCR_STANDARD_MODS_H
-#define MCR_STANDARD_MODS_H
+#ifndef MCR_STANDARD_MODS_H_
+#define MCR_STANDARD_MODS_H_
 
 #include "mcr/standard/def.h"
 
@@ -43,7 +43,7 @@ struct mcr_Mods {
 
 /*! Set initial values */
 MCR_API void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
-			      enum mcr_KeyUpType upType);
+							  enum mcr_KeyUpType upType);
 /*! \pre Signal data is \ref mcr_Mods
  * \brief Modify internal modifiers
  *
@@ -58,7 +58,7 @@ MCR_API int mcr_Mods_send(struct mcr_Signal *sigPt);
  * \param modifierKeyUp Set or release modifiers
  */
 MCR_API void mcr_Mods_modify(struct mcr_Mods *modPt,
-			     unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);
+							 unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);
 
 /*! Get the signal interface for \ref mcr_mods */
 MCR_API struct mcr_ISignal *mcr_iMods(struct mcr_context *ctx);
@@ -72,4 +72,5 @@ MCR_API struct mcr_ISignal *mcr_iMods(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

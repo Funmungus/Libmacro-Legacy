@@ -21,12 +21,10 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_NONE_NDEF_H
-#define MCR_EXTRAS_NONE_NDEF_H
+#ifndef MCR_EXTRAS_NONE_NDEF_H_
+#define MCR_EXTRAS_NONE_NDEF_H_
 
-extern "C" {
 #include "mcr/intercept/none/ndef.h"
-}
 #include "mcr/extras/def.h"
 
 #endif

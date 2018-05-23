@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +32,7 @@ int mcr_reg_init(void *regPt)
 		mcr_Map_init(&iRegPt->name_map);
 		iRegPt->iset.element_size = sizeof(void *);
 		mcr_Map_set_all(&iRegPt->name_map, sizeof(mcr_String),
-				sizeof(void *), NULL, mcr_String_interface(), NULL);
+						sizeof(void *), NULL, mcr_String_interface(), NULL);
 	}
 	return 0;
 }
@@ -55,7 +56,7 @@ int mcr_reg_deinit(void *regPt)
 }
 
 int mcr_register(struct mcr_IRegistry *iRegPt, void *interfacePt,
-		 const char *name, const char **addNames, size_t bufferLen)
+				 const char *name, const char **addNames, size_t bufferLen)
 {
 	size_t id = iRegPt->iset.used;
 	int err;
@@ -66,7 +67,7 @@ int mcr_register(struct mcr_IRegistry *iRegPt, void *interfacePt,
 	/* If successful, we can set the id. */
 	((struct mcr_Interface *)interfacePt)->id = id;
 	return mcr_reg_set_names(iRegPt, interfacePt, name, addNames,
-				 bufferLen);
+							 bufferLen);
 }
 
 void *mcr_reg_from_id(const struct mcr_IRegistry *iRegPt, size_t typeId)
@@ -83,7 +84,7 @@ void *mcr_reg_from_id(const struct mcr_IRegistry *iRegPt, size_t typeId)
 }
 
 void *mcr_reg_from_name(const struct mcr_IRegistry *iRegPt,
-			const char *typeName)
+						const char *typeName)
 {
 	void *retPt;
 	if (!iRegPt || !typeName)
@@ -96,11 +97,11 @@ void *mcr_reg_from_name(const struct mcr_IRegistry *iRegPt,
 const char *mcr_reg_name(const struct mcr_IRegistry *iRegPt, size_t id)
 {
 	return iRegPt ? iRegPt->names.used ?
-	       mcr_StringSet_element(&iRegPt->names, id)->array : NULL : NULL;
+		   mcr_StringSet_element(&iRegPt->names, id)->array : NULL : NULL;
 }
 
 int mcr_reg_set_name(struct mcr_IRegistry *iRegPt,
-		     void *interfacePt, const char *name)
+					 void *interfacePt, const char *name)
 {
 	struct mcr_Interface *iPt = interfacePt;
 	int err;
@@ -121,7 +122,7 @@ int mcr_reg_set_name(struct mcr_IRegistry *iRegPt,
 }
 
 int mcr_reg_add_name(struct mcr_IRegistry *iRegPt, void *interfacePt,
-		     const char *name)
+					 const char *name)
 {
 	dassert(iRegPt);
 	dassert(interfacePt);
@@ -131,7 +132,7 @@ int mcr_reg_add_name(struct mcr_IRegistry *iRegPt, void *interfacePt,
 }
 
 int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, void *interfacePt,
-		      const char **names, size_t bufferLen)
+					  const char **names, size_t bufferLen)
 {
 	int err;
 	size_t i;
@@ -141,15 +142,15 @@ int mcr_reg_add_names(struct mcr_IRegistry *iRegPt, void *interfacePt,
 		return 0;
 	for (i = 0; i < bufferLen; i++) {
 		if ((err = mcr_Map_map(&iRegPt->name_map, (void *)(names + i),
-				       &interfacePt)))
+							   &interfacePt)))
 			return err;
 	}
 	return 0;
 }
 
 int mcr_reg_set_names(struct mcr_IRegistry *iRegPt,
-		      void *interfacePt, const char *name, const char **names,
-		      size_t bufferLen)
+					  void *interfacePt, const char *name, const char **names,
+					  size_t bufferLen)
 {
 	int err = mcr_reg_set_name(iRegPt, interfacePt, name);
 	if (!err)
@@ -158,7 +159,7 @@ int mcr_reg_set_names(struct mcr_IRegistry *iRegPt,
 }
 
 int mcr_reg_rename(struct mcr_IRegistry *iRegPt, const char *oldName,
-		   const char *newName)
+				   const char *newName)
 {
 	int err;
 	void *interfacePt;
@@ -170,7 +171,7 @@ int mcr_reg_rename(struct mcr_IRegistry *iRegPt, const char *oldName,
 			interfacePt = mcr_reg_from_name(iRegPt, newName);
 			if (interfacePt)
 				return mcr_reg_set_name(iRegPt, interfacePt,
-							NULL);
+										NULL);
 			return 0;
 		}
 		if ((err = mcr_reg_set_name(iRegPt, interfacePt, newName)))

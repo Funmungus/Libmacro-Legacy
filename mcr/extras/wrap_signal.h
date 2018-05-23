@@ -25,8 +25,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_WRAP_SIGNAL_H
-#define MCR_EXTRAS_WRAP_SIGNAL_H
+#ifndef MCR_EXTRAS_WRAP_SIGNAL_H_
+#define MCR_EXTRAS_WRAP_SIGNAL_H_
 
 #include "mcr/extras/model.h"
 
@@ -102,7 +102,7 @@ public:
 	 * mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
-				  const char **addNames = NULL, size_t addNamesCount = 0);
+							  const char **addNames = NULL, size_t addNamesCount = 0);
 	/*! TODO Create mcr_unregister function */
 	virtual void unregisterType() {}
 
@@ -364,7 +364,7 @@ public:
 		int err;
 		/* Only create new data if it does not already exist */
 		if (_sigPt && _sigPt->isignal && _sigPt->isignal->interface.data_size
-		    && !data<void *>()) {
+			&& !data<void *>()) {
 			if ((err = mcr_Instance_reset(_sigPt)))
 				throw err;
 			if (!data<void *>())
@@ -435,7 +435,7 @@ protected:
 	 * \param sigPt Signal reference to manage
 	 */
 	SignalManager(Libmacro *context = NULL, mcr_Signal *sigPt = NULL,
-		      mcr_ISignal *isigPt = NULL)
+				  mcr_ISignal *isigPt = NULL)
 		: SignalRef(context, sigPt), _isigPt(isigPt)
 	{
 		if (_isigPt)

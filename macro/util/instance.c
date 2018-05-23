@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,7 +29,7 @@ int mcr_Instance_init(void *instPt)
 }
 
 struct mcr_Instance mcr_Instance_new(void *iPt, void *dataPt,
-				     void (*deallocate) (void *))
+									 void (*deallocate) (void *))
 {
 	struct mcr_Instance ret;
 	mcr_Instance_init(&ret);
@@ -45,7 +46,7 @@ int mcr_Instance_deinit(void *instPt)
 }
 
 int mcr_Instance_set_all(void *instPt, void *iPt, void *dataPt,
-			 void (*deallocate) (void *))
+						 void (*deallocate) (void *))
 {
 	struct mcr_Instance *localPt = instPt;
 	int err;
@@ -67,13 +68,13 @@ int mcr_Instance_set_interface(void *instPt, void *iPt)
 }
 
 int mcr_Instance_set_data(void *instPt, void *dataPt,
-			  void (*deallocate) (void *))
+						  void (*deallocate) (void *))
 {
 	struct mcr_Instance *localPt = instPt;
 	dassert(localPt);
 	if (localPt->interface) {
 		return mcr_iset_data(localPt->interface, &localPt->data, dataPt,
-				     deallocate);
+							 deallocate);
 	} else {
 		if (mcr_Instance_data(localPt)) {
 			MCR_DATA_FREE(localPt->data);
@@ -90,9 +91,9 @@ int mcr_Instance_compare(const void *lhsPt, const void *rhsPt)
 		if (lhsInst && lhsInst->interface) {
 			if (lhsInst->interface == rhsInst->interface)
 				return mcr_icmp(lhsInst->interface, lhsPt,
-						rhsPt);
+								rhsPt);
 			return MCR_CMP(mcr_iid(lhsInst->interface),
-						mcr_iid(rhsInst->interface));
+						   mcr_iid(rhsInst->interface));
 		}
 		return -1;
 	}

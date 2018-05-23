@@ -16,8 +16,11 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <cstring>
 #include "mcr/extras/win/nextras.h"
+#include "mcr/extras/extras.h"
+
+#include <cstring>
+
 #include "mcr/extras/mod_extras.h"
 
 #define winerr dprint("Windows Error: %ld\n", GetLastError());

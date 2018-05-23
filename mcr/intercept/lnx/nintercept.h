@@ -21,8 +21,8 @@
  * incoming events.
  */
 
-#ifndef MCR_INTERCEPT_LNX_NINTERCEPT_H
-#define MCR_INTERCEPT_LNX_NINTERCEPT_H
+#ifndef MCR_INTERCEPT_LNX_NINTERCEPT_H_
+#define MCR_INTERCEPT_LNX_NINTERCEPT_H_
 
 #include "mcr/intercept/lnx/ngrabber.h"
 
@@ -45,13 +45,14 @@ struct mcr_mod_intercept_platform {
 };
 /* All use /dev/input/eventX files to read from */
 MCR_API int mcr_intercept_add_grab(struct mcr_context *ctx,
-				   const char *grabPath);
+								   const char *grabPath);
 MCR_API void mcr_intercept_remove_grab(struct mcr_context *ctx,
-				       const char *grabPath);
+									   const char *grabPath);
 MCR_API int mcr_intercept_set_grabs(struct mcr_context *ctx,
-				    const char **allGrabPaths, size_t pathCount);
+									const char **allGrabPaths, size_t pathCount);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif

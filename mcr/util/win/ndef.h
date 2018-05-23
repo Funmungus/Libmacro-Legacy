@@ -16,21 +16,21 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_UTIL_WIN_NDEF_H
-#define MCR_UTIL_WIN_NDEF_H
+#ifndef MCR_UTIL_WIN_NDEF_H_
+#define MCR_UTIL_WIN_NDEF_H_
 
+/* Make sure we have some base definitions. */
 #include "mcr/util/def.h"
-
-/*# include <WinSDKVer.h> */
 
 /* Windows Version */
 /*# define _WIN32_WINNT _WIN32_WINNT_WINXP      // 0x0501 */
-
 #include <SDKDDKVer.h>
 
 /* Exclude rarely-used stuff from Windows headers,
  * and we use min and max for naming. */
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+#endif
 #ifndef NOMINMAX
 	#define NOMINMAX
 #endif
@@ -46,8 +46,10 @@ extern "C" {
 
 /* _Pragma and timespec undefined before 2015 */
 #if _MSC_VER < 1900
+
 #ifndef __timespec_defined
 #define __timespec_defined 1
+
 #ifndef _TIMESPEC_DEFINED
 #define _TIMESPEC_DEFINED
 struct timespec {
@@ -55,7 +57,10 @@ struct timespec {
 	int tv_nsec;
 };
 #endif
+
 #endif
+
+/* _Pragma is not available for some preproc macros. */
 #undef fixme
 #define fixme
 #endif
@@ -63,4 +68,5 @@ struct timespec {
 #ifdef __cplusplus
 }
 #endif
+
 #endif

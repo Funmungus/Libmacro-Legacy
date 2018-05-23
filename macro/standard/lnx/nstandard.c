@@ -16,12 +16,14 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/standard/lnx/nstandard.h"
 #include "mcr/standard/standard.h"
-#include "mcr/standard/mod_standard.h"
-#include MCR_STANDARD_PLATFORM_INC
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "mcr/standard/mod_standard.h"
 
 MCR_API struct mcr_Array mcr_echoEvents;
 MCR_API struct mcr_Map mcr_keyToEcho[2];
@@ -58,7 +60,7 @@ int mcr_Echo_set_key(size_t echoCode, struct mcr_Key *keyPt)
 		return EINVAL;
 	}
 	if ((err = mcr_Array_minfill(&mcr_echoEvents, echoCode + 1, &initial))
-	    || (err = mcr_Array_set(&mcr_echoEvents, echoCode, keyPt)))
+		|| (err = mcr_Array_set(&mcr_echoEvents, echoCode, keyPt)))
 		return err;
 	mapPt = mcr_keyToEcho + (keyPt->up_type ? 1 : 0);
 	kVal = keyPt->key;
@@ -70,8 +72,8 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 	ssize_t err;
 	if (echoPt->echo < mcr_echoEvents.used) {
 		if ((err = mcr_Key_send_data((struct mcr_Key *)
-					     MCR_ARR_ELEMENT(mcr_echoEvents,
-							     echoPt->echo))))
+									 MCR_ARR_ELEMENT(mcr_echoEvents,
+											 echoPt->echo))))
 			return err;
 	} else {
 		mset_error(EFAULT);
@@ -189,10 +191,10 @@ int mcr_standard_platform_initialize(struct mcr_context *context)
 	mcr_echoEvents.element_size = sizeof(struct mcr_Key);
 	mcr_Map_init(mcr_keyToEcho);
 	mcr_Map_set_all(mcr_keyToEcho, sizeof(int), sizeof(int),
-			mcr_int_compare, NULL, NULL);
+					mcr_int_compare, NULL, NULL);
 	mcr_Map_init(mcr_keyToEcho + 1);
 	mcr_Map_set_all(mcr_keyToEcho + 1, sizeof(int), sizeof(int),
-			mcr_int_compare, NULL, NULL);
+					mcr_int_compare, NULL, NULL);
 	if ((err = mcr_Device_initialize(context)))
 		return err;
 	return mcr_Mods_load_key_contract(context);
@@ -253,7 +255,7 @@ static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
 	i = arrlen(extraTypes);
 	while (i--) {
 		if ((err = mcr_Key_mod_add(ctx, extraTypes[i],
-					   extraModKeys[i])))
+								   extraModKeys[i])))
 			return err;
 	}
 	return 0;
@@ -525,7 +527,7 @@ static int add_key_names(struct mcr_context *context)
 	i = arrlen(extraKeys);
 	while (i--) {
 		if ((err = mcr_Key_add(context, extraKeys[i], extraNames[i],
-				       extraLens[i])))
+							   extraLens[i])))
 			return err;
 	}
 	return err;
@@ -539,8 +541,8 @@ static int add_echo_keys()
 		BTN_EXTRA, BTN_FORWARD, BTN_BACK, BTN_TASK, BTN_TRIGGER,
 		BTN_THUMB, BTN_THUMB2, BTN_TOP, BTN_TOP2, BTN_PINKIE,
 		BTN_BASE, BTN_BASE2, BTN_BASE3, BTN_BASE4, BTN_BASE5,
-		BTN_BASE6, BTN_A /* BTN_SOUTH */ , BTN_B /* BTN_EAST */ ,
-		BTN_C, BTN_X /* BTN_NORTH */ , BTN_Y /* BTN_WEST */ ,
+		BTN_BASE6, BTN_A /* BTN_SOUTH */, BTN_B /* BTN_EAST */,
+		BTN_C, BTN_X /* BTN_NORTH */, BTN_Y /* BTN_WEST */,
 		BTN_Z, BTN_TL, BTN_TR, BTN_TL2, BTN_TR2, BTN_SELECT,
 		BTN_START, BTN_MODE, BTN_THUMBL, BTN_THUMBR
 	};
@@ -567,8 +569,8 @@ static int add_echo_names(struct mcr_context *context)
 		"Extra", "Forward", "Back", "Task", "Trigger",
 		"Thumb", "Thumb2", "Top", "Top2", "Pinkie",
 		"Base", "Base2", "Base3", "Base4", "Base5",
-		"Base6", "A" /* SOUTH */ , "B" /* EAST */ ,
-		"C", "X" /* NORTH */ , "Y" /* WEST */ ,
+		"Base6", "A" /* SOUTH */, "B" /* EAST */,
+		"C", "X" /* NORTH */, "Y" /* WEST */,
 		"Z", "TL", "TR", "TL2", "TR2", "Select",
 		"Start", "Mode", "ThumbL", "ThumbR"
 	};
@@ -596,11 +598,11 @@ static int add_echo_names(struct mcr_context *context)
 		if (addNames[i]) {
 			snprintf(setname, 63, "%s%s", addNames[i], "Down");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						   addressPt, 1)))
+									   addressPt, 1)))
 				return err;
 			snprintf(setname, 63, "%s %s", addNames[i], "Down");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						   addressPt, 1)))
+									   addressPt, 1)))
 				return err;
 		}
 		snprintf(setname, 63, "%s %s", names[i], "Down");
@@ -613,11 +615,11 @@ static int add_echo_names(struct mcr_context *context)
 		if (addNames[i]) {
 			snprintf(setname, 63, "%s%s", addNames[i], "Up");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						   addressPt, 1)))
+									   addressPt, 1)))
 				return err;
 			snprintf(setname, 63, "%s %s", addNames[i], "Up");
 			if ((err = mcr_HidEcho_add(context, echoCode,
-						   addressPt, 1)))
+									   addressPt, 1)))
 				return err;
 		}
 		snprintf(setname, 63, "%s %s", names[i], "Up");

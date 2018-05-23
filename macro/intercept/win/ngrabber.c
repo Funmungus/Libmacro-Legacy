@@ -16,13 +16,16 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/intercept/win/nintercept.h"
 #include "mcr/intercept/intercept.h"
-#include "mcr/modules.h"
-#include MCR_INTERCEPT_PLATFORM_INC
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mcr/modules.h"
+
+/* IsUserAnAdmin */
 #if _WIN32_WINNT < 0x0600
 	#include <shlobj.h>
 #endif

@@ -28,8 +28,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_MODEL_H
-#define MCR_EXTRAS_MODEL_H
+#ifndef MCR_EXTRAS_MODEL_H_
+#define MCR_EXTRAS_MODEL_H_
 
 #include "mcr/extras/def.h"
 
@@ -69,9 +69,9 @@ struct MCR_EXTRAS_API CtxISignal {
 	 * exist.
 	 */
 	CtxISignal(Libmacro *context, mcr_signal_fnc send,
-		   mcr_Dispatcher *dispatcher = NULL,
-		   const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-						NULL));
+			   mcr_Dispatcher *dispatcher = NULL,
+			   const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
+											NULL));
 	CtxISignal(mcr_signal_fnc send);
 	virtual ~CtxISignal() {}
 	CtxISignal(const CtxISignal &) = default;
@@ -113,11 +113,11 @@ struct MCR_EXTRAS_API CtxDispatcher {
 	 * exist.
 	 */
 	CtxDispatcher(Libmacro *context = NULL, mcr_Dispatcher_add_fnc add = NULL,
-		      mcr_Dispatcher_fnc clear = NULL,
-		      mcr_Dispatcher_dispatch_fnc dispatch = NULL,
-		      mcr_Dispatcher_modify_fnc modifier = NULL,
-		      mcr_Dispatcher_remove_fnc remove = NULL,
-		      mcr_Dispatcher_fnc trim = NULL);
+				  mcr_Dispatcher_fnc clear = NULL,
+				  mcr_Dispatcher_dispatch_fnc dispatch = NULL,
+				  mcr_Dispatcher_modify_fnc modifier = NULL,
+				  mcr_Dispatcher_remove_fnc remove = NULL,
+				  mcr_Dispatcher_fnc trim = NULL);
 	virtual ~CtxDispatcher() {}
 	CtxDispatcher(const CtxDispatcher &) = default;
 	CtxDispatcher &operator =(const CtxDispatcher &) = default;
@@ -153,8 +153,8 @@ struct MCR_EXTRAS_API CtxITrigger {
 	 * \param interface \ref opt mcr_ITrigger.interface
 	 */
 	CtxITrigger(Libmacro *context = NULL, mcr_Dispatcher_receive_fnc receive = NULL,
-		    const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-				    NULL));
+				const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
+						NULL));
 	virtual ~CtxITrigger() {}
 	CtxITrigger(const CtxITrigger &) = default;
 	CtxITrigger &operator =(const CtxITrigger &) = default;
@@ -275,7 +275,7 @@ struct MCR_EXTRAS_API Trigger {
 	 * \param actor \ref mcr_Trigger.actor
 	 */
 	Trigger(mcr_ITrigger *itrigger = NULL,
-		mcr_Dispatcher_receive_fnc trigger = NULL, void *actor = NULL)
+			mcr_Dispatcher_receive_fnc trigger = NULL, void *actor = NULL)
 	{
 		mcr_Trigger_init(ptr());
 		this->trigger.itrigger = itrigger;
@@ -357,8 +357,8 @@ struct MCR_EXTRAS_API Macro {
 	typedef mcr_Interrupt Interrupt;
 
 	Macro(Libmacro *context = NULL, bool block = false,
-	      bool sticky = false, unsigned int threadMax = 1,
-	      bool enable = false);
+		  bool sticky = false, unsigned int threadMax = 1,
+		  bool enable = false);
 	virtual ~Macro();
 	Macro(const Macro &copytron);
 	Macro(const mcr_Macro &copytron);
@@ -478,9 +478,9 @@ struct MCR_EXTRAS_API Stage {
 	mcr_Stage stage;
 
 	Stage(Libmacro *ctx = NULL,
-	      bool blocking = false,
-	      mcr_Signal *interceptPt = NULL, unsigned int measurementError = 0,
-	      unsigned int mods = 0, int trigFlags = MCR_TF_ALL);
+		  bool blocking = false,
+		  mcr_Signal *interceptPt = NULL, unsigned int measurementError = 0,
+		  unsigned int mods = 0, int trigFlags = MCR_TF_ALL);
 	~Stage();
 	Stage(const Stage &copytron);
 	Stage(const mcr_Stage *copytron);

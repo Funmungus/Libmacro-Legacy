@@ -33,8 +33,8 @@
  * 2. If signal is not blocked by dispatching, it is then sent to cause an action.\n
  */
 
-#ifndef MCR_LIBMACRO_H
-#define MCR_LIBMACRO_H
+#ifndef MCR_LIBMACRO_H_
+#define MCR_LIBMACRO_H_
 
 #include "mcr/util/util.h"
 #include "mcr/signal/signal.h"
@@ -106,4 +106,5 @@ MCR_API void mcr_trim(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -62,17 +63,17 @@ int mcr_atob(const char *value, bool * retVal)
 
 	if (value[1] == '\0') {
 		if (*value == 't' || *value == 'T' ||
-		    *value == 'y' || *value == 'Y') {
+			*value == 'y' || *value == 'Y') {
 			*retVal = true;
 		} else if (*value == 'f' || *value == 'F' ||
-			   *value == 'n' || *value == 'N') {
+				   *value == 'n' || *value == 'N') {
 			*retVal = false;
 		}
 	} else {
 		if (!mcr_casecmp(value, "true") || !mcr_casecmp(value, "yes")) {
 			*retVal = true;
 		} else if (!mcr_casecmp(value, "false") ||
-			   !mcr_casecmp(value, "no")) {
+				   !mcr_casecmp(value, "no")) {
 			*retVal = false;
 		}
 	}
@@ -110,7 +111,7 @@ void mcr_String_clear(mcr_String * strPt)
 }
 
 int mcr_String_insert(mcr_String * strPt, size_t index,
-		      const char *str, size_t len)
+					  const char *str, size_t len)
 {
 	int err;
 	dassert(strPt);
@@ -129,7 +130,7 @@ int mcr_String_insert(mcr_String * strPt, size_t index,
 	}
 	/* memmove will also copy null char */
 	memmove(strPt->array + index + len, strPt->array + index,
-		strPt->used - index);
+			strPt->used - index);
 	memcpy(strPt->array + index, str, len);
 	strPt->used += len;
 	return 0;
@@ -150,7 +151,7 @@ void mcr_String_remove_index(mcr_String * strPt, size_t index, size_t count)
 		/* Move into index, position at index + count, size is */
 		/* array size - source position. */
 		memmove(strPt->array + index, strPt->array + index + count,
-			strPt->used - index - count);
+				strPt->used - index - count);
 		strPt->used -= count;
 	}
 }
@@ -159,7 +160,7 @@ int mcr_String_append(mcr_String * strPt, const char *str, size_t len)
 {
 	dassert(strPt);
 	return mcr_String_insert(strPt, strPt->used ? strPt->used - 1 : 0,
-				 str, len);
+							 str, len);
 }
 
 int mcr_String_push(mcr_String * strPt, const char c)
@@ -207,7 +208,7 @@ int mcr_String_nreplace(mcr_String * strPt, const char *str, size_t len)
 }
 
 int mcr_String_copy_str(mcr_String * strPt, size_t index,
-			const char *str, size_t len)
+						const char *str, size_t len)
 {
 	int err;
 	dassert(strPt);
@@ -253,7 +254,7 @@ int mcr_String_fill(mcr_String * strPt, size_t index, size_t count, char c)
 }
 
 int mcr_String_move(mcr_String * dstPt, size_t dstPos,
-		    mcr_String * srcPt, size_t srcPos, size_t count)
+					mcr_String * srcPt, size_t srcPos, size_t count)
 {
 	size_t srcLastPos, dstLastPos;
 	int err;

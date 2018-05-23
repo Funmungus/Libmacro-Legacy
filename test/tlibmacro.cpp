@@ -1,16 +1,18 @@
 #include "tlibmacro.h"
+
+#include <stdlib.h>
+
 #include "mcr/modules.h"
-#include "stdlib.h"
 
 void TLibmacro::initTestCase()
 {
 	_ctx = mcr_allocate();
 	QVERIFY(_ctx);
-	QCOMPARE(0, mcr_err);
+	QCOMPARE(mcr_err, 0);
 }
 
 void TLibmacro::cleanupTestCase()
 {
-	QCOMPARE(0, mcr_deallocate(_ctx));
-	QCOMPARE(0, mcr_err);
+	mcr_deallocate(_ctx);
+	QCOMPARE(mcr_err, 0);
 }

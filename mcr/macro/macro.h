@@ -23,8 +23,8 @@
  * All signal functions will initialize and deinitialize as needed
  */
 
-#ifndef MCR_MACRO_MACRO_H
-#define MCR_MACRO_MACRO_H
+#ifndef MCR_MACRO_MACRO_H_
+#define MCR_MACRO_MACRO_H_
 
 #include "mcr/macro/trigger.h"
 #include "mcr/util/c11threads.h"
@@ -108,8 +108,8 @@ MCR_API int mcr_Macro_deinit(void *mcrPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_set_all(struct mcr_Macro *mcrPt,
-			      bool block, bool sticky, unsigned int threadMax, bool enable,
-			      struct mcr_context *ctx);
+							  bool block, bool sticky, unsigned int threadMax, bool enable,
+							  struct mcr_context *ctx);
 /*! Copy a macro
  *
  * \param dstPt \ref mcr_Macro * Destination macro
@@ -122,7 +122,7 @@ MCR_API int mcr_Macro_copy(void *dstPt, const void *srcPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
-				enum mcr_Interrupt interruptType);
+								enum mcr_Interrupt interruptType);
 /*! Get the number of signals in the set to send
  *
  * \param mcrPt \ref opt
@@ -145,7 +145,7 @@ MCR_API struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt);
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
-				  const struct mcr_Signal *signalSet, size_t signalCount);
+								  const struct mcr_Signal *signalSet, size_t signalCount);
 /*! Get a signal reference
  *
  * If the signal set changes, this reference will be invalid.
@@ -163,7 +163,7 @@ MCR_API struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
-				 const struct mcr_Signal *copySig, size_t index);
+								 const struct mcr_Signal *copySig, size_t index);
 /*! Insert and add a signal copy
  *
  * \param copySig \ref opt Signal to copy
@@ -171,7 +171,7 @@ MCR_API int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
-				    const struct mcr_Signal *copySig, size_t index);
+									const struct mcr_Signal *copySig, size_t index);
 /*! Remove the signal at given index
  *
  * \param index Index to remove from
@@ -184,7 +184,7 @@ MCR_API int mcr_Macro_remove_signal(struct mcr_Macro *mcrPt, size_t index);
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_push_signal(struct mcr_Macro *mcrPt,
-				  const struct mcr_Signal *newSig);
+								  const struct mcr_Signal *newSig);
 /*! Remove signal from the end of signal set
  *
  * \return \ref reterr
@@ -214,7 +214,7 @@ MCR_API int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable);
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
-				   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
+								   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
 /*! Remove correct receivers from \ref mcr_Dispatcher_remove
  *
  * See \ref mcr_Macro_dispatcher for receiver.
@@ -223,7 +223,7 @@ MCR_API int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
  * \return \ref reterr
  */
 MCR_API int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
-				      struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
+									  struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
 /*! Prepare a \ref mcr_DispatchPair to trigger this macro.
  *
  * \param trigPt \ref opt If null or uninitialized we will dispatch directly
@@ -243,7 +243,7 @@ MCR_API struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,
  * \return false to not block intercepted signal, otherwise do block
  */
 MCR_API bool mcr_Macro_receive(void *mcrPt,
-			       struct mcr_Signal *sigPt, unsigned int mods);
+							   struct mcr_Signal *sigPt, unsigned int mods);
 /*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
  * \pre \ref mcr_DispatchPair.dispatch must be \ref mcr_Trigger_receive
  * \pre \ref mcr_Trigger.actor must be a \ref mcr_Macro *
@@ -256,7 +256,7 @@ MCR_API bool mcr_Macro_receive(void *mcrPt,
  * \return false to not block intercepted signal, otherwise do block
  */
 MCR_API bool mcr_Macro_trigger(void *trigPt,
-			       struct mcr_Signal *sigPt, unsigned int mods);
+							   struct mcr_Signal *sigPt, unsigned int mods);
 
 /*! \ref mcr_Macro_is_enabled */
 #define MCR_MACRO_IS_ENABLED(mcrPt) \
@@ -265,4 +265,5 @@ MCR_API bool mcr_Macro_trigger(void *trigPt,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

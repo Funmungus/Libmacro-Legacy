@@ -26,8 +26,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_STRING_KEY_H
-#define MCR_EXTRAS_STRING_KEY_H
+#ifndef MCR_EXTRAS_STRING_KEY_H_
+#define MCR_EXTRAS_STRING_KEY_H_
 
 #include "mcr/extras/wrap_signal.h"
 #include "mcr/extras/isignal_data.h"
@@ -113,7 +113,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 		return 3;
 	}
 	virtual void addNames(const char **bufferOut,
-			      size_t bufferLength) const override
+						  size_t bufferLength) const override
 	{
 		const char *names[] = {"String Key", "string_key", "SK"};
 		size_t i, count = arrlen(names);

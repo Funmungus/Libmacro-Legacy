@@ -17,6 +17,7 @@
 */
 
 #include "mcr/standard/standard.h"
+
 #include "mcr/modules.h"
 
 int mcr_HidEcho_send(struct mcr_Signal *signalPt)
@@ -47,58 +48,58 @@ size_t mcr_HidEcho_count(struct mcr_context * ctx)
 }
 
 int mcr_HidEcho_set_name(struct mcr_context *ctx, size_t eventCode,
-			 const char *eventName)
+						 const char *eventName)
 {
 	if (eventCode == MCR_ECHO_ANY) {
 		if (eventName)
 			return mcr_String_replace(&ctx->standard.echo_name_any,
-						  eventName);
+									  eventName);
 		mcr_String_deinit(&ctx->standard.echo_name_any);
 		return 0;
 	}
 	if (eventName)
 		return mcr_StringIndex_map(&ctx->standard.echo_name_index,
-					   eventCode, eventName, NULL, 0);
+								   eventCode, eventName, NULL, 0);
 	mcr_StringIndex_unmap(&ctx->standard.echo_name_index, eventCode, 1);
 	return 0;
 }
 
 int mcr_HidEcho_add(struct mcr_context *ctx, size_t eventCode,
-		    const char **addNames, size_t bufferLen)
+					const char **addNames, size_t bufferLen)
 {
 	return mcr_StringIndex_add(&ctx->standard.echo_name_index, eventCode,
-				   addNames, bufferLen);
+							   addNames, bufferLen);
 }
 
 int mcr_HidEcho_map(struct mcr_context *ctx, size_t eventCode,
-		    const char *eventName, const char **addNames, size_t bufferLen)
+					const char *eventName, const char **addNames, size_t bufferLen)
 {
 	if (eventCode == MCR_ECHO_ANY) {
 		return mcr_HidEcho_set_name(ctx, eventCode, eventName) &&
-		       mcr_HidEcho_add(ctx, eventCode, addNames, bufferLen);
+			   mcr_HidEcho_add(ctx, eventCode, addNames, bufferLen);
 	}
 	return mcr_StringIndex_map(&ctx->standard.echo_name_index, eventCode,
-				   eventName, addNames, bufferLen);
+							   eventName, addNames, bufferLen);
 }
 
 int mcr_HidEcho_reecho(struct mcr_context *ctx, size_t eventCode,
-		       size_t newCode)
+					   size_t newCode)
 {
 	int err;
 	if (eventCode == newCode)
 		return 0;
 	err = mcr_HidEcho_set_name(ctx, newCode,
-				   mcr_HidEcho_name(ctx, eventCode));
+							   mcr_HidEcho_name(ctx, eventCode));
 	if (!err)
 		return mcr_HidEcho_set_name(ctx, eventCode, NULL);
 	return err;
 }
 
 int mcr_HidEcho_rename(struct mcr_context *ctx, const char *oldName,
-		       const char *newName)
+					   const char *newName)
 {
 	return mcr_StringIndex_remap(&ctx->standard.echo_name_index, oldName,
-				     newName);
+								 newName);
 }
 
 void mcr_HidEcho_trim(struct mcr_context *ctx)

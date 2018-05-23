@@ -14,12 +14,13 @@
 */
 
 #include "mcr/libmacro.h"
-#include "mcr/modules.h"
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "mcr/modules.h"
 
 #pragma message("TODO: Optimize for intercept, dispatch, and send." \
 	" SIMPLIFY(function instead of inline) everywhere else.")
@@ -38,6 +39,7 @@ struct mcr_context *mcr_allocate()
 	}
 	if ((err = mcr_load_contracts(ctx))) {
 		mcr_deinitialize(ctx);
+		/* Recover load error */
 		mcr_err = err;
 		return NULL;
 	}
@@ -55,7 +57,8 @@ int mcr_deallocate(struct mcr_context *ctx)
 }
 
 #define local_err_stack_size 4
-static int local_err(struct mcr_context *ctx, int (**errStack) (struct mcr_context *), int stackCount)
+static int local_err(struct mcr_context *ctx,
+					 int (**errStack) (struct mcr_context *), int stackCount)
 {
 	dassert(stackCount <= local_err_stack_size);
 	/* Traverse backwards through stack */

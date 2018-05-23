@@ -20,8 +20,8 @@
  * \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
-#ifndef MCR_INTERCEPT_LNX_NGRABBER_H
-#define MCR_INTERCEPT_LNX_NGRABBER_H
+#ifndef MCR_INTERCEPT_LNX_NGRABBER_H_
+#define MCR_INTERCEPT_LNX_NGRABBER_H_
 
 #include "mcr/intercept/lnx/ndef.h"
 
@@ -62,4 +62,5 @@ MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

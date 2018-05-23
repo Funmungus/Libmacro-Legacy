@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_STANDARD_WIN_NSTANDARD_H
-#define MCR_STANDARD_WIN_NSTANDARD_H
+#ifndef MCR_STANDARD_WIN_NSTANDARD_H_
+#define MCR_STANDARD_WIN_NSTANDARD_H_
 
 #include "mcr/standard/win/ndef.h"
 
@@ -31,4 +31,5 @@ MCR_API int mcr_Echo_set_mouse_flag(size_t echoCode, int mouseEventFlags);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

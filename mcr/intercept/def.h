@@ -19,8 +19,8 @@
 /*! \file
  */
 
-#ifndef MCR_INTERCEPT_DEF_H
-#define MCR_INTERCEPT_DEF_H
+#ifndef MCR_INTERCEPT_DEF_H_
+#define MCR_INTERCEPT_DEF_H_
 
 #include "mcr/standard/standard.h"
 

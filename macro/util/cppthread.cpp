@@ -21,6 +21,7 @@ extern "C" {
 #include "mcr/util/util.h"
 #include "mcr/util/cppthread.h"
 }
+
 /* C++ thread requirements */
 #include <condition_variable>
 #include <cstdio>

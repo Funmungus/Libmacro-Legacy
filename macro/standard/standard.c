@@ -19,7 +19,7 @@
 #include "mcr/standard/standard.h"
 
 bool mcr_resembles_justified(const mcr_Dimensions first,
-			     const mcr_Dimensions second)
+							 const mcr_Dimensions second)
 {
 	dassert(first);
 	dassert(second);
@@ -34,7 +34,7 @@ bool mcr_resembles_justified(const mcr_Dimensions first,
 }
 
 bool mcr_resembles_absolute(const mcr_Dimensions first,
-			    const mcr_Dimensions second, const unsigned int measurementError)
+							const mcr_Dimensions second, const unsigned int measurementError)
 {
 	dassert(first);
 	dassert(second);

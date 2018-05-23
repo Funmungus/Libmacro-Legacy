@@ -29,6 +29,6 @@ optFile="$(dirname $(readlink -f "$0"))/libmacro.astylerc"
 if [ $# -gt 0 ]; then
   astyle --options="$optFile" "$@"
 else
-  find . -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \
+  find . -regex '.*\.\(h\|c\|hpp\|hxx\|cpp\|cc\|tpp\)$' \
     -exec astyle --options="$optFile" {} \;
 fi

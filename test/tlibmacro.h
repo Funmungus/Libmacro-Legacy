@@ -1,4 +1,5 @@
 #include <QtTest/QtTest>
+
 #include "mcr/libmacro.h"
 
 class TLibmacro : public QObject
@@ -7,6 +8,7 @@ class TLibmacro : public QObject
 private slots:
 	void initTestCase();
 	void cleanupTestCase();
+
 private:
 	mcr_context *_ctx;
 };

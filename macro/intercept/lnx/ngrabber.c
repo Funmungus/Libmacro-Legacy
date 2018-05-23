@@ -18,6 +18,7 @@
 
 #include "mcr/intercept/lnx/nintercept.h"
 #include "mcr/intercept/intercept.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -101,8 +102,8 @@ static int grabber_open(struct mcr_Grabber *grabPt)
 		return err;
 	}
 	if ((grabPt->fd =
-		     open(grabPt->path.array,
-			  O_RDONLY | O_NONBLOCK)) == -1) {
+			 open(grabPt->path.array,
+				  O_RDONLY | O_NONBLOCK)) == -1) {
 		err = errno;
 		if (!err)
 			err = EINTR;

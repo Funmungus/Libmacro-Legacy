@@ -21,15 +21,16 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_STL_TYPES_H
-#define MCR_EXTRAS_STL_TYPES_H
+#ifndef MCR_EXTRAS_STL_TYPES_H_
+#define MCR_EXTRAS_STL_TYPES_H_
 
+#include "mcr/extras/def.h"
+
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "mcr/util/def.h"
-#include "mcr/extras/def.h"
 
 namespace mcr
 {

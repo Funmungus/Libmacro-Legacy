@@ -26,8 +26,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_COMMAND_H
-#define MCR_EXTRAS_COMMAND_H
+#ifndef MCR_EXTRAS_COMMAND_H_
+#define MCR_EXTRAS_COMMAND_H_
 
 #include "mcr/extras/wrap_signal.h"
 #include "mcr/extras/isignal_data.h"
@@ -140,7 +140,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 		return 1;
 	}
 	virtual void addNames(const char **bufferOut,
-			      size_t bufferLength) const override
+						  size_t bufferLength) const override
 	{
 		if (bufferOut && bufferLength)
 			bufferOut[0] = "Cmd";

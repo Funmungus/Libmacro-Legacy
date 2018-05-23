@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_NONE_NMCRSTRING_H
-#define MCR_NONE_NMCRSTRING_H
+#ifndef MCR_NONE_NMCRSTRING_H_
+#define MCR_NONE_NMCRSTRING_H_
 
 #include "mcr/util/none/ndef.h"
 
@@ -33,4 +33,5 @@ MCR_API int mcr_ncasecmp(const char *s1, const char *s2, size_t n);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

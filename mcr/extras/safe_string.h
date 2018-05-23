@@ -27,8 +27,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_SAFE_STRING_H
-#define MCR_EXTRAS_SAFE_STRING_H
+#ifndef MCR_EXTRAS_SAFE_STRING_H_
+#define MCR_EXTRAS_SAFE_STRING_H_
 
 #include "mcr/extras/def.h"
 
@@ -56,7 +56,7 @@ public:
 	 * \param keyOut Return a reference to the key
 	 */
 	virtual void key(const void *obj,
-			 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) = 0;
+					 const unsigned char *keyOut[MCR_AES_BLOCK_SIZE]) = 0;
 	/*! Remove a string object.  If the key function is called again
 	 * the key should be regenerated.
 	 *
@@ -72,7 +72,7 @@ public:
 	 * \param bufferOut Write hash to this buffer
 	 */
 	static inline void sha(const string &text,
-			       unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
+						   unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
 };
 
 /*! A string that can be encrypted in memory */
@@ -85,9 +85,9 @@ public:
 	 * \param cryptic \ref opt Initial encryption state
 	 */
 	SafeString(IKeyProvider *keyProvider = NULL, const string &str = string(),
-		   bool cryptic = true)
+			   bool cryptic = true)
 		: _cryptic(cryptic
-			   && keyProvider), _encrypted(NULL), _encryptedBufferSize(0), _encryptedBytes(0),
+				   && keyProvider), _encrypted(NULL), _encryptedBufferSize(0), _encryptedBytes(0),
 		  _keyProvider(keyProvider), _lenMem(0), _plain(NULL), _plainBufferSize(0),
 		  _stateless(false)
 	{
@@ -136,9 +136,9 @@ public:
 	 * \return Length of encrypted bytes written to bufferOut. Will be -1 for any errors.
 	 */
 	static inline int encrypt(const string &plainText,
-				  const unsigned char key[MCR_AES_BLOCK_SIZE],
-				  const unsigned char iv[MCR_AES_IV_SIZE],
-				  unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut)
+							  const unsigned char key[MCR_AES_BLOCK_SIZE],
+							  const unsigned char iv[MCR_AES_IV_SIZE],
+							  unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut)
 	{
 		return encrypt(bytes(plainText), plainText.size(), key, iv, tagOut, bufferOut);
 	}
@@ -149,9 +149,9 @@ public:
 	 * \return Length of encrypted bytes written to bufferOut. Will be -1 for any errors.
 	 */
 	static int encrypt(const char *plain, size_t plainLen,
-			   const unsigned char key[MCR_AES_BLOCK_SIZE],
-			   const unsigned char iv[MCR_AES_IV_SIZE],
-			   unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut);
+					   const unsigned char key[MCR_AES_BLOCK_SIZE],
+					   const unsigned char iv[MCR_AES_IV_SIZE],
+					   unsigned char tagOut[MCR_AES_TAG_SIZE], unsigned char *bufferOut);
 	/*! Encrypted text => plain text
 	 *
 	 * \param encrypted Encrypted bytes to decrypt as a string
@@ -165,10 +165,10 @@ public:
 	 * \return Decrypted string
 	 */
 	static inline string decrypt(const unsigned char *encrypted,
-				     int encryptedLength,
-				     const unsigned char key[MCR_AES_BLOCK_SIZE],
-				     const unsigned char iv[MCR_AES_IV_SIZE],
-				     const unsigned char tag[])
+								 int encryptedLength,
+								 const unsigned char key[MCR_AES_BLOCK_SIZE],
+								 const unsigned char iv[MCR_AES_IV_SIZE],
+								 const unsigned char tag[])
 	{
 		string ret = "";
 		size_t decLen = 0;
@@ -194,9 +194,9 @@ public:
 	 * \return Length of decrypted bytes written to bufferOut.
 	 */
 	static size_t decrypt(const unsigned char *encrypted, int encryptedLength,
-			      const unsigned char key[MCR_AES_BLOCK_SIZE],
-			      const unsigned char iv[MCR_AES_IV_SIZE],
-			      const unsigned char tag[], char *bufferOut);
+						  const unsigned char key[MCR_AES_BLOCK_SIZE],
+						  const unsigned char iv[MCR_AES_IV_SIZE],
+						  const unsigned char tag[], char *bufferOut);
 	/*! \ref mcr_is_platform Output pseudo randomized bytes
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not
@@ -211,7 +211,7 @@ public:
 	 * \param bufferOut Write hash to this buffer
 	 */
 	static inline void sha(const string &text,
-			unsigned char bufferOut[MCR_AES_BLOCK_SIZE])
+						   unsigned char bufferOut[MCR_AES_BLOCK_SIZE])
 	{
 		sha(bytes(text), text.size(), bufferOut);
 	}
@@ -221,7 +221,7 @@ public:
 	 * linking to a libcrypto- or libssl-compatible library.
 	 */
 	static void sha(const char *text, size_t textLen,
-			unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
+					unsigned char bufferOut[MCR_AES_BLOCK_SIZE]);
 	/*! \ref mcr_is_platform This is called in library initialization
 	 *
 	 * This is usually defined in the ssl directory.  Redefine if not

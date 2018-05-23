@@ -20,17 +20,25 @@
  * Linux platform intercept definitions
  */
 
-#ifndef MCR_INTERCEPT_LNX_NDEF_H
-#define MCR_INTERCEPT_LNX_NDEF_H
+#ifndef MCR_INTERCEPT_LNX_NDEF_H_
+#define MCR_INTERCEPT_LNX_NDEF_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "mcr/standard/lnx/nstandard.h"
 #include "mcr/intercept/def.h"
 
-#ifndef MCR_GRAB_SET_LENGTH
+#ifndef MCR_GRAB_SET_LENGTH_
 	#define MCR_GRAB_SET_LENGTH 16
 #endif
 
 #define MCR_GRAB_SET_SIZE (sizeof(struct input_event) * \
 	MCR_GRAB_SET_LENGTH)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

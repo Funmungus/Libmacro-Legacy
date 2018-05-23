@@ -25,8 +25,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_ALARM_H
-#define MCR_EXTRAS_ALARM_H
+#ifndef MCR_EXTRAS_ALARM_H_
+#define MCR_EXTRAS_ALARM_H_
 
 #include "mcr/extras/wrap_signal.h"
 #include "mcr/extras/isignal_data.h"
@@ -227,7 +227,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	void now()
 	{
 		time_t t = std::chrono::system_clock::to_time_t(
-				   std::chrono::system_clock::now());
+					   std::chrono::system_clock::now());
 		time = *::localtime(&t);
 	}
 };

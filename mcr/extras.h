@@ -25,8 +25,8 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_H
-	#define MCR_EXTRAS_H
+#ifndef MCR_EXTRAS_H_
+	#define MCR_EXTRAS_H_
 
 	#include "mcr/extras/mod_extras.h"
 #endif

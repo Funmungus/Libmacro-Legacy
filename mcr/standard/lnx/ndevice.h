@@ -24,8 +24,8 @@
  * absolute, and relative.
  */
 
-#ifndef MCR_STANDARD_LNX_NDEVICE_H
-#define MCR_STANDARD_LNX_NDEVICE_H
+#ifndef MCR_STANDARD_LNX_NDEVICE_H_
+#define MCR_STANDARD_LNX_NDEVICE_H_
 
 #include "mcr/standard/lnx/ndef.h"
 
@@ -105,7 +105,7 @@ MCR_API int mcr_Device_enable_all(bool enable);
  * \return \ref reterr
  */
 MCR_API int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType,
-				int *bits, size_t bitLen);
+								int *bits, size_t bitLen);
 /*! Get all input bits to be set.
  *
  * \param bitType Type of event to find values for
@@ -155,4 +155,5 @@ MCR_API int mcr_Device_deinitialize(struct mcr_context *context);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

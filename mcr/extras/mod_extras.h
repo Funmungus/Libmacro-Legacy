@@ -27,11 +27,11 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_MOD_EXTRAS_H
-#define MCR_EXTRAS_MOD_EXTRAS_H
+#ifndef MCR_EXTRAS_MOD_EXTRAS_H_
+#define MCR_EXTRAS_MOD_EXTRAS_H_
 
-#include "mcr/modules.h"
 #include "mcr/extras/extras.h"
+#include "mcr/modules.h"
 
 namespace mcr
 {
@@ -99,7 +99,7 @@ struct MCR_EXTRAS_API Libmacro {
 			throw EINVAL;
 		auto mem = character(c);
 		for (auto iter = mem, endPt = mem ? mem + characterCount(c) : NULL;
-		     iter != endPt; iter++) {
+			 iter != endPt; iter++) {
 			ret.push_back(*iter);
 		}
 		return ret;

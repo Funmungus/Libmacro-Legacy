@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,7 +29,7 @@ int mcr_StringIndex_init(void *indexPt)
 		mcr_Map_init(&localPt->map);
 		mcr_StringSet_init(&localPt->set);
 		mcr_Map_set_all(&localPt->map, sizeof(mcr_String),
-				sizeof(size_t), NULL, mcr_String_interface(), NULL);
+						sizeof(size_t), NULL, mcr_String_interface(), NULL);
 	}
 	return 0;
 }
@@ -64,7 +65,7 @@ int mcr_StringIndex_minsize(struct mcr_StringIndex *indexPt, size_t minSize)
 }
 
 int mcr_StringIndex_smartsize(struct mcr_StringIndex *indexPt,
-			      size_t increasingCount)
+							  size_t increasingCount)
 {
 	dassert(indexPt);
 	return mcr_StringSet_smartsize(&indexPt->set, increasingCount);
@@ -104,14 +105,14 @@ void mcr_StringIndex_clear(struct mcr_StringIndex *indexPt)
 
 /* Position/Values */
 mcr_String *mcr_StringIndex_string(struct mcr_StringIndex *indexPt,
-				   size_t index)
+								   size_t index)
 {
 	dassert(indexPt);
 	return MCR_STRINGINDEX_STRING(*indexPt, index);
 }
 
 const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
-				 size_t index)
+								 size_t index)
 {
 	mcr_String *found;
 	if (!indexPt)
@@ -121,7 +122,7 @@ const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
 }
 
 size_t mcr_StringIndex_index(const struct mcr_StringIndex * indexPt,
-			     const char *strKey)
+							 const char *strKey)
 {
 	size_t *found;
 	if (!indexPt || !strKey)
@@ -132,7 +133,7 @@ size_t mcr_StringIndex_index(const struct mcr_StringIndex * indexPt,
 
 /* Set/remove mappings */
 int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
-			size_t index, const char *strKey, const char **addKeys, size_t addCount)
+						size_t index, const char *strKey, const char **addKeys, size_t addCount)
 {
 	int err;
 	dassert(indexPt);
@@ -151,7 +152,7 @@ int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
 }
 
 int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
-			size_t index, const char **addKeys, size_t addCount)
+						size_t index, const char **addKeys, size_t addCount)
 {
 	int err;
 	size_t i;
@@ -166,7 +167,7 @@ int mcr_StringIndex_add(struct mcr_StringIndex *indexPt,
 }
 
 int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
-			    size_t curIndex, size_t newIndex)
+							size_t curIndex, size_t newIndex)
 {
 	mcr_String *found;
 	int err;
@@ -192,7 +193,7 @@ int mcr_StringIndex_reindex(struct mcr_StringIndex *indexPt,
 }
 
 int mcr_StringIndex_remap(struct mcr_StringIndex *indexPt,
-			  const char *strKey, const char *newKey)
+						  const char *strKey, const char *newKey)
 {
 	int err;
 	size_t mapVal, *found;
@@ -206,14 +207,14 @@ int mcr_StringIndex_remap(struct mcr_StringIndex *indexPt,
 		}
 		mapVal = *found;
 		if ((err = mcr_StringIndex_map(indexPt, mapVal, newKey, NULL,
-					       0)))
+									   0)))
 			return err;
 	}
 	return mcr_Map_unmap(&indexPt->map, &strKey);
 }
 
 void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
-			   size_t remIndex, bool flagRemoveAll)
+						   size_t remIndex, bool flagRemoveAll)
 {
 	mcr_String *found = MCR_STRINGSET_ELEMENT(indexPt->set, remIndex);
 	dassert(indexPt);
@@ -227,7 +228,7 @@ void mcr_StringIndex_unmap(struct mcr_StringIndex *indexPt,
 }
 
 void mcr_StringIndex_unmap_string(struct mcr_StringIndex *indexPt,
-				  const char *remString, bool flagRemoveAll)
+								  const char *remString, bool flagRemoveAll)
 {
 	size_t *found;
 	dassert(indexPt);

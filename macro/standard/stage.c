@@ -17,10 +17,12 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "mcr/modules.h"
 
 static void set_matcher(struct mcr_Stage *stagePt, struct mcr_IsStage *matchPt)
 {
@@ -43,13 +45,13 @@ int mcr_Stage_deinit(void *stagePt)
 {
 	if (stagePt)
 		return mcr_Signal_deinit(&((struct mcr_Stage *)
-					   stagePt)->intercept);
+								   stagePt)->intercept);
 	return 0;
 }
 
 int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
-		      bool blocking, const struct mcr_Signal *interceptPt,
-		      unsigned int measurementError, unsigned int mods, int trigFlags)
+					  bool blocking, const struct mcr_Signal *interceptPt,
+					  unsigned int measurementError, unsigned int mods, int trigFlags)
 {
 	dassert(stagePt);
 	stagePt->block = blocking;
@@ -60,7 +62,7 @@ int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
 }
 
 bool mcr_Stage_equals(struct mcr_Stage * stagePt,
-		      struct mcr_Signal * interceptPt, unsigned int mods)
+					  struct mcr_Signal * interceptPt, unsigned int mods)
 {
 	bool isMods = false;
 	struct mcr_Signal *sigPt = &stagePt->intercept;
@@ -70,7 +72,7 @@ bool mcr_Stage_equals(struct mcr_Stage * stagePt,
 		if (sigPt->isignal)
 			return false;
 		MCR_TF_IS_MOD(stagePt->modifiers, mods, stagePt->trigger_flags,
-			      isMods);
+					  isMods);
 		return isMods;
 	}
 	/* We have a type, and it is not the same */
@@ -81,12 +83,12 @@ bool mcr_Stage_equals(struct mcr_Stage * stagePt,
 		return false;
 	/* By default ignore dispatch flag */
 	return stagePt->matcher.equals ?
-	       stagePt->matcher.equals(stagePt, interceptPt) :
-	       !mcr_Instance_compare(sigPt, interceptPt);
+		   stagePt->matcher.equals(stagePt, interceptPt) :
+		   !mcr_Instance_compare(sigPt, interceptPt);
 }
 
 bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
-			 struct mcr_Signal * interceptPt)
+						 struct mcr_Signal * interceptPt)
 {
 	struct mcr_Signal *sigPt = &stagePt->intercept;
 	dassert(stagePt);
@@ -95,21 +97,21 @@ bool mcr_Stage_resembles(struct mcr_Stage * stagePt,
 		if (sigPt->isignal) {
 			if (sigPt->isignal == interceptPt->isignal)
 				return stagePt->matcher.resembles ? stagePt->
-				       matcher.resembles(stagePt,
-							 interceptPt) : true;
+					   matcher.resembles(stagePt,
+										 interceptPt) : true;
 			/* Not same type */
 			return false;
 		}
 		/* Case 2, no stage type: By default always true */
 		return stagePt->matcher.resembles ?
-		       stagePt->matcher.resembles(stagePt, interceptPt) : true;
+			   stagePt->matcher.resembles(stagePt, interceptPt) : true;
 	}
 	/* Case 3, no intercept: Only true if also no stage type */
 	return !sigPt->isignal;
 }
 
 int mcr_Stage_set_intercept(struct mcr_context *ctx,
-			    struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
+							struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
 {
 	size_t id;
 	struct mcr_IsStage *matchPt;
@@ -123,13 +125,13 @@ int mcr_Stage_set_intercept(struct mcr_context *ctx,
 		set_matcher(stagePt, matchPt);
 	} else {
 		return mcr_Stage_set_intercept_generic(ctx, stagePt,
-						       interceptPt);
+											   interceptPt);
 	}
 	return 0;
 }
 
 int mcr_Stage_set_intercept_generic(struct mcr_context *ctx,
-				    struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
+									struct mcr_Stage *stagePt, const struct mcr_Signal *interceptPt)
 {
 	struct mcr_IsStage *matchPt = ctx->standard.stage_generic;
 	dassert(stagePt);
@@ -149,18 +151,18 @@ int mcr_Stage_compare(const void *lhs, const void *rhs)
 			if (lhs == rhs)
 				return 0;
 			if ((ret = mcr_Signal_compare(&lPt->intercept,
-						      &rPt->intercept)))
+										  &rPt->intercept)))
 				return ret;
 			if ((ret = MCR_CMP(lPt->modifiers,
-						    rPt->modifiers)))
+							   rPt->modifiers)))
 				return ret;
 			if ((ret = MCR_CMP(lPt->trigger_flags,
-						    rPt->trigger_flags)))
+							   rPt->trigger_flags)))
 				return ret;
 			if ((ret = MCR_CMP(lPt->block, rPt->block)))
 				return ret;
 			return MCR_CMP(lPt->measurement_error,
-						rPt->measurement_error);
+						   rPt->measurement_error);
 		}
 		return -1;
 	}
@@ -194,7 +196,7 @@ size_t mcr_Stage_count(struct mcr_context * ctx)
 }
 
 void mcr_Stage_all(struct mcr_context *ctx, struct mcr_IsStage *buffer,
-		   size_t bufferLength)
+				   size_t bufferLength)
 {
 	size_t count = ctx->standard.stage_matchers.used;
 	if (bufferLength < count)
@@ -202,13 +204,13 @@ void mcr_Stage_all(struct mcr_context *ctx, struct mcr_IsStage *buffer,
 	dassert(ctx);
 	if (buffer) {
 		memcpy(buffer, ctx->standard.stage_matchers.array,
-		       sizeof(struct mcr_IsStage) * count);
+			   sizeof(struct mcr_IsStage) * count);
 	}
 }
 
 /* Stage development */
 int mcr_Stage_register(struct mcr_context *ctx, mcr_isme_fnc setIsme,
-		       mcr_isme_fnc setResemble, size_t signalId)
+					   mcr_isme_fnc setResemble, size_t signalId)
 {
 	struct mcr_IsStage *matchPt;
 	int err;
@@ -217,7 +219,7 @@ int mcr_Stage_register(struct mcr_context *ctx, mcr_isme_fnc setIsme,
 		matchPt = ctx->standard.stage_generic;
 	} else {
 		if ((err = mcr_Array_minfill(&ctx->standard.stage_matchers,
-					     signalId + 1, NULL)))
+									 signalId + 1, NULL)))
 			return err;
 		matchPt =
 			MCR_ARR_ELEMENT(ctx->standard.stage_matchers, signalId);

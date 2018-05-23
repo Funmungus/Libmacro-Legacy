@@ -20,8 +20,8 @@
  * \brief Definitions for macros
  */
 
-#ifndef MCR_MACRO_DEF_H
-#define MCR_MACRO_DEF_H
+#ifndef MCR_MACRO_DEF_H_
+#define MCR_MACRO_DEF_H_
 
 #include "mcr/signal/signal.h"
 

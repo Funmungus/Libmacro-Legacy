@@ -20,10 +20,14 @@
  * \brief Definitions for standard types.
  */
 
-#ifndef MCR_STANDARD_DEF_H
-#define MCR_STANDARD_DEF_H
+#ifndef MCR_STANDARD_DEF_H_
+#define MCR_STANDARD_DEF_H_
 
 #include "mcr/macro/macro.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Usable spatial dimensions for cursor/spatial events */
 #define MCR_DIMENSION_MIN 0
@@ -36,7 +40,7 @@
 #define MCR_W 3
 #define MCR_Y4 MCR_W
 #ifndef MCR_DIMENSION_MAX
-	#define MCR_DIMENSION_MAX MCR_Z
+#define MCR_DIMENSION_MAX MCR_Z
 #endif
 #define MCR_DIMENSION_CNT (MCR_DIMENSION_MAX + 1)
 
@@ -66,5 +70,9 @@ typedef mcr_SpacePosition mcr_Dimensions;
 #define MCR_ECHO_ANY ((const size_t)-1)
 /*! Any or invalid key code */
 #define MCR_KEY_ANY ((const int)0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

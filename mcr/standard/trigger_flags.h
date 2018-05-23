@@ -20,8 +20,8 @@
  * \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
  */
 
-#ifndef MCR_STANDARD_TRIGGER_FLAGS_H
-#define MCR_STANDARD_TRIGGER_FLAGS_H
+#ifndef MCR_STANDARD_TRIGGER_FLAGS_H_
+#define MCR_STANDARD_TRIGGER_FLAGS_H_
 
 #include "mcr/standard/def.h"
 
@@ -130,4 +130,5 @@ default: \
 #ifdef __cplusplus
 }
 #endif
+
 #endif

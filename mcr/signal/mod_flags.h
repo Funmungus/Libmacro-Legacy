@@ -20,8 +20,8 @@
  * \brief \ref mcr_ModFlags - Flag enumeration for modifiers
  */
 
-#ifndef MCR_SIGNAL_MOD_FLAGS_H
-#define MCR_SIGNAL_MOD_FLAGS_H
+#ifndef MCR_SIGNAL_MOD_FLAGS_H_
+#define MCR_SIGNAL_MOD_FLAGS_H_
 
 #include "mcr/signal/def.h"
 
@@ -77,7 +77,7 @@ MCR_API unsigned int mcr_ModFlags_modifier(struct mcr_context *ctx,
  * \return Name of the modifier, or null if not found
  */
 MCR_API const char *mcr_ModFlags_name(struct mcr_context *ctx,
-				      unsigned int modifier);
+									  unsigned int modifier);
 /*! Get the number of modifiers that are mapped to a name
  *
  * \param \ref retind
@@ -123,7 +123,7 @@ MCR_API unsigned int mcr_ModFlags_remove(unsigned int mods,
  * \param mapNameMod \ref opt Map from names to modifiers
  */
 MCR_API void mcr_ModFlags_maps(struct mcr_context *ctx,
-			       struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
+							   struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
 
 /*! See \ref mcr_ModFlags_add */
 #define MCR_MOD_ADD( toModify, modifiers ) \
@@ -138,4 +138,5 @@ MCR_API void mcr_ModFlags_maps(struct mcr_context *ctx,
 #ifdef __cplusplus
 }
 #endif
+
 #endif

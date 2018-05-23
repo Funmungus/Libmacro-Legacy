@@ -20,8 +20,8 @@
  * \brief \ref mcr_mod_macro - Macro module
  */
 
-#ifndef MCR_MACRO_MOD_MACRO_H
-#define MCR_MACRO_MOD_MACRO_H
+#ifndef MCR_MACRO_MOD_MACRO_H_
+#define MCR_MACRO_MOD_MACRO_H_
 
 #include "mcr/util/util.h"
 
@@ -42,4 +42,5 @@ MCR_API void mcr_macro_trim(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

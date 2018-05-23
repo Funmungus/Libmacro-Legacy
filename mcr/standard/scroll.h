@@ -20,8 +20,8 @@
  * \brief \ref mcr_Scroll - Scroll visible area
  */
 
-#ifndef MCR_STANDARD_SCROLL_H
-#define MCR_STANDARD_SCROLL_H
+#ifndef MCR_STANDARD_SCROLL_H_
+#define MCR_STANDARD_SCROLL_H_
 
 #include "mcr/standard/def.h"
 
@@ -57,4 +57,5 @@ MCR_API struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

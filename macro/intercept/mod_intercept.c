@@ -17,6 +17,7 @@
 */
 
 #include "mcr/intercept/intercept.h"
+
 #include "mcr/modules.h"
 
 int mcr_intercept_initialize(struct mcr_context *ctx)

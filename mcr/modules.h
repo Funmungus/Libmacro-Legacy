@@ -20,8 +20,8 @@
  * \brief Structures used by Libmacro.
  */
 
-#ifndef MCR_MODULES_H
-#define MCR_MODULES_H
+#ifndef MCR_MODULES_H_
+#define MCR_MODULES_H_
 
 /* Define all module structures */
 #include "mcr/signal/mod_signal.h"
@@ -44,4 +44,5 @@ struct mcr_context {
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -20,8 +20,8 @@
  * \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
  */
 
-#ifndef MCR_STANDARD_ACTION_H
-#define MCR_STANDARD_ACTION_H
+#ifndef MCR_STANDARD_ACTION_H_
+#define MCR_STANDARD_ACTION_H_
 
 #include "mcr/standard/trigger_flags.h"
 
@@ -49,7 +49,7 @@ MCR_API int mcr_Action_init(void *actPt);
  * \brief \ref mcr_ITrigger.receive for \ref mcr_Action
  */
 MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
-				unsigned int mods);
+								unsigned int mods);
 
 /*! \ref mcr_ITrigger for \ref mcr_Action */
 MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
@@ -60,4 +60,5 @@ MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

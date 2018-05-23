@@ -17,11 +17,13 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <string.h>
 
+#include "mcr/modules.h"
+
 void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
-			    const mcr_SpacePosition pos, bool flagJustify)
+							const mcr_SpacePosition pos, bool flagJustify)
 {
 	dassert(mcPt);
 	memcpy(mcPt->pos, pos, sizeof(mcr_SpacePosition));
@@ -36,7 +38,7 @@ int mcr_MoveCursor_send(struct mcr_Signal *sigPt)
 }
 
 bool mcr_resembles(const struct mcr_MoveCursor * lhs,
-		   const struct mcr_MoveCursor * rhs, const unsigned int measurementError)
+				   const struct mcr_MoveCursor * rhs, const unsigned int measurementError)
 {
 	if (!lhs || !rhs)
 		return lhs == rhs;

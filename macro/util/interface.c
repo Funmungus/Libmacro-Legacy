@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,8 +43,8 @@ int mcr_Interface_init(void *interfacePt)
 }
 
 struct mcr_Interface mcr_Interface_new(size_t dataSize,
-				       mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
-				       mcr_copy_fnc copy)
+									   mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
+									   mcr_copy_fnc copy)
 {
 	struct mcr_Interface ret = { 0 };
 	ret.data_size = dataSize;
@@ -59,8 +60,8 @@ struct mcr_Interface mcr_Interface_new(size_t dataSize,
 }
 
 void mcr_Interface_set_all(void *interfacePt, size_t dataSize,
-			   mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
-			   mcr_copy_fnc copy)
+						   mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
+						   mcr_copy_fnc copy)
 {
 	struct mcr_Interface *iPt = interfacePt;
 	dassert(interfacePt);
@@ -101,7 +102,7 @@ int mcr_iinit(const void *interfacePt, struct mcr_Data *dataPt)
 int mcr_iref_init(const void *const *interfacePtPt, struct mcr_Data *dataPt)
 {
 	return interfacePtPt ? mcr_iinit(*interfacePtPt, dataPt) :
-	       mcr_iinit(NULL, dataPt);
+		   mcr_iinit(NULL, dataPt);
 }
 
 int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt)
@@ -126,7 +127,7 @@ int mcr_ideinit(const void *interfacePt, struct mcr_Data *dataPt)
 }
 
 int mcr_icmp(const void *interfacePt, const struct mcr_Data *lhs,
-	     const struct mcr_Data *rhs)
+			 const struct mcr_Data *rhs)
 {
 	const struct mcr_Interface *iPt = interfacePt;
 	dassert(iPt);
@@ -142,7 +143,7 @@ int mcr_icmp(const void *interfacePt, const struct mcr_Data *lhs,
 }
 
 int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
-	     const struct mcr_Data *srcPt)
+			 const struct mcr_Data *srcPt)
 {
 	const struct mcr_Interface *iPt = interfacePt;
 	int err;
@@ -170,7 +171,7 @@ int mcr_icpy(const void *interfacePt, struct mcr_Data *dstPt,
 }
 
 int mcr_iset_data(const void *interfacePt, struct mcr_Data *dataPt,
-		  void *data, void (*deallocate) (void *))
+				  void *data, void (*deallocate) (void *))
 {
 	const struct mcr_Interface *iPt = interfacePt;
 	int err;
@@ -181,7 +182,7 @@ int mcr_iset_data(const void *interfacePt, struct mcr_Data *dataPt,
 	if (dataPt->data != data) {
 		/* Free existing date */
 		if (dataPt->data && iPt->deinit &&
-		    (err = iPt->deinit(dataPt->data))) {
+			(err = iPt->deinit(dataPt->data))) {
 			mset_error(err);
 			return err;
 		}

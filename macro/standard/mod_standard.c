@@ -17,6 +17,7 @@
 */
 
 #include "mcr/standard/standard.h"
+
 #include "mcr/modules.h"
 
 static int mcr_Key_initialize(struct mcr_context *ctx);
@@ -50,7 +51,7 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	while (i--) {
 		mcr_ISignal_init(sigs[i]);
 		mcr_Interface_set_all(sigs[i], sigSizes[i], NULL, NULL, NULL,
-				      NULL);
+							  NULL);
 		sigs[i]->send = sendFns[i];
 		if ((err = mcr_register(mcr_ISignal_reg(ctx), sigs[i], NULL, NULL, 0)))
 			return err;
@@ -61,13 +62,13 @@ int mcr_standard_initialize(struct mcr_context *ctx)
 	/* triggers */
 	mcr_ITrigger_init(trigs[0]);
 	mcr_Interface_set_all(trigs[0], sizeof(struct mcr_Action),
-			      mcr_Action_init, NULL, NULL, NULL);
+						  mcr_Action_init, NULL, NULL, NULL);
 	trigs[0]->receive = mcr_Action_receive;
 
 	mcr_ITrigger_init(trigs[1]);
 	mcr_Interface_set_all(trigs[1], sizeof(struct mcr_Staged),
-			      mcr_Staged_init, mcr_Staged_deinit, mcr_Staged_compare,
-			      mcr_Staged_copy);
+						  mcr_Staged_init, mcr_Staged_deinit, mcr_Staged_compare,
+						  mcr_Staged_copy);
 	trigs[1]->receive = mcr_Staged_receive;
 
 	count = arrlen(trigs);
@@ -125,10 +126,10 @@ int mcr_standard_load_contract(struct mcr_context *ctx)
 			return err;
 	}
 	if ((err = mcr_reg_add_names(regPt, mcr_iEcho(ctx), echoAdd,
-				     arrlen(echoAdd))))
+								 arrlen(echoAdd))))
 		return err;
 	if ((err = mcr_reg_add_names(regPt, mcr_iMC(ctx), mcAdd,
-				     arrlen(mcAdd))))
+								 arrlen(mcAdd))))
 		return err;
 	i = arrlen(trigs);
 	regPt = mcr_ITrigger_reg(ctx);
@@ -152,19 +153,19 @@ static int mcr_Key_initialize(struct mcr_context *ctx)
 	struct mcr_mod_standard *standard = &ctx->standard;
 	int err = 0;
 	mcr_Dispatcher_set_all(&standard->key_dispatcher.dispatcher,
-			       mcr_Key_Dispatcher_add, mcr_Key_Dispatcher_clear,
-			       mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_modifier,
-			       mcr_Key_Dispatcher_remove, mcr_Key_Dispatcher_trim);
+						   mcr_Key_Dispatcher_add, mcr_Key_Dispatcher_clear,
+						   mcr_Key_Dispatcher_dispatch, mcr_Key_Dispatcher_modifier,
+						   mcr_Key_Dispatcher_remove, mcr_Key_Dispatcher_trim);
 	standard->key_dispatcher.ctx = ctx;
 	standard->key_dispatcher_maps[0] = standard->key_dispatcher_maps[1] =
-			mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
-				    mcr_Array_DispatchPair_interface());
+										   mcr_Map_new(sizeof(int), 0, mcr_int_compare, NULL,
+												   mcr_Array_DispatchPair_interface());
 	standard->map_key_modifier = mcr_Map_new(sizeof(int),
-				     sizeof(unsigned int), mcr_int_compare, NULL, NULL);
+								 sizeof(unsigned int), mcr_int_compare, NULL, NULL);
 	standard->map_modifier_key = mcr_Map_new(sizeof(unsigned int),
-				     sizeof(int), mcr_unsigned_compare, NULL, NULL);
+								 sizeof(int), mcr_unsigned_compare, NULL, NULL);
 	if ((err = mcr_Dispatcher_register(ctx, &standard->key_dispatcher,
-					   mcr_iKey(ctx)->interface.id)))
+									   mcr_iKey(ctx)->interface.id)))
 		return err;
 	mcr_StringIndex_init(&standard->key_name_index);
 	mcr_String_init(&standard->key_name_any);

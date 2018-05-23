@@ -17,6 +17,7 @@
 */
 
 #include "mcr/signal/signal.h"
+
 #include "mcr/modules.h"
 
 /* Names */
@@ -64,7 +65,7 @@ unsigned int mcr_ModFlags_remove(unsigned int mods, unsigned int delMod)
 }
 
 void mcr_ModFlags_maps(struct mcr_context *ctx, struct mcr_Map **mapModName,
-		       struct mcr_Map **mapNameMod)
+					   struct mcr_Map **mapNameMod)
 {
 	dassert(ctx);
 	if (mapModName)

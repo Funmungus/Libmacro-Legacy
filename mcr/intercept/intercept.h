@@ -20,8 +20,8 @@
  * Intercept reads from hardware, and may block.
  */
 
-#ifndef MCR_INTERCEPT_INTERCEPT_H
-#define MCR_INTERCEPT_INTERCEPT_H
+#ifndef MCR_INTERCEPT_INTERCEPT_H_
+#define MCR_INTERCEPT_INTERCEPT_H_
 
 #include "mcr/intercept/def.h"
 
@@ -39,4 +39,5 @@ MCR_API unsigned int mcr_intercept_modifiers(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -48,6 +48,6 @@ static int mcr_Array_DispatchPair_init(void *arrPt)
 {
 	mcr_Array_init(arrPt);
 	mcr_Array_set_all(arrPt, mcr_DispatchPair_compare,
-			  sizeof(struct mcr_DispatchPair));
+					  sizeof(struct mcr_DispatchPair));
 	return 0;
 }

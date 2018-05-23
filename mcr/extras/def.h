@@ -21,13 +21,13 @@
 	#include "mcr/err.h"
 #endif
 
-#ifndef MCR_EXTRAS_DEF_H
-#define MCR_EXTRAS_DEF_H
+#ifndef MCR_EXTRAS_DEF_H_
+#define MCR_EXTRAS_DEF_H_
 
 #include <chrono>
-#include <thread>
-#include <new>
 #include <cstring>
+#include <new>
+#include <thread>
 
 #ifndef MCR_EXTRAS_API
 	#ifdef MCR_STATIC

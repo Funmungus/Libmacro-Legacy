@@ -17,21 +17,23 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcr/modules.h"
+
 static void gendisp_init(struct mcr_GenericDispatcher *dispPt);
 static void gendisp_deinit(struct mcr_GenericDispatcher *dispPt);
 static int gendisp_add(void *dispPt,
-		       struct mcr_Signal * sigPt, void *receiver,
-		       mcr_Dispatcher_receive_fnc receiverFnc);
+					   struct mcr_Signal * sigPt, void *receiver,
+					   mcr_Dispatcher_receive_fnc receiverFnc);
 static int gendisp_clear(void *dispPt);
 static bool gendisp_dispatch(void *dispPt,
-			     struct mcr_Signal * sigPt, unsigned int mods);
+							 struct mcr_Signal * sigPt, unsigned int mods);
 static void gendisp_modifier(void *dispPt,
-			    struct mcr_Signal * sigPt, unsigned int *modsPt);
+							 struct mcr_Signal * sigPt, unsigned int *modsPt);
 static int gendisp_remove(void *dispPt, void *remReceiver);
 static int gendisp_trim(void *dispPt);
 
@@ -46,10 +48,10 @@ int mcr_signal_initialize(struct mcr_context *ctx)
 	modSignal->dispatchers = mcr_Array_new(NULL, sizeof(void *));
 	modSignal->map_mod_name =
 		mcr_Map_new(sizeof(unsigned int), sizeof(mcr_String),
-			    mcr_unsigned_compare, NULL, mcr_String_interface());
+					mcr_unsigned_compare, NULL, mcr_String_interface());
 	modSignal->map_name_mod =
 		mcr_Map_new(sizeof(mcr_String), sizeof(unsigned int),
-			    mcr_name_compare, mcr_String_interface(), NULL);
+					mcr_name_compare, mcr_String_interface(), NULL);
 	gendisp_init(&modSignal->generic_dispatcher);
 	return 0;
 }
@@ -76,20 +78,20 @@ int mcr_signal_deinitialize(struct mcr_context *ctx)
 int mcr_signal_load_contract(struct mcr_context *ctx)
 {
 	unsigned int mods[] = { MCR_MF_NONE,
-				MCR_ALT, MCR_ALTGR, MCR_AMIGA, MCR_CMD,
-				MCR_CODE, MCR_COMPOSE, MCR_CTRL, MCR_FN, MCR_FRONT,
-				MCR_GRAPH, MCR_HYPER, MCR_META, MCR_SHIFT, MCR_SUPER,
-				MCR_SYMBOL, MCR_TOP, MCR_WIN, MCR_MF_USER
-			      };
+							MCR_ALT, MCR_ALTGR, MCR_AMIGA, MCR_CMD,
+							MCR_CODE, MCR_COMPOSE, MCR_CTRL, MCR_FN, MCR_FRONT,
+							MCR_GRAPH, MCR_HYPER, MCR_META, MCR_SHIFT, MCR_SUPER,
+							MCR_SYMBOL, MCR_TOP, MCR_WIN, MCR_MF_USER
+						  };
 	const char *modNames[] = { "None",
-				   "Alt", "AltGr", "Amiga", "Cmd",
-				   "Code", "Compose", "Ctrl", "Fn", "Front",
-				   "Graph", "Hyper", "Meta", "Shift", "Super",
-				   "Symbol", "Top", "Win", "User"
-				 };
+							   "Alt", "AltGr", "Amiga", "Cmd",
+							   "Code", "Compose", "Ctrl", "Fn", "Front",
+							   "Graph", "Hyper", "Meta", "Shift", "Super",
+							   "Symbol", "Top", "Win", "User"
+							 };
 	unsigned int addMods[] = {  MCR_MOD_ANY,
-				    MCR_ALT, MCR_ALTGR, MCR_CMD, MCR_CTRL, MCR_WIN
-				  };
+								MCR_ALT, MCR_ALTGR, MCR_CMD, MCR_CTRL, MCR_WIN
+							 };
 	const char *addNames[][2] = { {"Any", ""},
 		{"Option", ""}, {"Alt Gr", "alt_gr"}, {"Command", ""},
 		{"Control", ""}, {"Window", "Windows"}
@@ -111,7 +113,7 @@ int mcr_signal_load_contract(struct mcr_context *ctx)
 		if ((err = mcr_Map_map(namesModPt, (void *)(addNames[i] + 0), addMods + 0)))
 			return err;
 		if (addNames[i][1][0]
-		    && (err = mcr_Map_map(namesModPt, (void *)(addNames[i] + 0), addMods + 0)))
+			&& (err = mcr_Map_map(namesModPt, (void *)(addNames[i] + 0), addMods + 0)))
 			return err;
 	}
 	return 0;
@@ -133,10 +135,10 @@ static void gendisp_init(struct mcr_GenericDispatcher *dispPt)
 {
 	memset(dispPt, 0, sizeof(struct mcr_GenericDispatcher));
 	dispPt->receivers = mcr_Array_new(mcr_ref_compare,
-					  sizeof(struct mcr_DispatchPair));
+									  sizeof(struct mcr_DispatchPair));
 	dispPt->signal_receivers = mcr_Map_new(sizeof(void *), sizeof(struct mcr_Array),
-					       mcr_ref_compare, NULL,
-					       mcr_Array_DispatchPair_interface());
+										   mcr_ref_compare, NULL,
+										   mcr_Array_DispatchPair_interface());
 	dispPt->dispatcher.add = gendisp_add;
 	dispPt->dispatcher.clear = gendisp_clear;
 	dispPt->dispatcher.dispatch = gendisp_dispatch;
@@ -152,8 +154,8 @@ static void gendisp_deinit(struct mcr_GenericDispatcher *dispPt)
 }
 
 static int gendisp_add(void *dispPt,
-		       struct mcr_Signal * sigPt, void *receiver,
-		       mcr_Dispatcher_receive_fnc receiverFnc)
+					   struct mcr_Signal * sigPt, void *receiver,
+					   mcr_Dispatcher_receive_fnc receiverFnc)
 {
 	struct mcr_GenericDispatcher *genDisp = dispPt;
 	struct mcr_DispatchPair disp;
@@ -162,10 +164,11 @@ static int gendisp_add(void *dispPt,
 	disp.receiver = receiver;
 	if (sigPt) {
 		elementPt = mcr_Map_element_ensured(&genDisp->signal_receivers,
-					  &sigPt);
+											&sigPt);
 		if (!elementPt)
 			return mcr_err;
-		return mcr_Array_add(MCR_MAP_VALUEOF(genDisp->signal_receivers, elementPt), &disp, 1, true);
+		return mcr_Array_add(MCR_MAP_VALUEOF(genDisp->signal_receivers, elementPt),
+							 &disp, 1, true);
 	}
 	return mcr_Array_add(&genDisp->receivers, &disp, 1, true);
 }
@@ -180,7 +183,7 @@ static int gendisp_clear(void *dispPt)
 }
 
 static bool gendisp_dispatch(void *dispPt,
-			     struct mcr_Signal * sigPt, unsigned int mods)
+							 struct mcr_Signal * sigPt, unsigned int mods)
 {
 #define localDispAll(itPt) \
 	dassert(((struct mcr_DispatchPair *)itPt)->dispatch); \
@@ -198,7 +201,7 @@ static bool gendisp_dispatch(void *dispPt,
 }
 
 static void gendisp_modifier(void *dispPt,
-			    struct mcr_Signal * sigPt, unsigned int *modsPt)
+							 struct mcr_Signal * sigPt, unsigned int *modsPt)
 {
 	UNUSED(dispPt);
 	UNUSED(sigPt);

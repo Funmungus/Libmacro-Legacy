@@ -17,8 +17,10 @@
 */
 
 #include "mcr/macro/macro.h"
-#include "mcr/modules.h"
+
 #include <string.h>
+
+#include "mcr/modules.h"
 
 int mcr_ITrigger_init(void *itrigPt)
 {
@@ -46,7 +48,7 @@ struct mcr_IRegistry *mcr_ITrigger_reg(struct mcr_context *ctx)
 }
 
 const char *mcr_ITrigger_name(struct mcr_context *ctx,
-			      struct mcr_ITrigger *itrigPt)
+							  struct mcr_ITrigger *itrigPt)
 {
 	dassert(ctx);
 	return mcr_reg_name(mcr_ITrigger_reg(ctx), mcr_ITrigger_id(itrigPt));

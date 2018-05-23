@@ -20,8 +20,8 @@
  * \brief \ref mcr_Key - Simulate keyboard keys
  */
 
-#ifndef MCR_STANDARD_KEY_H
-#define MCR_STANDARD_KEY_H
+#ifndef MCR_STANDARD_KEY_H_
+#define MCR_STANDARD_KEY_H_
 
 #include "mcr/standard/def.h"
 
@@ -44,7 +44,7 @@ struct mcr_Key {
 
 /*! Set key, and key up type. */
 MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key,
-			     enum mcr_KeyUpType keyUp);
+							 enum mcr_KeyUpType keyUp);
 /*! \pre Signal instance data is \ref mcr_Key
  * \brief Simulate keyboard keys.
  *
@@ -81,20 +81,20 @@ MCR_API size_t mcr_Key_count(struct mcr_context *ctx);
  * \return \ref reterr
  */
 MCR_API int mcr_Key_set_name(struct mcr_context *ctx, int keyCode,
-			     const char *newName);
+							 const char *newName);
 /*! Add a set of names to map to a key code.
  *
  * \param addNames \ref opt Set of names to add to key code
  * \return \ref reterr
  */
 MCR_API int mcr_Key_add(struct mcr_context *ctx, int keyCode,
-			const char **addNames, size_t bufferLen);
+						const char **addNames, size_t bufferLen);
 /*! \ref mcr_Key_set_name and \ref mcr_Key_add_names
  *
  * \return \ref reterr
  */
 MCR_API int mcr_Key_map(struct mcr_context *ctx, int keyCode,
-			const char *newName, const char **addNames, size_t bufferLen);
+						const char *newName, const char **addNames, size_t bufferLen);
 /*! Rename a key code.
  *
  * \return \ref reterr
@@ -106,7 +106,7 @@ MCR_API int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode);
  * \return \ref reterr
  */
 MCR_API int mcr_Key_rename(struct mcr_context *ctx, const char *oldName,
-			   const char *newName);
+						   const char *newName);
 /*! Minimize key allocation */
 MCR_API void mcr_Key_trim(struct mcr_context *ctx);
 /*! Remove all mapped key codes. */
@@ -121,17 +121,17 @@ MCR_API int mcr_Key_mod_key(struct mcr_context *ctx, unsigned int modifier);
 MCR_API size_t mcr_Key_mod_count(struct mcr_context *ctx);
 
 MCR_API void mcr_Key_mod_all(struct mcr_context *ctx,
-			     unsigned int *modBuffer, size_t bufferLength);
+							 unsigned int *modBuffer, size_t bufferLength);
 MCR_API void mcr_Key_mod_clear(struct mcr_context *ctx);
 MCR_API int mcr_Key_mod_set_key(struct mcr_context *ctx,
-				unsigned int modifiers, int key);
+								unsigned int modifiers, int key);
 MCR_API int mcr_Key_mod_add(struct mcr_context *ctx, unsigned int modifiers,
-			    int key);
+							int key);
 MCR_API int mcr_Key_mod_map(struct mcr_context *ctx, unsigned int modifiers,
-			    int key, int *addKeys, size_t bufferLen);
+							int key, int *addKeys, size_t bufferLen);
 MCR_API int mcr_Key_mod_rekey(struct mcr_context *ctx, int oldKey, int newKey);
 MCR_API int mcr_Key_mod_remod(struct mcr_context *ctx,
-			      unsigned int modifiers, unsigned int newMods);
+							  unsigned int modifiers, unsigned int newMods);
 MCR_API void mcr_Key_mod_trim(struct mcr_context *ctx);
 
 /*! Get the Signal interface of \ref mcr_Key */
@@ -144,8 +144,8 @@ MCR_API struct mcr_ISignal *mcr_iKey(struct mcr_context *ctx);
 ((struct mcr_Key *)(sig).instance.data.data)
 
 MCR_API int mcr_Key_Dispatcher_add(void *dispDataPt,
-				   struct mcr_Signal *signalPt, void *newTrigger,
-				   mcr_Dispatcher_receive_fnc receiveFnc);
+								   struct mcr_Signal *signalPt, void *newTrigger,
+								   mcr_Dispatcher_receive_fnc receiveFnc);
 MCR_API int mcr_Key_Dispatcher_clear(void *dispDataPt);
 MCR_API bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 		struct mcr_Signal *signalPt, unsigned int mods);
@@ -157,4 +157,5 @@ MCR_API int mcr_Key_Dispatcher_trim(void *dispDataPt);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

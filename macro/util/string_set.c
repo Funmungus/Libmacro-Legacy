@@ -17,13 +17,14 @@
 */
 
 #include "mcr/util/util.h"
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 static void mcr_StringSet_deinit_range(mcr_StringSet * setPt, size_t firstIndex,
-				       size_t lastIndex);
+									   size_t lastIndex);
 
 int mcr_StringSet_init(void *setPt)
 {
@@ -90,7 +91,7 @@ void mcr_StringSet_clear(mcr_StringSet * setPt)
 }
 
 int mcr_StringSet_insert(mcr_StringSet * setPt, size_t pos,
-			 const char **strArr, size_t count)
+						 const char **strArr, size_t count)
 {
 	size_t i;
 	size_t prevUsed = setPt->used;
@@ -106,7 +107,7 @@ int mcr_StringSet_insert(mcr_StringSet * setPt, size_t pos,
 	/* Insert between, insert with all 0's, then fill with initial string */
 	mcr_String_init(&initial);
 	if ((err = mcr_Array_insert(setPt, pos, NULL, count)) ||
-	    (err = mcr_Array_fill(setPt, pos, &initial, count)))
+		(err = mcr_Array_fill(setPt, pos, &initial, count)))
 		return err;
 	/* String deinit, not needed */
 	/* Starting at pos, replace all strings from strArr */
@@ -114,7 +115,7 @@ int mcr_StringSet_insert(mcr_StringSet * setPt, size_t pos,
 		i = count;
 		while (i--) {
 			if ((err = mcr_String_replace(MCR_STRINGSET_ELEMENT
-						      (*setPt, pos + i), strArr[i])))
+										  (*setPt, pos + i), strArr[i])))
 				return err;
 		}
 	}
@@ -134,7 +135,7 @@ void mcr_StringSet_remove_index(mcr_StringSet * setPt, size_t pos, size_t count)
 }
 
 int mcr_StringSet_append(mcr_StringSet * setPt, const char **strArr,
-			 size_t count)
+						 size_t count)
 {
 	return mcr_StringSet_copy(setPt, setPt->used, strArr, count);
 }
@@ -154,7 +155,7 @@ void mcr_StringSet_pop(mcr_StringSet * setPt)
 }
 
 int mcr_StringSet_replace(mcr_StringSet * setPt,
-			  const char **arraySource, size_t count)
+						  const char **arraySource, size_t count)
 {
 	int err;
 	dassert(setPt);
@@ -170,7 +171,7 @@ int mcr_StringSet_replace(mcr_StringSet * setPt,
 }
 
 int mcr_StringSet_copy(mcr_StringSet * dstPt, size_t dstPos,
-		       const char **srcArray, size_t count)
+					   const char **srcArray, size_t count)
 {
 	size_t i;
 	int err;
@@ -183,8 +184,8 @@ int mcr_StringSet_copy(mcr_StringSet * dstPt, size_t dstPos,
 		i = count;
 		while (i--) {
 			if ((err = mcr_String_replace(MCR_STRINGSET_ELEMENT
-						      (*dstPt, dstPos + i),
-						      srcArray[i])))
+										  (*dstPt, dstPos + i),
+										  srcArray[i])))
 				return err;
 		}
 	} else {
@@ -202,13 +203,13 @@ int mcr_StringSet_set(mcr_StringSet * setPt, size_t pos, const char *copyStr)
 		return err;
 	if (copyStr)
 		return mcr_String_replace(MCR_STRINGSET_ELEMENT(*setPt, pos),
-					  copyStr);
+								  copyStr);
 	mcr_String_deinit(MCR_STRINGSET_ELEMENT(*setPt, pos));
 	return 0;
 }
 
 int mcr_StringSet_fill(mcr_StringSet * setPt, size_t pos,
-		       size_t count, const char *copyStr)
+					   size_t count, const char *copyStr)
 {
 	int err;
 	char *itPt, *end;
@@ -230,7 +231,7 @@ void mcr_StringSet_sort(mcr_StringSet * setPt)
 	dassert(setPt);
 	if (setPt->used > 1) {
 		qsort(setPt->array, setPt->used, setPt->element_size,
-		      setPt->compare ? setPt->compare : mcr_String_compare);
+			  setPt->compare ? setPt->compare : mcr_String_compare);
 	}
 }
 
@@ -242,11 +243,11 @@ mcr_String *mcr_StringSet_find(const mcr_StringSet * setPt, const char *strKey)
 	if (!strKey)
 		strKey = "";
 	return bsearch(&strKey, setPt->array, setPt->used, setPt->element_size,
-		       setPt->compare ? setPt->compare : mcr_String_compare);
+				   setPt->compare ? setPt->compare : mcr_String_compare);
 }
 
 int mcr_StringSet_add(mcr_StringSet * setPt,
-		      const char **copyStr, size_t count, bool flagUnique)
+					  const char **copyStr, size_t count, bool flagUnique)
 {
 	int err;
 	size_t i;
@@ -261,7 +262,7 @@ int mcr_StringSet_add(mcr_StringSet * setPt,
 		for (i = 0; i < count; i++) {
 			if (!(found = mcr_StringSet_find(setPt, copyStr[i]))) {
 				if ((err = mcr_StringSet_set(setPt, setPt->used,
-							     copyStr[i])))
+											 copyStr[i])))
 					return err;
 				mcr_StringSet_sort(setPt);
 			}
@@ -281,16 +282,16 @@ void mcr_StringSet_remove(mcr_StringSet * setPt, const char *removeStr)
 	dassert(removeStr);
 	while ((found = mcr_StringSet_find(setPt, removeStr)))
 		mcr_StringSet_remove_index(setPt, mcr_StringSet_index(setPt,
-					   found), 1);
+								   found), 1);
 }
 
 static void mcr_StringSet_deinit_range(mcr_StringSet * setPt, size_t firstIndex,
-				       size_t lastIndex)
+									   size_t lastIndex)
 {
 	char *itPt, *lastPt;
 	size_t bytes;
 	mcr_Array_iter_range(setPt, &itPt, &lastPt, &bytes, firstIndex,
-			     lastIndex);
+						 lastIndex);
 	if (itPt && lastPt) {
 		while (itPt <= lastPt) {
 			mcr_String_deinit((void *)itPt);

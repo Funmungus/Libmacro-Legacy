@@ -20,19 +20,20 @@
  * \brief Standard module definitions
  */
 
-#ifndef MCR_STANDARD_LNX_NDEF_H
-#define MCR_STANDARD_LNX_NDEF_H
+#ifndef MCR_STANDARD_LNX_NDEF_H_
+#define MCR_STANDARD_LNX_NDEF_H_
 
-#include "mcr/util/lnx/nutil.h"
-#include "mcr/standard/def.h"
 #include <linux/input.h>	/* input_event */
 #include <linux/uinput.h>	/* uinput_user_dev */
 
-#ifndef MCR_UINPUT_PATH
+#include "mcr/util/lnx/nutil.h"
+#include "mcr/standard/def.h"
+
+#ifndef MCR_UINPUT_PATH_
 	/*! Default value for uinput node when library is built. */
 	#define MCR_UINPUT_PATH /dev/uinput
 #endif
-#ifndef MCR_EVENT_PATH
+#ifndef MCR_EVENT_PATH_
 	/*! Default value for device input event path when library is built. */
 	#define MCR_EVENT_PATH /dev/input
 #endif

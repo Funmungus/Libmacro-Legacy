@@ -17,8 +17,10 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/modules.h"
+
 #include <string.h>
+
+#include "mcr/modules.h"
 
 int mcr_ISignal_init(void *isigPt)
 {
@@ -30,7 +32,7 @@ int mcr_ISignal_init(void *isigPt)
 }
 
 struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
-				   mcr_signal_fnc sender)
+								   mcr_signal_fnc sender)
 {
 	struct mcr_ISignal ret = { 0 };
 	mcr_Interface_init(&ret);
@@ -42,7 +44,7 @@ struct mcr_ISignal mcr_ISignal_new(struct mcr_Dispatcher *dispPt,
 }
 
 void mcr_ISignal_set_all(struct mcr_ISignal *isigPt,
-			 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender)
+						 struct mcr_Dispatcher *dispPt, mcr_signal_fnc sender)
 {
 	dassert(isigPt);
 	isigPt->dispatcher = dispPt;
@@ -56,7 +58,7 @@ struct mcr_IRegistry *mcr_ISignal_reg(struct mcr_context *ctx)
 }
 
 const char *mcr_ISignal_name(struct mcr_context *ctx,
-			     struct mcr_ISignal *isigPt)
+							 struct mcr_ISignal *isigPt)
 {
 	dassert(ctx);
 	return mcr_reg_name(mcr_ISignal_reg(ctx), mcr_ISignal_id(isigPt));

@@ -19,8 +19,8 @@
 /*! \file
  */
 
-#ifndef MCR_INTERCEPT_WIN_NDEF_H
-#define MCR_INTERCEPT_WIN_NDEF_H
+#ifndef MCR_INTERCEPT_WIN_NDEF_H_
+#define MCR_INTERCEPT_WIN_NDEF_H_
 
 #include "mcr/standard/win/nstandard.h"
 #include "mcr/intercept/def.h"
@@ -33,4 +33,4 @@
 	#define MCR_INTERCEPT_WAIT_MILLIS 5000
 #endif
 
-#endif				/* MCR_WIN_INTERCEPT_DEFINES_H */
+#endif	/* MCR_INTERCEPT_WIN_NDEF_H_ */

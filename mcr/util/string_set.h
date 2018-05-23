@@ -20,8 +20,8 @@
  * \brief \ref mcr_StringSet - An array of \ref mcr_String
  */
 
-#ifndef MCR_UTIL_STRING_SET_H
-#define MCR_UTIL_STRING_SET_H
+#ifndef MCR_UTIL_STRING_SET_H_
+#define MCR_UTIL_STRING_SET_H_
 
 #include "mcr/util/mcrstring.h"
 
@@ -54,7 +54,7 @@ MCR_API int mcr_StringSet_deinit(void *setPt);
  * \param compare \ref mcr_Array.compare
  */
 MCR_API void mcr_StringSet_set_all(mcr_StringSet * setPt,
-				   mcr_compare_fnc compare);
+								   mcr_compare_fnc compare);
 
 /* Allocation control */
 /*! \ref mcr_Array_minfill with empty strings */
@@ -131,13 +131,13 @@ MCR_API void mcr_StringSet_clear(mcr_StringSet * setPt);
 /* Add/remove */
 /*! \ref mcr_Array_insert with an array of strings */
 MCR_API int mcr_StringSet_insert(mcr_StringSet * setPt, size_t pos,
-				 const char **strArr, size_t count);
+								 const char **strArr, size_t count);
 /*! \ref mcr_Array_remove_index and deinit strings that are removed */
 MCR_API void mcr_StringSet_remove_index(mcr_StringSet * setPt, size_t pos,
-					size_t count);
+										size_t count);
 /*! \ref mcr_Array_append with an array of strings */
 MCR_API int mcr_StringSet_append(mcr_StringSet * setPt, const char **strArr,
-				 size_t count);
+								 size_t count);
 /*! \ref mcr_Array_push with a string */
 MCR_API int mcr_StringSet_push(mcr_StringSet * setPt, const char *copyStr);
 /*! \ref mcr_Array_pop and deinit the removed string */
@@ -146,16 +146,16 @@ MCR_API void mcr_StringSet_pop(mcr_StringSet * setPt);
 /* Replace current elements */
 /*! \ref mcr_Array_replace with an array of strings */
 MCR_API int mcr_StringSet_replace(mcr_StringSet * setPt,
-				  const char **arraySource, size_t count);
+								  const char **arraySource, size_t count);
 /*! \ref mcr_Array_copy with an array of strings */
 MCR_API int mcr_StringSet_copy(mcr_StringSet * dstPt, size_t dstPos,
-			       const char **srcArray, size_t count);
+							   const char **srcArray, size_t count);
 /*! \ref mcr_Array_set with a string */
 MCR_API int mcr_StringSet_set(mcr_StringSet * setPt, size_t pos,
-			      const char *copyStr);
+							  const char *copyStr);
 /*! \ref mcr_Array_fill with a string */
 MCR_API int mcr_StringSet_fill(mcr_StringSet * setPt, size_t pos,
-			       size_t count, const char *copyStr);
+							   size_t count, const char *copyStr);
 /* TODO: mcr_StringSet_move ? */
 
 /* Sorted functions: If no compare function is available, mcr_String_compare
@@ -169,12 +169,12 @@ MCR_API void mcr_StringSet_sort(mcr_StringSet * setPt);
  * \brief \ref mcr_Array_find
  */
 MCR_API mcr_String *mcr_StringSet_find(const mcr_StringSet * setPt,
-				       const char *strKey);
+									   const char *strKey);
 /*! \pre Set is sorted
  * \brief \ref mcr_Array_add
  */
 MCR_API int mcr_StringSet_add(mcr_StringSet * setPt,
-			      const char **copyStr, size_t count, bool flagUnique);
+							  const char **copyStr, size_t count, bool flagUnique);
 /*! \pre Set is sorted
  * \brief \ref mcr_Array_remove
  */
@@ -212,4 +212,5 @@ MCR_ARR_FOR_EACH(set, iterateFnc)
 #ifdef __cplusplus
 }
 #endif
+
 #endif

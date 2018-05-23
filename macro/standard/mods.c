@@ -17,14 +17,16 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "mcr/modules.h"
+
 void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
-		      enum mcr_KeyUpType upType)
+					  enum mcr_KeyUpType upType)
 {
 	modPt->modifiers = modifiers;
 	modPt->up_type = upType;
@@ -46,8 +48,8 @@ int mcr_Mods_send(struct mcr_Signal *sigPt)
 			break;
 		case MCR_TOGGLE:
 			if ((isigPt->ctx->signal.
-			     internal_mods & modPt->modifiers)
-			    == modPt->modifiers) {
+				 internal_mods & modPt->modifiers)
+				== modPt->modifiers) {
 				isigPt->ctx->signal.internal_mods &=
 					(~modPt->modifiers);
 			} else {
@@ -64,7 +66,7 @@ int mcr_Mods_send(struct mcr_Signal *sigPt)
 }
 
 void mcr_Mods_modify(struct mcr_Mods *modPt,
-		     unsigned int modifier, enum mcr_KeyUpType modifierKeyUp)
+					 unsigned int modifier, enum mcr_KeyUpType modifierKeyUp)
 {
 	dassert(modPt);
 	/* Both set or release then adding */

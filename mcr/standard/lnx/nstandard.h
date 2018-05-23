@@ -16,8 +16,8 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_STANDARD_LNX_NSTANDARD_H
-#define MCR_STANDARD_LNX_NSTANDARD_H
+#ifndef MCR_STANDARD_LNX_NSTANDARD_H_
+#define MCR_STANDARD_LNX_NSTANDARD_H_
 
 #include "mcr/standard/lnx/ndevice.h"
 
@@ -33,4 +33,5 @@ extern MCR_API mcr_SpacePosition mcr_cursor;
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -17,6 +17,7 @@
 */
 
 #include "mcr/macro/macro.h"
+
 #include <string.h>
 
 static const struct mcr_Interface _MCR_TRIGGER_IFACE = {
@@ -29,13 +30,13 @@ static const struct mcr_Interface _MCR_TRIGGER_IFACE = {
 };
 
 bool mcr_Trigger_receive(void *triggerPt,
-			 struct mcr_Signal *dispatchSignal, unsigned int mods)
+						 struct mcr_Signal *dispatchSignal, unsigned int mods)
 {
 	struct mcr_Trigger *localPt = triggerPt;
 	if (localPt && localPt->itrigger && localPt->itrigger->receive
-	    && localPt->trigger) {
+		&& localPt->trigger) {
 		return localPt->itrigger->receive(localPt, dispatchSignal,
-						  mods);
+										  mods);
 	}
 	return false;
 }
@@ -54,7 +55,7 @@ int mcr_Trigger_init(void *triggerPt)
 }
 
 struct mcr_Trigger mcr_Trigger_new(mcr_Dispatcher_receive_fnc trigger,
-				   void *actor)
+								   void *actor)
 {
 	struct mcr_Trigger ret;
 	mcr_Trigger_init(&ret);
@@ -69,7 +70,7 @@ int mcr_Trigger_deinit(void *trigPt)
 }
 
 void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
-			 mcr_Dispatcher_receive_fnc trigger, void *actor)
+						 mcr_Dispatcher_receive_fnc trigger, void *actor)
 {
 	dassert(triggerPt);
 	triggerPt->trigger = trigger;
@@ -77,7 +78,7 @@ void mcr_Trigger_set_all(struct mcr_Trigger *triggerPt,
 }
 
 void mcr_Trigger_set_macro(struct mcr_Trigger *triggerPt,
-			   struct mcr_Macro *mcrPt)
+						   struct mcr_Macro *mcrPt)
 {
 	dassert(triggerPt);
 	if (mcrPt) {
@@ -109,7 +110,7 @@ int mcr_Trigger_copy(void *dstPt, const void *srcPt)
 int mcr_Trigger_compare(const void *lhsTriggerPt, const void *rhsTriggerPt)
 {
 	const struct mcr_Trigger *lTrigPt = lhsTriggerPt, *rTrigPt =
-				rhsTriggerPt;
+												rhsTriggerPt;
 	int valHolder;
 	if (rTrigPt) {
 		if (lTrigPt) {
@@ -119,7 +120,7 @@ int mcr_Trigger_compare(const void *lhsTriggerPt, const void *rhsTriggerPt)
 			if (valHolder)
 				return valHolder;
 			if ((valHolder = MCR_CMP(lTrigPt->trigger,
-							  rTrigPt->trigger)))
+									 rTrigPt->trigger)))
 				return valHolder;
 			return MCR_CMP(lTrigPt->actor, rTrigPt->actor);
 		}
@@ -135,7 +136,7 @@ int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt)
 			if (lhsPtPt == rhsPtPt)
 				return 0;
 			return mcr_Trigger_compare(*(const void **)lhsPtPt,
-						   *(const void **)rhsPtPt);
+									   *(const void **)rhsPtPt);
 		}
 		return -1;
 	}
@@ -143,14 +144,14 @@ int mcr_Triggerref_compare(const void *lhsPtPt, const void *rhsPtPt)
 }
 
 int mcr_Trigger_add_dispatch(struct mcr_context *ctx,
-			     struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt)
+							 struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt)
 {
 	return mcr_Dispatcher_add(ctx, interceptPt, trigPt,
-				  mcr_Trigger_receive);
+							  mcr_Trigger_receive);
 }
 
 int mcr_Trigger_remove_dispatch(struct mcr_context *ctx,
-				struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
+								struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt)
 {
 	return mcr_Dispatcher_remove(ctx, isigPt, trigPt);
 }

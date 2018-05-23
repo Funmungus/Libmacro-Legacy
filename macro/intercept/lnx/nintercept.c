@@ -16,15 +16,17 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/intercept/lnx/nintercept.h"
 #include "mcr/intercept/intercept.h"
-#include "mcr/modules.h"
-#include MCR_INTERCEPT_PLATFORM_INC
+
 #include <errno.h>
 #include <poll.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "mcr/modules.h"
 
 typedef struct {
 	struct mcr_context *ctx;
@@ -72,9 +74,9 @@ static int thread_enable(void *threadArgs);
 static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
 static int read_grabber_exclusive(struct mcr_context *ctx,
-				  struct mcr_Grabber *grabPt);
+								  struct mcr_Grabber *grabPt);
 static unsigned int modify_eventbits(struct mcr_context *ctx,
-				     unsigned int *modBuffer, size_t modBufferSize, char *keybit_values);
+									 unsigned int *modBuffer, size_t modBufferSize, char *keybit_values);
 static unsigned int max_mod_val();
 static int clear_grabbers(struct mcr_context *ctx);
 
@@ -139,12 +141,12 @@ void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 }
 
 int mcr_intercept_set_grabs(struct mcr_context *ctx, const char **allGrabPaths,
-			    size_t pathCount)
+							size_t pathCount)
 {
 	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_replace(&nPt->grab_paths, allGrabPaths,
-					pathCount);
+									pathCount);
 	/* remove grabber? */
 	fixme;
 	if (thrdErr == thrd_success)
@@ -172,7 +174,7 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 	ctx->intercept.platform = nPt;
 	mcr_Array_init(&nPt->grab_contexts);
 	mcr_Array_set_all(&nPt->grab_contexts, mcr_ref_compare,
-			  sizeof(_grab_context *));
+					  sizeof(_grab_context *));
 	mcr_StringSet_init(&nPt->grab_paths);
 	mcr_StringSet_set_all(&nPt->grab_paths, mcr_String_compare);
 	return err;
@@ -225,7 +227,7 @@ static int set_enabled_impl(struct mcr_context *ctx, bool enable)
 		argEnable->ctx = ctx;
 		argEnable->bVal = enable;
 		if ((thrdErr = thrd_create(&trd, thread_enable,
-					   argEnable)) == thrd_success) {
+								   argEnable)) == thrd_success) {
 			if ((thrdErr = thrd_detach(trd)) != thrd_success) {
 				err = mcr_thrd_errno(thrdErr);
 				mset_error(err);
@@ -272,14 +274,14 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 	while (i--) {
 		if ((fd = grabSet[i]->grabber.fd) != -1) {
 			if ((err = ioctl(fd, EVIOCGKEY(modSize),
-					 bitRetrieval)) < 0) {
+							 bitRetrieval)) < 0) {
 				err = errno;
 				if (!err)
 					err = EINTR;
 				mset_error(err);
 			} else {
 				ret |= modify_eventbits(ctx, modArr,
-							modKeysCount, bitRetrieval);
+										modKeysCount, bitRetrieval);
 			}
 		}
 	}
@@ -336,8 +338,8 @@ static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 		/* Not able to add reference */
 		mcr_Array_remove(&nPt->grab_contexts, &pt);
 	} else if ((thrdErr =
-			    thrd_create(&trd, intercept_start,
-					pt)) != thrd_success) {
+					thrd_create(&trd, intercept_start,
+								pt)) != thrd_success) {
 		/* Not able to start thread */
 		mcr_Array_remove(&nPt->grab_contexts, &pt);
 		error = mcr_thrd_errno(thrdErr);
@@ -387,7 +389,7 @@ static inline int relpos(int evPos)
 }
 
 static inline void abs_set_current(struct mcr_MoveCursor *abs,
-				   bool hasPosArray[])
+								   bool hasPosArray[])
 {
 	if (!(hasPosArray)[MCR_X]) {
 		abs->pos[MCR_X] = mcr_cursor[MCR_X];
@@ -453,7 +455,7 @@ static int intercept_start(void *threadArgs)
 }
 
 static int read_grabber_exclusive(struct mcr_context *ctx,
-				  struct mcr_Grabber *grabPt)
+								  struct mcr_Grabber *grabPt)
 {
 	/* For abs and rel, keep memory of having such event type
 	 * at least once. */
@@ -536,7 +538,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				if (key.key) {
 					echoFound =
 						MCR_MAP_ELEMENT(mcr_keyToEcho
-								[key.up_type], &key.key);
+										[key.up_type], &key.key);
 					if (echoFound) {
 						echoFound =
 							MCR_MAP_VALUEOF
@@ -600,11 +602,11 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		if (key.key) {
 			echoFound =
 				MCR_MAP_ELEMENT(mcr_keyToEcho
-						[key.up_type], &key.key);
+								[key.up_type], &key.key);
 			if (echoFound) {
 				echoFound =
 					MCR_MAP_VALUEOF(mcr_keyToEcho
-							[key.up_type], echoFound);
+									[key.up_type], echoFound);
 				echo.echo = *echoFound;
 				if (mcr_dispatch(ctx, &echosig) && writegen)
 					writegen = false;
@@ -657,7 +659,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 }
 
 static unsigned int modify_eventbits(struct mcr_context *ctx,
-				     unsigned int *modBuffer, size_t modBufferSize, char *keybitValues)
+									 unsigned int *modBuffer, size_t modBufferSize, char *keybitValues)
 {
 	int curKey;
 	unsigned int i, modValOut = 0;
@@ -668,8 +670,8 @@ static unsigned int modify_eventbits(struct mcr_context *ctx,
 	for (i = modBufferSize; i--;) {
 		curKey = mcr_Key_mod_key(ctx, modBuffer[i]);
 		if (curKey != MCR_KEY_ANY
-		    && (keybitValues[MCR_EVENTINDEX(curKey)] &
-			MCR_EVENTBIT(curKey)))
+			&& (keybitValues[MCR_EVENTINDEX(curKey)] &
+				MCR_EVENTBIT(curKey)))
 			modValOut |= modBuffer[i];
 	}
 	return modValOut;

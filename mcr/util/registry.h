@@ -20,8 +20,8 @@
  * \brief Register \ref mcr_Interface instances with ids and names.
  */
 
-#ifndef MCR_UTIL_REGISTRY_H
-#define MCR_UTIL_REGISTRY_H
+#ifndef MCR_UTIL_REGISTRY_H_
+#define MCR_UTIL_REGISTRY_H_
 
 #include "mcr/util/interface.h"
 #include "mcr/util/map.h"
@@ -78,8 +78,8 @@ MCR_API int mcr_reg_deinit(void *regPt);
  * \return \ref reterr
  */
 MCR_API int mcr_register(struct mcr_IRegistry *iRegPt,
-			 void *interfacePt, const char *name, const char **addNames,
-			 size_t bufferLen);
+						 void *interfacePt, const char *name, const char **addNames,
+						 size_t bufferLen);
 /*! Get a reference to the interface of the same id.
  *
  * \param iRegPt \ref opt
@@ -87,7 +87,7 @@ MCR_API int mcr_register(struct mcr_IRegistry *iRegPt,
  * \return Interface of given id, or null if not found
  */
 MCR_API void *mcr_reg_from_id(const struct mcr_IRegistry *iRegPt,
-			      size_t typeId);
+							  size_t typeId);
 /*! Get a reference to the interface from its registered name.
  *
  * \param iRegPt \ref opt
@@ -95,7 +95,7 @@ MCR_API void *mcr_reg_from_id(const struct mcr_IRegistry *iRegPt,
  * \return Interface of given name, or null if not found
  */
 MCR_API void *mcr_reg_from_name(const struct mcr_IRegistry *iRegPt,
-				const char *typeName);
+								const char *typeName);
 /*! Get the name of the interface of given id, or null if
  * not found.
  *
@@ -111,7 +111,7 @@ MCR_API const char *mcr_reg_name(const struct mcr_IRegistry *iRegPt, size_t id);
  * \return \ref reterr
  */
 MCR_API int mcr_reg_set_name(struct mcr_IRegistry *iRegPt,
-			     void *interfacePt, const char *name);
+							 void *interfacePt, const char *name);
 /*! Add a mapping from name to interface.
  *
  * \param interfacePt Interface to map to
@@ -119,7 +119,7 @@ MCR_API int mcr_reg_set_name(struct mcr_IRegistry *iRegPt,
  * \return \ref reterr
  */
 MCR_API int mcr_reg_add_name(struct mcr_IRegistry *iRegPt,
-			     void *interfacePt, const char *name);
+							 void *interfacePt, const char *name);
 /*! \ref mcr_reg_add_name for all given names
  *
  * \param interfacePt Interface to map to
@@ -128,7 +128,7 @@ MCR_API int mcr_reg_add_name(struct mcr_IRegistry *iRegPt,
  * \return \ref reterr
  */
 MCR_API int mcr_reg_add_names(struct mcr_IRegistry *iRegPt,
-			      void *interfacePt, const char **names, size_t bufferLen);
+							  void *interfacePt, const char **names, size_t bufferLen);
 /*! \ref mcr_reg_set_name and \ref mcr_reg_add_names
  *
  * \param interfacePt Interface to map
@@ -138,8 +138,8 @@ MCR_API int mcr_reg_add_names(struct mcr_IRegistry *iRegPt,
  * \return \ref reterr
  */
 MCR_API int mcr_reg_set_names(struct mcr_IRegistry *iRegPt,
-			      void *interfacePt, const char *name, const char **names,
-			      size_t bufferLen);
+							  void *interfacePt, const char *name, const char **names,
+							  size_t bufferLen);
 /*! Move an interface from one name to another.
  *
  * \param oldName \ref opt Remove mapping from this name.
@@ -147,7 +147,7 @@ MCR_API int mcr_reg_set_names(struct mcr_IRegistry *iRegPt,
  * \return \ref reterr
  */
 MCR_API int mcr_reg_rename(struct mcr_IRegistry *iRegPt, const char *oldName,
-			   const char *newName);
+						   const char *newName);
 /*! Get the number of registered interfaces.
  *
  * \param iRegPt \ref opt
@@ -162,4 +162,5 @@ MCR_API void mcr_reg_clear(struct mcr_IRegistry *iRegPt);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

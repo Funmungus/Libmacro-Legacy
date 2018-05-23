@@ -17,12 +17,17 @@
 */
 
 #include "mcr/util/util.h"
-#include "mcr/util/c11threads.h"
+
 #include <errno.h>
 
+#include "mcr/util/c11threads.h"
+
+/* thread_local not available for MSVC.  Check new versions? */
 #ifdef _MSC_VER
+	/* Dll workaround, mcr_err is not dll exported. */
 	#undef mcr_err
 #else
+	/* Shared and exported thread_local.  Fast and thread-safe access. */
 	MCR_API
 	#ifdef __GNUC__
 		__thread
@@ -39,10 +44,11 @@ int *mcr_err_tls()
 
 unsigned int mcr_bit_index(unsigned int bitval)
 {
-	if (bitval == 0)
-		return -1;	/* No on bit gives no index information.
-				   If not 0, there will definitely be some bit value contained */
+	/* No on bit gives no index information.
+	 * If not 0, there will definitely be some bit value contained */
 	unsigned int index = 0;
+	if (bitval == 0)
+		return -1;
 	while ((bitval & 0x01) == 0) {
 		++index;
 		bitval >>= 1;

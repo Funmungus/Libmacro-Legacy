@@ -22,10 +22,9 @@
  * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_SIGNAL_MOD_SIGNAL_H
-#define MCR_SIGNAL_MOD_SIGNAL_H
+#ifndef MCR_SIGNAL_MOD_SIGNAL_H_
+#define MCR_SIGNAL_MOD_SIGNAL_H_
 
-#include "mcr/util/util.h"
 #include "mcr/signal/dispatcher.h"
 
 #ifdef __cplusplus
@@ -72,4 +71,5 @@ MCR_API void mcr_signal_trim(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

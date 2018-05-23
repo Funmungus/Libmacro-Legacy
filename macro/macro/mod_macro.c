@@ -17,6 +17,7 @@
 */
 
 #include "mcr/macro/macro.h"
+
 #include "mcr/modules.h"
 
 int mcr_macro_initialize(struct mcr_context *ctx)

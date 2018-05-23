@@ -16,9 +16,9 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/standard/lnx/ndevice.h"
 #include "mcr/standard/standard.h"
-#include "mcr/standard/mod_standard.h"
-#include MCR_STANDARD_PLATFORM_INC
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#include "mcr/standard/mod_standard.h"
 
 MCR_API struct mcr_Device mcr_genDev;
 MCR_API struct mcr_Device mcr_absDev;
@@ -54,10 +56,10 @@ static int device_close_event(struct mcr_Device *devPt);
 static int device_open_event_wd(struct mcr_Device *devPt);
 /* Verify devPt->eventFd is correct for given device. */
 static bool device_is_event_me(struct mcr_Device *devPt,
-			       char *nameBuffer, bool isJoy);
+							   char *nameBuffer, bool isJoy);
 /* Write event to device for all values in bits. */
 static int device_write_bits(struct mcr_Device *devPt, int event,
-			     struct mcr_Array *bits);
+							 struct mcr_Array *bits);
 /* Write all UI_SET_EVBIT values for given device. */
 static int device_write_evbit(struct mcr_Device *devPt);
 /* Write all non-UI_SET_EVBIT values for given device. */
@@ -120,8 +122,8 @@ int mcr_Device_init(void *dataPt)
 		localPt->event_fd = -1;
 		mcr_Map_init(&localPt->type_value_map);
 		mcr_Map_set_all(&localPt->type_value_map, sizeof(int),
-				sizeof(struct mcr_Array), mcr_int_compare, NULL,
-				&_iIntArray);
+						sizeof(struct mcr_Array), mcr_int_compare, NULL,
+						&_iIntArray);
 	}
 	return 0;
 }
@@ -197,11 +199,11 @@ int mcr_Device_enable_all(bool enable)
 }
 
 int mcr_Device_set_bits(struct mcr_Device *devPt, int bitType, int *bits,
-			size_t bitLen)
+						size_t bitLen)
 {
 	struct mcr_Array *element =
 		mcr_Map_element_ensured(&devPt->type_value_map,
-					&bitType);
+								&bitType);
 	if (element)
 		element = mcr_Map_valueof(&devPt->type_value_map, element);
 	dassert(devPt);
@@ -221,7 +223,7 @@ bool mcr_Device_has_evbit(struct mcr_Device * devPt)
 {
 	int evbit = UI_SET_EVBIT;
 	struct mcr_Array *evbit_arr = MCR_MAP_ELEMENT(devPt->type_value_map,
-				      &evbit);
+								  &evbit);
 	dassert(devPt);
 	evbit_arr = MCR_MAP_VALUEOF(devPt->type_value_map, evbit_arr);
 	return evbit_arr && evbit_arr->used;
@@ -243,7 +245,7 @@ static int device_open(struct mcr_Device *devPt)
 		return err;
 	}
 	if (write(devPt->fd, &devPt->device, sizeof(devPt->device)) !=
-	    sizeof(devPt->device)) {
+		sizeof(devPt->device)) {
 		err = errno;
 		if (!err)
 			err = EINTR;
@@ -306,7 +308,7 @@ static int device_close(struct mcr_Device *devPt)
 	dassert(devPt);
 	if (devPt->fd != -1) {
 		if (ioctl(devPt->fd, UI_DEV_DESTROY) < 0
-		    || close(devPt->fd) < 0) {
+			|| close(devPt->fd) < 0) {
 			err = errno;
 			if (!err)
 				err = EINTR;
@@ -376,7 +378,7 @@ static int device_open_event_wd(struct mcr_Device *devPt)
 						!strncasecmp(entry->d_name, "joystick", 8);
 				/* Event fd is set.  If it is correct, finish out. */
 				if ((isdev = device_is_event_me(devPt, dev_name,
-								isdev))) {
+												isdev))) {
 					mcr_err = err = 0;
 					break;
 				}
@@ -391,7 +393,7 @@ static int device_open_event_wd(struct mcr_Device *devPt)
 }
 
 static bool device_is_event_me(struct mcr_Device *devPt,
-			       char *nameBuffer, bool isJoy)
+							   char *nameBuffer, bool isJoy)
 {
 	int comparison = 0, err = 0;
 	dassert(devPt);
@@ -399,11 +401,11 @@ static bool device_is_event_me(struct mcr_Device *devPt,
 	if (isJoy) {
 		comparison =
 			ioctl(devPt->event_fd, JSIOCGNAME(UINPUT_MAX_NAME_SIZE),
-			      nameBuffer);
+				  nameBuffer);
 	} else {
 		comparison =
 			ioctl(devPt->event_fd, EVIOCGNAME(UINPUT_MAX_NAME_SIZE),
-			      nameBuffer);
+				  nameBuffer);
 	}
 	/* Could not retrieve name, unknown error. */
 	if (comparison < 0) {
@@ -415,7 +417,7 @@ static bool device_is_event_me(struct mcr_Device *devPt,
 }
 
 static int device_write_bits(struct mcr_Device *devPt, int setBit,
-			     struct mcr_Array *bits)
+							 struct mcr_Array *bits)
 {
 	int fd = devPt->fd;
 	int err = 0;
@@ -443,12 +445,12 @@ static int device_write_evbit(struct mcr_Device *devPt)
 {
 	int evbit = UI_SET_EVBIT;
 	struct mcr_Array *evbit_arr = MCR_MAP_ELEMENT(devPt->type_value_map,
-				      &evbit);
+								  &evbit);
 	dassert(devPt);
 	evbit_arr = MCR_MAP_VALUEOF(devPt->type_value_map, evbit_arr);
 	return evbit_arr
-	       && evbit_arr->used ? device_write_bits(devPt, evbit,
-			       evbit_arr) : EINVAL;
+		   && evbit_arr->used ? device_write_bits(devPt, evbit,
+				   evbit_arr) : EINVAL;
 }
 
 static int device_write_non_evbit(struct mcr_Device *devPt)
@@ -568,7 +570,7 @@ static int absDevice_init()
 	}
 
 	if ((err = mcr_Device_set_bits(&mcr_absDev, UI_SET_ABSBIT, absbits,
-				       ABS_MISC + 1)))
+								   ABS_MISC + 1)))
 		return err;
 	return err;
 }

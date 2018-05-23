@@ -20,8 +20,8 @@
  * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds
  */
 
-#ifndef MCR_STANDARD_NOOP_H
-#define MCR_STANDARD_NOOP_H
+#ifndef MCR_STANDARD_NOOP_H_
+#define MCR_STANDARD_NOOP_H_
 
 #include "mcr/standard/def.h"
 
@@ -61,4 +61,5 @@ MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

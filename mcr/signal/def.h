@@ -20,8 +20,8 @@
  * \brief Definitions for signals
  */
 
-#ifndef MCR_SIGNAL_DEF_H
-#define MCR_SIGNAL_DEF_H
+#ifndef MCR_SIGNAL_DEF_H_
+#define MCR_SIGNAL_DEF_H_
 
 #include "mcr/util/util.h"
 

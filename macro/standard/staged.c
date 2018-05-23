@@ -17,8 +17,10 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <string.h>
+
+#include "mcr/modules.h"
 
 int mcr_Staged_init(void *stagedPt)
 {
@@ -43,7 +45,7 @@ int mcr_Staged_deinit(void *stagedPt)
 }
 
 void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
-			enum mcr_BlockStyle style)
+						enum mcr_BlockStyle style)
 {
 	dassert(stagedPt);
 	mcr_Staged_deinit(stagedPt);
@@ -61,7 +63,7 @@ int mcr_Staged_compare(const void *lhs, const void *rhs)
 			if (lhs == rhs)
 				return 0;
 			if ((ret = MCR_CMP(lPt->stages.used,
-						    rPt->stages.used)))
+							   rPt->stages.used)))
 				return ret;
 			if ((ret = MCR_CMP(lPt->style, rPt->style)))
 				return ret;
@@ -113,7 +115,7 @@ int mcr_Staged_copy(void *dstPt, const void *srcPt)
 }
 
 bool mcr_Staged_receive(void *trigDataPt,
-			struct mcr_Signal * interceptPt, unsigned int mods)
+						struct mcr_Signal * interceptPt, unsigned int mods)
 {
 	struct mcr_Trigger *trigPt = trigDataPt;
 	struct mcr_Staged *stagedPt = mcr_Staged_data(trigPt);
@@ -182,7 +184,7 @@ isToBlock)
 }
 
 void mcr_Staged_set_style(struct mcr_Staged *stagedPt,
-			  enum mcr_BlockStyle style)
+						  enum mcr_BlockStyle style)
 {
 	bool wasBlocking = mcr_Staged_is_blocking(stagedPt);
 	dassert(stagedPt);

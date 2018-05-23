@@ -17,10 +17,12 @@
 */
 
 #include "mcr/signal/signal.h"
-#include "mcr/modules.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+#include "mcr/modules.h"
 
 /* Public access modifiers */
 unsigned int *mcr_modifiers(struct mcr_context *ctx)
@@ -74,22 +76,22 @@ size_t mcr_Dispatcher_count(struct mcr_context * ctx)
 }
 
 bool mcr_Dispatcher_is_enabled(struct mcr_context * ctx,
-			       struct mcr_ISignal * isigPt)
+							   struct mcr_ISignal * isigPt)
 {
 	dassert(ctx);
 	return isigPt ? ! !isigPt->dispatcher :
 		   ctx->signal.is_generic_dispatcher &&
-	       ctx->signal.generic_dispatcher_pt;
+		   ctx->signal.generic_dispatcher_pt;
 }
 
 void mcr_Dispatcher_set_enabled(struct mcr_context *ctx,
-				struct mcr_ISignal *isigPt, bool enable)
+								struct mcr_ISignal *isigPt, bool enable)
 {
 	dassert(ctx);
 	if (isigPt) {
 		if (enable)
 			isigPt->dispatcher = mcr_Dispatcher_from_id(ctx,
-					     mcr_iid(isigPt));
+								 mcr_iid(isigPt));
 		else
 			isigPt->dispatcher = NULL;
 	} else {
@@ -100,19 +102,19 @@ void mcr_Dispatcher_set_enabled(struct mcr_context *ctx,
 void mcr_Dispatcher_set_enabled_all(struct mcr_context *ctx, bool enable)
 {
 	size_t i, maxi = ctx->signal.isignals.iset.used,
-		  dispMaxi = ctx->signal.dispatchers.used;
+			  dispMaxi = ctx->signal.dispatchers.used;
 	if (dispMaxi < maxi)
 		maxi = dispMaxi;
 	for (i = maxi; i--;) {
 		mcr_Dispatcher_set_enabled(ctx, mcr_ISignal_from_id(ctx, i),
-					   enable);
+								   enable);
 	}
 	mcr_Dispatcher_set_enabled(ctx, NULL, enable);
 }
 
 int mcr_Dispatcher_add(struct mcr_context *ctx,
-		       struct mcr_Signal *interceptPt, void *receiver,
-		       mcr_Dispatcher_receive_fnc receiveFnc)
+					   struct mcr_Signal *interceptPt, void *receiver,
+					   mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	struct mcr_Dispatcher *dispPt =
 		mcr_Dispatcher_from_id(ctx, mcr_Instance_id(interceptPt));
@@ -122,13 +124,13 @@ int mcr_Dispatcher_add(struct mcr_context *ctx,
 	if (receiveFnc == mcr_Trigger_receive && !receiver)
 		return EINVAL;
 	return dispPt
-	       && dispPt->add ? dispPt->add(dispPt, interceptPt,
-					    receiver, receiveFnc) : 0;
+		   && dispPt->add ? dispPt->add(dispPt, interceptPt,
+										receiver, receiveFnc) : 0;
 }
 
 int mcr_Dispatcher_add_generic(struct mcr_context *ctx,
-			       struct mcr_Signal *interceptPt,
-			       void *receiver, mcr_Dispatcher_receive_fnc receiveFnc)
+							   struct mcr_Signal *interceptPt,
+							   void *receiver, mcr_Dispatcher_receive_fnc receiveFnc)
 {
 	struct mcr_Dispatcher *genPt = ctx->signal.generic_dispatcher_pt;
 	if (!receiveFnc)
@@ -137,8 +139,8 @@ int mcr_Dispatcher_add_generic(struct mcr_context *ctx,
 	if (receiveFnc == mcr_Trigger_receive && !receiver)
 		return EINVAL;
 	return genPt
-	       && genPt->add ? genPt->add(genPt, interceptPt,
-					  receiver, receiveFnc) : 0;
+		   && genPt->add ? genPt->add(genPt, interceptPt,
+									  receiver, receiveFnc) : 0;
 }
 
 int mcr_Dispatcher_clear(struct mcr_context *ctx, struct mcr_ISignal *isigPt)
@@ -167,7 +169,7 @@ int mcr_Dispatcher_clear_all(struct mcr_context *ctx)
 }
 
 void mcr_Dispatcher_modify(struct mcr_context *ctx,
-			   struct mcr_Signal *interceptPt, unsigned int *modsPt)
+						   struct mcr_Signal *interceptPt, unsigned int *modsPt)
 {
 	struct mcr_Dispatcher *dispPt =
 		mcr_Dispatcher_from_id(ctx, mcr_Instance_id(interceptPt));
@@ -176,7 +178,7 @@ void mcr_Dispatcher_modify(struct mcr_context *ctx,
 }
 
 int mcr_Dispatcher_remove(struct mcr_context *ctx,
-			  struct mcr_ISignal *isigPt, void *remReceiver)
+						  struct mcr_ISignal *isigPt, void *remReceiver)
 {
 	struct mcr_Dispatcher *dispPt =
 		mcr_Dispatcher_from_id(ctx, mcr_iid(isigPt));
@@ -194,7 +196,7 @@ int mcr_Dispatcher_remove_all(struct mcr_context *ctx, void *remReceiver)
 	while (i--) {
 		dispPt = mcr_Dispatcher_from_id(ctx, i);
 		if (dispPt && dispPt->remove &&
-		    (err = dispPt->remove(dispPt, remReceiver)))
+			(err = dispPt->remove(dispPt, remReceiver)))
 			return err;
 	}
 	if (genPt && genPt->remove)
@@ -257,10 +259,10 @@ struct mcr_Dispatcher mcr_Dispatcher_new(mcr_Dispatcher_add_fnc add,
 }
 
 void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
-			    mcr_Dispatcher_add_fnc add, mcr_Dispatcher_fnc clear,
-			    mcr_Dispatcher_dispatch_fnc dispatch,
-			    mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
-			    mcr_Dispatcher_fnc trim)
+							mcr_Dispatcher_add_fnc add, mcr_Dispatcher_fnc clear,
+							mcr_Dispatcher_dispatch_fnc dispatch,
+							mcr_Dispatcher_modify_fnc modifier, mcr_Dispatcher_remove_fnc remove,
+							mcr_Dispatcher_fnc trim)
 {
 	dassert(dispPt);
 	dispPt->add = add;
@@ -272,7 +274,7 @@ void mcr_Dispatcher_set_all(struct mcr_Dispatcher *dispPt,
 }
 
 int mcr_Dispatcher_register(struct mcr_context *ctx, void *dispPt,
-			    size_t signalTypeId)
+							size_t signalTypeId)
 {
 	int err;
 	struct mcr_Dispatcher *prevPt, **prevPtPt;
@@ -281,7 +283,7 @@ int mcr_Dispatcher_register(struct mcr_context *ctx, void *dispPt,
 		prevPtPt = &ctx->signal.generic_dispatcher_pt;
 	} else {
 		if ((err = mcr_Array_minfill(&ctx->signal.dispatchers,
-					     signalTypeId + 1, NULL)))
+									 signalTypeId + 1, NULL)))
 			return err;
 		prevPtPt =
 			MCR_ARR_ELEMENT(ctx->signal.dispatchers, signalTypeId);

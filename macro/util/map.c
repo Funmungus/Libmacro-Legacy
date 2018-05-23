@@ -17,6 +17,7 @@
 */
 
 #include "mcr/util/util.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -28,21 +29,21 @@ static int mcr_Map_value_init(const struct mcr_Map *mapPt, void *valuePt);
 static int mcr_Map_key_deinit(const struct mcr_Map *mapPt, void *keyPt);
 static int mcr_Map_value_deinit(const struct mcr_Map *mapPt, void *valuePt);
 static int mcr_Map_init_range(struct mcr_Map *mapPt, size_t firstPos,
-			      size_t lastPos);
+							  size_t lastPos);
 static int mcr_Map_deinit_range(struct mcr_Map *mapPt, size_t firstPos,
-				size_t lastPos);
+								size_t lastPos);
 static int mcr_Map_key_copy(const struct mcr_Map *mapPt, void *keyPt,
-			    void *copyKeyPt);
+							void *copyKeyPt);
 static int mcr_Map_value_copy(const struct mcr_Map *mapPt, void *valuePt,
-			      void *copyValuePt);
+							  void *copyValuePt);
 
 static int mcr_Map_element_init(const struct mcr_Map *mapPt, void *elementPt);
 static int mcr_Map_element_deinit(const struct mcr_Map *mapPt, void *elementPt);
 static int mcr_Map_element_copy(const struct mcr_Map *mapPt, void *elementPt,
-				void *copyKeyPt, void *copyValuePt);
+								void *copyKeyPt, void *copyValuePt);
 
 static int mcr_Map_unmap_value_memcmp(struct mcr_Map *mapPt,
-				      const void *valuePt);
+									  const void *valuePt);
 static int mcr_Map_malloc_value(const struct mcr_Map *mapPt, void **valPtPt);
 static int mcr_Map_deinit_value(const struct mcr_Map *mapPt, void *valPt);
 
@@ -60,14 +61,14 @@ int mcr_Map_init(void *mapPt)
 }
 
 struct mcr_Map mcr_Map_new(size_t keySize,
-			   size_t valueSize, mcr_compare_fnc compare,
-			   const struct mcr_Interface *keyIface,
-			   const struct mcr_Interface *valueIface)
+						   size_t valueSize, mcr_compare_fnc compare,
+						   const struct mcr_Interface *keyIface,
+						   const struct mcr_Interface *valueIface)
 {
 	struct mcr_Map ret;
 	mcr_Map_init(&ret);
 	mcr_Map_set_all(&ret, keySize, valueSize, compare, keyIface,
-			valueIface);
+					valueIface);
 	return ret;
 }
 
@@ -77,15 +78,15 @@ int mcr_Map_deinit(void *mapPt)
 	struct mcr_Map *localMapPt = mapPt;
 	if (localMapPt) {
 		err = mcr_Map_deinit_range(localMapPt, 0,
-					   localMapPt->set.used - 1);
+								   localMapPt->set.used - 1);
 		mcr_Array_deinit(&localMapPt->set);
 	}
 	return err;
 }
 
 int mcr_Map_set_all(struct mcr_Map *mapPt, size_t keySize, size_t valueSize,
-		    mcr_compare_fnc compare, const struct mcr_Interface *keyIface,
-		    const struct mcr_Interface *valueIface)
+					mcr_compare_fnc compare, const struct mcr_Interface *keyIface,
+					const struct mcr_Interface *valueIface)
 {
 	int err;
 	dassert(mapPt);
@@ -152,8 +153,8 @@ int mcr_Map_resize(struct mcr_Map *mapPt, size_t newSize)
 	int err;
 	dassert(mapPt);
 	if (newSize < mapPt->set.used &&
-	    (err = mcr_Map_deinit_range(mapPt, newSize,
-					mapPt->set.used - 1)))
+		(err = mcr_Map_deinit_range(mapPt, newSize,
+									mapPt->set.used - 1)))
 		return err;
 	return mcr_Array_resize(&mapPt->set, newSize);
 }
@@ -179,11 +180,11 @@ int mcr_Map_set_key(const struct mcr_Map *mapPt, void *pairPt, void *copyKeyPt)
 }
 
 int mcr_Map_set_valueof(const struct mcr_Map *mapPt, void *pairPt,
-			void *copyValuePt)
+						void *copyValuePt)
 {
 	dassert(pairPt);
 	return mapPt ? mcr_Map_value_copy(mapPt, MCR_MAP_VALUEOF(*mapPt,
-					  pairPt), copyValuePt) : 0;
+									  pairPt), copyValuePt) : 0;
 }
 
 void *mcr_Map_element(const struct mcr_Map *mapPt, const void *keyPt)
@@ -223,16 +224,16 @@ size_t mcr_Map_index(const struct mcr_Map * mapPt, const void *keyPt)
 }
 
 void mcr_Map_iter(const struct mcr_Map *mapPt, char **iterPt,
-		  char **endPt, size_t * bytesPt)
+				  char **endPt, size_t * bytesPt)
 {
 	mcr_Array_iter(&mapPt->set, iterPt, endPt, bytesPt);
 }
 
 void mcr_Map_iter_range(const struct mcr_Map *mapPt, char **iterPt,
-			char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex)
+						char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex)
 {
 	mcr_Array_iter_range(&mapPt->set, iterPt, lastPt, bytesPt,
-			     firstIndex, lastIndex);
+						 firstIndex, lastIndex);
 }
 
 /* Set/remove mappings */
@@ -248,7 +249,7 @@ int mcr_Map_map(struct mcr_Map *mapPt, void *keyPt, void *valuePt)
 		return err;
 	mapping = MCR_ARR_LAST(mapPt->set);
 	if ((err = mcr_Map_element_init(mapPt, mapping)) ||
-	    (err = mcr_Map_element_copy(mapPt, mapping, keyPt, valuePt))) {
+		(err = mcr_Map_element_copy(mapPt, mapping, keyPt, valuePt))) {
 		dmsg;
 		mcr_Map_element_deinit(mapPt, mapping);
 		mcr_Array_pop(&mapPt->set);
@@ -259,7 +260,7 @@ int mcr_Map_map(struct mcr_Map *mapPt, void *keyPt, void *valuePt)
 }
 
 int mcr_Map_remap(struct mcr_Map *mapPt, const void *previousKeyPt,
-		  void *newKeyPt)
+				  void *newKeyPt)
 {
 	int err;
 	void *oldPlace;
@@ -289,7 +290,7 @@ int mcr_Map_map_pair(struct mcr_Map *mapPt, void *mappingPair)
 	dassert(mapPt);
 	dassert(mappingPair);
 	return mcr_Map_map(mapPt, mappingPair,
-			   MCR_MAP_VALUEOF(*mapPt, mappingPair));
+					   MCR_MAP_VALUEOF(*mapPt, mappingPair));
 }
 
 int mcr_Map_unmap(struct mcr_Map *mapPt, const void *keyPt)
@@ -302,7 +303,7 @@ int mcr_Map_unmap(struct mcr_Map *mapPt, const void *keyPt)
 		if ((err = mcr_Map_element_deinit(mapPt, element)))
 			return err;
 		mcr_Array_remove_index(&mapPt->set, MCR_ARR_INDEX(mapPt->set,
-				       element), 1);
+							   element), 1);
 	}
 	return 0;
 }
@@ -312,9 +313,9 @@ int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt)
 	int err;
 	char *element;
 	size_t elementBytes = mapPt->set.element_size,
-	       keyBytes = mapPt->key_size, index;
+		   keyBytes = mapPt->key_size, index;
 	mcr_compare_fnc vCmp = mapPt->value_interface ?
-			       mapPt->value_interface->compare : NULL;
+						   mapPt->value_interface->compare : NULL;
 	dassert(mapPt);
 	if (!mapPt->set.used)
 		return 0;
@@ -324,7 +325,7 @@ int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt)
 			/* Val found, remove element */
 			if (!vCmp(element + keyBytes, valuePt)) {
 				if ((err = mcr_Map_element_deinit(mapPt,
-								  element)))
+												  element)))
 					return err;
 				mcr_Array_remove_index(&mapPt->set, index, 1);
 			}
@@ -335,7 +336,7 @@ int mcr_Map_unmap_value(struct mcr_Map *mapPt, const void *valuePt)
 }
 
 int mcr_Map_fill(struct mcr_Map *mapPt, void *keyArray,
-		 size_t keyCount, void *valuePt)
+				 size_t keyCount, void *valuePt)
 {
 	int err;
 	char *keyIt;
@@ -356,7 +357,7 @@ int mcr_Map_fill(struct mcr_Map *mapPt, void *keyArray,
 }
 
 int mcr_Map_graph(struct mcr_Map *mapPt, void *keyArray,
-		  void *valueArray, size_t sourceArrayLen)
+				  void *valueArray, size_t sourceArrayLen)
 {
 	int err;
 	char *keyIt, *vIt;
@@ -373,7 +374,7 @@ int mcr_Map_graph(struct mcr_Map *mapPt, void *keyArray,
 	if ((err = mcr_Map_smartsize(mapPt, sourceArrayLen)))
 		return err;
 	for (keyIt = (char *)keyArray, vIt = (char *)valueArray;
-	     sourceArrayLen; --sourceArrayLen) {
+		 sourceArrayLen; --sourceArrayLen) {
 		if ((err = mcr_Map_map(mapPt, keyIt, vIt)))
 			return err;
 		keyIt += kSize;
@@ -405,8 +406,8 @@ int mcr_name_compare(const void *lhs, const void *rhs)
 	if (rhs) {
 		if (lhs)
 			return lhs == rhs ? 0 :
-			       mcr_casecmp(*(const char *const *)lhs,
-					   *(const char *const *)rhs);
+				   mcr_casecmp(*(const char *const *)lhs,
+							   *(const char *const *)rhs);
 		return -1;
 	}
 	return ! !lhs;
@@ -417,8 +418,8 @@ int mcr_str_compare(const void *lhs, const void *rhs)
 	if (rhs) {
 		if (lhs)
 			return lhs == rhs ? 0 :
-			       strcmp(*(const char *const *)lhs,
-				      *(const char *const *)rhs);
+				   strcmp(*(const char *const *)lhs,
+						  *(const char *const *)rhs);
 		return -1;
 	}
 	return ! !lhs;
@@ -477,7 +478,7 @@ static int mcr_Map_key_init(const struct mcr_Map *mapPt, void *keyPt)
 static int mcr_Map_value_init(const struct mcr_Map *mapPt, void *valuePt)
 {
 	mcr_data_fnc vInit = mapPt->value_interface ?
-			     mapPt->value_interface->init : NULL;
+						 mapPt->value_interface->init : NULL;
 	if (vInit)
 		return vInit(valuePt);
 	memset(valuePt, 0, mapPt->value_size);
@@ -495,18 +496,18 @@ static int mcr_Map_key_deinit(const struct mcr_Map *mapPt, void *keyPt)
 static int mcr_Map_value_deinit(const struct mcr_Map *mapPt, void *valuePt)
 {
 	mcr_data_fnc vDeinit = mapPt->value_interface ?
-			       mapPt->value_interface->deinit : NULL;
+						   mapPt->value_interface->deinit : NULL;
 	return vDeinit ? vDeinit(valuePt) : 0;
 	/* Value will probably not be referenced again */
 }
 
 static int mcr_Map_init_range(struct mcr_Map *mapPt, size_t firstPos,
-			      size_t lastPos)
+							  size_t lastPos)
 {
 	mcr_data_fnc kInit = mapPt->key_interface ?
-			     mapPt->key_interface->init : NULL,
-			     vInit =
-				     mapPt->value_interface ? mapPt->value_interface->init : NULL;
+						 mapPt->key_interface->init : NULL,
+						 vInit =
+							 mapPt->value_interface ? mapPt->value_interface->init : NULL;
 	char *itPt, *lastPt;
 	size_t bytes, keySize = mapPt->key_size;
 	int err;
@@ -514,7 +515,7 @@ static int mcr_Map_init_range(struct mcr_Map *mapPt, size_t firstPos,
 	 * because values will be set while mapping */
 	if (kInit) {
 		mcr_Map_iter_range(mapPt, &itPt, &lastPt, &bytes, firstPos,
-				   lastPos);
+						   lastPos);
 		if (itPt && lastPt) {
 			while (itPt <= lastPt) {
 				if ((err = kInit(itPt)))
@@ -525,7 +526,7 @@ static int mcr_Map_init_range(struct mcr_Map *mapPt, size_t firstPos,
 	}
 	if (vInit) {
 		mcr_Map_iter_range(mapPt, &itPt, &lastPt, &bytes, firstPos,
-				   lastPos);
+						   lastPos);
 		if (itPt && lastPt) {
 			while (itPt <= lastPt) {
 				if ((err = vInit(itPt + keySize)))
@@ -538,18 +539,18 @@ static int mcr_Map_init_range(struct mcr_Map *mapPt, size_t firstPos,
 }
 
 static int mcr_Map_deinit_range(struct mcr_Map *mapPt, size_t firstPos,
-				size_t lastPos)
+								size_t lastPos)
 {
 	mcr_data_fnc kDeinit = mapPt->key_interface ?
-			       mapPt->key_interface->deinit : NULL,
-			       vDeinit =
-				       mapPt->value_interface ? mapPt->value_interface->deinit : NULL;
+						   mapPt->key_interface->deinit : NULL,
+						   vDeinit =
+							   mapPt->value_interface ? mapPt->value_interface->deinit : NULL;
 	char *itPt, *lastPt;
 	size_t bytes, keySize = mapPt->key_size;
 	int err;
 	if (kDeinit) {
 		mcr_Map_iter_range(mapPt, &itPt, &lastPt, &bytes, firstPos,
-				   lastPos);
+						   lastPos);
 		if (itPt && lastPt) {
 			while (itPt <= lastPt) {
 				if ((err = kDeinit(itPt)))
@@ -560,7 +561,7 @@ static int mcr_Map_deinit_range(struct mcr_Map *mapPt, size_t firstPos,
 	}
 	if (vDeinit) {
 		mcr_Map_iter_range(mapPt, &itPt, &lastPt, &bytes, firstPos,
-				   lastPos);
+						   lastPos);
 		if (itPt && lastPt) {
 			while (itPt <= lastPt) {
 				if ((err = vDeinit(itPt + keySize)))
@@ -573,7 +574,7 @@ static int mcr_Map_deinit_range(struct mcr_Map *mapPt, size_t firstPos,
 }
 
 static int mcr_Map_key_copy(const struct mcr_Map *mapPt, void *keyPt,
-			    void *copyKeyPt)
+							void *copyKeyPt)
 {
 	mcr_copy_fnc kCopy =
 		mapPt->key_interface ? mapPt->key_interface->copy : NULL;
@@ -594,12 +595,12 @@ static int mcr_Map_key_copy(const struct mcr_Map *mapPt, void *keyPt,
 }
 
 static int mcr_Map_value_copy(const struct mcr_Map *mapPt, void *valuePt,
-			      void *copyValuePt)
+							  void *copyValuePt)
 {
 	mcr_copy_fnc vCopy = mapPt->value_interface ?
-			     mapPt->value_interface->copy : NULL;
+						 mapPt->value_interface->copy : NULL;
 	mcr_data_fnc vDeinit = mapPt->value_interface ?
-			       mapPt->value_interface->deinit : NULL;
+						   mapPt->value_interface->deinit : NULL;
 	/* kCopy should handle copying null value */
 	if (vCopy)
 		return vCopy(valuePt, copyValuePt);
@@ -631,24 +632,24 @@ static int mcr_Map_element_deinit(const struct mcr_Map *mapPt, void *elementPt)
 }
 
 static int mcr_Map_element_copy(const struct mcr_Map *mapPt, void *elementPt,
-				void *copyKeyPt, void *copyValuePt)
+								void *copyKeyPt, void *copyValuePt)
 {
 	int err = mcr_Map_key_copy(mapPt, elementPt, copyKeyPt);
 	if (err)
 		return err;
 	return mcr_Map_value_copy(mapPt, MCR_MAP_VALUEOF(*mapPt, elementPt),
-				  copyValuePt);
+							  copyValuePt);
 }
 
 static int mcr_Map_unmap_value_memcmp(struct mcr_Map *mapPt,
-				      const void *valuePt)
+									  const void *valuePt)
 {
 	int err;
 	char *element;
 	void *valHolder;
 	size_t elementBytes = mapPt->set.element_size,
-	       keyBytes = mapPt->key_size,
-	       valueBytes = mapPt->value_size, index;
+		   keyBytes = mapPt->key_size,
+		   valueBytes = mapPt->value_size, index;
 	element = MCR_ARR_LAST(mapPt->set);
 	if (valuePt)
 		valHolder = (void *)valuePt;

@@ -22,8 +22,8 @@
  * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_INTERCEPT_MOD_INTERCEPT_H
-#define MCR_INTERCEPT_MOD_INTERCEPT_H
+#ifndef MCR_INTERCEPT_MOD_INTERCEPT_H_
+#define MCR_INTERCEPT_MOD_INTERCEPT_H_
 
 #include "mcr/intercept/def.h"
 
@@ -50,4 +50,5 @@ MCR_STR(mcr/intercept/MCR_PLATFORM/nintercept.h)
 #ifdef __cplusplus
 }
 #endif
+
 #endif

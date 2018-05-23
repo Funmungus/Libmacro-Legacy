@@ -16,9 +16,10 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MCR_UTIL_LNX_NDEF_H
-#define MCR_UTIL_LNX_NDEF_H
+#ifndef MCR_UTIL_LNX_NDEF_H_
+#define MCR_UTIL_LNX_NDEF_H_
 
+/* Make sure we have some base definitions. */
 #include "mcr/util/def.h"
 
 #include <strings.h>		/* strcasecmp */

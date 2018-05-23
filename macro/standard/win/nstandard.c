@@ -16,11 +16,13 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "mcr/standard/win/nstandard.h"
 #include "mcr/standard/standard.h"
-#include "mcr/standard/mod_standard.h"
-#include MCR_STANDARD_PLATFORM_INC
+
 #include <errno.h>
 #include <stdio.h>
+
+#include "mcr/standard/mod_standard.h"
 
 #define CALC_ABS_X(x) \
 ((x * 65535) / GetSystemMetrics(SM_CXSCREEN))
@@ -77,7 +79,7 @@ int mcr_HidEcho_send_data(struct mcr_HidEcho *echoPt)
 {
 	if (echoPt->echo < mcr_echoEvents.used) {
 		mouse_event(*(int *)MCR_ARR_ELEMENT(mcr_echoEvents,
-						    echoPt->echo), 0, 0, 0, 0);
+											echoPt->echo), 0, 0, 0, 0);
 	}
 	return 0;
 }
@@ -86,11 +88,11 @@ int mcr_Key_send_data(struct mcr_Key *keyPt)
 {
 	if (keyPt->up_type != MCR_UP) {
 		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->key,
-			    KEYEVENTF_EXTENDEDKEY, 0);
+					KEYEVENTF_EXTENDEDKEY, 0);
 	}
 	if (keyPt->up_type != MCR_DOWN) {
 		keybd_event((BYTE) keyPt->key, (BYTE) keyPt->key,
-			    KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+					KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 	}
 	return 0;
 }
@@ -98,8 +100,8 @@ int mcr_Key_send_data(struct mcr_Key *keyPt)
 int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt)
 {
 	mouse_event(mcPt->is_justify ? MOUSEEVENTF_MOVE :
-		    MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
-		    (DWORD) mcPt->pos[MCR_X], (DWORD) mcPt->pos[MCR_Y], 0, 0);
+				MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
+				(DWORD) mcPt->pos[MCR_X], (DWORD) mcPt->pos[MCR_Y], 0, 0);
 	return 0;
 }
 
@@ -120,7 +122,7 @@ int mcr_standard_platform_initialize(struct mcr_context *context)
 	mcr_Array_set_all(&mcr_echoEvents, NULL, sizeof(int));
 	mcr_Map_init(&mcr_flagToEcho);
 	mcr_Map_set_all(&mcr_flagToEcho, sizeof(int), sizeof(int),
-			mcr_int_compare, NULL, NULL);
+					mcr_int_compare, NULL, NULL);
 	return mcr_Mods_load_key_contract(context);
 }
 
@@ -173,7 +175,7 @@ static int mcr_Mods_load_key_contract(struct mcr_context *ctx)
 	len = arrlen(extraTypes);
 	for (i = 0; i < len; i++) {
 		if ((err = mcr_Key_mod_add(ctx, extraTypes[i],
-					   extraModKeys[i])))
+								   extraModKeys[i])))
 			return err;
 	}
 	return err;

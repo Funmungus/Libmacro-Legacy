@@ -17,8 +17,10 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <errno.h>
+
+#include "mcr/modules.h"
 
 void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec)
 {

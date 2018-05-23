@@ -17,9 +17,11 @@
 */
 
 #include "mcr/standard/standard.h"
-#include "mcr/modules.h"
+
 #include <stdio.h>
 #include <string.h>
+
+#include "mcr/modules.h"
 
 int mcr_Action_init(void *actPt)
 {
@@ -32,7 +34,7 @@ int mcr_Action_init(void *actPt)
 }
 
 bool mcr_Action_receive(void *trigPt, struct mcr_Signal * sigPt,
-			unsigned int mods)
+						unsigned int mods)
 {
 	bool isMod = false;
 	struct mcr_Trigger *localPt = trigPt;
@@ -40,7 +42,7 @@ bool mcr_Action_receive(void *trigPt, struct mcr_Signal * sigPt,
 	dassert(localPt);
 	if (actPt && localPt->trigger) {
 		MCR_TF_IS_MOD(actPt->modifiers, mods, actPt->trigger_flags,
-			      isMod);
+					  isMod);
 		if (isMod) {
 			return localPt->trigger(localPt, sigPt, mods);
 		}
