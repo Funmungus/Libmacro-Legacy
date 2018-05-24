@@ -19,8 +19,6 @@
 #include "mcr/extras/win/nextras.h"
 #include "mcr/extras/extras.h"
 
-#include "mcr/extras/mod_extras.h"
-
 namespace mcr
 {
 static void localAddKeys(Libmacro *ctx);

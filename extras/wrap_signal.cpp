@@ -18,8 +18,6 @@
 
 #include "mcr/extras/extras.h"
 
-#include "mcr/extras/mod_extras.h"
-
 namespace mcr
 {
 ISignalRef::ISignalRef(Libmacro *context, mcr_ISignal *isigPt)

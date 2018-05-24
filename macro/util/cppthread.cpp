@@ -168,8 +168,8 @@ int mtx_lock(mtx_t * mutex)
 	return thrd_error;
 }
 
-int mtx_timedlock(mtx_t * restrict mutex,
-				  const struct timespec *restrict time_point)
+int mtx_timedlock(mtx_t * __restrict mutex,
+				  const struct timespec *__restrict time_point)
 {
 	dassert(mutex);
 	dassert(time_point);
@@ -309,8 +309,8 @@ int cnd_wait(cnd_t * cond, mtx_t * mutex)
 	return thrd_success;
 }
 
-int cnd_timedwait(cnd_t * restrict cond, mtx_t * restrict mutex,
-				  const struct timespec *restrict time_point)
+int cnd_timedwait(cnd_t * __restrict cond, mtx_t * __restrict mutex,
+				  const struct timespec *__restrict time_point)
 {
 	dassert(cond);
 	dassert(mutex);

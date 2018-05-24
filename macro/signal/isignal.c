@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 int mcr_ISignal_init(void *isigPt)
 {

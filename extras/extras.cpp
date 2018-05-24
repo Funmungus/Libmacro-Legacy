@@ -18,7 +18,6 @@
 
 #include "mcr/extras/extras.h"
 
-#include "mcr/extras/mod_extras.h"
 #include "mcr/extras/isignal.h"
 
 namespace mcr

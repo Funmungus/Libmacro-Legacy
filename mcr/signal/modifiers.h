@@ -17,27 +17,31 @@
 */
 
 /*! \file
- * \brief \ref mcr_mod_macro - Macro module
+ * \brief Libmacro modifiers
  */
 
-#ifndef MCR_MACRO_MOD_MACRO_H_
-#define MCR_MACRO_MOD_MACRO_H_
+#ifndef MCR_SIGNAL_MODIFIERS_H_
+#define MCR_SIGNAL_MODIFIERS_H_
 
-#include "mcr/util/util.h"
+#include "mcr/signal/def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*! Macro module */
-struct mcr_mod_macro {
-	/*! \ref mcr_ITrigger registry */
-	struct mcr_IRegistry itriggers;
-};
-
-MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
-MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
-MCR_API void mcr_macro_trim(struct mcr_context *ctx);
+/*! Reference to Libmacro internal modifiers. */
+MCR_API unsigned int *mcr_modifiers(struct mcr_context *ctx);
+/*! Add modifiers to current
+ *
+ * \param addMods Modifiers to add
+ */
+MCR_API void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods);
+/*! Remove modifiers from current
+ *
+ * \param remMods Modifiers to remove
+ */
+MCR_API void mcr_remove_modifiers(struct mcr_context *ctx,
+								  unsigned int remMods);
 
 #ifdef __cplusplus
 }

@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 /*! Linux intercept platform structure */
-struct mcr_mod_intercept_platform {
+struct mcr_intercept_platform {
 	/*! Intercept critical sections */
 	mtx_t lock;
 	/*! Ordered list so each grab can remove itself */

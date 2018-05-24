@@ -28,8 +28,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "mcr/standard/mod_standard.h"
-
 MCR_API struct mcr_Device mcr_genDev;
 MCR_API struct mcr_Device mcr_absDev;
 

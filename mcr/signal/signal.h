@@ -18,6 +18,7 @@
 
 /*! \file
  * \brief \ref mcr_Signal - Signal to send or dispatch
+ * \ref mcr_signal - Libmacro signal module
  *
  * See \ref mcr_send
  * See \ref mcr_dispatch
@@ -27,7 +28,7 @@
 #define MCR_SIGNAL_SIGNAL_H_
 
 #include "mcr/signal/mod_flags.h"
-#include "mcr/signal/dispatcher.h"
+#include "mcr/signal/generic_dispatcher.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,6 +97,35 @@ MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
  * \return \ref retcmp
  */
 MCR_API int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt);
+
+/* In cases of extreme complexity please break glass. */
+
+/*! Libmacro signal module
+ *
+ * In cases of extreme complexity please break glass.
+ */
+struct mcr_signal {
+	/*! \ref mcr_ISignal registry */
+	struct mcr_IRegistry isignals;
+	/*! Set of \ref mcr_Dispatcher * for each signal */
+	struct mcr_Array dispatchers;
+	/*! If enabled, the generic dispatcher will be used for all
+	 * signals */
+	bool is_generic_dispatcher;
+	/*! Generic dispatcher which may be used after the specific
+	 * dispatcher has been called */
+	struct mcr_Dispatcher *generic_dispatcher_pt;
+	/*! Default generic dispatcher with logic for all dispatches,
+	 * and signal reference-specific.
+	 */
+	struct mcr_GenericDispatcher generic_dispatcher;
+	/*! All modifiers known by Libmacro to be set */
+	unsigned int internal_mods;
+	/*! Map from modifiers to names */
+	struct mcr_Map map_mod_name;
+	/*! Map from names to modifiers */
+	struct mcr_Map map_name_mod;
+};
 
 #ifdef __cplusplus
 }

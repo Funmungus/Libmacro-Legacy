@@ -20,7 +20,7 @@
 
 #include <errno.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec)
 {

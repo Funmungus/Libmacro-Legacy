@@ -1,9 +1,5 @@
 #include "tlibmacro.h"
 
-#include <stdlib.h>
-
-#include "mcr/modules.h"
-
 void TLibmacro::initTestCase()
 {
 	_ctx = mcr_allocate();

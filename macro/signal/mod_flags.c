@@ -18,7 +18,7 @@
 
 #include "mcr/signal/signal.h"
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 /* Names */
 unsigned int mcr_ModFlags_modifier(struct mcr_context *ctx, const char *name)

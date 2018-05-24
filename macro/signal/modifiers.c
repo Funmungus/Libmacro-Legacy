@@ -16,29 +16,29 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/extras.h"
+#include "mcr/signal/signal.h"
 
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
-namespace mcr
+#include "mcr/libmacro.h"
+
+/* Public access modifiers */
+unsigned int *mcr_modifiers(struct mcr_context *ctx)
 {
-void Alarm::copy(const mcr::ISignalData *copytron)
-{
-	if (copytron == this)
-		return;
-	if (copytron) {
-		const Alarm *mem = dynamic_cast<const Alarm *>(copytron);
-		if (!mem)
-			throw EINVAL;
-		time = mem->time;
-	} else {
-		memset(&time, 0, sizeof(time));
-	}
+	dassert(ctx);
+	return &ctx->signal.internal_mods;
 }
 
-AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt)
-	: SignalManager(context, sigPt)
+void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods)
 {
-	init(&this->context()->iAlarm().isignal);
+	dassert(ctx);
+	ctx->signal.internal_mods |= addMods;
 }
+
+void mcr_remove_modifiers(struct mcr_context *ctx, unsigned int remMods)
+{
+	dassert(ctx);
+	ctx->signal.internal_mods &= (~remMods);
 }

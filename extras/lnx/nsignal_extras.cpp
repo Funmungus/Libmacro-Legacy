@@ -24,8 +24,6 @@ extern "C" {
 #include <sys/wait.h>
 }
 
-#include "mcr/extras/mod_extras.h"
-
 namespace mcr
 {
 void Command::send()

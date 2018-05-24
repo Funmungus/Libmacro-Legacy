@@ -17,29 +17,22 @@
 */
 
 /*! \file
- * \brief Structures used by Libmacro.
+ * In cases of extreme complexity, please break glass.
  */
 
-#ifndef MCR_MODULES_H_
-#define MCR_MODULES_H_
+#ifndef MCR_SIGNAL_PRIVATE_H_
+#define MCR_SIGNAL_PRIVATE_H_
 
-/* Define all module structures */
-#include "mcr/signal/mod_signal.h"
-#include "mcr/macro/mod_macro.h"
-#include "mcr/standard/mod_standard.h"
-#include "mcr/intercept/mod_intercept.h"
+#include "mcr/signal/def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*! Required library context for Libmacro functions */
-struct mcr_context {
-	struct mcr_mod_signal signal;
-	struct mcr_mod_macro macro;
-	struct mcr_mod_standard standard;
-	struct mcr_mod_intercept intercept;
-};
+MCR_API int mcr_signal_initialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_deinitialize(struct mcr_context *ctx);
+MCR_API int mcr_signal_load_contract(struct mcr_context *ctx);
+MCR_API void mcr_signal_trim(struct mcr_context *ctx);
 
 #ifdef __cplusplus
 }

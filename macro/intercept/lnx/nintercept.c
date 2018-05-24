@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 typedef struct {
 	struct mcr_context *ctx;
@@ -87,7 +87,7 @@ static inline size_t modbit_size()
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = is_enabled_impl(ctx);
 	if (thrdErr == thrd_success)
@@ -97,7 +97,7 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = set_enabled_impl(ctx, enable);
 	if (thrdErr == thrd_success)
@@ -107,7 +107,7 @@ int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 
 unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	unsigned int ret = get_mods_impl(ctx);
 	if (thrdErr == thrd_success)
@@ -117,7 +117,7 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 
 int mcr_intercept_add_grab(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_add(&nPt->grab_paths, &grabPath, 1, true);
 	dassert(grabPath);
@@ -130,7 +130,7 @@ int mcr_intercept_add_grab(struct mcr_context *ctx, const char *grabPath)
 
 void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	/* remove grabber? */
 	fixme;
@@ -143,7 +143,7 @@ void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 int mcr_intercept_set_grabs(struct mcr_context *ctx, const char **allGrabPaths,
 							size_t pathCount)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_replace(&nPt->grab_paths, allGrabPaths,
 									pathCount);
@@ -158,13 +158,13 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 {
 	int thrdErr = 0, err = 0;
 	/* Free in deinitialize */
-	struct mcr_mod_intercept_platform *nPt =
-		malloc(sizeof(struct mcr_mod_intercept_platform));
+	struct mcr_intercept_platform *nPt =
+		malloc(sizeof(struct mcr_intercept_platform));
 	if (!nPt) {
 		mset_error(ENOMEM);
 		return ENOMEM;
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
+	memset(nPt, 0, sizeof(struct mcr_intercept_platform));
 	if ((thrdErr = mtx_init(&nPt->lock, mtx_plain)) != thrd_success) {
 		err = mcr_thrd_errno(thrdErr);
 		mset_error(err);
@@ -182,7 +182,7 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 
 int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	/* Clear grabbers manages lock internally */
 	int err = clear_grabbers(ctx);
 	int thrdErr = mtx_lock(&nPt->lock);
@@ -201,7 +201,7 @@ int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 
 static bool is_enabled_impl(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	_grab_context **ptArr = MCR_ARR_FIRST(nPt->grab_contexts);
 	size_t i = nPt->grab_contexts.used;
 	while (i--) {
@@ -245,7 +245,7 @@ static int set_enabled_impl(struct mcr_context *ctx, bool enable)
 
 static unsigned int get_mods_impl(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	_grab_context **grabSet = MCR_ARR_FIRST(nPt->grab_contexts);
 	unsigned int ret;
 	/* One modifier for each key that has a modifier mapped */
@@ -292,7 +292,7 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 static int thread_enable(void *threadArgs)
 {
 	_context_bool cb = *(_context_bool *) threadArgs;
-	struct mcr_mod_intercept_platform *nPt = cb.ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = cb.ctx->intercept.platform;
 	int thrdErr;
 	mcr_String *pathArr = MCR_ARR_FIRST(nPt->grab_paths);
 	size_t i = nPt->grab_paths.used;
@@ -320,7 +320,7 @@ static int thread_enable(void *threadArgs)
  */
 static int grab_impl(struct mcr_context *ctx, const char *grabPath)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int error = 0, thrdErr = thrd_success;
 	thrd_t trd;
 	/* Freed when thread is done with it */
@@ -411,7 +411,7 @@ static int intercept_start(void *threadArgs)
 {
 	/* Free in thread when done with it */
 	_grab_context *gcPt = threadArgs;
-	struct mcr_mod_intercept_platform *nPt = gcPt->ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = gcPt->ctx->intercept.platform;
 	struct mcr_Grabber *grabPt = &gcPt->grabber;
 	int thrdErr = thrd_success, mtxErr = thrd_success, err = 0;
 	struct timespec delay;
@@ -698,7 +698,7 @@ static unsigned int max_mod_val()
 /*! \post Mutex not locked */
 static int clear_grabbers(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	/* Disable all, wait for all batch operation. */
 	int timeout = 50;	// Total 10 sec
 	struct mcr_NoOp delay = { 0 };

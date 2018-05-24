@@ -20,6 +20,7 @@
  * \brief \ref mcr_Macro - When the macro is triggered,
  * its set of signals is sent one after the other.
  *
+ * \ref mcr_macro - Macro module
  * All signal functions will initialize and deinitialize as needed
  */
 
@@ -261,6 +262,15 @@ MCR_API bool mcr_Macro_trigger(void *trigPt,
 /*! \ref mcr_Macro_is_enabled */
 #define MCR_MACRO_IS_ENABLED(mcrPt) \
 ((mcrPt).interruptor != MCR_DISABLE)
+
+/*! Macro module
+ *
+ * In cases of extreme complexity, please break glass.
+ */
+struct mcr_macro {
+	/*! \ref mcr_ITrigger registry */
+	struct mcr_IRegistry itriggers;
+};
 
 #ifdef __cplusplus
 }

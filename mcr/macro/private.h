@@ -16,21 +16,25 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/macro/macro.h"
+/*! \file
+ * In cases of extreme complexity, please break glass.
+ */
 
-#include "mcr/modules.h"
+#ifndef MCR_MACRO_PRIVATE_H_
+#define MCR_MACRO_PRIVATE_H_
 
-int mcr_macro_initialize(struct mcr_context *ctx)
-{
-	return mcr_reg_init(mcr_ITrigger_reg(ctx));
+#include "mcr/macro/def.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+MCR_API int mcr_macro_initialize(struct mcr_context *ctx);
+MCR_API int mcr_macro_deinitialize(struct mcr_context *ctx);
+MCR_API void mcr_macro_trim(struct mcr_context *ctx);
+
+#ifdef __cplusplus
 }
+#endif
 
-int mcr_macro_deinitialize(struct mcr_context *ctx)
-{
-	return mcr_reg_deinit(mcr_ITrigger_reg(ctx));
-}
-
-void mcr_macro_trim(struct mcr_context *ctx)
-{
-	mcr_reg_trim(mcr_ITrigger_reg(ctx));
-}
+#endif

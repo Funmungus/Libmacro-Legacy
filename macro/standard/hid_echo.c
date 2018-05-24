@@ -18,7 +18,7 @@
 
 #include "mcr/standard/standard.h"
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 int mcr_HidEcho_send(struct mcr_Signal *signalPt)
 {

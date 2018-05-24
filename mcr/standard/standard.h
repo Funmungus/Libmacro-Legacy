@@ -19,6 +19,7 @@
 /*! \file
  * \brief Standard signal and trigger types
  *
+ * \ref mcr_standard - Standard signal and trigger types module
  * \ref mcr_Signal data types: \ref mcr_HidEcho,
  * \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
  * and \ref mcr_Scroll \n
@@ -57,6 +58,55 @@ MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
 									const mcr_Dimensions second, const unsigned int measurementError);
+
+struct mcr_IsStage;
+/*! Standard signal and trigger types module
+ *
+ * In cases of extreme complexity, please break glass. */
+struct mcr_standard {
+	/* Signal types */
+	struct mcr_ISignal ihid_echo;
+	struct mcr_ISignal ikey;
+	struct mcr_CtxISignal imods;
+	struct mcr_ISignal imove_cursor;
+	struct mcr_ISignal inoop;
+	struct mcr_ISignal iscroll;
+	/* Key dispatch */
+	struct mcr_CtxDispatcher key_dispatcher;
+	/* down, up, generic is set into both */
+	struct mcr_Map key_dispatcher_maps[2];
+	/* modifier <=> key */
+	struct mcr_Map map_key_modifier;
+	struct mcr_Map map_modifier_key;
+	/* Trigger types */
+	struct mcr_ITrigger iaction;
+	struct mcr_ITrigger istaged;
+	/*! Set of \ref mcr_IsStage */
+	struct mcr_Array stage_matchers;
+	/*! Stage matcher for no specific type
+	 *
+	 * By default this matches signal by address */
+	struct mcr_IsStage *stage_generic;
+	/* name reg */
+	struct mcr_StringIndex key_name_index;
+	mcr_String key_name_any;
+	struct mcr_StringIndex echo_name_index;
+	mcr_String echo_name_any;
+};
+
+/* Platform directory */
+#define MCR_STANDARD_PLATFORM_INC \
+MCR_STR(mcr/standard/MCR_PLATFORM/nstandard.h)
+
+/* Platform signal */
+struct mcr_HidEcho;
+struct mcr_Key;
+struct mcr_MoveCursor;
+struct mcr_Scroll;
+MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
+MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
+MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *dataPt);
+MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 
 #ifdef __cplusplus
 }

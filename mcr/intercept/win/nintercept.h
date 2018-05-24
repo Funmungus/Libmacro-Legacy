@@ -32,7 +32,7 @@ extern "C" {
 
 #define MCR_GRAB_COUNT 2
 
-struct mcr_mod_intercept_platform {
+struct mcr_intercept_platform {
 	struct mcr_Grabber *grab_key;
 	struct mcr_Grabber *grab_mouse;
 	struct mcr_Grabber *all_grabbers[MCR_GRAB_COUNT];

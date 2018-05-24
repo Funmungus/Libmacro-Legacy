@@ -16,29 +16,22 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/extras.h"
+/*! \file
+ * In cases of extreme complexity, break glass
+ */
 
-#include <cstring>
+#ifndef __cplusplus
+	#pragma message "C++ support is required for extras module"
+	#include "mcr/err.h"
+#endif
+
+#ifndef MCR_EXTRAS_PRIVATE_H_
+#define MCR_EXTRAS_PRIVATE_H_
+
+#include "mcr/extras/extras.h"
 
 namespace mcr
 {
-void Alarm::copy(const mcr::ISignalData *copytron)
-{
-	if (copytron == this)
-		return;
-	if (copytron) {
-		const Alarm *mem = dynamic_cast<const Alarm *>(copytron);
-		if (!mem)
-			throw EINVAL;
-		time = mem->time;
-	} else {
-		memset(&time, 0, sizeof(time));
-	}
 }
 
-AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt)
-	: SignalManager(context, sigPt)
-{
-	init(&this->context()->iAlarm().isignal);
-}
-}
+#endif

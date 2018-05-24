@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Key - Simulate keyboard keys
+ * \brief \ref mcr_Key - Simulate keyboard keys.
  */
 
 #ifndef MCR_STANDARD_KEY_H_

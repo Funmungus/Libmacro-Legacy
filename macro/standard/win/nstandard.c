@@ -22,8 +22,6 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include "mcr/standard/mod_standard.h"
-
 #define CALC_ABS_X(x) \
 ((x * 65535) / GetSystemMetrics(SM_CXSCREEN))
 

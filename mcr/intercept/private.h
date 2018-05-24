@@ -16,29 +16,28 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/extras/extras.h"
+/*! \file
+ * In cases of extreme complexity, please break glass.
+ */
 
-#include <cstring>
+#ifndef MCR_INTERCEPT_PRIVATE_H_
+#define MCR_INTERCEPT_PRIVATE_H_
 
-namespace mcr
-{
-void Alarm::copy(const mcr::ISignalData *copytron)
-{
-	if (copytron == this)
-		return;
-	if (copytron) {
-		const Alarm *mem = dynamic_cast<const Alarm *>(copytron);
-		if (!mem)
-			throw EINVAL;
-		time = mem->time;
-	} else {
-		memset(&time, 0, sizeof(time));
-	}
-}
+#include "mcr/intercept/def.h"
 
-AlarmRef::AlarmRef(Libmacro *context, mcr_Signal *sigPt)
-	: SignalManager(context, sigPt)
-{
-	init(&this->context()->iAlarm().isignal);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+MCR_API int mcr_intercept_initialize(struct mcr_context *ctx);
+MCR_API int mcr_intercept_deinitialize(struct mcr_context *ctx);
+
+/* Implement in platform directory */
+MCR_API int mcr_intercept_platform_initialize(struct mcr_context *ctx);
+MCR_API int mcr_intercept_platform_deinitialize(struct mcr_context *ctx);
+
+#ifdef __cplusplus
 }
-}
+#endif
+
+#endif

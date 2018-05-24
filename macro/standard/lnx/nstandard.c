@@ -23,8 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "mcr/standard/mod_standard.h"
-
 MCR_API struct mcr_Array mcr_echoEvents;
 MCR_API struct mcr_Map mcr_keyToEcho[2];
 MCR_API mcr_SpacePosition mcr_cursor = { 0 };

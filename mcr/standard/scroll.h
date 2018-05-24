@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Scroll - Scroll visible area
+ * \brief \ref mcr_Scroll - Scroll visible area.
  */
 
 #ifndef MCR_STANDARD_SCROLL_H_
@@ -29,14 +29,14 @@
 extern "C" {
 #endif
 
-/*! Scroll visible area */
+/*! Scroll visible area. */
 struct mcr_Scroll {
 	/*! Magnitude to scroll in each direciton */
 	mcr_Dimensions dm;
 };
 
 /*! \pre Signal has data member \ref mcr_Scroll
- * \brief Scroll through visible area
+ * \brief Scroll through visible area.
  *
  * \return \ref reterr
  */

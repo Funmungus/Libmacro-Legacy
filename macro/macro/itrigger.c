@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 int mcr_ITrigger_init(void *itrigPt)
 {

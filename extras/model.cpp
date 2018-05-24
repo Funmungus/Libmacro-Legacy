@@ -18,8 +18,6 @@
 
 #include "mcr/extras/extras.h"
 
-#include "mcr/extras/mod_extras.h"
-
 namespace mcr
 {
 CtxISignal::CtxISignal(mcr::Libmacro *context, mcr_signal_fnc send,

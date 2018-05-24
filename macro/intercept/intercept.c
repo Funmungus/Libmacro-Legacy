@@ -18,7 +18,20 @@
 
 #include "mcr/intercept/intercept.h"
 
+#include "mcr/libmacro.h"
+#include "mcr/private.h"
+
 void mcr_intercept_reset_modifiers(struct mcr_context *ctx)
 {
 	*mcr_modifiers(ctx) = mcr_intercept_modifiers(ctx);
+}
+
+int mcr_intercept_initialize(struct mcr_context *ctx)
+{
+	return mcr_intercept_platform_initialize(ctx);
+}
+
+int mcr_intercept_deinitialize(struct mcr_context *ctx)
+{
+	return mcr_intercept_platform_deinitialize(ctx);
 }

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 const int mcr_Key_gen_key = MCR_KEY_ANY;
 const unsigned int mcr_Key_gen_up = MCR_BOTH;

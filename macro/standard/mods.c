@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
 					  enum mcr_KeyUpType upType)

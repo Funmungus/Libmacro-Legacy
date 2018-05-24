@@ -46,8 +46,17 @@
 extern "C" {
 #endif
 
-/*! Libmacro context, required for Libmacro functions */
-struct mcr_context;
+/*! Libmacro library context, required for Libmacro functions
+ *
+ * In cases of extreme complexity please break glass.
+ */
+struct mcr_context {
+	struct mcr_signal signal;
+	struct mcr_macro macro;
+	struct mcr_standard standard;
+	struct mcr_intercept intercept;
+};
+
 /*! \ref malloc and \ref mcr_initialize a \ref mcr_context
  *
  * Will also \ref mcr_load_contracts and \ref mcr_trim.

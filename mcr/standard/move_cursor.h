@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_MoveCursor - Change spatial coordinates of cursor
+ * \brief \ref mcr_MoveCursor - Change spatial coordinates of cursor.
  */
 
 #ifndef MCR_STANDARD_MOVE_CURSOR_H_

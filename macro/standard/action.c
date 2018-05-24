@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 int mcr_Action_init(void *actPt)
 {

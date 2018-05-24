@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
 							const mcr_SpacePosition pos, bool flagJustify)

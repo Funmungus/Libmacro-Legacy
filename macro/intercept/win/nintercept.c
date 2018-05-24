@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 #define WPARAM_UPTYPE(wParam) \
 ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? \
@@ -67,7 +67,7 @@ static LRESULT CALLBACK mouse_proc(int nCode, WPARAM wParam, LPARAM lParam);
 
 bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		if (mcr_Grabber_is_enabled(nPt->all_grabbers[i]))
 			return true;
@@ -77,7 +77,7 @@ bool mcr_intercept_is_enabled(struct mcr_context *ctx)
 
 int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int err = 0;
 	for (int i = MCR_GRAB_COUNT; i--;) {
 		if ((err = mcr_Grabber_set_enabled(nPt->all_grabbers[i],
@@ -121,31 +121,31 @@ unsigned int mcr_intercept_modifiers(struct mcr_context *ctx)
 
 bool mcr_intercept_key_is_enabled(struct mcr_context * ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	return MCR_GRABBER_IS_ENABLED(*nPt->grab_key);
 }
 
 int mcr_intercept_key_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	return mcr_Grabber_set_enabled(nPt->grab_key, enable);
 }
 
 bool mcr_intercept_mouse_is_enabled(struct mcr_context * ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	return MCR_GRABBER_IS_ENABLED(*nPt->grab_mouse);
 }
 
 int mcr_intercept_move_set_enabled(struct mcr_context *ctx, bool enable)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	return mcr_Grabber_set_enabled(nPt->grab_mouse, enable);
 }
 
 static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	struct mcr_mod_intercept_platform *nPt =
+	struct mcr_intercept_platform *nPt =
 			_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
@@ -159,7 +159,7 @@ static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 
 static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	struct mcr_mod_intercept_platform *nPt =
+	struct mcr_intercept_platform *nPt =
 			_hook_context->intercept.platform;
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
@@ -235,13 +235,13 @@ static int verify_key_state(PBYTE keyState, size_t keyState_size)
 int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 {
 	int i;
-	struct mcr_mod_intercept_platform *nPt =
-		malloc(sizeof(struct mcr_mod_intercept_platform));
+	struct mcr_intercept_platform *nPt =
+		malloc(sizeof(struct mcr_intercept_platform));
 	if (!nPt) {
 		mset_error(ENOMEM);
 		return ENOMEM;
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
+	memset(nPt, 0, sizeof(struct mcr_intercept_platform));
 	_hook_context = ctx;
 	ctx->intercept.platform = nPt;
 	for (i = arrlen(_signal_set); i--;) {
@@ -284,7 +284,7 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 
 int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 {
-	struct mcr_mod_intercept_platform *nPt = ctx->intercept.platform;
+	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int i;
 	for (i = MCR_GRAB_COUNT; i--;) {
 		mcr_Grabber_set_enabled(nPt->all_grabbers[i], false);
@@ -295,7 +295,7 @@ int mcr_intercept_platform_deinitialize(struct mcr_context *ctx)
 		mcr_Grabber_deinit(nPt->all_grabbers[i]);
 		free(nPt->all_grabbers[i]);
 	}
-	memset(nPt, 0, sizeof(struct mcr_mod_intercept_platform));
+	memset(nPt, 0, sizeof(struct mcr_intercept_platform));
 	free(nPt);
 	return 0;
 }

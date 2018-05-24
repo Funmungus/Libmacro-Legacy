@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/libmacro.h"
 
 static void set_matcher(struct mcr_Stage *stagePt, struct mcr_IsStage *matchPt)
 {

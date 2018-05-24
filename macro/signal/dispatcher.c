@@ -22,30 +22,11 @@
 #include <string.h>
 #include <errno.h>
 
-#include "mcr/modules.h"
-
-/* Public access modifiers */
-unsigned int *mcr_modifiers(struct mcr_context *ctx)
-{
-	dassert(ctx);
-	return &ctx->signal.internal_mods;
-}
-
-void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods)
-{
-	dassert(ctx);
-	ctx->signal.internal_mods |= addMods;
-}
-
-void mcr_remove_modifiers(struct mcr_context *ctx, unsigned int remMods)
-{
-	dassert(ctx);
-	ctx->signal.internal_mods &= (~remMods);
-}
+#include "mcr/libmacro.h"
 
 bool mcr_dispatch(struct mcr_context *ctx, struct mcr_Signal *sigPt)
 {
-	struct mcr_mod_signal *modSignal = &ctx->signal;
+	struct mcr_signal *modSignal = &ctx->signal;
 	struct mcr_Dispatcher *dispPt =
 			sigPt && sigPt->isignal ? sigPt->isignal->dispatcher : NULL, *genPt =
 				modSignal->generic_dispatcher_pt;

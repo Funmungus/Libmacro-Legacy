@@ -20,8 +20,7 @@
  * \brief \ref mcr_Dispatcher - Blocking dispatcher, intercept signals before
  * sending.
  *
- * Dispatchers are the consumers of modifiers, so we define
- * them here.
+ * Dispatchers are the consumers of modifiers.
  */
 
 #ifndef MCR_SIGNAL_DISPATCHER_H_
@@ -29,24 +28,11 @@
 
 #include "mcr/signal/dispatch_pair.h"
 #include "mcr/signal/isignal.h"
+#include "mcr/signal/modifiers.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/*! Reference to Libmacro internal modifiers. */
-MCR_API unsigned int *mcr_modifiers(struct mcr_context *ctx);
-/*! Add modifiers to current
- *
- * \param addMods Modifiers to add
- */
-MCR_API void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods);
-/*! Remove modifiers from current
- *
- * \param remMods Modifiers to remove
- */
-MCR_API void mcr_remove_modifiers(struct mcr_context *ctx,
-								  unsigned int remMods);
 
 /* Dispatcher instances are intended to inherit mcr_Dispatcher as the first member,
  * so we will ease casting with voids. */

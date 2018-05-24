@@ -16,16 +16,41 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "mcr/intercept/intercept.h"
+/*! \file
+ * \brief \ref mcr_GenericDispatcher - Dispatcher of any signal type
+ */
 
-#include "mcr/modules.h"
+#ifndef MCR_SIGNAL_GENERIC_DISPATCHER_H_
+#define MCR_SIGNAL_GENERIC_DISPATCHER_H_
 
-int mcr_intercept_initialize(struct mcr_context *ctx)
-{
-	return mcr_intercept_platform_initialize(ctx);
+#include "mcr/signal/dispatcher.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*! Dispatcher of any signal type
+ *
+ * In cases of extreme complexity please break glass.
+ */
+struct mcr_GenericDispatcher {
+	struct mcr_Dispatcher dispatcher;
+	struct mcr_Array receivers;
+	struct mcr_Map signal_receivers;
+};
+
+/*!
+ */
+MCR_API int mcr_GenericDispatcher_init(void *genericDispatcherPt);
+/*!
+ */
+MCR_API int mcr_GenericDispatcher_deinit(void *genericDispatcherPt);
+/*!
+ */
+MCR_API int mcr_GenericDispatcher_trim(struct mcr_GenericDispatcher *genericDispatcherPt);
+
+#ifdef __cplusplus
 }
+#endif
 
-int mcr_intercept_deinitialize(struct mcr_context *ctx)
-{
-	return mcr_intercept_platform_deinitialize(ctx);
-}
+#endif

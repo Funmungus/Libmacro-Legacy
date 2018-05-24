@@ -23,8 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mcr/modules.h"
-
 /* IsUserAnAdmin */
 #if _WIN32_WINNT < 0x0600
 	#include <shlobj.h>

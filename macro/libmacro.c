@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mcr/modules.h"
+#include "mcr/private.h"
 
 #pragma message("TODO: Optimize for intercept, dispatch, and send." \
 	" SIMPLIFY(function instead of inline) everywhere else.")

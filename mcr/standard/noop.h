@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds
+ * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds.
  */
 
 #ifndef MCR_STANDARD_NOOP_H_
