@@ -38,13 +38,16 @@ static int grab_context_malloc(_grab_context ** gcPt, struct mcr_context *ctx)
 {
 	int err;
 	*gcPt = malloc(sizeof(_grab_context));
-	if (!*gcPt)
+	if (!*gcPt) {
+		mset_error(ENOMEM);
 		return ENOMEM;
+	}
 	if ((err = mcr_Grabber_init(&(*gcPt)->grabber))) {
 		free(*gcPt);
 		*gcPt = NULL;
 		return err;
 	}
+	mcr_Grabber_set_blocking(&(*gcPt)->grabber, ctx->intercept.blocking);
 	(*gcPt)->ctx = ctx;
 	return 0;
 }
@@ -73,8 +76,8 @@ static unsigned int get_mods_impl(struct mcr_context *ctx);
 static int thread_enable(void *threadArgs);
 static int grab_impl(struct mcr_context *ctx, const char *grabPath);
 static int intercept_start(void *threadArgs);
-static int read_grabber_exclusive(struct mcr_context *ctx,
-								  struct mcr_Grabber *grabPt);
+static int read_grabber_loop(struct mcr_context *ctx,
+							 struct mcr_Grabber *grabPt);
 static unsigned int modify_eventbits(struct mcr_context *ctx,
 									 unsigned int *modBuffer, size_t modBufferSize, char *keybit_values);
 static unsigned int max_mod_val();
@@ -261,10 +264,7 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 	/* Fill modifiers mapped from a key */
 	mcr_Key_mod_all(ctx, modArr, modKeysCount);
 	if ((err = ioctl(mcr_genDev.fd, EVIOCGKEY(modSize), bitRetrieval)) < 0) {
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
+		mcr_errno(EINTR);
 		free(modArr);
 		return MCR_MF_NONE;
 	}
@@ -275,10 +275,7 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 		if ((fd = grabSet[i]->grabber.fd) != -1) {
 			if ((err = ioctl(fd, EVIOCGKEY(modSize),
 							 bitRetrieval)) < 0) {
-				err = errno;
-				if (!err)
-					err = EINTR;
-				mset_error(err);
+				mcr_errno(EINTR);
 			} else {
 				ret |= modify_eventbits(ctx, modArr,
 										modKeysCount, bitRetrieval);
@@ -438,7 +435,7 @@ static int intercept_start(void *threadArgs)
 	if (mtxErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	/* Will return an error if not enabled. */
-	thrdErr = read_grabber_exclusive(gcPt->ctx, grabPt);
+	thrdErr = read_grabber_loop(gcPt->ctx, grabPt);
 	mtxErr = mtx_lock(&nPt->lock);
 	err = mcr_Grabber_set_enabled(grabPt, false);
 	mcr_Array_remove(&nPt->grab_contexts, &gcPt);
@@ -454,19 +451,20 @@ static int intercept_start(void *threadArgs)
 	return err ? thrd_error : thrd_success;
 }
 
-static int read_grabber_exclusive(struct mcr_context *ctx,
-								  struct mcr_Grabber *grabPt)
+static int read_grabber_loop(struct mcr_context *ctx,
+							 struct mcr_Grabber *grabPt)
 {
 	/* For abs and rel, keep memory of having such event type
 	 * at least once. */
 #define DISP_WRITEMEM(signal) \
-if (mcr_dispatch(ctx, &(signal)) && writegen) \
-	writegen = false;
+if (mcr_dispatch(ctx, &(signal)) && blocking && writegen) { \
+	writegen = false; \
+}
 #define DISP_WRITEMEM_ABS(signal) \
 if (mcr_dispatch(ctx, &(signal))) { \
-	if (writeabs) \
+	if (blocking && writeabs) \
 		writeabs = false; \
-} else if (!writeabs) { \
+} else if (blocking && !writeabs) { \
 	writeabs = true; \
 }
 	struct input_event events[MCR_GRAB_SET_LENGTH];
@@ -476,7 +474,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 	ssize_t rdb;
 	int i, pos;
 	/* Write generic whenever not blocked, write abs only when available */
-	bool writegen = true, writeabs = false;
+	bool writegen = true, writeabs = false, blocking = grabPt->blocking;
 	bool bAbs[MCR_DIMENSION_CNT] = { 0 };
 	int *echoFound = NULL;
 	struct mcr_Key key = { 0 };
@@ -523,10 +521,9 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		if (grabPt->fd == -1)
 			return thrd_success;
 		if (rdb < (ssize_t) sizeof(struct input_event)) {
-			i = errno;
-			if (i == EINTR)
+			mcr_errno(0);
+			if (!mcr_err || mcr_err == EINTR)
 				return thrd_success;
-			mset_error(i);
 			return thrd_error;
 		}
 		curVent = events;
@@ -608,7 +605,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 					MCR_MAP_VALUEOF(mcr_keyToEcho
 									[key.up_type], echoFound);
 				echo.echo = *echoFound;
-				if (mcr_dispatch(ctx, &echosig) && writegen)
+				if (mcr_dispatch(ctx, &echosig) && blocking && writegen)
 					writegen = false;
 			}
 			DISP_WRITEMEM(keysig);
@@ -634,23 +631,29 @@ if (mcr_dispatch(ctx, &(signal))) { \
 				break;
 			}
 		}
-		if (writegen) {
+		/* Non-grab does not write to device */
+		if (blocking && writegen) {
 			if (write(mcr_genDev.fd, events, rdb) < 0) {
-				i = errno;
-				if (i == EINTR)
+				/* Is non-error ok with thrd error or success? */
+				mcr_fixme;
+				mcr_errno(0);
+				/* EINTR is disabled during read. */
+				if (!mcr_err || mcr_err == EINTR)
 					return thrd_success;
-				mset_error(i);
 				return thrd_error;
 			}
 		} else {
 			writegen = true;
 		}
-		if (writeabs && write(mcr_absDev.fd, events, rdb) < 0) {
-			i = errno;
-			if (i == EINTR)
-				return thrd_success;
-			mset_error(i);
-			return thrd_error;
+		/* Non-grab does not write to device */
+		if (blocking && writeabs) {
+			if (write(mcr_absDev.fd, events, rdb) < 0) {
+				mcr_errno(0);
+				/* EINTR is disabled during read. */
+				if (!mcr_err || mcr_err == EINTR)
+					return thrd_success;
+				return thrd_error;
+			}
 		}
 	}
 	return thrd_success;

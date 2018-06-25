@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief Read from grabbers and dispatch signals. This may block
- * incoming events.
+ *  \brief Read from grabbers and dispatch signals. This may block
+ *  incoming events.
  */
 
 #ifndef MCR_INTERCEPT_LNX_NINTERCEPT_H_
@@ -40,7 +40,7 @@ struct mcr_intercept_platform {
 	mcr_StringSet grab_paths;
 	/*! Get key pressed values from a device
 	 *
-	 * KEY_CNT / 8 is a floor value, and may have remainder of keys. */
+	 *  KEY_CNT / 8 is a floor value, and may have remainder of keys. */
 	char bit_retrieval[MCR_EVENTINDEX(KEY_CNT) + 1];
 };
 /* All use /dev/input/eventX files to read from */

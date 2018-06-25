@@ -62,8 +62,11 @@ int mcr_GenericDispatcher_deinit(void *genericDispatcherPt)
 	return 0;
 }
 
-int mcr_GenericDispatcher_trim(struct mcr_GenericDispatcher *dispPt)
+int mcr_GenericDispatcher_trim(void *genericDispatcherPt)
 {
+	struct mcr_GenericDispatcher *dispPt = genericDispatcherPt;
+	if (!dispPt)
+		return 0;
 	mcr_err = 0;
 	mcr_Map_trim(&dispPt->signal_receivers);
 	mcr_Array_trim(&dispPt->receivers);

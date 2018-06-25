@@ -47,7 +47,7 @@ MCR_API int mcr_GenericDispatcher_init(void *genericDispatcherPt);
 MCR_API int mcr_GenericDispatcher_deinit(void *genericDispatcherPt);
 /*!
  */
-MCR_API int mcr_GenericDispatcher_trim(struct mcr_GenericDispatcher *genericDispatcherPt);
+MCR_API int mcr_GenericDispatcher_trim(void *genericDispatcherPt);
 
 #ifdef __cplusplus
 }

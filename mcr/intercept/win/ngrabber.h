@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Hooks are for intercepting events in Windows.
+ *  \brief Hooks are for intercepting events in Windows.
  */
 
 #ifndef MCR_INTERCEPT_WIN_NGRABBER_H_

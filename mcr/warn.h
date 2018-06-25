@@ -23,12 +23,12 @@
  */
 
 #ifdef __GNUC__
-	#warning Warning!
+#warning Warning!
 #elif __clang__
-	#pragma GCC warning "Warning!"
+#pragma GCC warning "Warning!"
 #else
-	/* MSVC-specific warning, but will at least print a message for
-	* unknown compilers.
-	*/
-	#pragma message "Warning Msg: Warning!"
+/* MSVC-specific warning, but will at least print a message for
+* unknown compilers.
+*/
+#pragma message "Warning Msg: Warning!"
 #endif

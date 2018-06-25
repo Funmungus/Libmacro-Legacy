@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * Intercept reads from hardware, and may block.
+ *  \brief Intercept reads from hardware, and may block.
  */
 
 #ifndef MCR_INTERCEPT_INTERCEPT_H_
@@ -29,18 +29,45 @@
 extern "C" {
 #endif
 
+/*! Set known modifiers from hardware values. */
 MCR_API void mcr_intercept_reset_modifiers(struct mcr_context *ctx);
+/*! Is hardware intercept grabbing hardware to enable blocking. */
+MCR_API bool mcr_intercept_blockable(struct mcr_context *ctx);
+/*! Set hardware grab to enable blocking.
+ *
+ *  Will not change current intercepts, please use \ref mcr_intercept_reset.
+ */
+MCR_API void mcr_intercept_set_blockable(struct mcr_context *ctx, bool enable);
+/*! If currently enabled this will reset all current hardware intercepts. */
+MCR_API int mcr_intercept_reset(struct mcr_context *ctx);
 
-/* Defined in platform source. */
+/* platform */
+/*! Is any hardware intercepting.
+ *
+ *  \ref mcr_is_platform
+ */
 MCR_API bool mcr_intercept_is_enabled(struct mcr_context *ctx);
+/*! Enable intercept from hardware.  Refer to platform functions to set which
+ *  hardware to intercept.
+ *
+ *  \ref mcr_is_platform
+ */
 MCR_API int mcr_intercept_set_enabled(struct mcr_context *ctx, bool enable);
+/*! Modifiers reported by hardware or OS.
+ *
+ *  \ref mcr_is_platform
+ */
 MCR_API unsigned int mcr_intercept_modifiers(struct mcr_context *ctx);
 
 /*! Intercept module
  *
- * In cases of extreme complexity, please break glass.
+ *  In cases of extreme complexity, please break glass.
  */
 struct mcr_intercept {
+	/*! Is hardware intercept grabbing hardware to enable blocking
+	 *
+	 *  Default false for OS compatibility. */
+	bool blocking;
 	/*! All data reserved for platform definitions */
 	void *platform;
 };

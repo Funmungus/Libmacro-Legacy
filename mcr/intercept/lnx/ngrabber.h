@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Grabber - Take exclusive access to a /dev/input event.
+ *  \brief Grabber - Take exclusive access to a /dev/input event.
  */
 
 #ifndef MCR_INTERCEPT_LNX_NGRABBER_H_
@@ -31,6 +31,10 @@ extern "C" {
 
 /*! Take exclusive access to a /dev/input event. */
 struct mcr_Grabber {
+	/*! Allow blocked grabbing, \ref EVIOCGRAB
+	 *
+	 *  Default false. */
+	bool blocking;
 	/*! File of input event to read */
 	int fd;
 	/*! File path of input event */
@@ -41,15 +45,22 @@ struct mcr_Grabber {
 MCR_API int mcr_Grabber_init(void *grabPt);
 MCR_API int mcr_Grabber_deinit(void *grabPt);
 
+/*! \ref mcr_Grabber.blocking */
+MCR_API bool mcr_Grabber_is_blocking(struct mcr_Grabber *grabPt);
+/*! \ref mcr_Grabber.blocking, and will also set EVIOCGRAB if currently
+ *  enabled. */
+MCR_API int mcr_Grabber_set_blocking(struct mcr_Grabber *grabPt, bool enable);
+/*! \ref mcr_Grabber.path */
 MCR_API const char *mcr_Grabber_path(struct mcr_Grabber *grabPt);
+/*! \ref mcr_Grabber.path */
 MCR_API int mcr_Grabber_set_path(struct mcr_Grabber *grabPt, const char *path);
 /*! Get enabled state, and set the grabber enabled
- * state to the same.
+ *  state to the same.
  */
 MCR_API bool mcr_Grabber_is_enabled(struct mcr_Grabber *grabPt);
 /*! Allow or disallow this object to function.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable);
 

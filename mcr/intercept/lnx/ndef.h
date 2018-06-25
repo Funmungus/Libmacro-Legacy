@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * Linux platform intercept definitions
+ *  Linux platform intercept definitions
  */
 
 #ifndef MCR_INTERCEPT_LNX_NDEF_H_
@@ -30,7 +30,7 @@ extern "C" {
 #include "mcr/standard/lnx/nstandard.h"
 #include "mcr/intercept/def.h"
 
-#ifndef MCR_GRAB_SET_LENGTH_
+#ifndef MCR_GRAB_SET_LENGTH
 #define MCR_GRAB_SET_LENGTH 16
 #endif
 

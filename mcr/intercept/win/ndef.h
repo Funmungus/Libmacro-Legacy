@@ -33,4 +33,4 @@
 	#define MCR_INTERCEPT_WAIT_MILLIS 5000
 #endif
 
-#endif	/* MCR_INTERCEPT_WIN_NDEF_H_ */
+#endif

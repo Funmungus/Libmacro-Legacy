@@ -50,6 +50,25 @@ int mcr_Grabber_deinit(void *grabPt)
 	return err;
 }
 
+bool mcr_Grabber_is_blocking(struct mcr_Grabber *grabPt)
+{
+	return grabPt && grabPt->blocking;
+}
+
+int mcr_Grabber_set_blocking(struct mcr_Grabber *grabPt, bool enable)
+{
+	int err;
+	if (!grabPt || enable == grabPt->blocking)
+		return 0;
+	/* Currently running */
+	if (grabPt->fd != -1) {
+		if ((err = grabber_grab(grabPt, enable)))
+			return err;
+	}
+	grabPt->blocking = enable;
+	return 0;
+}
+
 const char *mcr_Grabber_path(struct mcr_Grabber *grabPt)
 {
 	return grabPt ? grabPt->path.array : NULL;
@@ -89,28 +108,23 @@ int mcr_Grabber_set_enabled(struct mcr_Grabber *grabPt, bool enable)
 
 static int grabber_open(struct mcr_Grabber *grabPt)
 {
-	int err;
 	if (grabPt->fd != -1 || MCR_STR_IS_EMPTY(grabPt->path)) {
 		mset_error(ENODEV);
 		return ENODEV;
 	}
 	if (access(grabPt->path.array, R_OK)) {
-		err = errno;
-		if (!err)
-			err = ENODEV;
-		mset_error(err);
-		return err;
+		mcr_errno(ENODEV);
+		return mcr_err;
 	}
 	if ((grabPt->fd =
 			 open(grabPt->path.array,
 				  O_RDONLY | O_NONBLOCK)) == -1) {
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
-		return err;
+		mcr_errno(EINTR);
+		return mcr_err;
 	}
-	return grabber_grab(grabPt, true);
+	if (grabPt->blocking)
+		return grabber_grab(grabPt, true);
+	return 0;
 }
 
 static int grabber_close(struct mcr_Grabber *grabPt)
@@ -118,16 +132,14 @@ static int grabber_close(struct mcr_Grabber *grabPt)
 	int err;
 	if (grabPt->fd == -1)
 		return 0;
-	if ((err = grabber_grab(grabPt, false))) {
+	if (grabPt->blocking && (err = grabber_grab(grabPt, false))) {
 		close(grabPt->fd);
 		grabPt->fd = -1;
 		return err;
 	}
 	if (close(grabPt->fd) < 0) {
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
+		mcr_errno(EINTR);
+		err = mcr_err;
 	}
 	grabPt->fd = -1;
 	return err;
@@ -135,12 +147,9 @@ static int grabber_close(struct mcr_Grabber *grabPt)
 
 static int grabber_grab(struct mcr_Grabber *grabPt, bool toGrab)
 {
-	int err = 0;
 	if (ioctl(grabPt->fd, EVIOCGRAB, toGrab ? 1 : 0) < 0) {
-		err = errno;
-		if (!err)
-			err = EINTR;
-		mset_error(err);
+		mcr_errno(EINTR);
+		return mcr_err;
 	}
-	return err;
+	return 0;
 }

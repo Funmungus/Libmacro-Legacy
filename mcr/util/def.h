@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Utility definitions
+ *  \brief Utility definitions
  */
 
 #ifndef MCR_UTIL_DEF_H_
@@ -51,7 +51,7 @@ extern "C" {
 /* Doxygen in-document references */
 #ifndef reterr
 	/*! Return 0 for success, otherwise standard error code
-	* from \c errno.h.
+	*  from \c errno.h.
 	*/
 	#define reterr int
 #endif
@@ -68,7 +68,7 @@ extern "C" {
 
 #ifndef retcmp
 	/*! Return 0 if comparison is equal, less than 0 if left < right,
-	* or greater than 0 if left > right.
+	*  or greater than 0 if left > right.
 	*/
 	#define retcmp int
 #endif
@@ -85,7 +85,7 @@ extern "C" {
 
 #define MCR_STR_HELPER(x) #x
 /*! Stringify, or create a string.
- * e.g. MCR_STR(myString) => "myString"
+ *  e.g. MCR_STR(myString) => "myString"
  */
 #define MCR_STR(x) MCR_STR_HELPER(x)
 
@@ -117,9 +117,9 @@ extern "C" {
 #ifndef MCR_CMP
 /*! Compare integral types.  Casting must be done manually.
  *
- * \param lhs Left side
- * \param rhs Right side
- * \return \ref retcmp
+ *  \param lhs Left side
+ *  \param rhs Right side
+ *  \return \ref retcmp
  */
 #define MCR_CMP(lhs, rhs) \
 ((lhs) < (rhs) ? \
@@ -129,10 +129,10 @@ extern "C" {
 #ifndef MCR_CMP_CAST
 /*! Integral comparison with built-in casting
  *
- * \param casting Prefix used to cast variables before comparison
- * \param lhs Left side
- * \param rhs Right side
- * \return \ref retcmp
+ *  \param casting Prefix used to cast variables before comparison
+ *  \param lhs Left side
+ *  \param rhs Right side
+ *  \return \ref retcmp
  */
 #define MCR_CMP_CAST(casting, lhs, rhs) \
 MCR_CMP(casting(lhs), casting(rhs))
@@ -154,7 +154,7 @@ mcr_ddo(printf(__VA_ARGS__))
 #ifndef mcr_dmsg
 /*! Automated error message based on errno.
  *
- * Print to \c stderr for only debug builds.
+ *  Print to \c stderr for only debug builds.
  */
 #define mcr_dmsg \
 mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
@@ -176,8 +176,8 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
 #ifndef mcr_arrlen
 /*! For a static array definition get the number of elements.
  *
- * \param arr Static array
- * \return size_t Number of elements
+ *  \param arr Static array
+ *  \return size_t Number of elements
  */
 #define mcr_arrlen(arr) \
 (sizeof(arr) / sizeof(*(arr)))
@@ -185,8 +185,8 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
 #ifndef mcr_errno
 /*! Set \ref mcr_err to \ref errno.
  *
- * Also \ref mcr_dmsg
- * \param fallbackError If errno is not an error, use this error code.
+ *  Also \ref mcr_dmsg
+ *  \param fallbackError If errno is not an error, use this error code.
  */
 #define mcr_errno(fallbackError) \
 mcr_err = errno; \

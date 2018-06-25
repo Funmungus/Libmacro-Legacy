@@ -23,12 +23,12 @@
  */
 
 #ifdef __GNUC__
-	#error Error!
+#error Error!
 #elif __clang__
-	#pragma GCC error "Error!"
+#pragma GCC error "Error!"
 #else
-	/* MSVC-specific error, but will at least print a message for
-	* unknown compilers.
-	*/
-	#pragma message "Error Msg: Error!"
+/* MSVC-specific error, but will at least print a message for
+* unknown compilers.
+*/
+#pragma message "Error Msg: Error!"
 #endif

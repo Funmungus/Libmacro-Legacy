@@ -26,8 +26,30 @@ void mcr_intercept_reset_modifiers(struct mcr_context *ctx)
 	*mcr_modifiers(ctx) = mcr_intercept_modifiers(ctx);
 }
 
+bool mcr_intercept_blockable(struct mcr_context *ctx)
+{
+	return ctx->intercept.blocking;
+}
+
+void mcr_intercept_set_blockable(struct mcr_context *ctx, bool enable)
+{
+	ctx->intercept.blocking = enable;
+}
+
+int mcr_intercept_reset(struct mcr_context *ctx)
+{
+	int err;
+	if (mcr_intercept_is_enabled(ctx)) {
+		if ((err = mcr_intercept_set_enabled(ctx, false)))
+			return err;
+		return mcr_intercept_set_enabled(ctx, true);
+	}
+	return 0;
+}
+
 int mcr_intercept_initialize(struct mcr_context *ctx)
 {
+	/* blocking default false, assume structure is 0'd on init */
 	return mcr_intercept_platform_initialize(ctx);
 }
 

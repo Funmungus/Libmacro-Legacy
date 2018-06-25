@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief Read from grabbers and dispatch signals. This may block
- * incoming events.
+ *  \brief Read from grabbers and dispatch signals. This may block
+ *  incoming events.
  */
 
 #ifndef MCR_INTERCEPT_WIN_NINTERCEPT_H_
