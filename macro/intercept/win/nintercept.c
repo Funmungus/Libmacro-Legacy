@@ -152,7 +152,7 @@ static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
 		_key.key = p->vkCode;
 		_key.up_type = (WPARAM_UPTYPE(wParam));
-		if (mcr_dispatch(_hook_context, &_keySig) && _hook_context->intercept.blocking)
+		if (mcr_dispatch(_hook_context, &_keySig) && _hook_context->intercept.blockable)
 			return -1;
 	}
 	return CallNextHookEx(nPt->grab_key->id, nCode, wParam, lParam);
@@ -162,7 +162,7 @@ static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	struct mcr_intercept_platform *nPt =
 			_hook_context->intercept.platform;
-	bool blocking = _hook_context->intercept.blocking;
+	bool blockable = _hook_context->intercept.blockable;
 	if (nCode == HC_ACTION) {
 		MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT *) lParam;
 		DWORD flags = p->flags;
@@ -181,20 +181,20 @@ static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 				}
 				_lastX = current.x;
 				_lastY = current.y;
-				if (mcr_dispatch(_hook_context, &_mcSig) && blocking)
+				if (mcr_dispatch(_hook_context, &_mcSig) && blockable)
 					return -1;
 			}
 			break;
 		case WM_MOUSEWHEEL:
 			_scr.dm[MCR_X] = 0;
 			_scr.dm[MCR_Y] = delta;
-			if (mcr_dispatch(_hook_context, &_scrSig) && blocking)
+			if (mcr_dispatch(_hook_context, &_scrSig) && blockable)
 				return -1;
 			break;
 		case WM_MOUSEHWHEEL:
 			_scr.dm[MCR_X] = delta;
 			_scr.dm[MCR_Y] = 0;
-			if (mcr_dispatch(_hook_context, &_scrSig) && blocking)
+			if (mcr_dispatch(_hook_context, &_scrSig) && blockable)
 				return -1;
 			break;
 		default:
@@ -202,7 +202,7 @@ static LRESULT __stdcall mouse_proc(int nCode, WPARAM wParam, LPARAM lParam)
 				for (unsigned int i = arrlen(_echo_WM); i--;) {
 					if (wParam == _echo_WM[i]) {
 						_echo.echo = i;
-						if (mcr_dispatch(_hook_context, &_echoSig) && blocking)
+						if (mcr_dispatch(_hook_context, &_echoSig) && blockable)
 							return -1;
 						break;
 					}

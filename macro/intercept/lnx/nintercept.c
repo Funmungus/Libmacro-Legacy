@@ -47,7 +47,7 @@ static int grab_context_malloc(_grab_context ** gcPt, struct mcr_context *ctx)
 		*gcPt = NULL;
 		return err;
 	}
-	mcr_Grabber_set_blocking(&(*gcPt)->grabber, ctx->intercept.blocking);
+	mcr_Grabber_set_blocking(&(*gcPt)->grabber, ctx->intercept.blockable);
 	(*gcPt)->ctx = ctx;
 	return 0;
 }

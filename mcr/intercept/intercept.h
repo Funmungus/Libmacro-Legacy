@@ -31,12 +31,9 @@ extern "C" {
 
 /*! Set known modifiers from hardware values. */
 MCR_API void mcr_intercept_reset_modifiers(struct mcr_context *ctx);
-/*! Is hardware intercept grabbing hardware to enable blocking. */
-MCR_API bool mcr_intercept_blockable(struct mcr_context *ctx);
-/*! Set hardware grab to enable blocking.
- *
- *  Will not change current intercepts, please use \ref mcr_intercept_reset.
- */
+/*! \ref mcr_intercept.blockable */
+MCR_API bool mcr_intercept_is_blockable(struct mcr_context *ctx);
+/*! \ref mcr_intercept.blockable */
 MCR_API void mcr_intercept_set_blockable(struct mcr_context *ctx, bool enable);
 /*! If currently enabled this will reset all current hardware intercepts. */
 MCR_API int mcr_intercept_reset(struct mcr_context *ctx);
@@ -67,7 +64,7 @@ struct mcr_intercept {
 	/*! Is hardware intercept grabbing hardware to enable blocking
 	 *
 	 *  Default false for OS compatibility. */
-	bool blocking;
+	bool blockable;
 	/*! All data reserved for platform definitions */
 	void *platform;
 };
