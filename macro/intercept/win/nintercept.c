@@ -147,7 +147,6 @@ static LRESULT __stdcall key_proc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	struct mcr_intercept_platform *nPt =
 			_hook_context->intercept.platform;
-	LRESULT ret;
 	if (nCode == HC_ACTION) {
 		KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *) lParam;
 		_key.key = p->vkCode;
