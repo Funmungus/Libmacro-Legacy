@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref mcr_DispatchPair - Receiver and receiving function pair which
- * intercepts signals before they are sent
+ *  \brief \ref mcr_DispatchPair - Receiver and receiving function pair which
+ *  intercepts signals before they are sent
  */
 
 #ifndef MCR_SIGNAL_DISPATCH_PAIR_H_
@@ -33,18 +33,18 @@ extern "C" {
 struct mcr_Signal;
 /*! Receive dispatch before signal is sent
  *
- * \param receiver Object to receive signal.  The receiver might
- * be optional for some receiving functions.
- * \param dispatchSignal Intercepted signal
- * \param mods Intercepted modifiers
- * \return true to block sending
+ *  \param receiver Object to receive signal.  The receiver might
+ *  be optional for some receiving functions.
+ *  \param dispatchSignal Intercepted signal
+ *  \param mods Intercepted modifiers
+ *  \return True to block from sending
  */
 typedef bool(*mcr_Dispatcher_receive_fnc) (void *receiver,
 		struct mcr_Signal * dispatchSignal, unsigned int mods);
-/*! Generic receiver and function that may block or intercept a sending
- * signal
+/*! Generic receiver and function that may block or intercept a signal
+ *  being sent.
  *
- * Receiver is first, to compare with \ref mcr_ref_compare.
+ *  Receiver is first, to compare with \ref mcr_ref_compare.
  */
 struct mcr_DispatchPair {
 	/*! Object to receive signal */
@@ -54,9 +54,9 @@ struct mcr_DispatchPair {
 };
 /*! Create new \ref mcr_DispatchPair
  *
- * \param receiver \ref opt \ref mcr_DispatchPair.receiver
- * \param dispatch \ref opt \ref mcr_DispatchPair.dispatch
- * \return New \ref mcr_DispatchPair
+ *  \param receiver \ref opt \ref mcr_DispatchPair.receiver
+ *  \param dispatch \ref opt \ref mcr_DispatchPair.dispatch
+ *  \return New \ref mcr_DispatchPair
  */
 MCR_API struct mcr_DispatchPair mcr_DispatchPair_new(void *receiver,
 		mcr_Dispatcher_receive_fnc dispatch);
@@ -65,7 +65,7 @@ MCR_API struct mcr_DispatchPair mcr_DispatchPair_new(void *receiver,
 
 /*! Interface for a \ref mcr_Array of \ref mcr_DispatchPair structures.
  *
- * Dispatch maps should always end with this array.
+ *  Dispatch maps should always end with this array.
  */
 MCR_API const struct mcr_Interface *mcr_Array_DispatchPair_interface();
 

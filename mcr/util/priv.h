@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * Set current operating permissions.
+ *  Set current operating permissions.
  */
 
 #ifndef MCR_UTIL_PRIV_H_
@@ -30,10 +30,10 @@ extern "C" {
 #endif
 
 /*! Disable privileges, and remove the ability to
- * enable them.
+ *  enable them.
  *
- * \ref mcr_is_platform
- * \return \ref reterr
+ *  \ref mcr_is_platform
+ *  \return \ref reterr
  */
 MCR_API int mcr_privilege_deactivate();
 

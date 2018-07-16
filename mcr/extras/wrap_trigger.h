@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief C++ wrapper for \ref itrigger.h and \ref trigger.h functions
+ *  \brief C++ wrapper for \ref itrigger.h and \ref trigger.h functions
  */
 
 #ifndef __cplusplus
@@ -35,16 +35,16 @@ namespace mcr
 class TriggerRef;
 /*! \ref mcr_ITrigger reference editor
  *
- * \ref itrigger.h
- * Will not unregister ITrigger on destruction
- * Virtual and concrete class
+ *  \ref itrigger.h
+ *  Will not unregister ITrigger on destruction
+ *  Virtual and concrete class
  */
 class MCR_EXTRAS_API ITriggerRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param itrigPt ITrigger reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param itrigPt ITrigger reference to edit
 	 */
 	ITriggerRef(Libmacro *context = NULL, mcr_ITrigger *itrigPt = NULL);
 	ITriggerRef(mcr_ITrigger *itrigPt);
@@ -98,8 +98,8 @@ public:
 
 	/*! \ref mcr_register this ITrigger
 	 *
-	 * If the ITrigger id is not -1, then mcr_reg_set_name and
-	 * mcr_reg_add_name will be used instead.
+	 *  If the ITrigger id is not -1, then mcr_reg_set_name and
+	 *  mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
 							  const char **addNames = NULL, size_t addNamesCount = 0);
@@ -194,16 +194,16 @@ private:
 
 /*! \ref mcr_Trigger reference editor
  *
- * \ref trigger.h
- * Will not deinit Trigger on destruction
- * Virtual and concrete class
+ *  \ref trigger.h
+ *  Will not deinit Trigger on destruction
+ *  Virtual and concrete class
  */
 class MCR_EXTRAS_API TriggerRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param trigPt Trigger reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param trigPt Trigger reference to edit
 	 */
 	TriggerRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
 	TriggerRef(mcr_Trigger *trigPt);
@@ -382,9 +382,9 @@ private:
 
 /*! Reference to Trigger of specific type.
  *
- * This class is intended to always have the same ITrigger. Setting
- * a trigger reference of a different type should reset it to the correct
- * type.
+ *  This class is intended to always have the same ITrigger. Setting
+ *  a trigger reference of a different type should reset it to the correct
+ *  type.
  */
 class MCR_EXTRAS_API TriggerManager : public TriggerRef
 {
@@ -421,9 +421,9 @@ public:
 	virtual void copy(const TriggerRef &copytron) override;
 protected:
 	/*! Please call \ref init after construction
-	 * \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param trigPt Trigger reference to manage
+	 *  \param context If null the last created context will be used.
+	 *  Throws EINVAL if no context exists
+	 *  \param trigPt Trigger reference to manage
 	 */
 	TriggerManager(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL,
 				   mcr_ITrigger *itrigPt = NULL)
@@ -488,16 +488,16 @@ class MCR_EXTRAS_API StagedRef : public TriggerManager
 public:
 	StagedRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
 
-	inline bool block () const
+	inline bool blocking () const
 	{
 		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->block;
+			return data<mcr_Staged>()->blocking;
 		return 0;
 	}
-	inline void setBlock(bool val)
+	inline void setBlocking(bool val)
 	{
 		mkdata();
-		data<mcr_Staged>()->block = val;
+		data<mcr_Staged>()->blocking = val;
 	}
 
 	inline mcr_Array *stagesRef()

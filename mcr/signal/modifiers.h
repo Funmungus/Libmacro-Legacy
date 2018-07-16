@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Libmacro modifiers
+ *  \brief Libmacro modifiers
  */
 
 #ifndef MCR_SIGNAL_MODIFIERS_H_
@@ -33,12 +33,12 @@ extern "C" {
 MCR_API unsigned int *mcr_modifiers(struct mcr_context *ctx);
 /*! Add modifiers to current
  *
- * \param addMods Modifiers to add
+ *  \param addMods Modifiers to add
  */
 MCR_API void mcr_add_modifiers(struct mcr_context *ctx, unsigned int addMods);
 /*! Remove modifiers from current
  *
- * \param remMods Modifiers to remove
+ *  \param remMods Modifiers to remove
  */
 MCR_API void mcr_remove_modifiers(struct mcr_context *ctx,
 								  unsigned int remMods);

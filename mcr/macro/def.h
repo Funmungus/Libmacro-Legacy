@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Definitions for macros
+ *  \brief Definitions for macros
  */
 
 #ifndef MCR_MACRO_DEF_H_
@@ -28,15 +28,15 @@
 #ifndef MCR_THREAD_MAX
 	/*! Maximum thread count for macros
 	*
-	* For better security macros will never create more than this number of
-	* threads
+	*  For better security macros will never create more than this number of
+	*  threads
 	*/
 	#define MCR_THREAD_MAX 0x10
 #endif
 
 #ifndef MCR_MACRO_JOIN_TIMEOUT
 	/*! Seconds to wait for macros to respond when they are being
-	* interrupted or paused
+	*  interrupted or paused
 	*/
 	#define MCR_MACRO_JOIN_TIMEOUT 2
 #endif

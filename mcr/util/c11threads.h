@@ -19,11 +19,11 @@
 */
 
 /*! \file
- * C11 threads.h file wrapper based on project
- * https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
- * by the compiler, we will wrap pthread function calls (required to link
- * pthread library, e.g. -lpthread).  Otherwise threads.h will be included
- * directly. Static inline function support is required.
+ *  C11 threads.h file wrapper based on project
+ *  https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
+ *  by the compiler, we will wrap pthread function calls (required to link
+ *  pthread library, e.g. -lpthread).  Otherwise threads.h will be included
+ *  directly. Static inline function support is required.
  */
 
 #ifndef MCR_UTIL_C11THREADS_H_

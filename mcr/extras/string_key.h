@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref StringKey - Turn a string into a set of signals, such as a key
- * press
+ *  \brief \ref StringKey - Turn a string into a set of signals, such as a key
+ *  press
  */
 
 #ifndef __cplusplus
@@ -57,7 +57,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 
 	/*! Get a StringKey from a signal
 	 *
-	 * \param sigPt \ref opt \ref mcr_Signal *
+	 *  \param sigPt \ref opt \ref mcr_Signal *
 	 */
 	static inline StringKey *data(mcr_Signal *sigPt)
 	{
@@ -100,7 +100,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	/*! \ref mcr_Signal_compare */
 	int compare(const StringKey &rhs) const;
 	/*! \ref mcr_Signal_copy
-	 * \param copytron \ref opt
+	 *  \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
 	/*! \ref mcr_ISignal_set_name */

@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Utilities for Libmacro
+ *  \brief Utilities for Libmacro
  */
 
 #ifndef MCR_UTIL_UTIL_H_
@@ -36,16 +36,16 @@ extern "C" {
 /*! time(NULL) and ctime */
 MCR_API const char *mcr_timestamp();
 /*! For given bit return the corresponding array index.
- * Requires at least one "on" bit
+ *  Requires at least one "on" bit
  *
- * See \ref mcr_index_bit
- * \return Array index of bit value
+ *  See \ref mcr_index_bit
+ *  \return Array index of bit value
  */
 MCR_API unsigned int mcr_bit_index(unsigned int bitval);
 /*! For given array index return the corresponding bit value.
  *
- * See \ref mcr_bit_index
- * \return Bit value of array index
+ *  See \ref mcr_bit_index
+ *  \return Bit value of array index
  */
 #define mcr_index_bit(index) (1 << index)
 /*! Get an \c errno.h code from a threading error number. */

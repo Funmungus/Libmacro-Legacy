@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref Command - Execute a shell command, similar to \ref execvp,
- * with restrictions and without closing current process.
+ *  \brief \ref Command - Execute a shell command, similar to \ref execvp,
+ *  with restrictions and without closing current process.
  */
 
 #ifndef __cplusplus
@@ -55,7 +55,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 
 	/*! Get command from signal
 	 *
-	 * \param sigPt \ref opt \ref mcr_Signal *
+	 *  \param sigPt \ref opt \ref mcr_Signal *
 	 */
 	static inline Command *data(mcr_Signal *sigPt)
 	{
@@ -63,9 +63,9 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	}
 
 	/*! \ref mcr_is_platform Same as standard execvp, except raised
-	 * permissions are removed in the program that executes
-	 * \param Filename Executable file
-	 * \param ArgList Shell comman arguments
+	 *  permissions are removed in the program that executes
+	 *  \param Filename Executable file
+	 *  \param ArgList Shell comman arguments
 	 */
 //	static void execvp(const char *Filename, char * const ArgList[]);
 	static void setKeyProvider(IKeyProvider *provider)
@@ -127,7 +127,7 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	/*! \ref mcr_Signal_compare */
 	int compare(const Command &rhs) const;
 	/*! \ref mcr_Signal_copy
-	 * \param copytron \ref opt
+	 *  \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
 	/*! \ref mcr_ISignal_set_name */

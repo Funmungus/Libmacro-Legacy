@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Definitions for standard types.
+ *  \brief Definitions for standard types.
  */
 
 #ifndef MCR_STANDARD_DEF_H_
@@ -58,9 +58,9 @@ enum mcr_KeyUpType {
 };
 
 /*! Spatial position, indices are coordinates.
- * \ref MCR_DIMENSION_CNT
+ *  \ref MCR_DIMENSION_CNT
  *
- * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
+ *  This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
  */
 typedef long long mcr_SpacePosition[MCR_DIMENSION_CNT];
 /*! \ref mcr_SpacePosition */

@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Extra and C++ things not needed for Libmacro to function
+ *  \brief Extra and C++ things not needed for Libmacro to function
  */
 
 #ifndef __cplusplus
@@ -42,18 +42,18 @@ struct MCR_EXTRAS_API Libmacro {
 	mcr_context context;
 
 	/*! ctor
-	 * \param enabled Initial enabled state, must be disabled before
-	 * destruction
+	 *  \param enabled Initial enabled state, must be disabled before
+	 *  destruction
 	 */
 	Libmacro(bool enabled = true);
 	/*! dtor If this is enabled during destruction threading errors
-	 * are likely to happen
+	 *  are likely to happen
 	 */
 	~Libmacro();
 	/*! Get the last created \ref Libmacro module
 	 *
-	 * Will throw EFAULT if no \ref Libmacro exists, and will not create a
-	 * singleton object
+	 *  Will throw EFAULT if no \ref Libmacro exists, and will not create a
+	 *  singleton object
 	 */
 	static Libmacro *instance();
 
@@ -79,14 +79,14 @@ struct MCR_EXTRAS_API Libmacro {
 		return *_iStringKey;
 	}
 	/*! Generic enabler for mcr_context functions, such as
-	 * hardware hooks and any sort of threading.
+	 *  hardware hooks and any sort of threading.
 	 */
 	inline bool isEnabled() const
 	{
 		return _enabled;
 	}
 	/*! Set current enabled state.  Please disable before the
-	 * destructor to avoid threading errors.
+	 *  destructor to avoid threading errors.
 	 */
 	void setEnabled(bool val);
 
@@ -114,19 +114,19 @@ struct MCR_EXTRAS_API Libmacro {
 		setCharacter(c, val.data(), val.size());
 	}
 	/*! Set signals for a character that will press, pause, and release a
-	 * key.
+	 *  key.
 	 *
-	 * \param c Character to set signals for
-	 * \param key Keyboard key to press and release
-	 * \param msecDelay Milliseconds to pause between key press and release
-	 * \param shiftFlag If true a shift key will press before the key, and
-	 * release after the key.
-	 * \return \ref reterr
+	 *  \param c Character to set signals for
+	 *  \param key Keyboard key to press and release
+	 *  \param msecDelay Milliseconds to pause between key press and release
+	 *  \param shiftFlag If true a shift key will press before the key, and
+	 *  release after the key.
+	 *  \return \ref reterr
 	 */
 	void setCharacterKey(int c, int key, long msecDelay, bool shiftFlag);
 	/*! Set all \ref mcr_NoOp delay values for \ref StringKey
 	 *
-	 * \param delayValue Apply this pause time
+	 *  \param delayValue Apply this pause time
 	 */
 	void setCharacterDelays(mcr_NoOp delayValue);
 	void removeCharacter(int c);

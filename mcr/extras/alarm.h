@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref Alarm - Pause execution until a specific date-time.
+ *  \brief \ref Alarm - Pause execution until a specific date-time.
  */
 
 #ifndef __cplusplus
@@ -46,7 +46,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 
 	/*! Get an alarm from signal
 	 *
-	 * \param sigPt \ref opt \ref mcr_Signal *
+	 *  \param sigPt \ref opt \ref mcr_Signal *
 	 */
 	static inline Alarm *data(mcr_Signal *sigPt)
 	{
@@ -55,7 +55,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 
 	/*! Seconds
 	 *
-	 * [0-60] (1 leap second)
+	 *  [0-60] (1 leap second)
 	 */
 	inline int &sec()
 	{
@@ -63,7 +63,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Seconds
 	 *
-	 * [0-60] (1 leap second)
+	 *  [0-60] (1 leap second)
 	 */
 	inline int sec() const
 	{
@@ -71,7 +71,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Minutes
 	 *
-	 * [0-59]
+	 *  [0-59]
 	 */
 	inline int &min()
 	{
@@ -79,7 +79,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Minutes
 	 *
-	 * [0-59]
+	 *  [0-59]
 	 */
 	inline int min() const
 	{
@@ -87,7 +87,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Hours
 	 *
-	 * [0-23]
+	 *  [0-23]
 	 */
 	inline int &hour()
 	{
@@ -95,7 +95,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Hours
 	 *
-	 * [0-23]
+	 *  [0-23]
 	 */
 	inline int hour() const
 	{
@@ -103,7 +103,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Day
 	 *
-	 * [1-31]
+	 *  [1-31]
 	 */
 	inline int &mday()
 	{
@@ -111,7 +111,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Day
 	 *
-	 * [1-31]
+	 *  [1-31]
 	 */
 	inline int mday() const
 	{
@@ -119,7 +119,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Month
 	 *
-	 * [0-11]
+	 *  [0-11]
 	 */
 	inline int &mon()
 	{
@@ -127,7 +127,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Month
 	 *
-	 * [0-11]
+	 *  [0-11]
 	 */
 	inline int mon() const
 	{
@@ -145,7 +145,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Day of week
 	 *
-	 * [0-6]
+	 *  [0-6]
 	 */
 	inline int &wday()
 	{
@@ -153,7 +153,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Day of week
 	 *
-	 * [0-6]
+	 *  [0-6]
 	 */
 	inline int wday() const
 	{
@@ -161,7 +161,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Days in year
 	 *
-	 * [0-365]
+	 *  [0-365]
 	 */
 	inline int &yday()
 	{
@@ -169,7 +169,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! Days in year
 	 *
-	 * [0-365]
+	 *  [0-365]
 	 */
 	inline int yday() const
 	{
@@ -177,7 +177,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! DST
 	 *
-	 * [-1,0,1]
+	 *  [-1,0,1]
 	 */
 	inline int &isdst()
 	{
@@ -185,7 +185,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 	}
 	/*! DST
 	 *
-	 * [-1,0,1]
+	 *  [-1,0,1]
 	 */
 	inline int isdst() const
 	{
@@ -205,7 +205,7 @@ struct MCR_EXTRAS_API Alarm : public ISignalData {
 		return lT < rT ? -1 : rT > lT;
 	}
 	/*! \ref mcr_Signal_copy
-	 * \param copytron \ref opt
+	 *  \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) override;
 	/*! \ref mcr_ISignal_set_name */

@@ -17,17 +17,17 @@
 */
 
 /*! \file
- * \brief Standard signal and trigger types
+ *  \brief Standard signal and trigger types
  *
- * \ref mcr_standard - Standard signal and trigger types module
- * \ref mcr_Signal data types: \ref mcr_HidEcho,
- * \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
- * and \ref mcr_Scroll \n
- * \ref mcr_ISignal: \ref mcr_iHidEcho, \ref mcr_iKey,
- * \ref mcr_iMoveCursor, \ref mcr_iNoOp, and \ref mcr_iScroll\n
- * \n
- * \ref mcr_Trigger date types: \ref mcr_Action, \ref mcr_Staged\n
- * \ref mcr_ITrigger: \ref mcr_iAction, \ref mcr_iStaged
+ *  \ref mcr_standard - Standard signal and trigger types module
+ *  \ref mcr_Signal data types: \ref mcr_HidEcho,
+ *  \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
+ *  and \ref mcr_Scroll \n
+ *  \ref mcr_ISignal: \ref mcr_iHidEcho, \ref mcr_iKey,
+ *  \ref mcr_iMoveCursor, \ref mcr_iNoOp, and \ref mcr_iScroll\n
+ *  \n
+ *  \ref mcr_Trigger date types: \ref mcr_Action, \ref mcr_Staged\n
+ *  \ref mcr_ITrigger: \ref mcr_iAction, \ref mcr_iStaged
  */
 
 #ifndef MCR_STANDARD_STANDARD_H_
@@ -49,12 +49,12 @@ extern "C" {
 
 /* Some extra, possibly useful, utilities */
 /*! For both positions, either may be 0, or the same coordinate
- * array member must either be both negative, or both positive.
+ *  array member must either be both negative, or both positive.
  */
 MCR_API bool mcr_resembles_justified(const mcr_Dimensions first,
 									 const mcr_Dimensions second);
 /*! For both positions, the same coordinate array member must
- * be valued within the measurementError.
+ *  be valued within the measurementError.
  */
 MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
 									const mcr_Dimensions second, const unsigned int measurementError);
@@ -62,7 +62,7 @@ MCR_API bool mcr_resembles_absolute(const mcr_Dimensions first,
 struct mcr_IsStage;
 /*! Standard signal and trigger types module
  *
- * In cases of extreme complexity, please break glass. */
+ *  In cases of extreme complexity, please break glass. */
 struct mcr_standard {
 	/* Signal types */
 	struct mcr_ISignal ihid_echo;
@@ -85,7 +85,7 @@ struct mcr_standard {
 	struct mcr_Array stage_matchers;
 	/*! Stage matcher for no specific type
 	 *
-	 * By default this matches signal by address */
+	 *  By default this matches signal by address */
 	struct mcr_IsStage *stage_generic;
 	/* name reg */
 	struct mcr_StringIndex key_name_index;

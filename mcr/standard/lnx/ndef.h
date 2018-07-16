@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Standard module definitions
+ *  \brief Standard module definitions
  */
 
 #ifndef MCR_STANDARD_LNX_NDEF_H_
@@ -38,7 +38,7 @@
 	#define MCR_EVENT_PATH /dev/input
 #endif
 /*! Default value for \ref mcr_AbsDev resolution when library is built.
- * Default is 4095, or 0x0FFF
+ *  Default is 4095, or 0x0FFF
  */
 #ifndef MCR_ABS_RESOLUTION
 	#define MCR_ABS_RESOLUTION 0x0FFF

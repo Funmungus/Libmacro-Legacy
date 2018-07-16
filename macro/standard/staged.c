@@ -92,12 +92,12 @@ int mcr_Staged_copy(void *dstPt, const void *srcPt)
 		return 0;
 	if (!srcPt) {
 		mcr_Staged_clear(dPt);
-		dPt->block = false;
+		dPt->blocking = false;
 		dPt->style = MCR_BS_UNMANAGED;
 		return 0;
 	}
 	mcr_Stage_init(&initial);
-	dPt->block = sPt->block;
+	dPt->blocking = sPt->blocking;
 	mcr_Staged_clear(dPt);
 	dPt->style = sPt->style;
 	if (!sPt->stages.used)
@@ -140,7 +140,7 @@ isToBlock)
 	/* One element or previous activated, this may complete. */
 	if (stages->used == 1 || prev->activated) {
 		if (mcr_Stage_equals(rit, interceptPt, mods)) {
-			if (rit->block)
+			if (rit->blocking)
 				isToBlock = true;
 			mcr_Staged_deactivate(stagedPt);
 			return localOnComplete;
@@ -155,7 +155,7 @@ isToBlock)
 	while (rit != first) {
 		if (rit->activated) {
 			if (mcr_Stage_resembles(rit, interceptPt)) {
-				if (!isToBlock && rit->block)
+				if (!isToBlock && rit->blocking)
 					isToBlock = true;
 			} else {
 				rit->activated = false;
@@ -163,7 +163,7 @@ isToBlock)
 		} else if (prev->activated) {
 			if (mcr_Stage_equals(rit, interceptPt, mods)) {
 				rit->activated = true;
-				if (!isToBlock && rit->block)
+				if (!isToBlock && rit->blocking)
 					isToBlock = true;
 			}
 		}
@@ -174,7 +174,7 @@ isToBlock)
 	dassert(rit == first);
 	if (mcr_Stage_equals(rit, interceptPt, mods)) {
 		rit->activated = true;
-		if (!isToBlock && rit->block)
+		if (!isToBlock && rit->blocking)
 			isToBlock = true;
 	} else {
 		rit->activated = true;
@@ -198,21 +198,21 @@ void mcr_Staged_set_style(struct mcr_Staged *stagedPt,
 bool mcr_Staged_is_blocking(const struct mcr_Staged *stagedPt)
 {
 	dassert(stagedPt);
-	return stagedPt->block;
+	return stagedPt->blocking;
 }
 
 void mcr_Staged_set_blocking(struct mcr_Staged *stagedPt, bool blocking)
 {
 	struct mcr_Stage *it, *end;
 	dassert(stagedPt);
-	stagedPt->block = blocking;
+	stagedPt->blocking = blocking;
 	if (!stagedPt->stages.used)
 		return;
 	it = MCR_ARR_FIRST(stagedPt->stages);
 	end = MCR_ARR_END(stagedPt->stages);
 #define localSetAll(blockVal) \
 for (; it < end; it = MCR_ARR_NEXT(stagedPt->stages, it)) \
-{ it->block = blockVal; }
+{ it->blocking = blockVal; }
 	switch (stagedPt->style) {
 	case MCR_BS_UNMANAGED:
 		break;
@@ -223,11 +223,11 @@ for (; it < end; it = MCR_ARR_NEXT(stagedPt->stages, it)) \
 		localSetAll(true);
 		break;
 	case MCR_BS_BEGIN:
-		it->block = blocking;
+		it->blocking = blocking;
 		break;
 	case MCR_BS_FINAL:
 		it = MCR_ARR_PREV(stagedPt->stages, end);
-		it->block = blocking;
+		it->blocking = blocking;
 		break;
 	case MCR_BS_ALL:
 		localSetAll(blocking);

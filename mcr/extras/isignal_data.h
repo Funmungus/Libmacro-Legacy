@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref ISignalData - Data type for signal instances
- * C++.
+ *  \brief \ref ISignalData - Data type for signal instances
+ *  C++.
  */
 
 #ifndef __cplusplus
@@ -35,10 +35,10 @@ namespace mcr
 {
 /*! Signal instance data, such as \ref mcr_Key.
  *
- * Functions to overload: \ref ISignalData.compare, \ref ISignalData.copy,
- * \ref ISignalData.name, and \ref ISignalData.send \n
- * Optional overload: \ref ISignalData.addNamesCount and
- * \ref ISignalData.addNames
+ *  Functions to overload: \ref ISignalData.compare, \ref ISignalData.copy,
+ *  \ref ISignalData.name, and \ref ISignalData.send \n
+ *  Optional overload: \ref ISignalData.addNamesCount and
+ *  \ref ISignalData.addNames
  */
 class MCR_EXTRAS_API ISignalData
 {
@@ -65,7 +65,7 @@ public:
 	/*! \ref mcr_Signal_compare */
 	virtual int compare(const ISignalData &rhs) const = 0;
 	/*! \ref mcr_Signal_copy
-	 * \param copytron \ref opt
+	 *  \param copytron \ref opt
 	 */
 	virtual void copy(const ISignalData *copytron) = 0;
 	/* Signal */
@@ -83,10 +83,10 @@ public:
 		UNUSED(bufferLength);
 	}
 	/*! \ref mcr_send We highly suggest you inline this function,
-	 * as it will be called as the fully quallified class from \ref SignalType.send.
+	 *  as it will be called as the fully quallified class from \ref SignalType.send.
 	 *
-	 * Inline is only suggested if the send function is
-	 * not complex.
+	 *  Inline is only suggested if the send function is
+	 *  not complex.
 	 */
 	virtual void send() = 0;
 };

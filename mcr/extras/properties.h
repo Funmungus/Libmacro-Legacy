@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref IProperties - String based property manager, and a common
- * interface to flatten objects
+ *  \brief \ref IProperties - String based property manager, and a common
+ *  interface to flatten objects
  */
 
 #ifndef __cplusplus

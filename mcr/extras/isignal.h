@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref ISignal - Abstraction to \ref mcr_register a new ISignal in
- * C++.
+ *  \brief \ref ISignal - Abstraction to \ref mcr_register a new ISignal in
+ *  C++.
  */
 
 #ifndef __cplusplus
@@ -36,19 +36,19 @@ namespace mcr
 {
 /*! \ref mcr_ISignal C++ indirection for \ref ISignalData classes
  *
- * Usage: \n
- * \code
- * try {
- *   // optional template typedef
- *   typedef ISignal<ISignalDataType> MyCppISignal;
- *   ISignal<ISignalDataType> myISignal(Libmacro::instance());
- *   // optional, if data size of ISignalDataType is not correct
- *   isignal.instance.data_size = sizeof(ISignalDataType_subclass);
- *   isignal.registerType();
- * } catch (int err) {
- * // Show error message
- * }
- * \endcode
+ *  Usage: \n
+ *  \code
+ *  try {
+ *    // optional template typedef
+ *    typedef ISignal<ISignalDataType> MyCppISignal;
+ *    ISignal<ISignalDataType> myISignal(Libmacro::instance());
+ *    // optional, if data size of ISignalDataType is not correct
+ *    isignal.instance.data_size = sizeof(ISignalDataType_subclass);
+ *    isignal.registerType();
+ *  } catch (int err) {
+ *  // Show error message
+ *  }
+ *  \endcode
  */
 template<typename T>
 class ISignal : public CtxISignal

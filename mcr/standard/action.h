@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
+ *  \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
  */
 
 #ifndef MCR_STANDARD_ACTION_H_
@@ -39,14 +39,14 @@ struct mcr_Action {
 
 /*! \ref mcr_Action ctor
  *
- * Modifiers set to MCR_MF_NONE and flags set to MCR_TF_ALL
- * \param actPt \ref opt \ref mcr_Action
- * \return 0
+ *  Modifiers set to MCR_MF_NONE and flags set to MCR_TF_ALL
+ *  \param actPt \ref opt \ref mcr_Action
+ *  \return 0
  */
 MCR_API int mcr_Action_init(void *actPt);
 /* Default deinit, compare, copy */
 /*! \pre Trigger data is \ref mcr_Action
- * \brief \ref mcr_ITrigger.receive for \ref mcr_Action
+ *  \brief \ref mcr_ITrigger.receive for \ref mcr_Action
  */
 MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
 								unsigned int mods);

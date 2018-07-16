@@ -111,12 +111,12 @@ int mcr_Macro_deinit(void *mcrPt)
 	return 0;
 }
 
-int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool block,
+int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool blocking,
 					  bool sticky, unsigned int threadMax, bool enable,
 					  struct mcr_context *ctx)
 {
 	dassert(mcrPt);
-	mcrPt->block = block;
+	mcrPt->blocking = blocking;
 	mcrPt->sticky = sticky;
 	mcrPt->thread_max = threadMax;
 	mcrPt->ctx = ctx;
@@ -138,7 +138,7 @@ int mcr_Macro_copy(void *dstPt, const void *srcPt)
 		thrd_conv_err(thrdErr);
 		ddo(return thrdErr);
 	}
-	dPt->block = sPt->block;
+	dPt->blocking = sPt->blocking;
 	dPt->sticky = sPt->sticky;
 	dPt->thread_max = sPt->thread_max;
 	if ((err = mcr_Macro_set_signals(dPt,
@@ -472,7 +472,7 @@ ddo( \
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
-	return localPt->block;
+	return localPt->blocking;
 #undef onErr
 }
 
@@ -536,7 +536,7 @@ ddo( \
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
-	return mcrPt->block;
+	return mcrPt->blocking;
 #undef onErr
 }
 

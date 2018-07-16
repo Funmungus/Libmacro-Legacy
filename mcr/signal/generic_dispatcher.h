@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_GenericDispatcher - Dispatcher of any signal type
+ *  \brief \ref mcr_GenericDispatcher - Dispatcher of any signal type
  */
 
 #ifndef MCR_SIGNAL_GENERIC_DISPATCHER_H_
@@ -31,7 +31,7 @@ extern "C" {
 
 /*! Dispatcher of any signal type
  *
- * In cases of extreme complexity please break glass.
+ *  In cases of extreme complexity please break glass.
  */
 struct mcr_GenericDispatcher {
 	struct mcr_Dispatcher dispatcher;

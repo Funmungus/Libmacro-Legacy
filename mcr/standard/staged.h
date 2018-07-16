@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref mcr_Staged - Trigger that is triggered after activating all stages
- * \ref mcr_BlockStyle - How to manage blocking values of all stages
+ *  \brief \ref mcr_Staged - Trigger that is triggered after activating all stages
+ *  \ref mcr_BlockStyle - How to manage blocking values of all stages
  */
 
 #ifndef MCR_STANDARD_STAGED_H_
@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 /*! Blocking style describes how to manage a set of stages'
- * blocking values.
+ *  blocking values.
  */
 enum mcr_BlockStyle {
 	/*! Do not manage blocking for any stages. */
@@ -51,7 +51,7 @@ enum mcr_BlockStyle {
 /*! Trigger that is triggered after activating all stages */
 struct mcr_Staged {
 	/*! Blocking state of managed stages. */
-	bool block;
+	bool blocking;
 	/*! Set of \ref mcr_Stage */
 	struct mcr_Array stages;
 	/*! How to manage the blocking value of stages. */
@@ -60,14 +60,14 @@ struct mcr_Staged {
 
 /*! \ref mcr_Staged ctor
  *
- * \param stagedPt \ref opt \ref mcr_Staged
- * \return 0
+ *  \param stagedPt \ref opt \ref mcr_Staged
+ *  \return 0
  */
 MCR_API int mcr_Staged_init(void *stagedPt);
 /*! \ref mcr_Staged dtor
  *
- * \param stagedPt \ref opt \ref mcr_Staged
- * \return 0
+ *  \param stagedPt \ref opt \ref mcr_Staged
+ *  \return 0
  */
 MCR_API int mcr_Staged_deinit(void *stagedPt);
 /*! Set initial values */
@@ -77,8 +77,8 @@ MCR_API int mcr_Staged_compare(const void *lhs, const void *rhs);
 MCR_API int mcr_Staged_copy(void *dstPt, const void *srcPt);
 /*! \ref mcr_ITrigger.receive for staged trigger.
  *
- * If all stages activate, all will be deactivated and
- * \ref mcr_Trigger.trigger will be called.
+ *  If all stages activate, all will be deactivated and
+ *  \ref mcr_Trigger.trigger will be called.
  */
 MCR_API bool mcr_Staged_receive(void *trigDataPt,
 								struct mcr_Signal *interceptPt, unsigned int mods);

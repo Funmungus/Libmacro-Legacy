@@ -17,9 +17,9 @@
 */
 
 /*! \file
- * \brief Resolve standard library classes
+ *  \brief Resolve standard library classes
  *
- * Default to standard library, use QT if \ref MCR_NOSTL is defined
+ *  Default to standard library, use QT if \ref MCR_NOSTL is defined
  */
 
 #ifndef __cplusplus

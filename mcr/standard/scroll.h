@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Scroll - Scroll visible area.
+ *  \brief \ref mcr_Scroll - Scroll visible area.
  */
 
 #ifndef MCR_STANDARD_SCROLL_H_
@@ -36,9 +36,9 @@ struct mcr_Scroll {
 };
 
 /*! \pre Signal has data member \ref mcr_Scroll
- * \brief Scroll through visible area.
+ *  \brief Scroll through visible area.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Scroll_send(struct mcr_Signal *sigPt);
 /*! \ref mcr_Scroll_send */

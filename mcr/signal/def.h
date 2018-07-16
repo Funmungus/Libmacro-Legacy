@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Definitions for signals
+ *  \brief Definitions for signals
  */
 
 #ifndef MCR_SIGNAL_DEF_H_

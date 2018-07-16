@@ -61,7 +61,7 @@ MCR_API unsigned int mcr_intercept_modifiers(struct mcr_context *ctx);
  *  In cases of extreme complexity, please break glass.
  */
 struct mcr_intercept {
-	/*! Is hardware intercept grabbing hardware to enable blocking
+	/*! Is hardware intercept grabbing hardware, and is blocking available.
 	 *
 	 *  Default false for OS compatibility. */
 	bool blockable;

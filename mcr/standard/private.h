@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * In cases of extreme complexity, please break glass.
+ *  In cases of extreme complexity, please break glass.
  */
 
 #ifndef MCR_STANDARD_PRIVATE_H_
@@ -36,12 +36,12 @@ MCR_API void mcr_standard_trim(struct mcr_context *ctx);
 
 /*! Initialize platform requirements for standard signals.
  *
- * Called by \ref mcr_standard_initialize
+ *  Called by \ref mcr_standard_initialize
  */
 MCR_API int mcr_standard_platform_initialize(struct mcr_context *ctx);
 /*! Clean up platform requirements for standard signals.
  *
- * Called by \ref mcr_standard_deinitialize
+ *  Called by \ref mcr_standard_deinitialize
  */
 MCR_API int mcr_standard_platform_deinitialize(struct mcr_context *ctx);
 MCR_API int mcr_standard_platform_load_contract(struct mcr_context *ctx);

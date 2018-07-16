@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief C++ wrapper for \ref mcr/signal/isignal.h and \ref mcr/signal/signal.h functions
+ *  \brief C++ wrapper for \ref mcr/signal/isignal.h and \ref mcr/signal/signal.h functions
  */
 
 #ifndef __cplusplus
@@ -35,15 +35,15 @@ namespace mcr
 class SignalRef;
 /*! \ref mcr_ISignal reference editor
  *
- * Will not unregister ISignal on destruction
- * Virtual and concrete class
+ *  Will not unregister ISignal on destruction
+ *  Virtual and concrete class
  */
 class MCR_EXTRAS_API ISignalRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param isigPt ISignal reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param isigPt ISignal reference to edit
 	 */
 	ISignalRef(Libmacro *context = NULL, mcr_ISignal *isigPt = NULL);
 	ISignalRef(mcr_ISignal *isigPt);
@@ -98,8 +98,8 @@ public:
 
 	/*! \ref mcr_register this ISignal
 	 *
-	 * If the ISignal id is not -1, then mcr_reg_set_name and
-	 * mcr_reg_add_name will be used instead.
+	 *  If the ISignal id is not -1, then mcr_reg_set_name and
+	 *  mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
 							  const char **addNames = NULL, size_t addNamesCount = 0);
@@ -204,16 +204,16 @@ private:
 
 /*! \ref mcr_Signal reference editor
  *
- * \ref signal.h
- * Will not deinit Signal on destruction
- * Virtual and concrete class
+ *  \ref signal.h
+ *  Will not deinit Signal on destruction
+ *  Virtual and concrete class
  */
 class MCR_EXTRAS_API SignalRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param sigPt Signal reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param sigPt Signal reference to edit
 	 */
 	SignalRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
 	SignalRef(mcr_Signal *sigPt);
@@ -391,9 +391,9 @@ private:
 
 /*! Reference to Signal of specific type.
  *
- * This class is intended to always have the same ISignal. Setting
- * a signal reference of a different type should reset it to the correct
- * type.
+ *  This class is intended to always have the same ISignal. Setting
+ *  a signal reference of a different type should reset it to the correct
+ *  type.
  */
 class MCR_EXTRAS_API SignalManager : public SignalRef
 {
@@ -430,9 +430,9 @@ public:
 	virtual void copy(const SignalRef &copytron) override;
 protected:
 	/*! Please call \ref init after construction
-	 * \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param sigPt Signal reference to manage
+	 *  \param context If null the last created context will be used.
+	 *  Throws EINVAL if no context exists
+	 *  \param sigPt Signal reference to manage
 	 */
 	SignalManager(Libmacro *context = NULL, mcr_Signal *sigPt = NULL,
 				  mcr_ISignal *isigPt = NULL)

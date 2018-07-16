@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Key - Simulate keyboard keys.
+ *  \brief \ref mcr_Key - Simulate keyboard keys.
  */
 
 #ifndef MCR_STANDARD_KEY_H_
@@ -31,9 +31,9 @@ extern "C" {
 
 /*! Simulate keyboard keys
  *
- * A 0 value of key code should be logically
- * interpreted as either, "no key available, do not send,"
- * or "key code of any value."
+ *  A 0 value of key code should be logically
+ *  interpreted as either, "no key available, do not send,"
+ *  or "key code of any value."
  */
 struct mcr_Key {
 	/*! Key code, specified by platform */
@@ -46,16 +46,16 @@ struct mcr_Key {
 MCR_API void mcr_Key_set_all(struct mcr_Key *keyPt, int key,
 							 enum mcr_KeyUpType keyUp);
 /*! \pre Signal instance data is \ref mcr_Key
- * \brief Simulate keyboard keys.
+ *  \brief Simulate keyboard keys.
  *
- * \param sigPt Has data member \ref mcr_Key
- * \return \ref reterr
+ *  \param sigPt Has data member \ref mcr_Key
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_send(struct mcr_Signal *sigPt);
 /*! \ref mcr_Key_send
  *
- * \ref mcr_is_platform
- * \return \ref reterr
+ *  \ref mcr_is_platform
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
 /* Default init, deinit, compare, and copy */
@@ -63,47 +63,47 @@ MCR_API int mcr_Key_send_data(struct mcr_Key *dataPt);
 /* Key names */
 /*! Get a key code from its name.
  *
- * \param keyName \ref opt Name of key code
- * \return Key code, or \ref MCR_KEY_ANY if not found
+ *  \param keyName \ref opt Name of key code
+ *  \return Key code, or \ref MCR_KEY_ANY if not found
  */
 MCR_API int mcr_Key_name_key(struct mcr_context *ctx, const char *keyName);
 /*! Get the name of a key code.
  *
- * \return Key name, or null if not found
+ *  \return Key name, or null if not found
  */
 MCR_API const char *mcr_Key_name(struct mcr_context *ctx, int keyCode);
 /*! Get the number of registered key codes. */
 MCR_API size_t mcr_Key_count(struct mcr_context *ctx);
 /*! Set the name mapped by a key code.
  *
- * The name will also map to this key code.
- * \param newName \ref opt Name to set
- * \return \ref reterr
+ *  The name will also map to this key code.
+ *  \param newName \ref opt Name to set
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_set_name(struct mcr_context *ctx, int keyCode,
 							 const char *newName);
 /*! Add a set of names to map to a key code.
  *
- * \param addNames \ref opt Set of names to add to key code
- * \return \ref reterr
+ *  \param addNames \ref opt Set of names to add to key code
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_add(struct mcr_context *ctx, int keyCode,
 						const char **addNames, size_t bufferLen);
 /*! \ref mcr_Key_set_name and \ref mcr_Key_add_names
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_map(struct mcr_context *ctx, int keyCode,
 						const char *newName, const char **addNames, size_t bufferLen);
 /*! Rename a key code.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_rekey(struct mcr_context *ctx, int keyCode, int newCode);
 /*! Rename a key code. The code is first found from its
- * old name.
+ *  old name.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Key_rename(struct mcr_context *ctx, const char *oldName,
 						   const char *newName);

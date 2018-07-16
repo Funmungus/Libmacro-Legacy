@@ -17,9 +17,9 @@
 */
 
 /*! \file
- * \brief Raise a compiler error.
- * Usage:
- * #include "mcr/err.h"
+ *  \brief Raise a compiler error.
+ *  Usage:
+ *  #include "mcr/err.h"
  */
 
 #ifdef __GNUC__
@@ -28,7 +28,7 @@
 #pragma GCC error "Error!"
 #else
 /* MSVC-specific error, but will at least print a message for
-* unknown compilers.
-*/
+ * unknown compilers.
+ */
 #pragma message "Error Msg: Error!"
 #endif

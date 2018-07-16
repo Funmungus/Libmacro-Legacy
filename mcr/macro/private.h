@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * In cases of extreme complexity, please break glass.
+ *  In cases of extreme complexity, please break glass.
  */
 
 #ifndef MCR_MACRO_PRIVATE_H_

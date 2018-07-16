@@ -17,11 +17,11 @@
 */
 
 /*! \file
- * \brief \ref mcr_Macro - When the macro is triggered,
- * its set of signals is sent one after the other.
+ *  \brief \ref mcr_Macro - When the macro is triggered,
+ *  its set of signals is sent one after the other.
  *
- * \ref mcr_macro - Macro module
- * All signal functions will initialize and deinitialize as needed
+ *  \ref mcr_macro - Macro module
+ *  All signal functions will initialize and deinitialize as needed
  */
 
 #ifndef MCR_MACRO_MACRO_H_
@@ -41,10 +41,10 @@ enum mcr_Interrupt {
 	/*! Briefly stop sending signals during critical sections. */
 	MCR_PAUSE,
 	/*! One queued macro from one thread will cancel.
-	 * After one is cancelled, MCR_CONTINUE is set. */
+	 *  After one is cancelled, MCR_CONTINUE is set. */
 	MCR_INTERRUPT,
 	/*! All threads and queued items will cancel.
-	 * After all are cancelled, MCR_CONTINUE is set. */
+	 *  After all are cancelled, MCR_CONTINUE is set. */
 	MCR_INTERRUPT_ALL,
 	/*! Not able to trigger */
 	MCR_DISABLE
@@ -53,13 +53,13 @@ enum mcr_Interrupt {
 /*! A macro, when triggered, will send all its signals */
 struct mcr_Macro {
 	/*! This will be the blocking
-	 * return value of intercepting a signal. */
-	bool block;
+	 *  return value of intercepting a signal. */
+	bool blocking;
 	/*! If false the signals will be sent only once.  Otherwise
-	 * the signals sent will repeat sending until interrupted */
+	 *  the signals sent will repeat sending until interrupted */
 	bool sticky;
 	/*! Maximum number of threads this macro can start when it is
-	 * triggered. */
+	 *  triggered. */
 	unsigned int thread_max;
 
 	/* Internal */
@@ -76,185 +76,185 @@ struct mcr_Macro {
 	/*! Current number of threads created from macro being triggered */
 	unsigned int thread_count;
 	/*! Current number of times the macro has been triggered.  This
-	 * number is reduced every time the signal set completes sending or is
-	 * interrupted, until it reaches zero. */
+	 *  number is reduced every time the signal set completes sending or is
+	 *  interrupted, until it reaches zero. */
 	unsigned int queued;
 };
 
 /*! Data interface of macro structures
  *
- * \return Interface to manage macro objects
+ *  \return Interface to manage macro objects
  */
 MCR_API const struct mcr_Interface *mcr_Macro_interface();
 
 /*! \ref mcr_Macro ctor
  *
- * \param mcrPt \ref opt \ref mcr_Macro *
- * \return \ref reterr
+ *  \param mcrPt \ref opt \ref mcr_Macro *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_init(void *mcrPt);
 /*! \ref mcr_Macro dtor
  *
- * \param mcrPt \ref opt \ref mcr_Macro *
- * \return \ref reterr
+ *  \param mcrPt \ref opt \ref mcr_Macro *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_deinit(void *mcrPt);
 /*! Set initial values
  *
- * \param block \ref mcr_Macro.block
- * \param sticky \ref mcr_Macro.sticky
- * \param threadMax \ref mcr_Macro.thread_max
- * \param enable \ref mcr_Macro_set_enabled
- * \param ctx \ref mcr_Macro.ctx
- * \return \ref reterr
+ *  \param blocking \ref mcr_Macro.blocking
+ *  \param sticky \ref mcr_Macro.sticky
+ *  \param threadMax \ref mcr_Macro.thread_max
+ *  \param enable \ref mcr_Macro_set_enabled
+ *  \param ctx \ref mcr_Macro.ctx
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_set_all(struct mcr_Macro *mcrPt,
-							  bool block, bool sticky, unsigned int threadMax, bool enable,
+							  bool blocking, bool sticky, unsigned int threadMax, bool enable,
 							  struct mcr_context *ctx);
 /*! Copy a macro
  *
- * \param dstPt \ref mcr_Macro * Destination macro
- * \param srcPt \ref opt \ref mcr_Macro * Source macro
- * \return \ref reterr
+ *  \param dstPt \ref mcr_Macro * Destination macro
+ *  \param srcPt \ref opt \ref mcr_Macro * Source macro
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_copy(void *dstPt, const void *srcPt);
 /*! Stop or continue macro execution according to \ref mcr_Interrupt.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 								enum mcr_Interrupt interruptType);
 /*! Get the number of signals in the set to send
  *
- * \param mcrPt \ref opt
- * \return \ref retind
+ *  \param mcrPt \ref opt
+ *  \return \ref retind
  */
 MCR_API size_t mcr_Macro_count(const struct mcr_Macro *mcrPt);
 /*! Get the array of signals
  *
- * If the signal set changes, this reference will be invalid.
- * \param mcrPt \ref opt
- * \return Signal reference, or null if set is empty
+ *  If the signal set changes, this reference will be invalid.
+ *  \param mcrPt \ref opt
+ *  \return Signal reference, or null if set is empty
  */
 MCR_API struct mcr_Signal *mcr_Macro_signals(struct mcr_Macro *mcrPt);
 /*! Set all signals
  *
- * To avoid buffer overflow, the macro will be completely disabled while
- * modifying the set of signals.
- * \param signalSet \ref opt Array of signals to copy
- * \param signalCount Number of signals to copy
- * \return \ref reterr
+ *  To avoid buffer overflow, the macro will be completely disabled while
+ *  modifying the set of signals.
+ *  \param signalSet \ref opt Array of signals to copy
+ *  \param signalCount Number of signals to copy
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_set_signals(struct mcr_Macro *mcrPt,
 								  const struct mcr_Signal *signalSet, size_t signalCount);
 /*! Get a signal reference
  *
- * If the signal set changes, this reference will be invalid.
- * \param mcrPt \ref opt
- * \param index Index of signal
- * \return Signal reference, or null if not found
+ *  If the signal set changes, this reference will be invalid.
+ *  \param mcrPt \ref opt
+ *  \param index Index of signal
+ *  \return Signal reference, or null if not found
  */
 MCR_API struct mcr_Signal *mcr_Macro_signal(struct mcr_Macro *mcrPt,
 		size_t index);
 /*! Copy signal into signal set
  *
- * Signal will replace at given index
- * \param copySig \ref opt Signal to copy
- * \param index Index to replace at
- * \return \ref reterr
+ *  Signal will replace at given index
+ *  \param copySig \ref opt Signal to copy
+ *  \param index Index to replace at
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_set_signal(struct mcr_Macro *mcrPt,
 								 const struct mcr_Signal *copySig, size_t index);
 /*! Insert and add a signal copy
  *
- * \param copySig \ref opt Signal to copy
- * \param index Index to insert into
- * \return \ref reterr
+ *  \param copySig \ref opt Signal to copy
+ *  \param index Index to insert into
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_insert_signal(struct mcr_Macro *mcrPt,
 									const struct mcr_Signal *copySig, size_t index);
 /*! Remove the signal at given index
  *
- * \param index Index to remove from
- * \return \ref reterr
+ *  \param index Index to remove from
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_remove_signal(struct mcr_Macro *mcrPt, size_t index);
 /*! Add signal to the end of signal set
  *
- * \param newSig \ref opt Signal to copy
- * \return \ref reterr
+ *  \param newSig \ref opt Signal to copy
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_push_signal(struct mcr_Macro *mcrPt,
 								  const struct mcr_Signal *newSig);
 /*! Remove signal from the end of signal set
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_pop_signal(struct mcr_Macro *mcrPt);
 /*! Get enabled state
  *
- * \param mcrPt \ref opt
- * \return false If \ref MCR_DISABLE, otherwise true
+ *  \param mcrPt \ref opt
+ *  \return False if \ref MCR_DISABLE, otherwise true
  */
 MCR_API bool mcr_Macro_is_enabled(const struct mcr_Macro *mcrPt);
 /*! Set enabled state
  *
- * \param enable \ref mcr_Macro.interruptor If false set to \ref MCR_DISABLE,
- * otherwise set to \ref MCR_CONTINUE.
- * \return \ref reterr
+ *  \param enable \ref mcr_Macro.interruptor If false set to \ref MCR_DISABLE,
+ *  otherwise set to \ref MCR_CONTINUE.
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable);
 
 /* Triggering functions */
 /*! Add correct receivers and dispatch functions into
- * \ref mcr_Dispatcher_add
+ *  \ref mcr_Dispatcher_add
  *
- * See \ref mcr_Macro_dispatcher for receiver and dispatch rules.
- * \param trigPt \ref opt Trigger with logic to trigger this macro
- * \param interceptPt \ref opt Signal to determine dispatch logic
- * \return \ref reterr
+ *  See \ref mcr_Macro_dispatcher for receiver and dispatch rules.
+ *  \param trigPt \ref opt Trigger with logic to trigger this macro
+ *  \param interceptPt \ref opt Signal to determine dispatch logic
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_add_dispatch(struct mcr_Macro *mcrPt,
 								   struct mcr_Trigger *trigPt, struct mcr_Signal *interceptPt);
 /*! Remove correct receivers from \ref mcr_Dispatcher_remove
  *
- * See \ref mcr_Macro_dispatcher for receiver.
- * \param trigPt \ref opt Trigger with logic to trigger this macro
- * \param isigPt \ref opt Signal interface to find dispatcher to remove from
- * \return \ref reterr
+ *  See \ref mcr_Macro_dispatcher for receiver.
+ *  \param trigPt \ref opt Trigger with logic to trigger this macro
+ *  \param isigPt \ref opt Signal interface to find dispatcher to remove from
+ *  \return \ref reterr
  */
 MCR_API int mcr_Macro_remove_dispatch(struct mcr_Macro *mcrPt,
 									  struct mcr_Trigger *trigPt, struct mcr_ISignal *isigPt);
 /*! Prepare a \ref mcr_DispatchPair to trigger this macro.
  *
- * \param trigPt \ref opt If null or uninitialized we will dispatch directly
- * into the macro.  Otherwise the macro is triggered
- * \return Initialized and prepared dispatcher, ready to add to dispatching
+ *  \param trigPt \ref opt If null or uninitialized we will dispatch directly
+ *  into the macro.  Otherwise the macro is triggered
+ *  \return Initialized and prepared dispatcher, ready to add to dispatching
  */
 MCR_API struct mcr_DispatchPair mcr_Macro_dispatcher(struct mcr_Macro *mcrPt,
 		struct mcr_Trigger *trigPt);
 /*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Macro *
- * \pre \ref mcr_DispatchPair.dispatch must be this function
- * \brief \ref mcr_DispatchPair.dispatch function to send signal set directly
- * from dispatch.
+ *  \pre \ref mcr_DispatchPair.dispatch must be this function
+ *  \brief \ref mcr_DispatchPair.dispatch function to send signal set directly
+ *  from dispatch.
  *
- * \param mcrPt \ref mcr_Macro *
- * \param sigPt \ref opt Intercepted signal, ignored
- * \param mods Intercepted modifiers, ignored
- * \return false to not block intercepted signal, otherwise do block
+ *  \param mcrPt \ref mcr_Macro *
+ *  \param sigPt \ref opt Intercepted signal, ignored
+ *  \param mods Intercepted modifiers, ignored
+ *  \return False to not block intercepted signal, otherwise do block
  */
 MCR_API bool mcr_Macro_receive(void *mcrPt,
 							   struct mcr_Signal *sigPt, unsigned int mods);
 /*! \pre \ref mcr_DispatchPair.receiver must be a \ref mcr_Trigger *
- * \pre \ref mcr_DispatchPair.dispatch must be \ref mcr_Trigger_receive
- * \pre \ref mcr_Trigger.actor must be a \ref mcr_Macro *
- * \pre \ref mcr_Trigger.trigger must be this function
- * \brief \ref mcr_Trigger.trigger function to send signal set from a trigger
+ *  \pre \ref mcr_DispatchPair.dispatch must be \ref mcr_Trigger_receive
+ *  \pre \ref mcr_Trigger.actor must be a \ref mcr_Macro *
+ *  \pre \ref mcr_Trigger.trigger must be this function
+ *  \brief \ref mcr_Trigger.trigger function to send signal set from a trigger
  *
- * \param trigPt \ref mcr_Trigger *
- * \param sigPt \ref opt Intercepted signal, ignored
- * \param mods Intercepted modifiers, ignored
- * \return false to not block intercepted signal, otherwise do block
+ *  \param trigPt \ref mcr_Trigger *
+ *  \param sigPt \ref opt Intercepted signal, ignored
+ *  \param mods Intercepted modifiers, ignored
+ *  \return False to not block intercepted signal, otherwise do block
  */
 MCR_API bool mcr_Macro_trigger(void *trigPt,
 							   struct mcr_Signal *sigPt, unsigned int mods);
@@ -265,7 +265,7 @@ MCR_API bool mcr_Macro_trigger(void *trigPt,
 
 /*! Macro module
  *
- * In cases of extreme complexity, please break glass.
+ *  In cases of extreme complexity, please break glass.
  */
 struct mcr_macro {
 	/*! \ref mcr_ITrigger registry */

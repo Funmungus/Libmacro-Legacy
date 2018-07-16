@@ -27,8 +27,8 @@ extern "C" {
 
 /*! Set the user id used when removing root permissions.
  *
- * Linux only
- * \ref uid User id to set
+ *  Linux only
+ *  \ref uid User id to set
  */
 MCR_API void mcr_setuid(int uid);
 

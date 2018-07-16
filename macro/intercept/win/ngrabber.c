@@ -30,7 +30,7 @@
 
 /*! Print windows error, \ref mcr_errno, and set err to mcr_err
  *
- * Do not change original error of mcr_err */
+ *  Do not change original error of mcr_err */
 #define winerr(err, fallbackError) { \
 	ddo(fprintf(stderr, "Windows Error: %ld\n", GetLastError())); \
 	if (!mcr_err) { \

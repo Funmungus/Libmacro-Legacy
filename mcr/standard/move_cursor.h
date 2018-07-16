@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_MoveCursor - Change spatial coordinates of cursor.
+ *  \brief \ref mcr_MoveCursor - Change spatial coordinates of cursor.
  */
 
 #ifndef MCR_STANDARD_MOVE_CURSOR_H_
@@ -34,7 +34,7 @@ struct mcr_MoveCursor {
 	/*! Spatial coordinates to set or modify with */
 	mcr_SpacePosition pos;
 	/*! If false coordinates will be set, otherwise coordinates
-	 * adjust the cursor for current position. */
+	 *  adjust the cursor for current position. */
 	bool is_justify;
 };
 /*! \ref mcr_MoveCursor shorthand */
@@ -44,31 +44,31 @@ typedef struct mcr_MoveCursor mcr_MC;
 MCR_API void mcr_MoveCursor_set_all(struct mcr_MoveCursor *mcPt,
 									const mcr_SpacePosition pos, bool flagJustify);
 /*! \pre Signal data is  \ref mcr_MoveCursor
- * \brief Move HID cursor position.
+ *  \brief Move HID cursor position.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_MoveCursor_send(struct mcr_Signal *sigPt);
 /*! \ref mcr_MoveCursor_send
  *
- * \ref mcr_is_platform
- * \return \ref reterr
+ *  \ref mcr_is_platform
+ *  \return \ref reterr
  */
 MCR_API int mcr_MoveCursor_send_data(struct mcr_MoveCursor *mcPt);
 /* Default init, deinit, compare, and copy */
 
 /*! Current cursor position
  *
- * \ref mcr_is_platform
+ *  \ref mcr_is_platform
  */
 MCR_API void mcr_cursor_position(mcr_SpacePosition buffer);
 /*! If justified then \ref mcr_resembles_justified,
- * else \ref mcr_resembles_absolute
+ *  else \ref mcr_resembles_absolute
  *
- * \param lhs \ref opt
- * \param rhs \ref opt
- * \param measurementError Only used in absolute
- * \return If false cursors do not resemble each other, otherwise they do
+ *  \param lhs \ref opt
+ *  \param rhs \ref opt
+ *  \param measurementError Only used in absolute
+ *  \return If false cursors do not resemble each other, otherwise they do
  */
 MCR_API bool mcr_resembles(const struct mcr_MoveCursor *lhs,
 						   const struct mcr_MoveCursor *rhs, const unsigned int measurementError);

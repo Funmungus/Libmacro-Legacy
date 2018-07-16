@@ -17,10 +17,10 @@
 */
 
 /*! \file
- * \brief C++ wrappers for Libmacro structures
+ *  \brief C++ wrappers for Libmacro structures
  *
- * All POD's not intended to subclass.  Implement different types with
- * reference classes and managers
+ *  All POD's not intended to subclass.  Implement different types with
+ *  reference classes and managers
  */
 
 #ifndef __cplusplus
@@ -55,18 +55,18 @@ typedef mcr_ITrigger ITrigger;
 
 /*! \ref ISignal with \ref Libmacro reference
  *
- * \ref mcr_CtxISignal
- * Not typedef because this is a C++ Libmacro context
+ *  \ref mcr_CtxISignal
+ *  Not typedef because this is a C++ Libmacro context
  */
 struct MCR_EXTRAS_API CtxISignal {
 	mcr_ISignal isignal;
 
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param send \ref mcr_ISignal.send
-	 * \param dispatcher \ref opt mcr_ISignal.dispatcher
-	 * \param interface \ref opt mcr_ISignal.interface
-	 * exist.
+	 *  Throws EINVAL if no context exists
+	 *  \param send \ref mcr_ISignal.send
+	 *  \param dispatcher \ref opt mcr_ISignal.dispatcher
+	 *  \param interface \ref opt mcr_ISignal.interface
+	 *  exist.
 	 */
 	CtxISignal(Libmacro *context, mcr_signal_fnc send,
 			   mcr_Dispatcher *dispatcher = NULL,
@@ -96,21 +96,21 @@ private:
 
 /*! \ref Dispatcher with \ref Libmacro reference
  *
- * \ref mcr_CtxDispatcher
- * Not typedef because this is a C++ Libmacro context
+ *  \ref mcr_CtxDispatcher
+ *  Not typedef because this is a C++ Libmacro context
  */
 struct MCR_EXTRAS_API CtxDispatcher {
 	mcr_Dispatcher dispatcher;
 
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param add \ref mcr_Dispatcher.add
-	 * \param clear \ref opt mcr_Dispatcher.clear
-	 * \param dispatch \ref opt mcr_Dispatcher.dispatch
-	 * \param modifier \ref opt mcr_Dispatcher.modifier
-	 * \param remove \ref opt mcr_Dispatcher.remove
-	 * \param trim \ref opt mcr_Dispatcher.trim
-	 * exist.
+	 *  Throws EINVAL if no context exists
+	 *  \param add \ref mcr_Dispatcher.add
+	 *  \param clear \ref opt mcr_Dispatcher.clear
+	 *  \param dispatch \ref opt mcr_Dispatcher.dispatch
+	 *  \param modifier \ref opt mcr_Dispatcher.modifier
+	 *  \param remove \ref opt mcr_Dispatcher.remove
+	 *  \param trim \ref opt mcr_Dispatcher.trim
+	 *  exist.
 	 */
 	CtxDispatcher(Libmacro *context = NULL, mcr_Dispatcher_add_fnc add = NULL,
 				  mcr_Dispatcher_fnc clear = NULL,
@@ -141,16 +141,16 @@ private:
 
 /*! \ref ITrigger with \ref Libmacro reference
  *
- * \ref mcr_CtxITrigger
- * Not typedef because this is a C++ Libmacro context
+ *  \ref mcr_CtxITrigger
+ *  Not typedef because this is a C++ Libmacro context
  */
 struct MCR_EXTRAS_API CtxITrigger {
 	mcr_ITrigger itrigger;
 
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param receive \ref opt mcr_ITrigger.receive
-	 * \param interface \ref opt mcr_ITrigger.interface
+	 *  Throws EINVAL if no context exists
+	 *  \param receive \ref opt mcr_ITrigger.receive
+	 *  \param interface \ref opt mcr_ITrigger.interface
 	 */
 	CtxITrigger(Libmacro *context = NULL, mcr_Dispatcher_receive_fnc receive = NULL,
 				const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
@@ -178,13 +178,13 @@ private:
 
 /*! \ref mcr_Signal
  *
- * Edit with \ref SignalRef
+ *  Edit with \ref SignalRef
  */
 struct MCR_EXTRAS_API Signal {
 	mcr_Signal signal;
 
 	/*! \param isignal \ref mcr_Signal.isignal
-	 * \param isDispatch \ref mcr_Signal.is_dispatch
+	 *  \param isDispatch \ref mcr_Signal.is_dispatch
 	 */
 	Signal(mcr_ISignal *isignal = NULL, bool isDispatch = false)
 	{
@@ -265,14 +265,14 @@ struct MCR_EXTRAS_API Signal {
 
 /*! \ref mcr_Trigger
  *
- * Edit with \ref TriggerRef
+ *  Edit with \ref TriggerRef
  */
 struct MCR_EXTRAS_API Trigger {
 	mcr_Trigger trigger;
 
 	/*! \param itrigger \ref mcr_Trigger.itrigger
-	 * \param trigger \ref mcr_Trigger.trigger
-	 * \param actor \ref mcr_Trigger.actor
+	 *  \param trigger \ref mcr_Trigger.trigger
+	 *  \param actor \ref mcr_Trigger.actor
 	 */
 	Trigger(mcr_ITrigger *itrigger = NULL,
 			mcr_Dispatcher_receive_fnc trigger = NULL, void *actor = NULL)
@@ -351,12 +351,12 @@ struct MCR_EXTRAS_API Trigger {
 
 /*! \ref mcr_Macro
  *
- * Edit with \ref MacroRef
+ *  Edit with \ref MacroRef
  */
 struct MCR_EXTRAS_API Macro {
 	typedef mcr_Interrupt Interrupt;
 
-	Macro(Libmacro *context = NULL, bool block = false,
+	Macro(Libmacro *context = NULL, bool blocking = false,
 		  bool sticky = false, unsigned int threadMax = 1,
 		  bool enable = false);
 	virtual ~Macro();
@@ -389,13 +389,13 @@ struct MCR_EXTRAS_API Macro {
 		return &_macro;
 	}
 
-	inline bool block() const
+	inline bool blocking() const
 	{
-		return _macro.block;
+		return _macro.blocking;
 	}
-	void setBlock(bool val)
+	void setBlocking(bool val)
 	{
-		_macro.block = val;
+		_macro.blocking = val;
 	}
 
 	inline bool sticky() const

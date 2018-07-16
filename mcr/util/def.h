@@ -278,24 +278,24 @@ MCR_API int *mcr_err_tls();
 
 /*! Function on data or an object.
  *
- * Use this for data init and deinit, such as \ref mcr_Interface.init
- * and \ref mcr_Interface.deinit
- * \param dataPt \ref mcr_Data.data
- * \return \ref reterr
+ *  Use this for data init and deinit, such as \ref mcr_Interface.init
+ *  and \ref mcr_Interface.deinit
+ *  \param dataPt \ref mcr_Data.data
+ *  \return \ref reterr
  */
 typedef int (*mcr_data_fnc) (void *dataPt);
 /*! Copy from one data or object another
  *
- * \param destinationPt Destination object
- * \param sourcePt \ref opt Source object
- * \return \ref reterr
+ *  \param destinationPt Destination object
+ *  \param sourcePt \ref opt Source object
+ *  \return \ref reterr
  */
 typedef int (*mcr_copy_fnc) (void *destinationPt, const void *sourcePt);
 /*! Comparison function of two data or objects
  *
- * \param lhsPt \ref opt Left side of comparison
- * \param rhsPt \ref opt Right side of comparison
- * \return \ref retcmp
+ *  \param lhsPt \ref opt Left side of comparison
+ *  \param rhsPt \ref opt Right side of comparison
+ *  \return \ref retcmp
  */
 typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 

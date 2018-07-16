@@ -14,9 +14,9 @@
 */
 
 /*! \file
- * \brief Include all module private.h files.
+ *  \brief Include all module private.h files.
  *
- * Convenience for library source files.
+ *  Convenience for library source files.
  */
 
 #include "mcr/signal/private.h"

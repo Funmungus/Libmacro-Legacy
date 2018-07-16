@@ -17,9 +17,9 @@
 */
 
 /*! \file
- * Temporary solution. Until threading is implemented in C
- * we have to use either C++ or native threading. For standard C reference
- * please use a C11 reference.
+ *  Temporary solution. Until threading is implemented in C
+ *  we have to use either C++ or native threading. For standard C reference
+ *  please use a C11 reference.
  */
 
 #ifndef MCR_UTIL_CPPTHREAD_H_

@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds.
+ *  \brief \ref mcr_NoOp - Pause execution in seconds and milliseconds.
  */
 
 #ifndef MCR_STANDARD_NOOP_H_
@@ -40,9 +40,9 @@ struct mcr_NoOp {
 /*! Set both seconds and milliseconds. */
 MCR_API void mcr_NoOp_set_all(struct mcr_NoOp *noopPt, int sec, int msec);
 /*! \pre Signal has data member \ref mcr_NoOp
- * \brief Pause execution in seconds and milliseconds.
+ *  \brief Pause execution in seconds and milliseconds.
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_NoOp_send(struct mcr_Signal *sigPt);
 /*! \ref mcr_NoOp_send */

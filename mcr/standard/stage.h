@@ -17,8 +17,8 @@
 */
 
 /*! \file
- * \brief \ref mcr_Stage - Stages of activation for \ref mcr_Staged
- * \ref mcr_IsStage - Stage matching functions
+ *  \brief \ref mcr_Stage - Stages of activation for \ref mcr_Staged
+ *  \ref mcr_IsStage - Stage matching functions
  */
 
 #ifndef MCR_STANDARD_STAGE_H_
@@ -32,13 +32,13 @@ extern "C" {
 
 struct mcr_Stage;
 /*! Comparison for stages, which may be more lenient than
- * regular \ref mcr_Signal_compare used for exact comparison.
+ *  regular \ref mcr_Signal_compare used for exact comparison.
  */
 typedef bool(*mcr_isme_fnc)
 (struct mcr_Stage *, struct mcr_Signal *);
 /*! Function table for \ref mcr_Stage
  *
- * Matching functions to activate stage, or keep activated.
+ *  Matching functions to activate stage, or keep activated.
  */
 struct mcr_IsStage {
 	/*! If true, activate stage */
@@ -52,7 +52,7 @@ struct mcr_Stage {
 	/*! Functions to match intercepted signal and activation */
 	struct mcr_IsStage matcher;
 	/*! Make trigger block if this stage is activated */
-	bool block;
+	bool blocking;
 	/*! The signal compared for activation */
 	struct mcr_Signal intercept;
 	/*! Measurement error for absolute values */
@@ -63,26 +63,26 @@ struct mcr_Stage {
 	int trigger_flags;
 	/* Internal */
 	/*! false if this stage is not triggered, otherwise this stage
-	 * is triggered */
+	 *  is triggered */
 	bool activated;
 };
 
 /*! \ref mcr_Stage ctor
  *
- * \param stagePt \ref opt
- * \return 0
+ *  \param stagePt \ref opt
+ *  \return 0
  */
 MCR_API int mcr_Stage_init(void *stagePt);
 /*! \ref mcr_Stage dtor
  *
- * \param stagePt \ref opt
- * \return 0
+ *  \param stagePt \ref opt
+ *  \return 0
  */
 MCR_API int mcr_Stage_deinit(void *stagePt);
 /*! Set initial values
  *
- * \param intercepPt \ref opt Signal to copy as comparison for activation
- * \return \ref reterr
+ *  \param intercepPt \ref opt Signal to copy as comparison for activation
+ *  \return \ref reterr
  */
 MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
 							  struct mcr_Stage *stagePt, bool blocking,
@@ -90,26 +90,26 @@ MCR_API int mcr_Stage_set_all(struct mcr_context *ctx,
 							  unsigned int mods, int trigFlags);
 /*! Match an unactivated stage
  *
- * If intercepting a real signal: If signal interface is the same and
- * modifiers match, the intercepted signal is matched by
- * \ref mcr_IsStage.equals or \ref mcr_Instance_compare\n
- * If intercepting a fake signal: Signal matches if stage does not have
- * a signal interface and modifiers match.\n
- * Otherwise the intercepted signal does not match.
- * \param interceptPt \ref opt Intercepted signal
- * \param mods Intercepted modifiers
- * \return Do activate if true
+ *  If intercepting a real signal: If signal interface is the same and
+ *  modifiers match, the intercepted signal is matched by
+ *  \ref mcr_IsStage.equals or \ref mcr_Instance_compare\n
+ *  If intercepting a fake signal: Signal matches if stage does not have
+ *  a signal interface and modifiers match.\n
+ *  Otherwise the intercepted signal does not match.
+ *  \param interceptPt \ref opt Intercepted signal
+ *  \param mods Intercepted modifiers
+ *  \return Do activate if true
  */
 MCR_API bool mcr_Stage_equals(struct mcr_Stage *stagePt,
 							  struct mcr_Signal *interceptPt, unsigned int mods);
 /*! Match an activated stage to be the new activated state
  *
- * If intercepting a real signal: Match with \ref mcr_IsStage.resembles, or
- * signal interface.  If stage has an interface, it must be the same.\n
- * If intercepting a fake signal: Matches if stage does not have an interface.
- * \param interceptPt \ref opt Intercepted signal
- * \param mods Intercepted modifiers
- * \return Deactivate if false
+ *  If intercepting a real signal: Match with \ref mcr_IsStage.resembles, or
+ *  signal interface.  If stage has an interface, it must be the same.\n
+ *  If intercepting a fake signal: Matches if stage does not have an interface.
+ *  \param interceptPt \ref opt Intercepted signal
+ *  \param mods Intercepted modifiers
+ *  \return Deactivate if false
  */
 MCR_API bool mcr_Stage_resembles(struct mcr_Stage *stagePt,
 								 struct mcr_Signal *interceptPt);

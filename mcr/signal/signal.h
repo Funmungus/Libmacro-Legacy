@@ -17,11 +17,11 @@
 */
 
 /*! \file
- * \brief \ref mcr_Signal - Signal to send or dispatch
- * \ref mcr_signal - Libmacro signal module
+ *  \brief \ref mcr_Signal - Signal to send or dispatch
+ *  \ref mcr_signal - Libmacro signal module
  *
- * See \ref mcr_send
- * See \ref mcr_dispatch
+ *  See \ref mcr_send
+ *  See \ref mcr_dispatch
  */
 
 #ifndef MCR_SIGNAL_SIGNAL_H_
@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /*! Use functions in \ref mcr_ISignal to dispatch and
- * send the whole object, mcr_ISignal + data members.
+ *  send the whole object, mcr_ISignal + data members.
  */
 struct mcr_Signal {
 	/*! \ref mcr_Instance of \ref mcr_ISignal */
@@ -51,50 +51,50 @@ struct mcr_Signal {
 
 /*! Data interface of mcr_Signal structures
  *
- * \return Interface to manage mcr_Signal objects
+ *  \return Interface to manage mcr_Signal objects
  */
 MCR_API const struct mcr_Interface *mcr_Signal_interface();
 
 /*! \ref mcr_Signal ctor
  *
- * \param signalPt \ref opt \ref mcr_Signal *
- * \return 0
+ *  \param signalPt \ref opt \ref mcr_Signal *
+ *  \return 0
  */
 MCR_API int mcr_Signal_init(void *signalPt);
 /*! \ref mcr_Signal dtor
  *
- * \param signalPt \ref opt \ref mcr_Signal *
- * \return 0
+ *  \param signalPt \ref opt \ref mcr_Signal *
+ *  \return 0
  */
 MCR_API int mcr_Signal_deinit(void *signalPt);
 /*! Dispatch, and then call the signal interface send function.
  *
- * If dispatch blocks, the interface send function will not be called.
- * \param signalPt \ref opt Signal to dispatch and send
- * \return \ref reterr
+ *  If dispatch blocks, the interface send function will not be called.
+ *  \param signalPt \ref opt Signal to dispatch and send
+ *  \return \ref reterr
  */
 MCR_API int mcr_send(struct mcr_context *ctx, struct mcr_Signal *signalPt);
 
 /*! \ref mcr_Instance_copy, then copy \ref mcr_Signal.is_dispatch
  *
- * \param dstPt \ref mcr_Signal * Destination to copy to
- * \param srcPt \ref opt \ref mcr_Signal * Source to copy from
- * \return \ref reterr
+ *  \param dstPt \ref mcr_Signal * Destination to copy to
+ *  \param srcPt \ref opt \ref mcr_Signal * Source to copy from
+ *  \return \ref reterr
  */
 MCR_API int mcr_Signal_copy(void *dstPt, const void *srcPt);
 /*! Compare two signals
  *
- * \param lhsSignalPt \ref opt mcr_Signal *
- * \param rhsSignalPt \ref opt mcr_Signal *
- * \return \ref retcmp
+ *  \param lhsSignalPt \ref opt mcr_Signal *
+ *  \param rhsSignalPt \ref opt mcr_Signal *
+ *  \return \ref retcmp
  */
 MCR_API int mcr_Signal_compare(const void *lhsSignalPt,
 							   const void *rhsSignalPt);
 /*! Compare two signal references
  *
- * \param lhsPtPt \ref opt \ref mcr_Signal **
- * \param rhsPtPt \ref opt \ref mcr_Signal **
- * \return \ref retcmp
+ *  \param lhsPtPt \ref opt \ref mcr_Signal **
+ *  \param rhsPtPt \ref opt \ref mcr_Signal **
+ *  \return \ref retcmp
  */
 MCR_API int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt);
 
@@ -102,7 +102,7 @@ MCR_API int mcr_Signalref_compare(const void *lhsPtPt, const void *rhsPtPt);
 
 /*! Libmacro signal module
  *
- * In cases of extreme complexity please break glass.
+ *  In cases of extreme complexity please break glass.
  */
 struct mcr_signal {
 	/*! \ref mcr_ISignal registry */
@@ -110,13 +110,13 @@ struct mcr_signal {
 	/*! Set of \ref mcr_Dispatcher * for each signal */
 	struct mcr_Array dispatchers;
 	/*! If enabled, the generic dispatcher will be used for all
-	 * signals */
+	 *  signals */
 	bool is_generic_dispatcher;
 	/*! Generic dispatcher which may be used after the specific
-	 * dispatcher has been called */
+	 *  dispatcher has been called */
 	struct mcr_Dispatcher *generic_dispatcher_pt;
 	/*! Default generic dispatcher with logic for all dispatches,
-	 * and signal reference-specific.
+	 *  and signal reference-specific.
 	 */
 	struct mcr_GenericDispatcher generic_dispatcher;
 	/*! All modifiers known by Libmacro to be set */
