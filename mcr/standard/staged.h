@@ -18,7 +18,6 @@
 
 /*! \file
  *  \brief \ref mcr_Staged - Trigger that is triggered after activating all stages
- *  \ref mcr_BlockStyle - How to manage blocking values of all stages
  */
 
 #ifndef MCR_STANDARD_STAGED_H_
@@ -30,32 +29,10 @@
 extern "C" {
 #endif
 
-/*! Blocking style describes how to manage a set of stages'
- *  blocking values.
- */
-enum mcr_BlockStyle {
-	/*! Do not manage blocking for any stages. */
-	MCR_BS_UNMANAGED = 0,
-	/*! All stages are always set to not block. */
-	MCR_BS_NOTHING,
-	/*! All stages are always set to block. */
-	MCR_BS_EVERYTHING,
-	/*! Only manage the first stage. */
-	MCR_BS_BEGIN,
-	/*! Only manage the last stage. */
-	MCR_BS_FINAL,
-	/*! Manage all stages. */
-	MCR_BS_ALL
-};
-
 /*! Trigger that is triggered after activating all stages */
 struct mcr_Staged {
-	/*! Blocking state of managed stages. */
-	bool blocking;
 	/*! Set of \ref mcr_Stage */
 	struct mcr_Array stages;
-	/*! How to manage the blocking value of stages. */
-	enum mcr_BlockStyle style;
 };
 
 /*! \ref mcr_Staged ctor
@@ -71,8 +48,7 @@ MCR_API int mcr_Staged_init(void *stagedPt);
  */
 MCR_API int mcr_Staged_deinit(void *stagedPt);
 /*! Set initial values */
-MCR_API void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
-								enum mcr_BlockStyle style);
+MCR_API void mcr_Staged_set_all(struct mcr_Staged *stagedPt);
 MCR_API int mcr_Staged_compare(const void *lhs, const void *rhs);
 MCR_API int mcr_Staged_copy(void *dstPt, const void *srcPt);
 /*! \ref mcr_ITrigger.receive for staged trigger.
@@ -84,10 +60,6 @@ MCR_API bool mcr_Staged_receive(void *trigDataPt,
 								struct mcr_Signal *interceptPt, unsigned int mods);
 
 /* Stage manipulation */
-MCR_API void mcr_Staged_set_style(struct mcr_Staged *trigPt,
-								  enum mcr_BlockStyle style);
-MCR_API bool mcr_Staged_is_blocking(const struct mcr_Staged *trigPt);
-MCR_API void mcr_Staged_set_blocking(struct mcr_Staged *trigPt, bool blocking);
 MCR_API void mcr_Staged_deactivate(struct mcr_Staged *trigPt);
 MCR_API void mcr_Staged_clear(struct mcr_Staged *trigPt);
 

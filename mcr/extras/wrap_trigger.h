@@ -488,18 +488,6 @@ class MCR_EXTRAS_API StagedRef : public TriggerManager
 public:
 	StagedRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
 
-	inline bool blocking () const
-	{
-		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->blocking;
-		return 0;
-	}
-	inline void setBlocking(bool val)
-	{
-		mkdata();
-		data<mcr_Staged>()->blocking = val;
-	}
-
 	inline mcr_Array *stagesRef()
 	{
 		if (data<mcr_Staged>())
@@ -518,19 +506,39 @@ public:
 			return data<mcr_Staged>()->stages.used;
 		return 0;
 	}
-	vector<Stage> stages() const;
-	void setStages(const vector<Stage> &val);
-
-	inline mcr_BlockStyle style () const
+	vector<Stage> stages() const
 	{
-		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->style;
-		return (mcr_BlockStyle)0;
+		vector<Stage> ret;
+		const mcr_Staged *pt = data<mcr_Staged>();
+		Stage mem(context());
+		if (pt) {
+	#define localPush(itPt) mem = (const mcr_Stage *)itPt; ret.push_back(mem);
+			MCR_ARR_FOR_EACH(pt->stages, localPush);
+	#undef localPush
+		}
+		return ret;
 	}
-	inline void setStyle(mcr_BlockStyle val)
+	void setStages(const vector<Stage> &val)
 	{
-		mkdata();
-		data<mcr_Staged>()->style = val;
+		int err;
+		size_type i;
+		mcr_Staged *pt = data<mcr_Staged>();
+		mcr_Stage mem;
+		mcr_Stage_init(&mem);
+		if (pt) {
+			for (i = 0; i < val.size(); i++) {
+				err = mcr_Stage_copy(&mem, &val[i]);
+				if (err)
+					throw(err);
+				err = mcr_Array_push(&pt->stages, &mem);
+				if (err) {
+					mcr_Stage_deinit(&mem);
+					throw(err);
+				}
+				mcr_Stage_init(&mem);
+			}
+		}
+		mcr_Stage_deinit(&mem);
 	}
 };
 }

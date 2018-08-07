@@ -29,7 +29,6 @@ int mcr_Staged_init(void *stagedPt)
 		memset(localPt, 0, sizeof(struct mcr_Staged));
 		mcr_Array_init(&localPt->stages);
 		localPt->stages.element_size = sizeof(struct mcr_Stage);
-		localPt->style = MCR_BS_UNMANAGED;
 	}
 	return 0;
 }
@@ -44,15 +43,6 @@ int mcr_Staged_deinit(void *stagedPt)
 	return 0;
 }
 
-void mcr_Staged_set_all(struct mcr_Staged *stagedPt, bool blocking,
-						enum mcr_BlockStyle style)
-{
-	dassert(stagedPt);
-	mcr_Staged_deinit(stagedPt);
-	mcr_Staged_set_blocking(stagedPt, blocking);
-	mcr_Staged_set_style(stagedPt, style);
-}
-
 int mcr_Staged_compare(const void *lhs, const void *rhs)
 {
 	const struct mcr_Staged *lPt = lhs, *rPt = rhs;
@@ -64,8 +54,6 @@ int mcr_Staged_compare(const void *lhs, const void *rhs)
 				return 0;
 			if ((ret = MCR_CMP(lPt->stages.used,
 							   rPt->stages.used)))
-				return ret;
-			if ((ret = MCR_CMP(lPt->style, rPt->style)))
 				return ret;
 			lSt = MCR_ARR_FIRST(lPt->stages);
 			rSt = MCR_ARR_FIRST(rPt->stages);
@@ -92,14 +80,10 @@ int mcr_Staged_copy(void *dstPt, const void *srcPt)
 		return 0;
 	if (!srcPt) {
 		mcr_Staged_clear(dPt);
-		dPt->blocking = false;
-		dPt->style = MCR_BS_UNMANAGED;
 		return 0;
 	}
 	mcr_Stage_init(&initial);
-	dPt->blocking = sPt->blocking;
 	mcr_Staged_clear(dPt);
-	dPt->style = sPt->style;
 	if (!sPt->stages.used)
 		return 0;
 	if ((err = mcr_Array_minfill(&dPt->stages, sPt->stages.used, &initial)))
@@ -181,59 +165,6 @@ isToBlock)
 	}
 	return isToBlock;
 #undef localOnComplete
-}
-
-void mcr_Staged_set_style(struct mcr_Staged *stagedPt,
-						  enum mcr_BlockStyle style)
-{
-	bool wasBlocking = mcr_Staged_is_blocking(stagedPt);
-	dassert(stagedPt);
-	if (wasBlocking)
-		mcr_Staged_set_blocking(stagedPt, false);
-	stagedPt->style = style;
-	if (wasBlocking)
-		mcr_Staged_set_blocking(stagedPt, true);
-}
-
-bool mcr_Staged_is_blocking(const struct mcr_Staged *stagedPt)
-{
-	dassert(stagedPt);
-	return stagedPt->blocking;
-}
-
-void mcr_Staged_set_blocking(struct mcr_Staged *stagedPt, bool blocking)
-{
-	struct mcr_Stage *it, *end;
-	dassert(stagedPt);
-	stagedPt->blocking = blocking;
-	if (!stagedPt->stages.used)
-		return;
-	it = MCR_ARR_FIRST(stagedPt->stages);
-	end = MCR_ARR_END(stagedPt->stages);
-#define localSetAll(blockVal) \
-for (; it < end; it = MCR_ARR_NEXT(stagedPt->stages, it)) \
-{ it->blocking = blockVal; }
-	switch (stagedPt->style) {
-	case MCR_BS_UNMANAGED:
-		break;
-	case MCR_BS_NOTHING:
-		localSetAll(false);
-		break;
-	case MCR_BS_EVERYTHING:
-		localSetAll(true);
-		break;
-	case MCR_BS_BEGIN:
-		it->blocking = blocking;
-		break;
-	case MCR_BS_FINAL:
-		it = MCR_ARR_PREV(stagedPt->stages, end);
-		it->blocking = blocking;
-		break;
-	case MCR_BS_ALL:
-		localSetAll(blocking);
-		break;
-	}
-#undef localSetAll
 }
 
 void mcr_Staged_deactivate(struct mcr_Staged *stagedPt)
