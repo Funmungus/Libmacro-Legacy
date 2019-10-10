@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,6 @@
  *  press
  */
 
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
-
 #ifndef MCR_EXTRAS_STRING_KEY_H_
 #define MCR_EXTRAS_STRING_KEY_H_
 
@@ -36,24 +31,31 @@
 namespace mcr
 {
 /*! Turn a string into a set of signals, such as a key press */
-struct MCR_EXTRAS_API StringKey: public ISignalData {
+struct MCR_API StringKey: public ISignalData {
 	/*! Pause in-between characters */
 	mcr_NoOp interval;
 	/*! Set of characters to turn into signals */
 	SafeString string;
 
 	StringKey(bool cryptic = false)
-		: string(_keyProvider, "", cryptic), _cryptic(cryptic && _keyProvider)
+		: string(_keyProvider, "", cryptic)
 	{
 		interval.sec = 0;
 		interval.msec = 40;
 	}
 	StringKey(const StringKey &copytron)
-		: interval(copytron.interval), string(_keyProvider, "", copytron.cryptic()),
-		  _cryptic(copytron.cryptic())
+		: ISignalData(), interval(copytron.interval), string(copytron.string)
 	{
 	}
-	StringKey &operator =(const StringKey &copytron);
+	virtual ~StringKey() override = default;
+	StringKey &operator =(const StringKey &copytron)
+	{
+		if (&copytron != this) {
+			interval = copytron.interval;
+			string = copytron.string;
+		}
+		return *this;
+	}
 
 	/*! Get a StringKey from a signal
 	 *
@@ -61,7 +63,7 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	 */
 	static inline StringKey *data(mcr_Signal *sigPt)
 	{
-		return (StringKey *)(sigPt ? sigPt->instance.data.data : NULL);
+		return static_cast<StringKey *>(mcr_Instance_data(sigPt));
 	}
 
 	static void setKeyProvider(IKeyProvider *provider)
@@ -71,29 +73,44 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 
 	inline bool cryptic() const
 	{
-		return _cryptic;
+		return string.cryptic();
 	}
 	void setCryptic(bool val)
 	{
-		if (val != cryptic() && _keyProvider) {
-			_cryptic = val;
+		if (val != cryptic())
 			string.setCryptic(val);
-		}
+	}
+
+	inline int sec() const
+	{
+		return interval.sec;
+	}
+	void setSec(int val)
+	{
+		interval.sec = val;
+	}
+	inline int msec() const
+	{
+		return interval.msec;
+	}
+	void setMsec(int val)
+	{
+		interval.msec = val;
 	}
 
 	/*! Set of characters to turn into signals */
-	inline mcr::string stringText() const
+	inline std::string text() const
 	{
 		return string.text();
 	}
 	/*! Set the string to turn into signals */
-	inline void setStringText(const mcr::string &val)
+	inline void setText(const std::string &val)
 	{
 		string.setText(val);
 	}
 
 	/*! \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const override
+	virtual int compare(const IData &rhs) const override
 	{
 		return compare(dynamic_cast<const StringKey &>(rhs));
 	}
@@ -102,20 +119,20 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	/*! \ref mcr_Signal_copy
 	 *  \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) override;
+	virtual void copy(const IData *copytron) override;
 	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "StringKey";
 	}
-	virtual size_t addNamesCount() const override
+	virtual size_t addNameCount() const override
 	{
-		return 3;
+		return 2;
 	}
 	virtual void addNames(const char **bufferOut,
 						  size_t bufferLength) const override
 	{
-		const char *names[] = {"String Key", "string_key", "SK"};
+		const char *names[] = {"String Key", "string_key"};
 		size_t i, count = arrlen(names);
 		if (!bufferOut)
 			return;
@@ -125,82 +142,8 @@ struct MCR_EXTRAS_API StringKey: public ISignalData {
 	}
 	/*! \ref mcr_send */
 	virtual void send() override;
-
-	inline void clear()
-	{
-		string.clear();
-	}
 private:
 	static IKeyProvider *_keyProvider;
-	bool _cryptic;
-};
-
-/*! Modify \ref StringKey signals */
-class MCR_EXTRAS_API StringKeyRef : public SignalManager
-{
-public:
-	StringKeyRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
-
-	inline mcr_NoOp interval() const
-	{
-		if (data<StringKey>())
-			return data<StringKey>()->interval;
-		mcr_NoOp ret;
-		ret.sec = 0;
-		ret.msec = 0;
-		return ret;
-	}
-	inline void setInterval(mcr_NoOp val)
-	{
-		mkdata();
-		data<StringKey>()->interval = val;
-	}
-	inline int sec() const
-	{
-		if (data<StringKey>())
-			return data<StringKey>()->interval.sec;
-		return 0;
-	}
-	inline void setSec(int val)
-	{
-		mkdata();
-		data<StringKey>()->interval.sec = val;
-	}
-	inline int msec() const
-	{
-		if (data<StringKey>())
-			return data<StringKey>()->interval.msec;
-		return 0;
-	}
-	inline void setMsec(int val)
-	{
-		mkdata();
-		data<StringKey>()->interval.msec = val;
-	}
-
-	inline bool cryptic() const
-	{
-		if (data<StringKey>())
-			return data<StringKey>()->cryptic();
-		return false;
-	}
-	inline void setCryptic(bool val)
-	{
-		mkdata();
-		data<StringKey>()->setCryptic(val);
-	}
-
-	inline mcr::string string() const
-	{
-		if (data<StringKey>())
-			return data<StringKey>()->stringText();
-		return "";
-	}
-	inline void setString(const mcr::string &val)
-	{
-		mkdata();
-		data<StringKey>()->setStringText(val);
-	}
 };
 }
 

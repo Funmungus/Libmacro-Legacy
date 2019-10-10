@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -76,37 +76,37 @@ MCR_API void mcr_StringSet_clear(mcr_StringSet * setPt);
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_element(setPt, pos) \
-((mcr_String *)mcr_Array_element(setPt, pos))
+mcr_castpt(mcr_String, mcr_Array_element(setPt, pos))
 /*! \ref mcr_Array_first
  *
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_first(setPt) \
-((mcr_String *)mcr_Array_first(setPt))
+mcr_castpt(mcr_String, mcr_Array_first(setPt))
 /*! \ref mcr_Array_last
  *
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_last(setPt) \
-((mcr_String *)mcr_Array_last(setPt))
+mcr_castpt(mcr_String, mcr_Array_last(setPt))
 /*! \ref mcr_Array_end
  *
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_end(setPt) \
-((mcr_String *)mcr_Array_end(setPt))
+mcr_castpt(mcr_String, mcr_Array_end(setPt))
 /*! \ref mcr_Array_next
  *
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_next(setPt, posPt) \
-((mcr_String *)mcr_Array_next(setPt, ((void *)posPt)))
+mcr_castpt(mcr_String, mcr_Array_next(setPt, mcr_castpt(void, posPt)))
 /*! \ref mcr_Array_prev
  *
  *  \return \ref mcr_String *
  */
 #define mcr_StringSet_prev(setPt, posPt) \
-((mcr_String *)mcr_Array_prev(setPt, ((void *)posPt)))
+mcr_castpt(mcr_String, mcr_Array_prev(setPt, mcr_castpt(void, posPt)))
 /*! \ref mcr_Array_index
  *
  *  \return \ref mcr_String *
@@ -183,22 +183,22 @@ MCR_API void mcr_StringSet_remove(mcr_StringSet * setPt, const char *removeStr);
 /* Macro utils */
 /*! See \ref mcr_StringSet_element */
 #define MCR_STRINGSET_ELEMENT(set, pos) \
-((mcr_String *)MCR_ARR_ELEMENT(set, pos))
+mcr_castpt(mcr_String, MCR_ARR_ELEMENT(set, pos))
 /*! See \ref mcr_StringSet_first */
 #define MCR_STRINGSET_FIRST(set) \
-((mcr_String *)MCR_ARR_FIRST(set))
+mcr_castpt(mcr_String, MCR_ARR_FIRST(set))
 /*! See \ref mcr_StringSet_end */
 #define MCR_STRINGSET_END(set) \
-((mcr_String *)MCR_ARR_END(set))
+mcr_castpt(mcr_String, MCR_ARR_END(set))
 /*! See \ref mcr_StringSet_last */
 #define MCR_STRINGSET_LAST(set) \
-((mcr_String *)MCR_ARR_LAST(set))
+mcr_castpt(mcr_String, MCR_ARR_LAST(set))
 /*! See \ref mcr_StringSet_next */
 #define MCR_STRINGSET_NEXT(set, curPt) \
-((mcr_String *)MCR_ARR_NEXT(set, curPt))
+mcr_castpt(mcr_String, MCR_ARR_NEXT(set, curPt))
 /*! See \ref mcr_StringSet_prev */
 #define MCR_STRINGSET_PREV(set, curPt) \
-((mcr_String *)MCR_ARR_PREV(set, curPt))
+mcr_castpt(mcr_String, MCR_ARR_PREV(set, curPt))
 /*! See \ref mcr_StringSet_index */
 #define MCR_STRINGSET_INDEX(set, posPt) \
 MCR_ARR_INDEX(set, posPt)

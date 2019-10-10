@@ -1,26 +1,20 @@
 MCR_VER_MAJ = 0
 MCR_VER_MIN = 1
-MCR_VER_PAT = 4
-MCR_VER = $${MCR_VER_MAJ}.$${MCR_VER_MIN}.$${MCR_VER_PAT}
+MCR_VER = $${MCR_VER_MAJ}.$${MCR_VER_MIN}
 
 DEFINES += MCR_VER=$${MCR_VER} MCR_VER_MAJ=$${MCR_VER_MAJ} \
-    MCR_VER_MIN=$${MCR_VER_MIN} MCR_VER_PAT=$${MCR_VER_PAT}
+	MCR_VER_MIN=$${MCR_VER_MIN}
 
-CONFIG(debug,debug|release): DEFINES += DEBUG
+CONFIG(debug,debug|release): DEFINES += MCR_DEBUG
 
-windows: CONFIG += win
+windows: MCR_PLATFORM = windows
 else:unix {
-	macx: CONFIG += mac
-	else: CONFIG += lnx
-    # Unix/ELF will not use callspec for linking
-    DEFINES += MCR_STATIC
+	macx: MCR_PLATFORM = apple
+	linux: MCR_PLATFORM = linux
 }
-else: CONFIG += none
+else: MCR_PLATFORM = none
+# Define static linkage
+static|staticlib: DEFINES += MCR_STATIC
 
-win: MCR_PLATFORM = win
-lnx: MCR_PLATFORM = lnx
-mac: MCR_PLATFORM = mac
-none: MCR_PLATFORM = none
+CONFIG += $${MCR_PLATFORM}
 DEFINES += MCR_PLATFORM=$${MCR_PLATFORM}
-
-nostl|stl_off: DEFINES += MCR_NOSTL

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -103,7 +103,8 @@ MCR_API void *mcr_reg_from_name(const struct mcr_IRegistry *iRegPt,
  *  \param id Id of the interface
  *  \return Name of the interface, or null if not found
  */
-MCR_API const char *mcr_reg_name(const struct mcr_IRegistry *iRegPt, size_t id);
+MCR_API const char *mcr_reg_name(const struct mcr_IRegistry *iRegPt,
+								 size_t id);
 /*! Map a name to an interface, and the interface to that name.
  *
  *  \param interfacePt \ref opt Interface to map

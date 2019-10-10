@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ extern "C" {
 
 /*! Simulate human interface with spatial position activation. */
 struct mcr_HidEcho {
-	/*! \ref retind Echo code */
+	/*! \ref \ref retind Echo code */
 	size_t echo;
 };
 /*! \ref mcr_HidEcho shorthand */
@@ -60,13 +60,14 @@ MCR_API int mcr_HidEcho_send_data(struct mcr_HidEcho *dataPt);
  *  \return Echo code, or \ref MCR_ECHO_ANY if it is not found
  */
 MCR_API size_t mcr_HidEcho_name_echo(struct mcr_context *ctx,
-									 const char *eventName);
+										const char *eventName);
 /*! Get the name of an echo code.
  *
  *  \param eventCode \ref mcr_HidEcho.echo
  *  \return Echo name, or null if not found
  */
-MCR_API const char *mcr_HidEcho_name(struct mcr_context *ctx, size_t eventCode);
+MCR_API const char *mcr_HidEcho_name(struct mcr_context *ctx,
+									 size_t eventCode);
 /*! Get the number of registered echo codes. */
 MCR_API size_t mcr_HidEcho_count(struct mcr_context *ctx);
 
@@ -135,7 +136,7 @@ MCR_API struct mcr_ISignal *mcr_iHidEcho(struct mcr_context *ctx);
 #define mcr_iEcho mcr_iHidEcho
 /*! Signal data casted \ref mcr_HidEcho * */
 #define mcr_HidEcho_data(sigPt) \
-((struct mcr_HidEcho *)mcr_Instance_data(sigPt))
+mcr_castpt(struct mcr_HidEcho, mcr_Instance_data(sigPt))
 /*! Signal data casted \ref mcr_HidEcho * */
 #define mcr_Echo_data(sigPt) mcr_HidEcho_data(sigPt)
 

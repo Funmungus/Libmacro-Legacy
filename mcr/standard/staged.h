@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -67,7 +67,7 @@ MCR_API void mcr_Staged_clear(struct mcr_Staged *trigPt);
 MCR_API struct mcr_ITrigger *mcr_iStaged(struct mcr_context *ctx);
 /*! Get \ref mcr_Staged reference from a trigger */
 #define mcr_Staged_data(trigPt) \
-((struct mcr_Staged *)mcr_Instance_data(trigPt))
+mcr_castpt(struct mcr_Staged, mcr_Instance_data(trigPt))
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -56,12 +56,6 @@ struct mcr_ISignal {
 	struct mcr_Dispatcher *dispatcher;
 	/*! Function to send, when not interrupted */
 	mcr_signal_fnc send;
-};
-
-/*! \ref mcr_ISignal with \ref mcr_context reference */
-struct mcr_CtxISignal {
-	struct mcr_ISignal isignal;
-	struct mcr_context *ctx;
 };
 
 /*! \ref mcr_ISignal ctor

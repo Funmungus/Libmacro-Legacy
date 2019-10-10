@@ -9,21 +9,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 include(../common.pri)
 
-LIBS += "-L$${OUT_PWD}/../extras$${DIR_POSTFIX}" "-L$${OUT_PWD}/../macro$${DIR_POSTFIX}"
+LIBS += "-L$${OUT_PWD}/../lib$${DIR_POSTFIX}"
+!isEmpty(DESTDIR) {
+	LIBS += "-L$${DESTDIR}"
+}
 # Windows target and linkage
-win {
-	nostl|stl_off: LIBS += -l$$qtLibraryTarget(libmacro-extras-nostl)$${MCR_VER_MAJ}
-	else:LIBS += -l$$qtLibraryTarget(libmacro-extras)$${MCR_VER_MAJ}
-	LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
+windows {
+    LIBS += -l$$qtLibraryTarget(libmacro)$${MCR_VER_MAJ}
+    !static:!staticlib: LIBS += -llibcrypto
 } else {
-	nostl|stl_off:LIBS += -l$$qtLibraryTarget(macro-extras-nostl)
-	else:LIBS += -l$$qtLibraryTarget(macro-extras)
-	LIBS += -l$$qtLibraryTarget(macro)
+    LIBS += -l$$qtLibraryTarget(macro)
+    !static:!staticlib: LIBS += -l$$qtLibraryTarget(crypto)
 }
 
 HEADERS += $$files(*.h, true)
 
 SOURCES += main.cpp \
 	tlibmacro.cpp \
-	signal/tgendispatch.cpp
+	signal/tgendispatch.cpp \
+	macro/tmacroreceive.cpp
 

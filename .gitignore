@@ -6,6 +6,7 @@
 *.a
 *.core
 *.moc
+moc_*
 *.o
 *.obj
 *.orig
@@ -43,6 +44,7 @@ nohup.*
 
 # qtcreator generated files
 *.pro.user*
+CMakeLists.txt.user*
 
 # xemacs temporary files
 *.flc

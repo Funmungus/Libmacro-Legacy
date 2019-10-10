@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  *
  *  \ref mcr_standard - Standard signal and trigger types module
  *  \ref mcr_Signal data types: \ref mcr_HidEcho,
- *  \ref mcr_Key, \ref mcr_Mods, \ref mcr_MoveCursor, \ref mcr_NoOp,
+ *  \ref mcr_Key, \ref mcr_Modifier, \ref mcr_MoveCursor, \ref mcr_NoOp,
  *  and \ref mcr_Scroll \n
  *  \ref mcr_ISignal: \ref mcr_iHidEcho, \ref mcr_iKey,
  *  \ref mcr_iMoveCursor, \ref mcr_iNoOp, and \ref mcr_iScroll\n
@@ -36,7 +36,7 @@
 #include "mcr/standard/def.h"
 #include "mcr/standard/hid_echo.h"
 #include "mcr/standard/key.h"
-#include "mcr/standard/mods.h"
+#include "mcr/standard/modifier.h"
 #include "mcr/standard/move_cursor.h"
 #include "mcr/standard/noop.h"
 #include "mcr/standard/scroll.h"
@@ -67,7 +67,7 @@ struct mcr_standard {
 	/* Signal types */
 	struct mcr_ISignal ihid_echo;
 	struct mcr_ISignal ikey;
-	struct mcr_CtxISignal imods;
+	struct mcr_ISignal imodifier;
 	struct mcr_ISignal imove_cursor;
 	struct mcr_ISignal inoop;
 	struct mcr_ISignal iscroll;
@@ -93,10 +93,6 @@ struct mcr_standard {
 	struct mcr_StringIndex echo_name_index;
 	mcr_String echo_name_any;
 };
-
-/* Platform directory */
-#define MCR_STANDARD_PLATFORM_INC \
-MCR_STR(mcr/standard/MCR_PLATFORM/nstandard.h)
 
 /* Platform signal */
 struct mcr_HidEcho;

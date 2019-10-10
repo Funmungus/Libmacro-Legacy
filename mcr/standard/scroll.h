@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -49,10 +49,10 @@ MCR_API int mcr_Scroll_send_data(struct mcr_Scroll *dataPt);
 MCR_API struct mcr_ISignal *mcr_iScroll(struct mcr_context *ctx);
 /*! Signal data casted \ref mcr_Scroll * */
 #define mcr_Scroll_data(sigPt) \
-((struct mcr_Scroll *)mcr_Instance_data(sigPt))
+mcr_castpt(struct mcr_Scroll, mcr_Instance_data(sigPt))
 /*! Signal data casted \ref mcr_Scroll * */
 #define MCR_SCROLL_DATA(sig) \
-((struct mcr_Scroll *)(sig).instance.data.data)
+mcr_castpt(struct mcr_Scroll, (sig).instance.data.data)
 
 #ifdef __cplusplus
 }

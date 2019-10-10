@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -120,11 +120,11 @@ struct mcr_signal {
 	 */
 	struct mcr_GenericDispatcher generic_dispatcher;
 	/*! All modifiers known by Libmacro to be set */
-	unsigned int internal_mods;
+	unsigned int internal_modifiers;
 	/*! Map from modifiers to names */
-	struct mcr_Map map_mod_name;
+	struct mcr_Map map_modifier_name;
 	/*! Map from names to modifiers */
-	struct mcr_Map map_name_mod;
+	struct mcr_Map map_name_modifier;
 };
 
 #ifdef __cplusplus

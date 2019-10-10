@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -54,6 +54,8 @@ struct mcr_Interface {
 	/*! The unique identifier for this object type,
 	 *  -1 for unregistered types */
 	size_t id;
+	/*! Context reference */
+	struct mcr_context *context;
 	/*! Byte size of an object of this type */
 	size_t data_size;
 	/*! Initialize object resources, default memset 0 */
@@ -119,9 +121,9 @@ if (dataInPt) { \
 #define MCR_DATA_FREE(dataIn) \
 if (MCR_DATA_IS_HEAP(dataIn)) { \
 	(dataIn).deallocate((dataIn).data); \
-	(dataIn).deallocate = NULL; \
+	(dataIn).deallocate = mcr_null; \
 } \
-(dataIn).data = NULL;
+(dataIn).data = mcr_null;
 
 /*! Free data if needed, and nullify.
  *
@@ -142,6 +144,7 @@ if (dataInPt) { \
 MCR_API int mcr_Interface_init(void *interfacePt);
 /*! \ref mcr_Interface_init and \ref mcr_Interface_set_all
  *
+ *  \param context \ref opt \ref mcr_Interface.context
  *  \param dataSize \ref opt \ref mcr_Interface.data_size
  *  \param init \ref opt \ref mcr_Interface.init
  *  \param deinit \ref opt \ref mcr_Interface.deinit
@@ -149,12 +152,14 @@ MCR_API int mcr_Interface_init(void *interfacePt);
  *  \param copy \ref opt \ref mcr_Interface.copy
  *  \return New interface
  */
-MCR_API struct mcr_Interface mcr_Interface_new(size_t dataSize,
+MCR_API struct mcr_Interface mcr_Interface_new(struct mcr_context *context,
+		size_t dataSize,
 		mcr_data_fnc init, mcr_data_fnc deinit, mcr_compare_fnc compare,
 		mcr_copy_fnc copy);
 
 /*! Set all \ref mcr_Interface functions
  *
+ *  \param context \ref opt \ref mcr_Interface.context
  *  \param interfacePt \ref mcr_Interface *
  *  \param dataSize \ref opt \ref mcr_Interface.data_size
  *  \param init \ref opt \ref mcr_Interface.init
@@ -163,6 +168,7 @@ MCR_API struct mcr_Interface mcr_Interface_new(size_t dataSize,
  *  \param copy \ref opt \ref mcr_Interface.copy
  */
 MCR_API void mcr_Interface_set_all(void *interfacePt,
+								   struct mcr_context *context,
 								   size_t dataSize, mcr_data_fnc init, mcr_data_fnc deinit,
 								   mcr_compare_fnc compare, mcr_copy_fnc copy);
 
@@ -172,15 +178,15 @@ MCR_API void mcr_Interface_set_all(void *interfacePt,
  *  \return \ref retid
  */
 #define mcr_iid(interfacePt) (interfacePt ? \
-((struct mcr_Interface *)interfacePt)->id : (size_t)~0)
+mcr_castpt(struct mcr_Interface, interfacePt)->id : mcr_cast(size_t, -1))
 
 /*! \ref mcr_iid typecasted from \ref mcr_Interface **
  *
  *  \param interfacePtPt \ref opt \ref mcr_Interface **
  */
 #define mcr_iref_id(interfacePtPt) \
-(interfacePtPt ? mcr_iid(*(struct mcr_Interface **)interfacePtPt) : \
-		(size_t)~0)
+(interfacePtPt ? mcr_iid(*mcr_castpt(struct mcr_Interface *, interfacePtPt)) : \
+			mcr_cast(size_t, -1))
 
 /* Interface functions on data */
 /*! Heap-allocate and initialize an object

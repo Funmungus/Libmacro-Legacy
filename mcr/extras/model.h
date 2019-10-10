@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,11 +22,6 @@
  *  All POD's not intended to subclass.  Implement different types with
  *  reference classes and managers
  */
-
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
 
 #ifndef MCR_EXTRAS_MODEL_H_
 #define MCR_EXTRAS_MODEL_H_
@@ -55,10 +50,9 @@ typedef mcr_ITrigger ITrigger;
 
 /*! \ref ISignal with \ref Libmacro reference
  *
- *  \ref mcr_CtxISignal
  *  Not typedef because this is a C++ Libmacro context
  */
-struct MCR_EXTRAS_API CtxISignal {
+struct MCR_API CtxISignal {
 	mcr_ISignal isignal;
 
 	/*! \param context If null the last created context will be used.
@@ -69,12 +63,13 @@ struct MCR_EXTRAS_API CtxISignal {
 	 *  exist.
 	 */
 	CtxISignal(Libmacro *context, mcr_signal_fnc send,
-			   mcr_Dispatcher *dispatcher = NULL,
-			   const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-											NULL));
+			   mcr_Dispatcher *dispatcher = nullptr,
+			   const Interface &interface = mcr_Interface_new(nullptr, 0, nullptr, nullptr,
+											nullptr,
+											nullptr));
 	CtxISignal(mcr_signal_fnc send);
-	virtual ~CtxISignal() {}
 	CtxISignal(const CtxISignal &) = default;
+	virtual ~CtxISignal() {}
 	CtxISignal &operator =(const CtxISignal &) = default;
 
 	inline const mcr_ISignal *ptr() const
@@ -99,7 +94,7 @@ private:
  *  \ref mcr_CtxDispatcher
  *  Not typedef because this is a C++ Libmacro context
  */
-struct MCR_EXTRAS_API CtxDispatcher {
+struct MCR_API CtxDispatcher {
 	mcr_Dispatcher dispatcher;
 
 	/*! \param context If null the last created context will be used.
@@ -112,14 +107,14 @@ struct MCR_EXTRAS_API CtxDispatcher {
 	 *  \param trim \ref opt mcr_Dispatcher.trim
 	 *  exist.
 	 */
-	CtxDispatcher(Libmacro *context = NULL, mcr_Dispatcher_add_fnc add = NULL,
-				  mcr_Dispatcher_fnc clear = NULL,
-				  mcr_Dispatcher_dispatch_fnc dispatch = NULL,
-				  mcr_Dispatcher_modify_fnc modifier = NULL,
-				  mcr_Dispatcher_remove_fnc remove = NULL,
-				  mcr_Dispatcher_fnc trim = NULL);
-	virtual ~CtxDispatcher() {}
+	CtxDispatcher(Libmacro *context = nullptr, mcr_Dispatcher_add_fnc add = nullptr,
+				  mcr_Dispatcher_fnc clear = nullptr,
+				  mcr_Dispatcher_dispatch_fnc dispatch = nullptr,
+				  mcr_Dispatcher_modify_fnc modifier = nullptr,
+				  mcr_Dispatcher_remove_fnc remove = nullptr,
+				  mcr_Dispatcher_fnc trim = nullptr);
 	CtxDispatcher(const CtxDispatcher &) = default;
+	virtual ~CtxDispatcher() {}
 	CtxDispatcher &operator =(const CtxDispatcher &) = default;
 
 	inline const mcr_Dispatcher *ptr() const
@@ -144,7 +139,7 @@ private:
  *  \ref mcr_CtxITrigger
  *  Not typedef because this is a C++ Libmacro context
  */
-struct MCR_EXTRAS_API CtxITrigger {
+struct MCR_API CtxITrigger {
 	mcr_ITrigger itrigger;
 
 	/*! \param context If null the last created context will be used.
@@ -152,9 +147,11 @@ struct MCR_EXTRAS_API CtxITrigger {
 	 *  \param receive \ref opt mcr_ITrigger.receive
 	 *  \param interface \ref opt mcr_ITrigger.interface
 	 */
-	CtxITrigger(Libmacro *context = NULL, mcr_Dispatcher_receive_fnc receive = NULL,
-				const Interface &interface = mcr_Interface_new(0, NULL, NULL, NULL,
-						NULL));
+	CtxITrigger(Libmacro *context = nullptr,
+				mcr_Dispatcher_receive_fnc receive = nullptr,
+				const Interface &interface = mcr_Interface_new(nullptr, 0, nullptr, nullptr,
+						nullptr,
+						nullptr));
 	virtual ~CtxITrigger() {}
 	CtxITrigger(const CtxITrigger &) = default;
 	CtxITrigger &operator =(const CtxITrigger &) = default;
@@ -180,21 +177,17 @@ private:
  *
  *  Edit with \ref SignalRef
  */
-struct MCR_EXTRAS_API Signal {
+struct MCR_API Signal {
 	mcr_Signal signal;
 
 	/*! \param isignal \ref mcr_Signal.isignal
 	 *  \param isDispatch \ref mcr_Signal.is_dispatch
 	 */
-	Signal(mcr_ISignal *isignal = NULL, bool isDispatch = false)
+	Signal(mcr_ISignal *isignal = nullptr, bool isDispatch = false)
 	{
 		mcr_Signal_init(ptr());
 		signal.isignal = isignal;
 		signal.is_dispatch = isDispatch;
-	}
-	virtual ~Signal()
-	{
-		mcr_Signal_deinit(ptr());
 	}
 	/*! \ref mcr_Signal_copy */
 	Signal(const Signal &copytron)
@@ -213,6 +206,10 @@ struct MCR_EXTRAS_API Signal {
 	{
 		mcr_Signal_init(ptr());
 		copy(copytron);
+	}
+	virtual ~Signal()
+	{
+		mcr_Signal_deinit(ptr());
 	}
 	/*! \ref mcr_Signal_copy */
 	inline Signal &operator =(const Signal &copytron)
@@ -253,38 +250,44 @@ struct MCR_EXTRAS_API Signal {
 	/*! \ref mcr_Signal_copy */
 	void copy(const mcr_Signal *copytron)
 	{
-		int err;
 		if (copytron != ptr()) {
-			if ((err = mcr_Signal_copy(ptr(), copytron)))
-				throw err;
+			if (mcr_Signal_copy(ptr(), copytron))
+				throw mcr_err;
 		}
 	}
 	/*! \ref mcr_Signal_deinit + set \ref mcr_Signal.isignal */
 	void setISignal(mcr_ISignal *isignal);
+
+	template <typename T>
+	inline const T *data() const
+	{
+		return static_cast<const T *>(signal.instance.data.data);
+	}
+	template <typename T>
+	inline T *data()
+	{
+		return static_cast<T *>(signal.instance.data.data);
+	}
 };
 
 /*! \ref mcr_Trigger
  *
  *  Edit with \ref TriggerRef
  */
-struct MCR_EXTRAS_API Trigger {
+struct MCR_API Trigger {
 	mcr_Trigger trigger;
 
 	/*! \param itrigger \ref mcr_Trigger.itrigger
 	 *  \param trigger \ref mcr_Trigger.trigger
 	 *  \param actor \ref mcr_Trigger.actor
 	 */
-	Trigger(mcr_ITrigger *itrigger = NULL,
-			mcr_Dispatcher_receive_fnc trigger = NULL, void *actor = NULL)
+	Trigger(mcr_ITrigger *itrigger = nullptr,
+			mcr_Dispatcher_receive_fnc trigger = nullptr, void *actor = nullptr)
 	{
 		mcr_Trigger_init(ptr());
 		this->trigger.itrigger = itrigger;
 		this->trigger.trigger = trigger;
 		this->trigger.actor = actor;
-	}
-	virtual ~Trigger()
-	{
-		mcr_Trigger_deinit(ptr());
 	}
 	/*! \ref mcr_Trigger_copy */
 	Trigger(const Trigger &copytron)
@@ -303,6 +306,10 @@ struct MCR_EXTRAS_API Trigger {
 	{
 		mcr_Trigger_init(ptr());
 		copy(copytron);
+	}
+	virtual ~Trigger()
+	{
+		mcr_Trigger_deinit(ptr());
 	}
 	/*! \ref mcr_Trigger_copy */
 	inline Trigger &operator =(const Trigger &copytron)
@@ -339,10 +346,9 @@ struct MCR_EXTRAS_API Trigger {
 	/*! \ref mcr_Trigger_copy */
 	void copy(const mcr_Trigger *copytron)
 	{
-		int err;
 		if (copytron != ptr()) {
-			if ((err = mcr_Trigger_copy(ptr(), copytron)))
-				throw err;
+			if (mcr_Trigger_copy(ptr(), copytron))
+				throw mcr_err;
 		}
 	}
 	/*! \ref mcr_Trigger_deinit + set \ref mcr_Trigger.itrigger */
@@ -353,22 +359,22 @@ struct MCR_EXTRAS_API Trigger {
  *
  *  Edit with \ref MacroRef
  */
-struct MCR_EXTRAS_API Macro {
+struct MCR_API Macro {
 	typedef mcr_Interrupt Interrupt;
 
-	Macro(Libmacro *context = NULL, bool blocking = false,
+	Macro(Libmacro *context = nullptr, bool blocking = false,
 		  bool sticky = false, unsigned int threadMax = 1,
 		  bool enable = false);
-	virtual ~Macro();
 	Macro(const Macro &copytron);
 	Macro(const mcr_Macro &copytron);
 	Macro(const mcr_Macro *copytron);
+	virtual ~Macro();
+
 	inline Macro &operator =(const Macro &copytron)
 	{
 		copy(copytron);
 		return *this;
 	}
-
 	inline Macro &operator =(const mcr_Macro &copytron)
 	{
 		copy(&copytron);
@@ -387,6 +393,74 @@ struct MCR_EXTRAS_API Macro {
 	inline mcr_Macro *ptr()
 	{
 		return &_macro;
+	}
+
+	inline Libmacro *context() const
+	{
+		return _context;
+	}
+
+	inline void operator()()
+	{
+		start();
+	}
+	inline void start()
+	{
+		mcr_Macro_receive(ptr(), nullptr, 0);
+	}
+
+	inline void triggerMe(Trigger *trigPt)
+	{
+		if (!trigPt)
+			throw EINVAL;
+		mcr_Trigger_set_macro(trigPt->ptr(), ptr());
+	}
+	inline void triggerMe(Trigger &trigPt)
+	{
+		mcr_Trigger_set_macro(trigPt.ptr(), ptr());
+	}
+
+	size_t activatorCount() const;
+	Signal *activatorData() const;
+	inline std::vector<Signal> activators() const
+	{
+		auto ptr = activatorData();
+		return std::vector<Signal>(ptr, ptr + activatorCount());
+	}
+	template<class T = std::vector<Signal>>
+	inline void setActivators(const T &vals)
+	{
+		size_t i = 0;
+		setActivatorCount(vals.size());
+		for (auto &iter: vals) {
+			setActivator(i++, iter);
+		}
+	}
+	const char *c_name() const;
+	inline std::string name() const
+	{
+		return c_name();
+	}
+	void setName(const char *val);
+	inline void setName(const std::string &val)
+	{
+		setName(val.c_str());
+	}
+	size_t triggerCount() const;
+	Trigger *triggerData() const;
+	inline std::vector<Trigger> triggers() const
+	{
+		auto ptr = triggerData();
+		return std::vector<Trigger>(ptr, ptr + triggerCount());
+	}
+	template<class T = std::vector<Trigger>>
+	inline void setTriggers(const T &vals)
+	{
+		size_t i = 0;
+		setTriggerCount(vals.size());
+		for (auto &iter: vals) {
+			setTrigger(i++, iter);
+		}
 	}
 
 	inline bool blocking() const
@@ -413,13 +487,13 @@ struct MCR_EXTRAS_API Macro {
 	}
 	inline void clearSignals()
 	{
-		setSignals(NULL, 0);
+		setSignals(nullptr, 0);
 	}
 	inline mcr_Signal *signal(size_t index)
 	{
 		return mcr_Macro_signal(&_macro, index);
 	}
-	void setSignal(const mcr_Signal *sigPt, size_t index);
+	void setSignal(size_t index, const mcr_Signal *sigPt);
 	void setSignals(const mcr_Signal *sigArr, size_t count);
 	void resizeSignals(size_t count);
 
@@ -438,52 +512,88 @@ struct MCR_EXTRAS_API Macro {
 		return mcr_Macro_is_enabled(ptr());
 	}
 	void setEnabled(bool val);
+
 	/* Read-only */
 	inline mcr_context *ctx() const
 	{
 		return _macro.ctx;
 	}
-	inline unsigned int threadCount() const
+	inline int threadCount() const
 	{
 		return _macro.thread_count;
 	}
-	inline unsigned int queued() const
+	inline unsigned queued() const
 	{
 		return _macro.queued;
 	}
 
-	void copy(const Macro &copytron)
-	{
-		copy(copytron.ptr());
-	}
+	void copy(const Macro &copytron);
 	void copy(const mcr_Macro *copytron)
 	{
-		int err;
 		if (copytron != &_macro) {
-			if ((err = mcr_Macro_copy(&_macro, copytron)))
-				throw err;
+			if (mcr_Macro_copy(&_macro, copytron))
+				throw mcr_err;
 		}
 	}
 
-	inline Libmacro *context() const
+	inline void clearAll()
 	{
-		return _context;
+		setSignals(nullptr, 0);
+		setActivatorCount(0);
+		setTriggerCount(0);
 	}
+
+	/* Removes this macro and all triggers from active dispatching */
+	void removeDispatch();
+	void addDispatch(Signal &sigPt, Trigger &trigPt);
 private:
 	mcr_Macro _macro;
 	Libmacro *_context;
+	/* vector<Signal> */
+	void *_activators;
+	/* string */
+	void *_name;
+	/* vector<Trigger> */
+	void *_triggers;
+
+	inline SignalSet &activatorsRef() const
+	{
+		return *static_cast<SignalSet *>(_activators);
+	}
+	inline std::string &nameRef() const
+	{
+		return *static_cast<std::string *>(_name);
+	}
+	inline TriggerSet &triggersRef() const
+	{
+		return *static_cast<TriggerSet *>(_triggers);
+	}
+	void setActivatorCount(size_t count);
+	void setActivator(size_t index, const Signal &sigPt);
+	void setTriggerCount(size_t count);
+	void setTrigger(size_t index, const Trigger &trigPt);
+
+	/* If enabled addDispatch, otherwise removeDispatch */
+	void enableDispatch();
+	/* triggerMe all current triggers */
+	inline void triggerMe()
+	{
+		for (auto &iter: triggersRef()) {
+			triggerMe(iter);
+		}
+	}
 };
 
-struct MCR_EXTRAS_API Stage {
+struct MCR_API Stage {
 	mcr_Stage stage;
 
-	Stage(Libmacro *ctx = NULL,
+	Stage(Libmacro *ctx = nullptr,
 		  bool blocking = false,
-		  mcr_Signal *interceptPt = NULL, unsigned int measurementError = 0,
+		  mcr_Signal *interceptPt = nullptr, unsigned int measurementError = 0,
 		  unsigned int mods = 0, int trigFlags = MCR_TF_ALL);
-	~Stage();
 	Stage(const Stage &copytron);
 	Stage(const mcr_Stage *copytron);
+	~Stage();
 	Stage &operator =(const Stage &copytron)
 	{
 		_context = copytron._context;
@@ -514,11 +624,9 @@ struct MCR_EXTRAS_API Stage {
 	}
 	void copy(const mcr_Stage *copytron)
 	{
-		int err;
 		if (copytron != ptr()) {
-			err = mcr_Stage_copy(ptr(), copytron);
-			if (err)
-				throw(err);
+			if (mcr_Stage_copy(ptr(), copytron))
+				throw mcr_err;
 		}
 	}
 

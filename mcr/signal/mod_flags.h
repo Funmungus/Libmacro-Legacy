@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -126,13 +126,13 @@ MCR_API void mcr_ModFlags_maps(struct mcr_context *ctx,
 							   struct mcr_Map **mapModName, struct mcr_Map **mapNameMod);
 
 /*! See \ref mcr_ModFlags_add */
-#define MCR_MOD_ADD( toModify, modifiers ) \
+#define MCR_MOD_ADD(toModify, modifiers) \
 ((toModify) | (modifiers))
 /*! See \ref mcr_ModFlags_has */
-#define MCR_MOD_HAS( modifiers, hasMod ) \
+#define MCR_MOD_HAS(modifiers, hasMod) \
 ((modifiers & hasMod) == hasMod)
 /*! See \ref mcr_ModFlags_remove */
-#define MCR_MOD_REMOVE( toModify, modifiers ) \
+#define MCR_MOD_REMOVE(toModify, modifiers) \
 ((toModify) & (~(modifiers)))
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -59,26 +59,24 @@ struct mcr_Macro {
 	 *  the signals sent will repeat sending until interrupted */
 	bool sticky;
 	/*! Maximum number of threads this macro can start when it is
-	 *  triggered. */
+	 *  triggered.
+	 *
+	 *  Any value greater than \ref MCR_THREAD_MAX will be ignored. */
 	unsigned int thread_max;
 
 	/* Internal */
-	/*! Used to wake events inside of functions */
-	cnd_t cnd;
 	/*! See \ref mcr_Macro_interrupt */
 	enum mcr_Interrupt interruptor;
-	/*! Used to sleep and listen to events inside of functions */
-	mtx_t lock;
 	/*! Used for \ref mcr_send */
 	struct mcr_context *ctx;
 	/*! Set of signals sent when triggered */
 	struct mcr_Array signal_set;
 	/*! Current number of threads created from macro being triggered */
-	unsigned int thread_count;
-	/*! Current number of times the macro has been triggered.  This
-	 *  number is reduced every time the signal set completes sending or is
-	 *  interrupted, until it reaches zero. */
-	unsigned int queued;
+	int thread_count;
+	/*! Wait for thread_count changes. */
+	cnd_t thread_count_cnd;
+	/*! Current number of times the macro has been triggered. */
+	unsigned queued;
 };
 
 /*! Data interface of macro structures
@@ -204,6 +202,18 @@ MCR_API bool mcr_Macro_is_enabled(const struct mcr_Macro *mcrPt);
  *  \return \ref reterr
  */
 MCR_API int mcr_Macro_set_enabled(struct mcr_Macro *mcrPt, bool enable);
+/*! Disable and wait in current thread to confirm disable completed.
+ *
+ *  Use before modifying signal set, C++ deconstructors, and program exit.
+ *  \return \ref reterr
+ */
+MCR_API int mcr_Macro_disable_confirmed(struct mcr_Macro *mcrPt);
+/*! Send all signals in current thread.
+ *
+ *  Any interrupt besides MCR_CONTINUE will complete this function and return.
+ *  Sticky is ignored, only run once.
+ */
+MCR_API int mcr_Macro_send(struct mcr_Macro *mcrPt);
 
 /* Triggering functions */
 /*! Add correct receivers and dispatch functions into
@@ -268,6 +278,8 @@ MCR_API bool mcr_Macro_trigger(void *trigPt,
  *  In cases of extreme complexity, please break glass.
  */
 struct mcr_macro {
+	/*! Lock critical sections inside running macro thread. */
+	mtx_t critical_section;
 	/*! \ref mcr_ITrigger registry */
 	struct mcr_IRegistry itriggers;
 };

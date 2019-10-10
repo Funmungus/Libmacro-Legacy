@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -79,8 +79,8 @@ MCR_API int mcr_Instance_set_all(void *instPt, void *iPt,
  */
 #define mcr_Instance_data(instPt) \
 ((instPt) ? \
-	((struct mcr_Instance *)(instPt))->data.data : \
-NULL)
+	mcr_castpt(struct mcr_Instance, instPt)->data.data : \
+mcr_null)
 
 /*! \ref mcr_Data_is_heap
  *

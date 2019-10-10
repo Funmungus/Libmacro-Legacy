@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -111,9 +111,9 @@ MCR_API void mcr_String_clear(mcr_String * strPt);
  *  \return const char *
  */
 #define mcr_String_str(strPt) \
-((const char *)(strPt ? \
+mcr_castpt(const char, strPt ? \
 	(strPt)->array : \
-NULL))
+mcr_null)
 
 /* Add/remove */
 /*! Insert another string at given index
@@ -142,7 +142,8 @@ MCR_API void mcr_String_remove_index(mcr_String * strPt, size_t index,
  *  string's length, the entire string will be copied.
  *  \return \ref reterr
  */
-MCR_API int mcr_String_append(mcr_String * strPt, const char *str, size_t len);
+MCR_API int mcr_String_append(mcr_String * strPt, const char *str,
+							  size_t len);
 /*! Append a character to the end of a string.
  *
  *  \param c Character to push
@@ -163,7 +164,7 @@ MCR_API char mcr_String_pop(mcr_String * strPt);
  *  \return \ref reterr
  */
 #define mcr_String_replace(strPt, str) \
-mcr_String_nreplace(strPt, str, ~0)
+mcr_String_nreplace(strPt, str, (size_t)-1)
 /*! Reset this string and copy from another.
  *
  *  \param str \ref opt String to copy from
@@ -218,12 +219,12 @@ MCR_API int mcr_String_move(mcr_String * dstPt, size_t dstPos,
  *  \return bool
  */
 #define MCR_STR_IS_EMPTY(str) \
-(!(str).used || (str).array[0] == '\0')
+(!(str).used || *mcr_castpt(char, (str).array) == '\0')
 
 /*! \ref mcr_String_clear */
 #define MCR_STR_CLEAR(str) \
 if ((str).size) { \
-	(str).array[0] = '\0'; \
+	*mcr_castpt(char, (str).array) = '\0'; \
 	(str).used = 1; \
 }
 
@@ -243,7 +244,7 @@ if ((str).size) { \
  *  \return \ref retind
  */
 #define mcr_String_len(strPt) \
-((strPt) ? MCR_STR_LEN (*(strPt)) : 0)
+(strPt ? MCR_STR_LEN(*(strPt)) : 0)
 
 #ifdef __cplusplus
 }

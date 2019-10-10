@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -87,10 +87,10 @@ MCR_API struct mcr_ISignal *mcr_iMoveCursor(struct mcr_context *ctx);
 #define mcr_iMC mcr_iMoveCursor
 /*! Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MoveCursor_data(sigPt) \
-((struct mcr_MoveCursor *)mcr_Instance_data(sigPt))
+mcr_castpt(struct mcr_MoveCursor, mcr_Instance_data(sigPt))
 /*! Signal data casted \ref mcr_MoveCursor * */
 #define MCR_MOVECURSOR_DATA(sig) \
-((struct mcr_MoveCursor *)(sig).instance.data.data)
+mcr_castpt(struct mcr_MoveCursor, (sig).instance.data.data)
 
 /*! Signal data casted \ref mcr_MoveCursor * */
 #define mcr_MC_data(sigPt) mcr_MoveCursor_data (sigPt)

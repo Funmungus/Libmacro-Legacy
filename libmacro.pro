@@ -1,15 +1,18 @@
 TEMPLATE = subdirs
-SUBDIRS += macro
-!noextras:SUBDIRS += extras
-SUBDIRS += test
+SUBDIRS += lib.pro
+# Testing is an extra feature which requires QT.
+!noextras:!noqt:SUBDIRS += test
+# TODO: Manual tests in debugging, automatic testing in release
+# else { SUBDIRS += LibmacroTest }
 CONFIG += ordered
 
 OTHER_FILES = style \
-	README.md
+	README.md \
+	CMakeLists.txt
 
-DISTFILES += libmacro.astylerc
+include(common.pri)
 
-lnx {
+unix:!android {
 	# Docs targets
 	documentation.depends = $${HEADERS}
 	documentation.target = doxygen

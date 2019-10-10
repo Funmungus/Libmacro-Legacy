@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -36,14 +36,16 @@
 #ifdef __cplusplus
 #include <ctime>
 #include <cstdbool>
-#ifdef DEBUG
+#include <cstdint>
+#ifdef MCR_DEBUG
 	#include <cassert>
 #endif
 extern "C" {
 #else
 #include <time.h>
 #include <stdbool.h>
-#ifdef DEBUG
+#include <stdint.h>
+#ifdef MCR_DEBUG
 	#include <assert.h>
 #endif
 #endif
@@ -51,7 +53,7 @@ extern "C" {
 /* Doxygen in-document references */
 #ifndef reterr
 	/*! Return 0 for success, otherwise standard error code
-	*  from \c errno.h.
+	*   from \c errno.h.
 	*/
 	#define reterr int
 #endif
@@ -68,7 +70,7 @@ extern "C" {
 
 #ifndef retcmp
 	/*! Return 0 if comparison is equal, less than 0 if left < right,
-	*  or greater than 0 if left > right.
+	*   or greater than 0 if left > right.
 	*/
 	#define retcmp int
 #endif
@@ -115,44 +117,86 @@ extern "C" {
 	#define UNUSED(x) ((void)(x))
 #endif
 #ifndef MCR_CMP
-/*! Compare integral types.  Casting must be done manually.
- *
- *  \param lhs Left side
- *  \param rhs Right side
- *  \return \ref retcmp
- */
-#define MCR_CMP(lhs, rhs) \
-((lhs) < (rhs) ? \
-	-1 : \
-(lhs) > (rhs))
+	/*! Compare integral types.  Casting must be done manually.
+	*
+	*  \param lhs Left side
+	*  \param rhs Right side
+	*  \return \ref retcmp
+	*/
+	#define MCR_CMP(lhs, rhs) (((lhs) > (rhs)) - ((lhs) < (rhs)))
 #endif
 #ifndef MCR_CMP_CAST
-/*! Integral comparison with built-in casting
- *
- *  \param casting Prefix used to cast variables before comparison
- *  \param lhs Left side
- *  \param rhs Right side
- *  \return \ref retcmp
- */
-#define MCR_CMP_CAST(casting, lhs, rhs) \
-MCR_CMP(casting(lhs), casting(rhs))
+	/*! Integral comparison with built-in casting
+	*
+	*  \param casting Prefix used to cast variables before comparison
+	*  \param lhs Left side
+	*  \param rhs Right side
+	*  \return \ref retcmp
+	*/
+	#define MCR_CMP_CAST(casting, lhs, rhs) MCR_CMP(casting(lhs), casting(rhs))
+#endif
+#ifndef MCR_CMP_PTR
+/*! Integral comparison of pointers with built-in casting
+*
+*  If either pointer is null the pointer addresses are compared.
+*  \param T Native type each pointer is pointing to.  e.g. if comparing
+*  pointers to integers T should be \c int.  If either pointer is const
+*  then T must also be const.  e.g. \c const \c int
+*  \param lhsPtr Pointer to left side comparison
+*  \param rhsPtr Pointer to right side comparison
+*  \return \ref retcmp
+*/
+#define MCR_CMP_PTR(T, lhsPtr, rhsPtr) (lhsPtr && rhsPtr ? \
+		MCR_CMP(*mcr_castpt(T, lhsPtr), *mcr_castpt(T, rhsPtr)) : \
+		MCR_CMP(lhsPtr, rhsPtr))
+#endif
+#ifndef mcr_cast
+	#ifdef __cplusplus
+		#define mcr_cast(T, obj) static_cast<T>(obj)
+		#define mcr_castpt(T, obj) reinterpret_cast<T *>(obj)
+		#define mcr_null nullptr
+	#else
+		/*! static_cast for C++ and regular cast for C.  Macros are not affected
+		*   by extern "C". Designed for macros C/C++ interoperability. */
+		#define mcr_cast(T, obj) ((T)(obj))
+		/*! reinterpret_cast as a pointer for C++ and regular cast for C.
+		*   Macros are not affected by extern "C". Designed for macros C/C++
+		*   interoperability. */
+		#define mcr_castpt(T, obj) ((T *)(obj))
+		/*! nullptr for C++ and NULL for C */
+		#define mcr_null NULL
+	#endif
 #endif
 /* Debugging definitions */
 #ifndef mcr_ddo
-	#ifdef DEBUG
+	#ifdef MCR_DEBUG
 		/*! Do the argument only for debug builds. */
 		#define mcr_ddo(stuff) stuff
 	#else
-		#define mcr_ddo(stuff)
+		/* Empty blocks.  Non-empty interferes with one-liners. */
+		#define mcr_ddo(stuff) {}
 	#endif
 #endif
+#ifndef mcr_fixme
+/* Do not show fixme warnings for debug, and MSVC may not support _Pragma. */
+#ifdef MCR_DEBUG
+/*! Debug compile message indicating future changes */
+#define mcr_fixme \
+					mcr_ddo(_Pragma("message MCR_LINE \": Fix Me!\""))
+#else
+#define mcr_fixme
+#endif
+#endif
 #ifndef mcr_dprint
-/*! If debug build, print to stdout. */
-#define mcr_dprint(...) \
-mcr_ddo(printf(__VA_ARGS__))
+	/*! If debug build, print to stdout. */
+	#define mcr_dprint(...) mcr_ddo(printf(__VA_ARGS__))
+#endif
+#ifndef mcr_dexit
+	/*! Only when debugging exit with \ref mcr_err error code. */
+	#define mcr_dexit mcr_ddo({ mcr_dmsg; exit(mcr_err); })
 #endif
 #ifndef mcr_dmsg
-/*! Automated error message based on errno.
+/*! Automated error message of \ref mcr_errno.
  *
  *  Print to \c stderr for only debug builds.
  */
@@ -164,23 +208,13 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
 	/*! Assertion only for debug builds */
 	#define mcr_dassert(expression) mcr_ddo(assert(expression))
 #endif
-#ifndef mcr_fixme
-#ifdef _MSC_VER
-#define mcr_fixme
-#else
-/*! Debug compile message indicating future changes */
-#define mcr_fixme \
-		mcr_ddo(_Pragma("message MCR_LINE \": Fix Me!\""))
-#endif
-#endif
 #ifndef mcr_arrlen
-/*! For a static array definition get the number of elements.
- *
- *  \param arr Static array
- *  \return size_t Number of elements
- */
-#define mcr_arrlen(arr) \
-(sizeof(arr) / sizeof(*(arr)))
+	/*! For a static array definition get the number of elements.
+	*
+	*  \param arr Static array
+	*  \return size_t Number of elements
+	*/
+	#define mcr_arrlen(arr) (sizeof(arr) / sizeof(*(arr)))
 #endif
 #ifndef mcr_errno
 /*! Set \ref mcr_err to \ref errno.
@@ -188,19 +222,40 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
  *  Also \ref mcr_dmsg
  *  \param fallbackError If errno is not an error, use this error code.
  */
-#define mcr_errno(fallbackError) \
-mcr_err = errno; \
-if (!mcr_err) { \
-	mcr_err = (fallbackError); \
-} \
-mcr_dmsg;
+#define mcr_errno(fallbackError) { \
+	mcr_err = errno; \
+	if (!mcr_err) \
+		mcr_err = (fallbackError); \
+	mcr_dmsg; \
+}
 #endif
-
+#ifndef mcr_err_return
+/*! Immediately \ref mcr_dmsg and return \ref mcr_err.
+ *
+ *  Only use in a function that returns \ref reterr
+ */
+#define mcr_err_return { \
+	mcr_dmsg; \
+	return mcr_err; \
+}
+#endif
 #ifndef mcr_mset_error
 /*! Set \ref mcr_err and \ref mcr_dmsg */
-#define mcr_mset_error(errorNumber) \
-mcr_err = (errorNumber); \
-mcr_dmsg;
+#define mcr_mset_error(errorNumber) { \
+	mcr_err = (errorNumber); \
+	mcr_dmsg; \
+}
+#endif
+#ifndef mcr_mset_error_return
+/*! Set \ref mcr_err, \ref mcr_dmsg and return \ref mcr_err.
+ *
+ *  Only use in a function that returns \ref reterr
+ */
+#define mcr_mset_error_return(errorNumber) { \
+	mcr_err = (errorNumber); \
+	mcr_dmsg; \
+	return errorNumber; \
+}
 #endif
 
 #ifndef WARN
@@ -223,6 +278,10 @@ mcr_dmsg;
 	/*! \ref mcr_ddo */
 	#define ddo(stuff) mcr_ddo(stuff)
 #endif
+#ifndef dexit
+	/*! \ref mcr_dexit */
+	#define dexit mcr_dexit
+#endif
 #ifndef dprint
 	/*! \ref mcr_dprint */
 	#define dprint(...) mcr_dprint(__VA_ARGS__)
@@ -236,25 +295,42 @@ mcr_dmsg;
 	#define dassert(expr) mcr_dassert(expr)
 #endif
 #ifndef fixme
+	/*! \ref mcr_fixme */
 	#define fixme mcr_fixme
 #endif
 #ifndef arrlen
 	/*! \ref mcr_arrlen */
 	#define arrlen(arr) mcr_arrlen(arr)
 #endif
+#ifndef err_return
+	/*! \ref mcr_err_return */
+	#define err_return mcr_err_return
+#endif
 #ifndef mset_error
 	/*! \ref mcr_mset_error */
 	#define mset_error(errorNumber) mcr_mset_error(errorNumber)
+#endif
+#ifndef mset_error_return
+	/*! \ref mcr_mset_error_return */
+	#define mset_error_return(errorNumber) mcr_mset_error_return(errorNumber)
+#endif
+
+#if defined(_MSC_VER) || defined(WIN64) || defined(_WIN64) || defined(__WIN64__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+	#define MCR_EXPORT __declspec(dllexport)
+	#define MCR_IMPORT __declspec(dllimport)
+#else
+	#define MCR_EXPORT __attribute__((visibility("default")))
+	#define MCR_IMPORT __attribute__((visibility("default")))
 #endif
 
 #ifndef MCR_API
 	#ifdef MCR_STATIC
 		#define MCR_API
 	#else
-		#ifdef MCR_EXPORTS
-			#define MCR_API __declspec(dllexport)
+		#ifdef LIBMACRO_LIBRARY
+			#define MCR_API MCR_EXPORT
 		#else
-			#define MCR_API __declspec(dllimport)
+			#define MCR_API MCR_IMPORT
 		#endif
 	#endif
 #endif
@@ -262,9 +338,9 @@ mcr_dmsg;
 /* Used throughout in library functions */
 struct mcr_context;
 
-/* Thread-local storage not available in MSVC? */
-MCR_API int *mcr_err_tls();
 #ifdef _MSC_VER
+	/*! Thread-local storage not available in MSVC? */
+	MCR_API int *mcr_err_tls();
 	#define mcr_err (*mcr_err_tls())
 #else
 	extern MCR_API
@@ -299,13 +375,8 @@ typedef int (*mcr_copy_fnc) (void *destinationPt, const void *sourcePt);
  */
 typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 
-#ifndef MCR_UTIL_PLATFORM_INC
-	/*! Include to access platform utilities */
-	#define MCR_UTIL_PLATFORM_INC MCR_STR(mcr/util/MCR_PLATFORM/nutil.h)
-#endif
-
 /* Machine, platform, and some alias definitions. */
-#include MCR_STR(mcr/util/MCR_PLATFORM/ndef.h)
+#include MCR_STR(mcr/util/MCR_PLATFORM/p_def.h)
 
 #ifdef __cplusplus
 }

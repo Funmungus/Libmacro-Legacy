@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,6 @@
  *  C++.
  */
 
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
-
 #ifndef MCR_EXTRAS_ISIGNAL_H_
 #define MCR_EXTRAS_ISIGNAL_H_
 
@@ -34,16 +29,16 @@
 
 namespace mcr
 {
-/*! \ref mcr_ISignal C++ indirection for \ref ISignalData classes
+/*! \ref mcr_ISignal C++ indirection for \ref IData classes
  *
  *  Usage: \n
  *  \code
  *  try {
  *    // optional template typedef
- *    typedef ISignal<ISignalDataType> MyCppISignal;
- *    ISignal<ISignalDataType> myISignal(Libmacro::instance());
- *    // optional, if data size of ISignalDataType is not correct
- *    isignal.instance.data_size = sizeof(ISignalDataType_subclass);
+ *    typedef ISignal<IDataType> MyCppISignal;
+ *    ISignal<IDataType> myISignal(Libmacro::instance());
+ *    // optional, if data size of IDataType is not correct
+ *    isignal.instance.data_size = sizeof(IDataType_subclass);
  *    isignal.registerType();
  *  } catch (int err) {
  *  // Show error message
@@ -54,12 +49,13 @@ template<typename T>
 class ISignal : public CtxISignal
 {
 public:
-	ISignal(Libmacro *context = NULL, mcr_Dispatcher *dispatcher = NULL)
+	ISignal(Libmacro *context = nullptr, mcr_Dispatcher *dispatcher = nullptr)
 		: CtxISignal(context, ISignal<T>::send, dispatcher,
-					 mcr_Interface_new(sizeof(T),
+					 mcr_Interface_new(nullptr, sizeof(T),
 									   ISignal<T>::init, ISignal<T>::deinit, ISignal<T>::compare,
 									   ISignal<T>::copy))
 	{
+		isignal.interface.context = this->context()->ptr();
 	}
 
 	/*! \ref mcr_Interface.init */
@@ -67,7 +63,7 @@ public:
 	{
 		if (dataPt) {
 			try {
-				new ((T *) dataPt) T();
+				new (static_cast<T *>(dataPt)) T();
 			} catch(int err) {
 				return err;
 			}
@@ -79,7 +75,7 @@ public:
 	{
 		if (dataPt) {
 			try {
-				((T *)dataPt)->~T();
+				static_cast<T *>(dataPt)->~T();
 			} catch(int err) {
 				return err;
 			}
@@ -91,7 +87,7 @@ public:
 	{
 		if (rhsPt) {
 			if (lhsPt) {
-				return ((const T *) lhsPt)->compare(*(const T *)rhsPt);
+				return static_cast<const T *>(lhsPt)->compare(*static_cast<const T *>(rhsPt));
 			}
 			return -1;
 		}
@@ -103,7 +99,7 @@ public:
 		if (!dstPt)
 			return EFAULT;
 		try {
-			((T *) dstPt)->copy((T *) srcPt);
+			static_cast<T *>(dstPt)->copy(static_cast<const T *>(srcPt));
 		} catch (int err) {
 			return err;
 		}
@@ -114,7 +110,7 @@ public:
 	static int send(mcr_Signal * signalPt)
 	{
 		dassert(signalPt->isignal);
-		T *dataPt = (T *)mcr_Instance_data(signalPt);
+		T *dataPt = static_cast<T *>(mcr_Instance_data(signalPt));
 		if (dataPt) {
 			try {
 				dataPt->send();
@@ -125,17 +121,27 @@ public:
 		return 0;
 	}
 
+	static ISignal<T> *cast(CtxISignal *pt)
+	{
+		return dynamic_cast<ISignal<T> *>(pt);
+	}
+	static const ISignal<T> *cast(const CtxISignal *pt)
+	{
+		return dynamic_cast<const ISignal<T> *>(pt);
+	}
+
 	/*! \ref mcr_register */
-	void registerType()
+	ISignal<T> &registerType()
 	{
 		T inst;
-		size_t count = inst.addNamesCount();
-		const char **addN = count ? new const char *[count] : NULL;
-		inst.addNames(addN,
-					  count); /* If not implemented this will do nothing \ref ISignalData.addNames */
+		size_t count = inst.addNameCount();
+		const char **addN = count ? new const char *[count] : nullptr;
+		/* If not implemented this will do nothing \ref IData.addNames */
+		inst.addNames(addN, count);
 		ISignalRef(context(), ptr()).registerType(inst.name(), addN, count);
 		if (addN)
 			delete []addN;
+		return *this;
 	}
 };
 }

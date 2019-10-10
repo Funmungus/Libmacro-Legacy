@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -53,10 +53,10 @@ MCR_API int mcr_NoOp_send_data(struct mcr_NoOp *dataPt);
 MCR_API struct mcr_ISignal *mcr_iNoOp(struct mcr_context *ctx);
 /*! Signal data casted \ref mcr_NoOp * */
 #define mcr_NoOp_data(sigPt) \
-((struct mcr_NoOp *)mcr_Instance_data(sigPt))
+mcr_castpt(struct mcr_NoOp, mcr_Instance_data(sigPt))
 /*! Signal data casted \ref mcr_NoOp * */
 #define MCR_NOOP_DATA(sig) \
-((struct mcr_NoOp *)(sig).instance.data.data)
+mcr_castpt(struct mcr_NoOp, (sig).instance.data.data)
 
 #ifdef __cplusplus
 }

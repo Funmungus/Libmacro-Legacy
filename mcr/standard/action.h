@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ struct mcr_Action {
 	/*! \ref mcr_ModFlags */
 	unsigned int modifiers;
 	/*! \ref mcr_TriggerFlags */
-	int trigger_flags;
+	unsigned int trigger_flags;
 };
 
 /*! \ref mcr_Action ctor
@@ -55,7 +55,7 @@ MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
 MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
 /*! \ref mcr_Action data from \ref mcr_Trigger */
 #define mcr_Action_data(trigPt) \
-((struct mcr_Action *)mcr_Instance_data(trigPt))
+mcr_castpt(struct mcr_Action, mcr_Instance_data(trigPt))
 
 #ifdef __cplusplus
 }

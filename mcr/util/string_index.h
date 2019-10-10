@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #define MCR_UTIL_STRING_INDEX_H_
 
 #include "mcr/util/string_set.h"
+#include "mcr/util/map.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,7 +116,7 @@ MCR_API const char *mcr_StringIndex_name(const struct mcr_StringIndex *indexPt,
  *  \return \ref retind -1 if not found
  */
 MCR_API size_t mcr_StringIndex_index(const struct mcr_StringIndex *indexPt,
-									 const char *strKey);
+										const char *strKey);
 
 /* Set/remove mappings */
 /*! Map an index to a string, and a set of strings to that index.
@@ -127,8 +128,7 @@ MCR_API size_t mcr_StringIndex_index(const struct mcr_StringIndex *indexPt,
  *  \return \ref reterr
  */
 MCR_API int mcr_StringIndex_map(struct mcr_StringIndex *indexPt,
-								size_t index, const char *strKey, const char **addKeys,
-								size_t addCount);
+								size_t index, const char *strKey);
 /*! Map a string to an index, without changing the index itself
  *
  *  \param index Index to map to
@@ -176,7 +176,7 @@ MCR_API void mcr_StringIndex_sort(struct mcr_StringIndex *indexPt);
 
 /*! See \ref mcr_StringIndex_string */
 #define MCR_STRINGINDEX_STRING(index, stringIndex) \
-(MCR_STRINGSET_ELEMENT((index).set, stringIndex))
+MCR_STRINGSET_ELEMENT((index).set, stringIndex)
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library.
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -80,7 +80,7 @@ typedef int (*thrd_start_t) (void *);
 /* Handles to dynamically allocated C++ objects. ( Make sure to */
 /* destruct on exit. ) */
 typedef void *thrd_t;
-typedef struct mtx_t {
+typedef struct {
 	void *mtx;
 	int type;
 } mtx_t;
@@ -117,7 +117,9 @@ MCR_API void mtx_destroy(mtx_t * mutex);
 MCR_API int cnd_init(cnd_t * cond);
 MCR_API int cnd_signal(cnd_t * cond);
 MCR_API int cnd_broadcast(cnd_t * cond);
+/*! Pre: mutex must be mtx_plain. */
 MCR_API int cnd_wait(cnd_t * cond, mtx_t * mutex);
+/*! Pre: mutex must be mtx_plain. */
 MCR_API int cnd_timedwait(cnd_t * __restrict cond, mtx_t * __restrict mutex,
 						  const struct timespec *__restrict time_point);
 MCR_API void cnd_destroy(cnd_t * cond);

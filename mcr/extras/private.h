@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,11 +19,6 @@
 /*! \file
  *  In cases of extreme complexity, break glass
  */
-
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
 
 #ifndef MCR_EXTRAS_PRIVATE_H_
 #define MCR_EXTRAS_PRIVATE_H_

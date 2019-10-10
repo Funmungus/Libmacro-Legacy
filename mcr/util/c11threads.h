@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
   Adapted from c11threads.h by John Tsiombikas <nuclear@member.fsf.org>
   Main project site: https://github.com/jtsiomb/c11threads
 

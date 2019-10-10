@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,6 @@
  *  with restrictions and without closing current process.
  */
 
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
-
 #ifndef MCR_EXTRAS_COMMAND_H_
 #define MCR_EXTRAS_COMMAND_H_
 
@@ -36,41 +31,67 @@
 namespace mcr
 {
 /*! Execute a shell command, similar to \ref execvp */
-struct MCR_EXTRAS_API Command : public ISignalData {
-	/*! Executable file */
-	SafeString file;
-
-	Command(bool cryptic = false)
-		: file(_keyProvider, "", cryptic), _args(NULL), _argsBufferLen(0),
-		  _argsCount(0), _cryptic(cryptic && _keyProvider)
-	{
-	}
-	Command(const Command &copytron)
-		: file(copytron.file), _args(NULL), _argsBufferLen(0), _argsCount(0),
-		  _cryptic(copytron.cryptic())
-	{
-		setArgsText(copytron.argsText());
-	}
+struct MCR_API Command : public ISignalData {
+	Command(bool cryptic = false);
+	Command(const Command &copytron);
+	virtual ~Command() override;
 	Command &operator =(const Command &copytron);
 
-	/*! Get command from signal
-	 *
-	 *  \param sigPt \ref opt \ref mcr_Signal *
-	 */
-	static inline Command *data(mcr_Signal *sigPt)
-	{
-		return (Command *)(sigPt ? sigPt->instance.data.data : NULL);
-	}
-
-	/*! \ref mcr_is_platform Same as standard execvp, except raised
-	 *  permissions are removed in the program that executes
-	 *  \param Filename Executable file
-	 *  \param ArgList Shell comman arguments
-	 */
-//	static void execvp(const char *Filename, char * const ArgList[]);
 	static void setKeyProvider(IKeyProvider *provider)
 	{
 		_keyProvider = provider;
+	}
+
+	/*! exec file */
+	inline std::string file() const
+	{
+		return _file.text();
+	}
+	/*! exec file */
+	inline void setFile(const std::string &val)
+	{
+		_file.setText(val);
+	}
+
+	/*! Number of exec args */
+	inline size_t argCount() const
+	{
+		return _argCount;
+	}
+	/*! exec args
+	 *
+	 *  Requires vector-equivalent functions reserve and push_back.
+	 *  Requires std::string elements.
+	 */
+	template<class T = std::vector<std::string>>
+	inline T args() const
+	{
+		T ret;
+		auto ptr = argsData();
+		size_t i, count = argCount();
+		ret.reserve(count);
+		for (i = 0; i < count; i++) {
+			ret.push_back(ptr[i].text());
+		}
+		return ret;
+	}
+	/*! exec args
+	 *
+	 *  Requires vector or initializer-equivalent function size.
+	 *  Requires std::string elements.
+	 */
+	template<class T = std::vector<std::string>>
+	inline void setArgs(const T &val)
+	{
+		size_t i = 0;
+		setArgCount(val.size());
+		for (auto &iter: val) {
+			setArg(i++, iter);
+		}
+	}
+	inline void setArg(size_t index, const std::string &value)
+	{
+		setArg(index, value.c_str());
 	}
 
 	/*! If true, encrypt all command strings */
@@ -81,61 +102,23 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 	/*! Set encryption state for all command strings */
 	void setCryptic(bool val);
 
-	/*! \ref file */
-	inline string fileText() const
-	{
-		return file.text();
-	}
-	/*! \ref file */
-	inline void setFileText(const string &val)
-	{
-		file.setText(val);
-	}
-
-	/*! Number of \ref args */
-	inline size_t argsCount() const
-	{
-		return _argsCount;
-	}
-	/*! Shell command arguments, argv of execvp */
-	void args(SafeString *bufferOut, size_t bufferLen) const;
-	/*! \ref args */
-	inline vector<string> argsText() const
-	{
-		vector<string> ret;
-		for (size_t i = 0; i < _argsCount; i++) {
-			ret.push_back(_args[i].text());
-		}
-		return ret;
-	}
-	/*! \ref args */
-	void setArgs(SafeString *bufferIn, size_t bufferLen);
-	/*! \ref args */
-	inline void setArgsText(const vector<string> &val)
-	{
-		setArgsCount(val.size());
-		for (size_t i = 0; i < _argsCount; i++) {
-			_args[i].setText(val[i]);
-		}
-	}
-
 	/*! \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const override
+	virtual int compare(const IData &rhs) const override
 	{
 		return compare(dynamic_cast<const Command &>(rhs));
 	}
 	/*! \ref mcr_Signal_compare */
-	int compare(const Command &rhs) const;
+	virtual int compare(const Command &rhs) const;
 	/*! \ref mcr_Signal_copy
 	 *  \param copytron \ref opt
 	 */
-	virtual void copy(const ISignalData *copytron) override;
+	virtual void copy(const IData *copytron) override;
 	/*! \ref mcr_ISignal_set_name */
 	virtual const char *name() const override
 	{
 		return "Command";
 	}
-	virtual size_t addNamesCount() const override
+	virtual size_t addNameCount() const override
 	{
 		return 1;
 	}
@@ -150,69 +133,33 @@ struct MCR_EXTRAS_API Command : public ISignalData {
 
 	inline void clear()
 	{
-		file.clear();
-		setArgsCount(0);
+		_file.clear();
+		setArgCount(0);
 	}
 private:
 	static IKeyProvider *_keyProvider;
-	SafeString *_args;
-	size_t _argsBufferLen;
-	size_t _argsCount;
+	/*! Executable file */
+	SafeString _file;
+	/*! vector<SafeString> */
+	void *_args;
+	/*! Optimization, length of current args vector. */
+	size_t _argCount;
 	bool _cryptic;
 
 	/* This will always clear all current args */
-	void setArgsCount(size_t count);
-};
-
-/*! Modify \ref Command signals */
-class MCR_EXTRAS_API CommandRef : public SignalManager
-{
-public:
-	CommandRef(Libmacro *context = NULL, mcr_Signal *sigPt = NULL);
-
-	inline const Command *data() const
+	void setArgCount(size_t count);
+	SafeString *argsData() const;
+	const char *arg(size_t index) const;
+	void setArg(size_t index, const char *value);
+	inline std::vector<SafeString> &argsRef() const
 	{
-		return SignalManager::data<Command>();
+		return *static_cast<std::vector<SafeString> *>(_args);
 	}
-	inline Command *data()
+	inline void setArgs(const std::vector<SafeString> &value)
 	{
-		return SignalManager::data<Command>();
-	}
-
-	inline bool cryptic() const
-	{
-		if (data())
-			return data()->cryptic();
-		return false;
-	}
-	inline void setCryptic(bool val)
-	{
-		mkdata();
-		data()->setCryptic(val);
-	}
-
-	inline string file() const
-	{
-		if (data())
-			return data()->fileText();
-		return "";
-	}
-	inline void setFile(const string &val)
-	{
-		mkdata();
-		data()->setFileText(val);
-	}
-
-	inline vector<string> args() const
-	{
-		if (data())
-			return data()->argsText();
-		return vector<string>();
-	}
-	inline void setArgs(const vector<string> &val)
-	{
-		mkdata();
-		data()->setArgsText(val);
+		auto &args = argsRef();
+		args = value;
+		_argCount = args.size();
 	}
 };
 }

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ extern "C" {
  */
 struct mcr_Array {
 	/*! Resizing array pointer */
-	char *array;
+	void *array;
 	/*! Number of elements assignable (allocated area) */
 	size_t size;
 	/*! Number of elements assigned */
@@ -188,7 +188,8 @@ MCR_API void *mcr_Array_prev(const struct mcr_Array *arrPt, void *posPt);
  *  \return \ref retind Index of reference to element. -1 if array is null or
  *  element not found
  */
-MCR_API size_t mcr_Array_index(const struct mcr_Array *arrPt, const void *elPt);
+MCR_API size_t mcr_Array_index(const struct mcr_Array *arrPt,
+							   const void *elPt);
 /*! Get the index of the last element.
  *
  *  \param arrPt \ref opt
@@ -202,7 +203,7 @@ MCR_API size_t mcr_Array_last_index(const struct mcr_Array *arrPt);
  *  are suggested for equality(e.g. !=) comparisons.\n
  *  usage: \code{.c}
  *  void *elementPt;
- *  char *itPt, *endPt;
+ *  size_t itPt, endPt;
  *  size_t bytes;
  *  for (mcr_Array_iter(arrPt, &itPt, &endPt, &bytes); itPt < endPt;
  *  		itPt += bytes) {
@@ -216,14 +217,14 @@ MCR_API size_t mcr_Array_last_index(const struct mcr_Array *arrPt);
  *  \param bytesPt \ref opt \ref mcr_Array.element_size
  */
 MCR_API void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
-							char **endPt, size_t * bytesPt);
+                            char **endPt, size_t *bytesPt);
 /*! Create a range iterator.
  *
  *  Depending on the indices used, the iterator or last element might be null.
  *  A null check is suggested, and a for-loop is not suggested.\n
  *  usage(example skips first and last element): \code{.c}
  *  void *elementPt;
- *  char *itPt, *lastPt;
+ *  size_t itPt, lastPt;
  *  size_t bytes, firstIndex = 1, lastIndex = arrPt->used - 2;
  *  mcr_Array_iter_range(arrPt, &itPt, &lastPt, &bytes, firstIndex, lastIndex);
  *  if (itPt && lastPt) {
@@ -241,8 +242,10 @@ MCR_API void mcr_Array_iter(const struct mcr_Array *arrPt, char **iterPt,
  *  \param firstIndex Index of first element in range
  *  \param lastIndex Index of last element in range
  */
-MCR_API void mcr_Array_iter_range(const struct mcr_Array *arrPt, char **iterPt,
-								  char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
+MCR_API void mcr_Array_iter_range(const struct mcr_Array *arrPt,
+                                  char **iterPt,
+                                  char **lastPt, size_t *bytesPt, size_t firstIndex,
+								  size_t lastIndex);
 
 /* Add/remove */
 /*! Place elements at the given position.
@@ -388,9 +391,9 @@ MCR_API void mcr_Array_remove(struct mcr_Array *arrPt,
  * not checked for a valid range */
 /*! See \ref mcr_Array_element */
 #define MCR_ARR_ELEMENT(arr, index) \
-((void *)((arr).used ? \
-	(arr).array + ((index) * (arr).element_size) : \
-NULL))
+mcr_castpt(void, (arr).used ? \
+	mcr_castpt(char, (arr).array) + (index) * (arr).element_size : \
+mcr_null)
 
 /*! See \ref mcr_Array_first */
 #define MCR_ARR_FIRST(arr) MCR_ARR_ELEMENT(arr, 0)
@@ -403,24 +406,24 @@ NULL))
 
 /*! See \ref mcr_Array_next */
 #define MCR_ARR_NEXT(arr, elementPt) \
-((void *)((arr).used && (elementPt) ? \
-	((const char *)(elementPt)) + (arr).element_size : \
-NULL))
+mcr_castpt(void, (arr).used && elementPt ? \
+	mcr_castpt(char, elementPt) + (arr).element_size : \
+mcr_null)
 
 /*! See \ref mcr_Array_prev */
 #define MCR_ARR_PREV(arr, elementPt) \
-((void *)((arr).used && (elementPt) ? \
-	((const char *)(elementPt)) - (arr).element_size : \
-NULL))
+mcr_castpt(void, (arr).used && elementPt ? \
+	mcr_castpt(char, elementPt) - (arr).element_size : \
+mcr_null)
 
 /*! See \ref mcr_Array_index
  *  element - array = offset, offset / element size will be the index
  */
 #define MCR_ARR_INDEX(arr, elementPt) \
-((size_t)((arr).used && (elementPt) ? \
-	(((const char *)(elementPt)) - \
-			(arr).array) / (arr).element_size : \
-(size_t)~0))
+((arr).used && elementPt ? \
+	mcr_cast(size_t, (mcr_castpt(char, elementPt) - \
+			mcr_castpt(char, (arr).array)) / (arr).element_size) : \
+mcr_cast(size_t, -1))
 
 /*! See \ref mcr_Array_last_index */
 #define MCR_ARR_LAST_INDEX(arr) ((arr).used - 1)
@@ -445,7 +448,7 @@ NULL))
 	mcr_Array_iter(&(arr), &local_it, &local_end, \
 			&local_bytes); \
 	while (local_it < local_end) { \
-		iterateFnc((void *)local_it); \
+		iterateFnc(mcr_castpt(void, local_it)); \
 		local_it += local_bytes; \
 	} \
 }

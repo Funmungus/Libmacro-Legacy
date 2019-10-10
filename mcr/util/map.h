@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -220,7 +220,8 @@ MCR_API void mcr_Map_iter(const struct mcr_Map *mapPt, char **iterPt,
  *  \param lastIndex Index of last element in range
  */
 MCR_API void mcr_Map_iter_range(const struct mcr_Map *mapPt, char **iterPt,
-								char **lastPt, size_t * bytesPt, size_t firstIndex, size_t lastIndex);
+								char **lastPt, size_t* bytesPt, size_t firstIndex,
+								size_t lastIndex);
 
 /* Set/remove mappings */
 /*! Map from key to value.
@@ -322,13 +323,6 @@ MCR_API int mcr_int_compare(const void *lhs, const void *rhs);
  *  \return \ref retcmp
  */
 MCR_API int mcr_unsigned_compare(const void *lhs, const void *rhs);
-/*! Compare size_t referenced by each pointer.
- *
- *  \param lhs \ref opt size_t *
- *  \param rhs \ref opt size_t *
- *  \return \ref retcmp
- */
-MCR_API int mcr_size_t_compare(const void *lhs, const void *rhs);
 /*! Compare void * referenced by each pointer.
  *
  *  \param lhs \ref opt void **
@@ -339,8 +333,8 @@ MCR_API int mcr_ref_compare(const void *lhs, const void *rhs);
 
 /*! \ref mcr_Map_valueof */
 #define MCR_MAP_VALUEOF(map, pairPt) \
-((void *)(pairPt ? ((char *)(pairPt)) \
-		+ (map).key_size : NULL))
+mcr_castpt(void, pairPt ? mcr_castpt(char, pairPt) \
+		+ (map).key_size : mcr_null)
 
 /*! \ref mcr_Map_element */
 #define MCR_MAP_ELEMENT(map, keyPt) \
@@ -364,9 +358,9 @@ MCR_ARR_FOR_EACH((map).set, iterateFnc)
 	size_t local_bytes; \
 	mcr_Map_iter(&(map), &local_it, &local_end, \
 			&local_bytes); \
-	local_it = MCR_MAP_VALUEOF(map, local_it); \
+	local_it = mcr_castpt(char, MCR_MAP_VALUEOF(map, local_it)); \
 	while (local_it < local_end) { \
-		iterateFnc((void *)local_it); \
+		iterateFnc(mcr_castpt(void, local_it)); \
 		local_it += local_bytes; \
 	} \
 }

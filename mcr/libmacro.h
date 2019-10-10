@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  */
 
 /*! \namespace mcr
- *  \brief Libmacro, by Jonathan Pelletier 2013.  Alpha version.
+ *  \brief Libmacro, by Jonathan Pelletier, New Paradigm Software. Alpha version.
  *
  *  1. \ref mcr_Signal is dispatched to \ref mcr_Dispatcher using \ref mcr_dispatch.\n
  *  		1.0.a Disable dispatch for a signal by setting \ref mcr_Signal.is_dispatch to false.\n
@@ -33,6 +33,8 @@
  *  2. If signal is not blocked by dispatching, it is then sent to cause an action.\n
  */
 
+// TODO: Separate context and functions to context.h?
+
 #ifndef MCR_LIBMACRO_H_
 #define MCR_LIBMACRO_H_
 
@@ -43,6 +45,7 @@
 #include "mcr/intercept/intercept.h"
 
 #ifdef __cplusplus
+#include "mcr/extras/extras.h"
 extern "C" {
 #endif
 
@@ -103,14 +106,6 @@ MCR_API int mcr_load_contracts(struct mcr_context *ctx);
  *  \param ctx Libmacro context
  */
 MCR_API void mcr_trim(struct mcr_context *ctx);
-
-#ifndef MCR_PLATFORM_INC
-/*! Include this file to access platform declarations.
- *
- *  In case of emergency break glass
- */
-#define MCR_PLATFORM_INC MCR_STR(mcr/MCR_PLATFORM/nlibmacro.h)
-#endif
 
 #ifdef __cplusplus
 }
