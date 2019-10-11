@@ -12,6 +12,10 @@ else ()
 	unset(MCR_DEBUG)
 endif ()
 
+# LINUX was not set by cmake
+if (UNIX AND NOT APPLE)
+    set (LINUX true)
+endif (UNIX AND NOT APPLE)
 if (WIN32)
 	set(MCR_PLATFORM windows)
 elseif (LINUX)

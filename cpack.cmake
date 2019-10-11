@@ -7,8 +7,9 @@ else ()
 endif ()
 
 # If using QT, deployed targets need to be packaged with QT dependencies.
+# TODO QT deploy command for Linux
 find_package(Qt5Core)
-if (BUILD_PACKAGE AND Qt5Core_FOUND)
+if (BUILD_PACKAGE AND Qt5Core_FOUND AND windows)
 	# Get the deploy QT executable.
 	get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
 	get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
@@ -34,7 +35,7 @@ if (BUILD_PACKAGE AND Qt5Core_FOUND)
 	else ()
 		install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/qtimport/" DESTINATION lib)
 	endif (windows)
-endif (BUILD_PACKAGE AND Qt5Core_FOUND)
+endif (BUILD_PACKAGE AND Qt5Core_FOUND AND windows)
 
 # build a CPack driven installer package
 if (BUILD_PACKAGE)
@@ -54,7 +55,7 @@ if (BUILD_PACKAGE)
 	set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Libmacro is a multi-platform, extendable macro and hotkey C library.")
 	set (CPACK_PACKAGE_INSTALL_DIRECTORY "Libmacro ${MCR_VER}")
 
-	set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Libmacro ${libmacro_VERSION}")
+	set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Libmacro ${MCR_VER}.${GIT_REVISION}")
 
 	if (WIN32 AND NOT UNIX)
 		# There is a bug in NSI that does not handle full unix paths properly. Make

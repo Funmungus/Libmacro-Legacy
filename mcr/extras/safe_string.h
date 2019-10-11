@@ -90,8 +90,8 @@ public:
 		  _keyProvider(keyProvider), _lenMem(0), _plain(nullptr), _plainBufferSize(0),
 		  _stateless(false)
 	{
-		memset(_iv, 0, sizeof(_iv));
-		memset(_tag, 0, sizeof(_tag));
+		std::memset(_iv, 0, sizeof(_iv));
+		std::memset(_tag, 0, sizeof(_tag));
 		if (cryptic)
 			resetIv();
 		setText(str);

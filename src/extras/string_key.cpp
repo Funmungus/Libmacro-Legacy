@@ -18,8 +18,6 @@
 
 #include "mcr/extras/extras.h"
 
-#include <cstring>
-
 namespace mcr
 {
 IKeyProvider *StringKey::_keyProvider = nullptr;

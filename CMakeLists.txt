@@ -6,7 +6,7 @@ option(MCR_NOQT "Do not include any QT functionality.  Implied by the MCR_NOEXTR
 if (MCR_NOEXTRAS)
 	set(MCR_NOQT ON)
 endif (MCR_NOEXTRAS)
-# TODO stl_off
+# stl_off not supported
 
 # Defines MCR_VER, MCR_VER_MAJ, MCR_VER_MIN, MCR_DEBUG, MCR_PLATFORM
 include(libmacro.cmake)
@@ -16,6 +16,12 @@ include(git.cmake)
 include(doxygen.cmake)
 
 project(libmacro VERSION ${MCR_VER}.${GIT_REVISION} LANGUAGES C CXX)
+# lib is not prepended to library file name on windows
+if (windows)
+	set(LIBTARGET libmacro)
+else ()
+	set(LIBTARGET macro)
+endif (windows)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_C_STANDARD 11)
@@ -74,12 +80,6 @@ file(GLOB_RECURSE HEADERS mcr/*.h)
 if (windows)
 	# Mingw and VC <= 2017 do not have C threads
 	list(APPEND LIBMACRO_SRC src/util/cppthread.cpp)
-	# TODO what is stl_off in CMAKE?
-	if (stl_off)
-		message(FATAL_ERROR
-			"Error: stl_off is configured, but threads require stl on Windows."
-			)
-	endif (stl_off)
 endif (windows)
 
 # Remove extras module
@@ -96,26 +96,26 @@ endif (MCR_NOEXTRAS)
 
 # Library
 if (MCR_STATIC)
-	add_library(libmacro STATIC ${LIBMACRO_SRC} ${HEADERS})
+	add_library(${LIBTARGET} STATIC ${LIBMACRO_SRC} ${HEADERS})
 else ()
-	add_library(libmacro SHARED ${LIBMACRO_SRC} ${HEADERS})
+	add_library(${LIBTARGET} SHARED ${LIBMACRO_SRC} ${HEADERS})
 endif (MCR_STATIC)
-set_target_properties(libmacro PROPERTIES SOVERSION ${MCR_VER})
+set_target_properties(${LIBTARGET} PROPERTIES SOVERSION ${MCR_VER})
 
 # Library link
 if (NOT MCR_NOEXTRAS)
-	target_link_libraries(libmacro OpenSSL::Crypto)
+	target_link_libraries(${LIBTARGET} OpenSSL::Crypto)
 	if (NOT MCR_NOQT)
-		target_link_libraries(libmacro ${Qt5Core_LIBRARIES})
+		target_link_libraries(${LIBTARGET} ${Qt5Core_LIBRARIES})
 	endif (NOT MCR_NOQT)
 endif (NOT MCR_NOEXTRAS)
 # Be aware msvc may require linking to Advapi32 and user32
-#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-#	target_link_libraries(libmacro Advapi32 user32)
+#if (MSVC)
+#	target_link_libraries(${LIBTARGET} Advapi32 user32)
 #endif()
 
 # Library defines
-target_compile_definitions(libmacro PRIVATE
+target_compile_definitions(${LIBTARGET} PRIVATE
 	LIBMACRO_LIBRARY
 	-DVERSION=${MCR_VER}.${GIT_REVISION}
 	-DGIT_BRANCH=${GIT_BRANCH}
@@ -126,8 +126,8 @@ target_compile_definitions(libmacro PRIVATE
 if (Qt5Test_FOUND AND NOT MCR_NOQT)
 	file(GLOB_RECURSE TEST_SRC test/*.h test/*.cpp)
 	add_executable(tst_libmacro ${TEST_SRC})
-	add_dependencies(tst_libmacro libmacro)
-	target_link_libraries(tst_libmacro libmacro ${Qt5Test_LIBRARIES})
+	add_dependencies(tst_libmacro ${LIBTARGET})
+	target_link_libraries(tst_libmacro ${LIBTARGET} ${Qt5Test_LIBRARIES})
 endif (Qt5Test_FOUND AND NOT MCR_NOQT)
 
 add_custom_target(DISTFILES SOURCES
@@ -137,14 +137,14 @@ add_custom_target(DISTFILES SOURCES
 	)
 
 if (windows)
-	install(TARGETS libmacro
+	install(TARGETS ${LIBTARGET}
 		LIBRARY DESTINATION bin
 		)
-	install(TARGETS libmacro
+	install(TARGETS ${LIBTARGET}
 		ARCHIVE DESTINATION lib
 		)
 else ()
-	install(TARGETS libmacro DESTINATION lib)
+	install(TARGETS ${LIBTARGET} DESTINATION lib)
 endif (windows)
 install(DIRECTORY mcr DESTINATION include)
 
@@ -153,5 +153,5 @@ include(coverage.cmake)
 
 # Platform variables and MCR_DEBUG required from libmacro.cmake
 # Requires DEPLOYQT_TARGETS
-set(DEPLOYQT_TARGETS libmacro)
+set(DEPLOYQT_TARGETS ${LIBTARGET})
 include(cpack.cmake)

@@ -20,7 +20,6 @@
 
 #include <cerrno>
 #include <cstdio>
-#include <cstring>
 
 #include <openssl/conf.h>
 #include <openssl/err.h>

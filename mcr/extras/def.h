@@ -26,11 +26,7 @@
 
 #include "mcr/standard/standard.h"
 
-#ifndef MCR_NOQT
-#include <QObject>
-#include <QVariantMap>
-#endif
-
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>

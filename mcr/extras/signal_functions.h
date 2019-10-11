@@ -22,7 +22,9 @@
 
 #ifndef MCR_EXTRAS_SIGNAL_FUNCTIONS_H_
 #define MCR_EXTRAS_SIGNAL_FUNCTIONS_H_
-#ifndef MCR_NOQT
+
+#include <QObject>
+#include <QVariantMap>
 
 #include "mcr/extras/wrap_signal.h"
 #include "mcr/extras/iserializer.h"
@@ -410,5 +412,4 @@ public:
 };
 }
 
-#endif
 #endif

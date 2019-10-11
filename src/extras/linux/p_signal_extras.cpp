@@ -19,7 +19,6 @@
 #include "mcr/extras/linux/p_extras.h"
 #include "mcr/extras/extras.h"
 
-#include <cstring>
 extern "C" {
 #include <sys/wait.h>
 }

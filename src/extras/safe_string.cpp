@@ -18,8 +18,6 @@
 
 #include "mcr/extras/extras.h"
 
-#include <cstring>
-
 namespace mcr
 {
 SafeString::SafeString(const SafeString &copytron)
@@ -29,8 +27,8 @@ SafeString::SafeString(const SafeString &copytron)
 	  _plainBufferSize(0),
 	  _stateless(copytron.stateless())
 {
-	memset(_iv, 0, sizeof(_iv));
-	memset(_tag, 0, sizeof(_tag));
+	std::memset(_iv, 0, sizeof(_iv));
+	std::memset(_tag, 0, sizeof(_tag));
 	if (cryptic())
 		resetIv();
 	setText(copytron.text());

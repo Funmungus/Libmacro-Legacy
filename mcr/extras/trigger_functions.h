@@ -22,7 +22,9 @@
 
 #ifndef MCR_EXTRAS_TRIGGER_FUNCTIONS_H_
 #define MCR_EXTRAS_TRIGGER_FUNCTIONS_H_
-#ifndef MCR_NOQT
+
+#include <QObject>
+#include <QVariantMap>
 
 #include "mcr/extras/wrap_trigger.h"
 #include "mcr/extras/iserializer.h"
@@ -169,5 +171,4 @@ public:
 };
 }
 
-#endif
 #endif

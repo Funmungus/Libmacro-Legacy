@@ -375,8 +375,15 @@ typedef int (*mcr_copy_fnc) (void *destinationPt, const void *sourcePt);
  */
 typedef int (*mcr_compare_fnc) (const void *lhsPt, const void *rhsPt);
 
-/* Machine, platform, and some alias definitions. */
+/* Machine, platform, and some alias definitions.
+ *
+ * If linux is defined as 1 MCR_PLATFORM will expand to 1.
+ */
+#ifdef linux
+#include "mcr/util/linux/p_def.h"
+#else
 #include MCR_STR(mcr/util/MCR_PLATFORM/p_def.h)
+#endif
 
 #ifdef __cplusplus
 }
