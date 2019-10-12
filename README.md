@@ -28,6 +28,10 @@
    the creator if you have trouble compiling with qmake.
    * Optionally built with QtCreator or other IDE using cmake generators.
    Instructions not included.
+   * Given build configuration \<BUILD_TYPE\> cmake and cpack may require the
+   same command-line switch.
+     * cmake: `cmake --config \<BUILD_TYPE\>`
+	 * cpack: `cpack -C \<BUILD_TYPE\>`
  * Qt5, if QT extras are included
    * CMAKE_PREFIX_PATH must include the base directory of QT libraries for
    your platform, QT version, and compiler.

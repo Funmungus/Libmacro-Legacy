@@ -177,16 +177,6 @@ extern "C" {
 		#define mcr_ddo(stuff) {}
 	#endif
 #endif
-#ifndef mcr_fixme
-/* Do not show fixme warnings for debug, and MSVC may not support _Pragma. */
-#ifdef MCR_DEBUG
-/*! Debug compile message indicating future changes */
-#define mcr_fixme \
-					mcr_ddo(_Pragma("message MCR_LINE \": Fix Me!\""))
-#else
-#define mcr_fixme
-#endif
-#endif
 #ifndef mcr_dprint
 	/*! If debug build, print to stdout. */
 	#define mcr_dprint(...) mcr_ddo(printf(__VA_ARGS__))
@@ -293,10 +283,6 @@ mcr_ddo(fprintf(stderr, "Error %d: " MCR_LINE ", %s: %s.\n", \
 #ifndef dassert
 	/*! \ref mcr_dassert */
 	#define dassert(expr) mcr_dassert(expr)
-#endif
-#ifndef fixme
-	/*! \ref mcr_fixme */
-	#define fixme mcr_fixme
 #endif
 #ifndef arrlen
 	/*! \ref mcr_arrlen */

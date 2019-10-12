@@ -97,7 +97,7 @@ private:
 class MCR_API SerSignal : public ISerializer, public SignalRef
 {
 public:
-	/* TODO: Changed to SignalRef? */
+	/// \todo Change to SignalRef?
 	typedef QVariant (*get)(const SerSignal &container);
 	typedef void (*set)(SerSignal &container, const QVariant &value);
 

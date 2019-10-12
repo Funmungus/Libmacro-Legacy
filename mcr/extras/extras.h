@@ -123,7 +123,7 @@ struct MCR_API Libmacro final {
 	 */
 	void setEnabled(bool val);
 
-	/* TODO: characters in Key registry */
+	/// \todo Find a place for Key registry characters
 	size_t characterCount() const;
 	size_t characterCount(int c) const;
 	Signal *characterData(int c) const;

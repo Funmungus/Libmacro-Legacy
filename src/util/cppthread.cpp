@@ -253,7 +253,7 @@ void mtx_destroy(mtx_t * mutex)
 {
 	int thrdErr;
 	dassert(mutex);
-	/* TODO: Test mal-effects */
+	/// \todo Test mal-effects of unlocking before destroying mutex
 	/* Wait for unlock, cannot destroy locked mutex. */
 	if ((thrdErr = mtx_lock(mutex)) != thrd_success) {
 		mcr_err = mcr_thrd_errno(thrdErr);

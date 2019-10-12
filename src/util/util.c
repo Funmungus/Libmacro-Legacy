@@ -91,7 +91,7 @@ int mcr_thrd_errno(int thrdError)
 	}
 	return -1;
 }
-/* TODO: If thread created but not detached, calling function may free
+/*! \todo If thread created but not detached, calling function may free
  * resources currently in use by new thread. */
 int mcr_thrd(thrd_start_t func, void *arg)
 {

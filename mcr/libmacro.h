@@ -33,7 +33,7 @@
  *  2. If signal is not blocked by dispatching, it is then sent to cause an action.\n
  */
 
-// TODO: Separate context and functions to context.h?
+/// \todo Separate context and functions to context.h?
 
 #ifndef MCR_LIBMACRO_H_
 #define MCR_LIBMACRO_H_

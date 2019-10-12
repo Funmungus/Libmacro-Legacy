@@ -323,8 +323,7 @@ int mcr_Key_Dispatcher_clear(void *dispDataPt)
 	return 0;
 }
 
-/* Optimize this function as much as possible, TODO: iterator instead of
- * "for each" */
+/// \todo iterator instead of "for each"
 bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 								 struct mcr_Signal * signalPt, unsigned int mods)
 {
@@ -364,7 +363,8 @@ bool mcr_Key_Dispatcher_dispatch(void *dispDataPt,
 			}
 		}
 	}
-	/* all generic, TODO: Generic receivers will receive twice */
+	/* all generic */
+	/// \bug Generic receivers may receive twice
 	arrPt = mcr_Map_value(maps, &mcr_Key_gen_key);
 	localDispArrPt;
 	arrPt = mcr_Map_value(maps + 1, &mcr_Key_gen_key);

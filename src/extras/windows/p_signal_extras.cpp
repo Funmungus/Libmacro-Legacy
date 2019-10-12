@@ -47,7 +47,7 @@ void Command::send()
 	GetStartupInfoA(&sInfo);
 	/* Replace with CreateThread + CreateProcess if CreateProcess does not work */
 	/* Create as user, lower securty rights */
-	fixme;
+	/// \bug Executable with lower access rights, or create process as user
 	if (!CreateProcessA(nullptr, &cmdline.front(), nullptr,
 						nullptr, FALSE,
 						PROFILE_USER | DETACHED_PROCESS | NORMAL_PRIORITY_CLASS,

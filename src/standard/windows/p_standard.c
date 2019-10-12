@@ -36,7 +36,7 @@ MCR_API struct mcr_Map mcr_flagToEcho;
 MCR_API extern const int mcr_flagMask;
 MCR_API const int mcr_flagMask = -1;
 
-fixme
+/// \todo Do not rely on global initializer
 static int _initialize_count = 0;
 
 static int mcr_Modifier_load_key_contract(struct mcr_context *ctx);

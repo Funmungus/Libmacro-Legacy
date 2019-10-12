@@ -150,7 +150,7 @@ MCR_API int mcr_Device_initialize(struct mcr_context *context);
 /*! Dealocate resources for linux devices. */
 MCR_API int mcr_Device_deinitialize(struct mcr_context *context);
 
-/* TODO: dynamic path. */
+/// \todo dynamic path.
 
 #ifdef __cplusplus
 }

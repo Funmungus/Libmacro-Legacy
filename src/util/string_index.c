@@ -28,7 +28,7 @@ int mcr_StringIndex_init(void *indexPt)
 		memset(localPt, 0, sizeof(struct mcr_StringIndex));
 		mcr_Map_init(&localPt->map);
 		mcr_StringSet_init(&localPt->set);
-		// TODO: size_t interface
+		/// \todo size_t interface
 		mcr_Map_set_all(&localPt->map, sizeof(mcr_String),
 						sizeof(size_t), NULL, mcr_String_interface(), NULL);
 	}

@@ -30,7 +30,7 @@
 		MCR_UNSET : MCR_SET)
 
 static struct mcr_context *_hook_context = NULL;
-/* TODO: Move these to context */
+/// \todo Move these to context
 static struct mcr_HidEcho _echo = { 0 };
 static struct mcr_Key _key = { 0 };
 static struct mcr_MoveCursor _mc = { .is_justify = false };
@@ -254,7 +254,7 @@ int mcr_intercept_platform_initialize(struct mcr_context *ctx)
 	_scrSig.isignal = mcr_iScroll(ctx);
 	/* Grabber implementation assumes it is heap-allocated for
 	   threading without errors */
-	fixme;
+	/// \bug Grabber implementation assumes it is heap-allocated.
 	for (i = 0; i < MCR_GRAB_COUNT; i++) {
 		nPt->all_grabbers[i] = malloc(sizeof(struct mcr_Grabber));
 		if (!nPt->all_grabbers[i]) {

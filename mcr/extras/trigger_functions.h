@@ -77,7 +77,7 @@ private:
 class MCR_API SerTrigger : public ISerializer, public TriggerRef
 {
 public:
-	/* TODO: Changed to TriggerRef? */
+	/// \todo Change to TriggerRef?
 	typedef QVariant (*get)(const SerTrigger &container);
 	typedef void (*set)(SerTrigger &container, const QVariant &value);
 

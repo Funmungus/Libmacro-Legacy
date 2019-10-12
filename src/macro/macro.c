@@ -161,7 +161,7 @@ int mcr_Macro_interrupt(struct mcr_Macro *mcrPt,
 {
 	enum mcr_Interrupt prev = mcrPt->interruptor;
 	dassert(mcrPt);
-	/* TODO: Out of range enum type */
+	/// \todo Out of range enum type
 	if (interruptType < 0 || interruptType > MCR_DISABLE) {
 		fprintf(stderr, "Invalid " MCR_STR(enum mcr_Interrupt) "\n");
 		mset_error_return(EINVAL);
@@ -392,8 +392,7 @@ bool mcr_Macro_receive(void *mcrPt, struct mcr_Signal * sigPt,
 		/* Double-check thread_max valid after normal thread_count check.
 		 * Any value greater than MCR_THREAD_MAX will be ignored. */
 		if (count < MCR_THREAD_MAX && (unsigned)count < localPt->thread_max) {
-			/* TODO: Possible unused threads if only one queued item. */
-			fixme;
+			/// \todo Possible unused threads if only one queued item.
 			if (++localPt->queued == 0) {
 				dmsg;
 			} else if (mcr_thrd(thread_macro, localPt)) {
@@ -523,8 +522,7 @@ static int thread_wait_reset(void *data)
 static int clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
 						 bool stickyInterrupt)
 {
-	/* Do not rely on a timeout to say no threads exist */
-	fixme;
+	/// \todo Do not rely on a timeout to say no threads exist
 	/* If timed out then we probably have a long-running signal.
 	 * As long as pthread_exit is not called, then the C runtime
 	 * will also exit other threads. In this case valgrind will report

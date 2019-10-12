@@ -156,7 +156,7 @@ MCR_API int mcr_StringSet_set(mcr_StringSet * setPt, size_t pos,
 /*! \ref mcr_Array_fill with a string */
 MCR_API int mcr_StringSet_fill(mcr_StringSet * setPt, size_t pos,
 							   size_t count, const char *copyStr);
-/* TODO: mcr_StringSet_move ? */
+/// \todo mcr_StringSet_move ?
 
 /* Sorted functions: If no compare function is available, mcr_String_compare
  * will be used.

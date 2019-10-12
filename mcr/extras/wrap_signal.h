@@ -105,7 +105,7 @@ public:
 	 */
 	virtual void registerType(const char *name,
 							  const char **addNames = nullptr, size_t addNamesCount = 0);
-	/*! TODO Create mcr_unregister function */
+	/// \todo Create unregister function
 	virtual void unregisterType() {}
 
 	/*! Get ISignal reference */
@@ -125,7 +125,7 @@ public:
 		return mcr_ISignal_id(_isigPt);
 	}
 	virtual void setId(size_t val);
-	/* TODO set/change id/name */
+	/// \todo set/change id/name
 	virtual const char *name();
 	virtual void setName(const char *name);
 	/*! \ref mcr_Interface.data_size */

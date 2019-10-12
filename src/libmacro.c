@@ -22,8 +22,9 @@
 
 #include "mcr/private.h"
 
-#pragma message("TODO: Optimize for intercept, dispatch, and send." \
-	" SIMPLIFY(function instead of inline) everywhere else.")
+/*! \todo Optimize for intercept, dispatch, and send.
+ * Simplify with function instead of inline everywhere else.
+ */
 
 struct mcr_context *mcr_allocate()
 {

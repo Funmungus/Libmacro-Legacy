@@ -62,14 +62,6 @@ struct timespec {
 
 #endif
 
-/* _Pragma is not available before 2018 */
-#if _MSC_VER < 1917
-#undef mcr_fixme
-#define mcr_fixme
-#undef fixme
-#define fixme
-#endif
-
 #ifdef __cplusplus
 }
 #endif
