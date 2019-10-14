@@ -1,3 +1,4 @@
+# TODO cache variables or PARENT_SCOPE?
 set(MCR_VER_MAJ 0)
 set(MCR_VER_MIN 1)
 set(MCR_VER ${MCR_VER_MAJ}.${MCR_VER_MIN})

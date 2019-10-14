@@ -19,7 +19,7 @@
 /*! \file
  *  \brief Raise a compiler error.
  *  Usage:
- *  #include "mcr/err.h"
+ *  `#include "mcr/err.h"`
  */
 
 #ifdef __GNUC__

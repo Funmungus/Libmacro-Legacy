@@ -30,13 +30,13 @@
    Instructions not included.
    * Given build configuration \<BUILD_TYPE\> cmake and cpack may require the
    same command-line switch.
-     * cmake: `cmake --config \<BUILD_TYPE\>`
-	 * cpack: `cpack -C \<BUILD_TYPE\>`
+     * cmake: `cmake --config <BUILD_TYPE>`
+     * cpack: `cpack -C <BUILD_TYPE>`
  * Qt5, if QT extras are included
    * CMAKE_PREFIX_PATH must include the base directory of QT libraries for
    your platform, QT version, and compiler.
      * Example for windows, QT 5.13.1, using MSVC 2017:
-     "\<QT directory\>/5.13.1/msvc2017_64"
+     "<QT directory>/5.13.1/msvc2017_64"
  * All makefile generators and build tools for your environment and target
  * cmake modules
    * Threads: Always required until further notice.
@@ -66,9 +66,9 @@
  * "CONFIG+=static": Static linking
    * Static builds must inherit both the Libmacro and SSL licences.  This may
    require a license statement in source code or EULA.
- * "INCLUDEPATH+=\<SSL-Dir\>/include": Locate SSL library header files.
- * "LIBS+=-L\<SSL-Dir\>/lib": Locate SSL libraries
- * "LIBS+=-L\<SSL-Dir\>/lib/VC/static": Locate static SSL libraries for
+ * "INCLUDEPATH+=<SSL-Dir>/include": Locate SSL library header files.
+ * "LIBS+=-L<SSL-Dir>/lib": Locate SSL libraries
+ * "LIBS+=-L<SSL-Dir>/lib/VC/static": Locate static SSL libraries for
  Visual Studio.
    * All programs that link to this static build will also have SSL definitions
    without linking to SSL libraries directly.

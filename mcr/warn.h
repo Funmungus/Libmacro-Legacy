@@ -19,7 +19,7 @@
 /*! \file
  *  \brief Raise a compiler warning.
  *  Usage:
- *  #include "mcr/warn.h"
+ *  `#include "mcr/warn.h"`
  */
 
 #ifdef __GNUC__
