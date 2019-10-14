@@ -120,8 +120,7 @@ int mcr_intercept_add_grab(struct mcr_context *ctx, const char *grabPath)
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_add(&nPt->grab_paths, &grabPath, 1, true);
 	dassert(grabPath);
-	/* add grabber? */
-	fixme;
+	/// \todo add grabber?
 	if (thrdErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	return err;
@@ -131,8 +130,7 @@ void mcr_intercept_remove_grab(struct mcr_context *ctx, const char *grabPath)
 {
 	struct mcr_intercept_platform *nPt = ctx->intercept.platform;
 	int thrdErr = mtx_lock(&nPt->lock);
-	/* remove grabber? */
-	fixme;
+	/// \todo remove grabber?
 	dassert(grabPath);
 	mcr_StringSet_remove(&nPt->grab_paths, grabPath);
 	if (thrdErr == thrd_success)
@@ -146,8 +144,7 @@ int mcr_intercept_set_grabs(struct mcr_context *ctx, const char **allGrabPaths,
 	int thrdErr = mtx_lock(&nPt->lock);
 	int err = mcr_StringSet_replace(&nPt->grab_paths, allGrabPaths,
 									pathCount);
-	/* remove grabber? */
-	fixme;
+	/// \todo remove grabber?
 	if (thrdErr == thrd_success)
 		mtx_unlock(&nPt->lock);
 	return err;
@@ -246,8 +243,7 @@ static unsigned int get_mods_impl(struct mcr_context *ctx)
 		free(modArr);
 		return MCR_MF_NONE;
 	}
-	/* handle MCR_MOD_ANY as an error */
-	fixme;
+	/// \bug handle MCR_MOD_ANY as an error
 	ret = modify_eventbits(ctx, modArr, modKeysCount, bitRetrieval);
 	while (i--) {
 		if ((fd = grabSet[i]->grabber.fd) != -1) {
@@ -378,7 +374,7 @@ static int intercept_start(void *threadArgs)
 	delay.tv_sec = 0;
 	/* 10 milli */
 	delay.tv_nsec = 1000 * 1000 * 10;
-	/* TODO: Enable grabber before thread.
+	/*! \todo Enable grabber before thread.
 	 * 1. Create grab from path.
 	 * 2. Enable (Current step)
 	 * 3. Use grabber
@@ -596,8 +592,7 @@ if (mcr_dispatch(ctx, &(signal))) { \
 		/* Non-grab does not write to device */
 		if (blocking && writegen) {
 			if (write(mcr_genDev.fd, events, rdb) < 0) {
-				/* Is non-error ok with thrd error or success? */
-				fixme;
+				/// \todo Is non-error ok with thrd error or success?
 				mcr_errno(0);
 				/* EINTR is disabled during read. */
 				if (!mcr_err || mcr_err == EINTR)
@@ -671,8 +666,7 @@ static int clear_grabbers(struct mcr_context *ctx)
 	struct mcr_NoOp delay = { 0 };
 	int thrdErr;
 	delay.msec = 200;
-	/* TODO : thread destroy on timeout. */
-	fixme;
+	/// \todo thread destroy on timeout.
 	while (nPt->grab_contexts.used && timeout--) {
 		/* Disable all */
 		thrdErr = mtx_lock(&nPt->lock);

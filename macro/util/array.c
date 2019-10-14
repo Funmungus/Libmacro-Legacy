@@ -534,8 +534,7 @@ static void mcr_Array_sort_memcmp(struct mcr_Array *arrPt)
 		mset_error(ENOMEM);
 		return;
 	}
-	fixme;
-	/* TODO: quicksort */
+	/// \todo quicksort
 	/* Bubble sort backwards to optimize sorted arrays with new values */
 	while (hasSwap) {
 		hasSwap = false;
@@ -568,7 +567,7 @@ static void *mcr_Array_find_memcmp(const struct mcr_Array *arrPt,
 	dassert(arrPt);
 	dassert(elementPt);
 	fixme;
-	/* TODO: quicksort */
+	/// \todo quicksort
 	for (mcr_Array_iter(arrPt, &itPt, &endPt, &bytes);
 		 itPt < endPt; itPt += bytes) {
 		if (!memcmp(itPt, elementPt, bytes))
