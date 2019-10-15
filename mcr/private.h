@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -14,9 +14,9 @@
 */
 
 /*! \file
- * \brief Include all module private.h files.
+ *  \brief Include all module private.h files.
  *
- * Convenience for library source files.
+ *  Convenience for library source files.
  */
 
 #include "mcr/signal/private.h"
@@ -24,5 +24,5 @@
 #include "mcr/standard/private.h"
 #include "mcr/intercept/private.h"
 #ifdef __cplusplus
-#include "mcr/extras/private.h"
+	#include "mcr/extras/private.h"
 #endif

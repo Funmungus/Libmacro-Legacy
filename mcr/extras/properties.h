@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,14 +17,9 @@
 */
 
 /*! \file
- * \brief \ref IProperties - String based property manager, and a common
- * interface to flatten objects
+ *  \brief \ref IProperties - String based property manager, and a common
+ *  interface to flatten objects
  */
-
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
 
 #ifndef MCR_EXTRAS_PROPERTIES_H_
 #define MCR_EXTRAS_PROPERTIES_H_
@@ -34,18 +29,28 @@
 namespace mcr
 {
 /*! Notifier object for property changes */
-class MCR_EXTRAS_API IOnPropertyChanged
+class MCR_API IOnPropertyChanged
 {
 public:
+	IOnPropertyChanged() = default;
+	IOnPropertyChanged(const IOnPropertyChanged &) = default;
 	virtual ~IOnPropertyChanged() {}
+	IOnPropertyChanged &operator =(const IOnPropertyChanged &) = default;
 	virtual void onPropertyChanged(const char *propertyName) = 0;
+	inline void onPropertyChanged(const std::string &propertyName)
+	{
+		onPropertyChanged(propertyName.c_str());
+	}
 };
 
 /*! Object which has string properties to manage */
-class MCR_EXTRAS_API IProperties
+class MCR_API IProperties
 {
 public:
+	IProperties() = default;
+	IProperties(const IProperties &) = default;
 	virtual ~IProperties() {}
+	IProperties &operator =(const IProperties &) = default;
 	/*! Enumerate list of properties this object manages */
 	virtual const char **properties() const = 0;
 	/*! String value of a property */

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,29 +24,33 @@
 #ifndef MCR_EXTRAS_DEF_H_
 #define MCR_EXTRAS_DEF_H_
 
-#include <chrono>
+#include "mcr/standard/standard.h"
+
 #include <cstring>
-#include <new>
-#include <thread>
-
-#ifndef MCR_EXTRAS_API
-	#ifdef MCR_STATIC
-		#define MCR_EXTRAS_API
-	#else
-		#ifdef MCR_EXTRAS_EXPORTS
-			#define MCR_EXTRAS_API __declspec(dllexport)
-		#else
-			#define MCR_EXTRAS_API __declspec(dllimport)
-		#endif
-	#endif
-#endif
-
-#include "mcr/libmacro.h"
-#include "mcr/extras/std.h"
+#include <string>
+#include <map>
+#include <vector>
 
 namespace mcr
 {
 struct Libmacro;
+struct Signal;
+struct Trigger;
+typedef std::vector<Signal> SignalSet;
+typedef std::vector<std::vector<Signal>> SignalSetSet;
+typedef std::vector<Trigger> TriggerSet;
+typedef std::vector<std::vector<Trigger>> TriggerSetSet;
+
+#ifdef MCR_DEBUG
+inline void dthrow(bool condition, int throwable)
+{
+	if (condition)
+		throw throwable;
+#else
+inline void dthrow(bool, int)
+{
+#endif
+}
 }
 
 #endif

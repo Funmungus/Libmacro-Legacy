@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Mods - Signal to modify internal modifiers
+ *  \brief \ref mcr_Mods - Signal to modify internal modifiers
  */
 
 #ifndef MCR_STANDARD_MODS_H_
@@ -30,14 +30,14 @@ extern "C" {
 #endif
 
 /*! Pair of modifier bits and whether to set or release those
- * modifiers
+ *  modifiers
  */
 struct mcr_Mods {
 	/*! Bit values representing a set of modifiers. */
 	unsigned int modifiers;
 	/*! \ref MCR_DOWN will set the modifier, \ref MCR_TOGGLE
-	 * will change the state from what it currently is, otherwise it is
-	 * released */
+	 *  will change the state from what it currently is, otherwise it is
+	 *  released */
 	enum mcr_KeyUpType up_type;
 };
 
@@ -45,17 +45,17 @@ struct mcr_Mods {
 MCR_API void mcr_Mods_set_all(struct mcr_Mods *modPt, unsigned int modifiers,
 							  enum mcr_KeyUpType upType);
 /*! \pre Signal data is \ref mcr_Mods
- * \brief Modify internal modifiers
+ *  \brief Modify internal modifiers
  *
- * \return \ref reterr
+ *  \return \ref reterr
  */
 MCR_API int mcr_Mods_send(struct mcr_Signal *sigPt);
 /* Default init, deinit, compare, and copy */
 
 /*! Modify an instance of \ref mcr_Mods
  *
- * \param modifier Modifiers to set or release
- * \param modifierKeyUp Set or release modifiers
+ *  \param modifier Modifiers to set or release
+ *  \param modifierKeyUp Set or release modifiers
  */
 MCR_API void mcr_Mods_modify(struct mcr_Mods *modPt,
 							 unsigned int modifier, enum mcr_KeyUpType modifierKeyUp);

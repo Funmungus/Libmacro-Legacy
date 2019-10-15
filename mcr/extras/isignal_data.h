@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,33 +17,32 @@
 */
 
 /*! \file
- * \brief \ref ISignalData - Data type for signal instances
- * C++.
+ *  \brief \ref ISignalData - Data type for signal instances
+ *  C++.
  */
-
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
 
 #ifndef MCR_EXTRAS_ISIGNAL_DATA_H_
 #define MCR_EXTRAS_ISIGNAL_DATA_H_
 
-#include "mcr/extras/def.h"
+#include "mcr/extras/idata.h"
 
 namespace mcr
 {
-/*! Signal instance data, such as \ref mcr_Key.
+/*! Signal instance data, such as \ref mcr_Data member of \ref mcr_Instance.
  *
- * Functions to overload: \ref ISignalData.compare, \ref ISignalData.copy,
- * \ref ISignalData.name, and \ref ISignalData.send \n
- * Optional overload: \ref ISignalData.addNamesCount and
- * \ref ISignalData.addNames
+ *  Functions to overload: \ref IData.compare, \ref IData.copy,
+ *  \ref IData.name, and \ref ISignalData.send \n
+ *  Optional overload: \ref IData.addNameCount and
+ *  \ref IData.addNames
  */
-class MCR_EXTRAS_API ISignalData
+class MCR_API ISignalData: public IData
 {
 public:
-	virtual ~ISignalData() {}
+	ISignalData() = default;
+	ISignalData(const ISignalData &) = default;
+	virtual ~ISignalData() override {}
+	ISignalData &operator =(const ISignalData &) = default;
+
 	inline bool operator ==(const ISignalData &rhs)
 	{
 		return !compare(rhs);
@@ -61,32 +60,11 @@ public:
 		send();
 	}
 
-	/* Instance */
-	/*! \ref mcr_Signal_compare */
-	virtual int compare(const ISignalData &rhs) const = 0;
-	/*! \ref mcr_Signal_copy
-	 * \param copytron \ref opt
-	 */
-	virtual void copy(const ISignalData *copytron) = 0;
-	/* Signal */
-	/*! \ref mcr_ISignal_set_name */
-	virtual const char *name() const = 0;
-	/*! \ref mcr_ISignal_add_names */
-	virtual size_t addNamesCount() const
-	{
-		return 0;
-	}
-	/*! \ref mcr_ISignal_add_names */
-	virtual void addNames(const char **bufferOut, size_t bufferLength) const
-	{
-		UNUSED(bufferOut);
-		UNUSED(bufferLength);
-	}
 	/*! \ref mcr_send We highly suggest you inline this function,
-	 * as it will be called as the fully quallified class from \ref SignalType.send.
+	 *  as it will be called as the fully quallified class from \ref SignalType.send.
 	 *
-	 * Inline is only suggested if the send function is
-	 * not complex.
+	 *  Inline is only suggested if the send function is
+	 *  not complex.
 	 */
 	virtual void send() = 0;
 };

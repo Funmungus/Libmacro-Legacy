@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
+ *  \brief \ref mcr_TriggerFlags - Enumerates behavior of triggering modifiers
  */
 
 #ifndef MCR_STANDARD_TRIGGER_FLAGS_H_
@@ -31,20 +31,20 @@ extern "C" {
 
 /*! Logical triggering bahavior of modifiers.
  *
- * This will define behaviour of how modifiers may or may not trigger a
- * dispatch to receivers.\n
- * These flags act as a function between the registered modifier,
- * and triggering modifier.  The end result is a multi-function machine
- * of the two modifier variables.\n
- * Given none=001, some=010, all=100 the following is the function table:\n
- * 000 defaulted to all flags set\n
- * 001 none of\n
- * 010 some of\n
- * 011 none or some of\n
- * 100 all of\n
- * 101 none or all of\n
- * 110 some or all of\n
- * 111 none, some, or all of (trigger any)
+ *  This will define behaviour of how modifiers may or may not trigger a
+ *  dispatch to receivers.\n
+ *  These flags act as a function between the registered modifier,
+ *  and triggering modifier.  The end result is a multi-function machine
+ *  of the two modifier variables.\n
+ *  Given none=001, some=010, all=100 the following is the function table:\n
+ *  000 defaulted to all flags set\n
+ *  001 none of\n
+ *  010 some of\n
+ *  011 none or some of\n
+ *  100 all of\n
+ *  101 none or all of\n
+ *  110 some or all of\n
+ *  111 none, some, or all of (trigger any)
  */
 enum mcr_TriggerFlags {
 	/*! Invalid flags */
@@ -69,7 +69,7 @@ enum mcr_TriggerFlags {
 /*! Make valid \ref mcr_TriggerFlags from any number */
 #define MCR_TF_mask(number) (MCR_TF_ANY & (number))
 /*! Remove valid \ref mcr_TriggerFlags from any number, leaving
- * only user defined flags.
+ *  only user defined flags.
  */
 #define MCR_TF_user_mask(number) ((number) & (~MCR_TF_ANY))
 /*! bool, \ref MCR_TF_NONE */
@@ -91,10 +91,10 @@ enum mcr_TriggerFlags {
 
 /*! Match modifiers using \ref mcr_TriggerFlags logic.
  *
- * \param lhs uint Modifiers that must be matched
- * \param rhs uint Modifiers that are used to match
- * \param flags \ref mcr_TriggerFlags Logic flags
- * \param outIsVal bool Return value, true if modifiers match
+ *  \param lhs uint Modifiers that must be matched
+ *  \param rhs uint Modifiers that are used to match
+ *  \param flags \ref mcr_TriggerFlags Logic flags
+ *  \param outIsVal bool Return value, true if modifiers match
  */
 #define MCR_TF_IS_MOD(lhs, rhs, flags, outIsVal) \
 switch (flags) { \

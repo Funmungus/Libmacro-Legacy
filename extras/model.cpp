@@ -87,14 +87,15 @@ void Trigger::setITrigger(mcr_ITrigger *itrigger)
 	}
 }
 
-Macro::Macro(Libmacro *context, bool block, bool sticky, unsigned int threadMax,
+Macro::Macro(Libmacro *context, bool blocking, bool sticky,
+			 unsigned int threadMax,
 			 bool enable)
 	: _context(context ? context : Libmacro::instance())
 {
 	int err;
 	if ((err = mcr_Macro_init(ptr())))
 		throw err;
-	if ((err = mcr_Macro_set_all(ptr(), block, sticky, threadMax, enable,
+	if ((err = mcr_Macro_set_all(ptr(), blocking, sticky, threadMax, enable,
 								 _context->ptr())))
 		throw err;
 }

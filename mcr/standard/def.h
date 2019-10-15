@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief Definitions for standard types.
+ *  \brief Definitions for standard types.
  */
 
 #ifndef MCR_STANDARD_DEF_H_
@@ -49,27 +49,31 @@ extern "C" {
 (posArray)[MCR_Y] = 0; \
 (posArray)[MCR_Z] = 0;
 
-/*! A signal is set, released, or both */
-enum mcr_KeyUpType {
-	MCR_DOWN = 0,
-	MCR_UP,
+/*! A value state is set or unset */
+enum mcr_ApplyType {
+	/*! Set, value is applied. */
+	MCR_SET = 0,
+	/*! Unset, value is released or not applied. */
+	MCR_UNSET,
+	/*! Value is both set and unset, in that order. */
 	MCR_BOTH,
+	/*! Set or unset is swapped.  Other mcr_ApplyType are ignored. */
 	MCR_TOGGLE
 };
 
 /*! Spatial position, indices are coordinates.
- * \ref MCR_DIMENSION_CNT
+ *  \ref MCR_DIMENSION_CNT
  *
- * This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
+ *  This is logically a spatial vector for MCR_DIMENSION_CNT coordinates.
  */
 typedef long long mcr_SpacePosition[MCR_DIMENSION_CNT];
 /*! \ref mcr_SpacePosition */
 typedef mcr_SpacePosition mcr_Dimensions;
 
 /*! Any or invalid echo code */
-#define MCR_ECHO_ANY ((const size_t)-1)
+#define MCR_ECHO_ANY mcr_cast(size_t, -1)
 /*! Any or invalid key code */
-#define MCR_KEY_ANY ((const int)0)
+#define MCR_KEY_ANY mcr_cast(int, 0)
 
 #ifdef __cplusplus
 }

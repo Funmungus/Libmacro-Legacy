@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_GenericDispatcher - Dispatcher of any signal type
+ *  \brief \ref mcr_GenericDispatcher - Dispatcher of any signal type
  */
 
 #ifndef MCR_SIGNAL_GENERIC_DISPATCHER_H_
@@ -31,7 +31,7 @@ extern "C" {
 
 /*! Dispatcher of any signal type
  *
- * In cases of extreme complexity please break glass.
+ *  In cases of extreme complexity please break glass.
  */
 struct mcr_GenericDispatcher {
 	struct mcr_Dispatcher dispatcher;

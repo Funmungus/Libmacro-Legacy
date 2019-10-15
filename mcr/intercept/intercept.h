@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -61,16 +61,13 @@ MCR_API unsigned int mcr_intercept_modifiers(struct mcr_context *ctx);
  *  In cases of extreme complexity, please break glass.
  */
 struct mcr_intercept {
-	/*! Is hardware intercept grabbing hardware to enable blocking
+	/*! Is hardware intercept grabbing hardware, and is blocking available.
 	 *
 	 *  Default false for OS compatibility. */
 	bool blockable;
 	/*! All data reserved for platform definitions */
 	void *platform;
 };
-
-#define MCR_INTERCEPT_PLATFORM_INC \
-MCR_STR(mcr/intercept/MCR_PLATFORM/nintercept.h)
 
 #ifdef __cplusplus
 }

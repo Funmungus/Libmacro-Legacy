@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,14 +17,14 @@
 */
 
 /*! \file
- * \brief \ref mcr_Instance Example and abstraction of an
- * interface instance.
+ *  \brief \ref mcr_Instance Example and abstraction of an
+ *  interface instance.
  *
- * All instance implementations should begin with
- * \ref mcr_Interface *, and then a \ref mcr_Data structure.\n
+ *  All instance implementations should begin with
+ *  \ref mcr_Interface *, and then a \ref mcr_Data structure.\n
  *
- * Typecasting is used throughout, so implementations do not need
- * the same element names.
+ *  Typecasting is used throughout, so implementations do not need
+ *  the same element names.
  */
 
 #ifndef MCR_UTIL_INSTANCE_H_
@@ -46,46 +46,46 @@ struct mcr_Instance {
 
 /*! \ref mcr_Instance ctor
  *
- * Use \ref mcr_Instance_set_interface and \ref mcr_Instance_reset to
- * create new, empty data.
- * \param instPt \ref opt \ref mcr_Instance *
- * \return 0
+ *  Use \ref mcr_Instance_set_interface and \ref mcr_Instance_reset to
+ *  create new, empty data.
+ *  \param instPt \ref opt \ref mcr_Instance *
+ *  \return 0
  */
 MCR_API int mcr_Instance_init(void *instPt);
 MCR_API struct mcr_Instance mcr_Instance_new(void *iPt, void *dataPt,
 		void (*deallocate) (void *));
 /*! \ref mcr_Instance dtor
  *
- * Free resources of an instance
- * \param instPt \ref opt \ref mcr_Instance *
- * \return \ref reterr
+ *  Free resources of an instance
+ *  \param instPt \ref opt \ref mcr_Instance *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_deinit(void *instPt);
 /*! \ref mcr_Instance_set_interface and \ref mcr_Instance_set_data
  *
- * \param instPt \ref mcr_Instance *
- * \param iPt \ref opt \ref mcr_Instance.interface
- * \param dataPt \ref opt \ref mcr_Data.data
- * \param deallocate \ref opt \ref mcr_Data.deallocate
- * \return \ref reterr
+ *  \param instPt \ref mcr_Instance *
+ *  \param iPt \ref opt \ref mcr_Instance.interface
+ *  \param dataPt \ref opt \ref mcr_Data.data
+ *  \param deallocate \ref opt \ref mcr_Data.deallocate
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_set_all(void *instPt, void *iPt,
 								 void *dataPt, void (*deallocate) (void *));
 
 /*! Get \ref mcr_Data.data
  *
- * \param instPt \ref opt \ref mcr_Instance *
- * \return void *
+ *  \param instPt \ref opt \ref mcr_Instance *
+ *  \return void *
  */
 #define mcr_Instance_data(instPt) \
 ((instPt) ? \
-	((struct mcr_Instance *)(instPt))->data.data : \
-NULL)
+	mcr_castpt(struct mcr_Instance, instPt)->data.data : \
+mcr_null)
 
 /*! \ref mcr_Data_is_heap
  *
- * \param instPt \ref opt \ref mcr_Instance *
- * \return bool
+ *  \param instPt \ref opt \ref mcr_Instance *
+ *  \return bool
  */
 #define mcr_Instance_is_heap(instPt) \
 ((instPt) ? \
@@ -94,50 +94,50 @@ false)
 
 /*! Get the id of an instance's interface
  *
- * \ref mcr_iid
- * \param instPt \ref opt \ref mcr_Instance *
- * \return \ref retid
+ *  \ref mcr_iid
+ *  \param instPt \ref opt \ref mcr_Instance *
+ *  \return \ref retid
  */
 #define mcr_Instance_id(instPt) mcr_iref_id(instPt)
 
 /*! Change the interface of an instance
  *
- * Existing data will be deinitialized before setting the new interface.
- * \param instPt \ref mcr_Instance *
- * \param iPt \ref opt \ref mcr_Interface *
- * \return \ref reterr
+ *  Existing data will be deinitialized before setting the new interface.
+ *  \param instPt \ref mcr_Instance *
+ *  \param iPt \ref opt \ref mcr_Interface *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_set_interface(void *instPt, void *iPt);
 /*! \ref Change current data of an instance
  *
- * Existing data will be deinitialized before setting the new data.
- * \ref mcr_iset_data
- * \param instPt \ref mcr_Instance *
- * \param dataPt \ref opt \ref mcr_Data.data
- * \param deallocate \ref opt \ref mcr_Data.deallocate
- * \return \ref reterr
+ *  Existing data will be deinitialized before setting the new data.
+ *  \ref mcr_iset_data
+ *  \param instPt \ref mcr_Instance *
+ *  \param dataPt \ref opt \ref mcr_Data.data
+ *  \param deallocate \ref opt \ref mcr_Data.deallocate
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_set_data(void *instPt, void *dataPt,
 								  void (*deallocate) (void *));
 /*! Compare two instances
  *
- * \param lhsPt \ref opt \ref mcr_Instance *
- * \param rhsPt \ref opt \ref mcr_Instance *
- * \return \ref retcmp
+ *  \param lhsPt \ref opt \ref mcr_Instance *
+ *  \param rhsPt \ref opt \ref mcr_Instance *
+ *  \return \ref retcmp
  */
 MCR_API int mcr_Instance_compare(const void *lhsPt, const void *rhsPt);
 /*! \ref Copy from source instance to destination instance
  *
- * \param dstPt \ref mcr_Instance *
- * \param srcPt \ref opt \ref mcr_Instance *
- * \return \ref reterr
+ *  \param dstPt \ref mcr_Instance *
+ *  \param srcPt \ref opt \ref mcr_Instance *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_copy(void *dstPt, const void *srcPt);
 /*! Free existing data and reinitialize
  *
- * \ref mcr_ireset
- * \param instPt \ref mcr_Instance *
- * \return \ref reterr
+ *  \ref mcr_ireset
+ *  \param instPt \ref mcr_Instance *
+ *  \return \ref reterr
  */
 MCR_API int mcr_Instance_reset(void *instPt);
 

@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,13 +17,8 @@
 */
 
 /*! \file
- * \brief C++ wrapper for \ref itrigger.h and \ref trigger.h functions
+ *  \brief C++ wrapper for \ref itrigger.h and \ref trigger.h functions
  */
-
-#ifndef __cplusplus
-	#pragma message "C++ support is required for extras module"
-	#include "mcr/err.h"
-#endif
 
 #ifndef MCR_EXTRAS_WRAP_TRIGGER_H_
 #define MCR_EXTRAS_WRAP_TRIGGER_H_
@@ -35,42 +30,49 @@ namespace mcr
 class TriggerRef;
 /*! \ref mcr_ITrigger reference editor
  *
- * \ref itrigger.h
- * Will not unregister ITrigger on destruction
- * Virtual and concrete class
+ *  \ref itrigger.h
+ *  Will not unregister ITrigger on destruction
+ *  Virtual and concrete class
  */
-class MCR_EXTRAS_API ITriggerRef
+class MCR_API ITriggerRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param itrigPt ITrigger reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param itrigPt ITrigger reference to edit
 	 */
-	ITriggerRef(Libmacro *context = NULL, mcr_ITrigger *itrigPt = NULL);
+	ITriggerRef(Libmacro *context = nullptr, mcr_ITrigger *itrigPt = nullptr);
+	ITriggerRef(const ITriggerRef &) = default;
 	ITriggerRef(mcr_ITrigger *itrigPt);
 	ITriggerRef(Libmacro *context, size_t id);
 	ITriggerRef(size_t id);
 	ITriggerRef(Libmacro *context, const char *name);
 	ITriggerRef(const char *name);
 	virtual ~ITriggerRef() {}
-	ITriggerRef(const ITriggerRef &) = default;
-	inline ITriggerRef &operator =(const ITriggerRef &copytron)
-	{
-		if (&copytron != this)
-			setITrigger(copytron.itrigger());
-		return *this;
-	}
+	inline ITriggerRef &operator =(const ITriggerRef &copytron) = default;
 	inline ITriggerRef &operator =(mcr_ITrigger *itrigPt)
+	{
+		return build(itrigPt);
+	}
+	inline ITriggerRef &operator =(size_t id)
+	{
+		return build(id);
+	}
+	inline ITriggerRef &operator =(const char *name)
+	{
+		return build(name);
+	}
+	inline ITriggerRef &build(mcr_ITrigger *itrigPt)
 	{
 		setITrigger(itrigPt);
 		return *this;
 	}
-	inline ITriggerRef &operator =(size_t id)
+	inline ITriggerRef &build(size_t id)
 	{
 		setId(id);
 		return *this;
 	}
-	inline ITriggerRef &operator =(const char *name)
+	inline ITriggerRef &build(const char *name)
 	{
 		setName(name);
 		return *this;
@@ -98,12 +100,12 @@ public:
 
 	/*! \ref mcr_register this ITrigger
 	 *
-	 * If the ITrigger id is not -1, then mcr_reg_set_name and
-	 * mcr_reg_add_name will be used instead.
+	 *  If the ITrigger id is not -1, then mcr_reg_set_name and
+	 *  mcr_reg_add_name will be used instead.
 	 */
 	virtual void registerType(const char *name,
-							  const char **addNames = NULL, size_t addNamesCount = 0);
-	/*! TODO Create mcr_unregister function */
+							  const char **addNames = nullptr, size_t addNamesCount = 0);
+	/// \todo Create unregister function
 	virtual void unregisterType() {}
 
 	/*! Get ITrigger reference */
@@ -123,7 +125,7 @@ public:
 		return mcr_ITrigger_id(_itrigPt);
 	}
 	virtual void setId(size_t val);
-	/* TODO set/change id/name */
+	/// \todo set/change id/name
 	virtual const char *name();
 	virtual void setName(const char *name);
 	/*! \ref mcr_Interface.data_size */
@@ -139,7 +141,7 @@ public:
 
 	virtual inline mcr_data_fnc init() const
 	{
-		return _itrigPt ? _itrigPt->interface.init : NULL;
+		return _itrigPt ? _itrigPt->interface.init : nullptr;
 	}
 	virtual inline void setInit(mcr_data_fnc val)
 	{
@@ -149,7 +151,7 @@ public:
 
 	virtual inline mcr_data_fnc deinit() const
 	{
-		return _itrigPt ? _itrigPt->interface.deinit : NULL;
+		return _itrigPt ? _itrigPt->interface.deinit : nullptr;
 	}
 	virtual inline void setDeinit(mcr_data_fnc val)
 	{
@@ -159,7 +161,7 @@ public:
 
 	virtual inline mcr_compare_fnc compare() const
 	{
-		return _itrigPt ? _itrigPt->interface.compare : NULL;
+		return _itrigPt ? _itrigPt->interface.compare : nullptr;
 	}
 	virtual inline void setCompare(mcr_compare_fnc val)
 	{
@@ -169,7 +171,7 @@ public:
 
 	virtual inline mcr_copy_fnc copy() const
 	{
-		return _itrigPt ? _itrigPt->interface.copy : NULL;
+		return _itrigPt ? _itrigPt->interface.copy : nullptr;
 	}
 	virtual inline void setCopy(mcr_copy_fnc val)
 	{
@@ -180,7 +182,7 @@ public:
 	/* ITrigger */
 	virtual inline mcr_Dispatcher_receive_fnc receive() const
 	{
-		return _itrigPt ? _itrigPt->receive : NULL;
+		return _itrigPt ? _itrigPt->receive : nullptr;
 	}
 	virtual inline void setReceive(mcr_Dispatcher_receive_fnc fnc)
 	{
@@ -194,53 +196,92 @@ private:
 
 /*! \ref mcr_Trigger reference editor
  *
- * \ref trigger.h
- * Will not deinit Trigger on destruction
- * Virtual and concrete class
+ *  \ref trigger.h
+ *  Will not deinit Trigger on destruction
+ *  Virtual and concrete class
  */
-class MCR_EXTRAS_API TriggerRef
+class MCR_API TriggerRef
 {
 public:
 	/*! \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param trigPt Trigger reference to edit
+	 *  Throws EINVAL if no context exists
+	 *  \param trigPt Trigger reference to edit
 	 */
-	TriggerRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
+	TriggerRef(Libmacro *context = nullptr, mcr_Trigger *trigPt = nullptr);
+	TriggerRef(const TriggerRef &) = default;
 	TriggerRef(mcr_Trigger *trigPt);
 	virtual ~TriggerRef() {}
-	TriggerRef(const TriggerRef &) = default;
-	inline TriggerRef &operator =(const TriggerRef &copytron)
+	inline TriggerRef &operator =(const TriggerRef &copytron) = default;
+	/*! Change Trigger to reference */
+	inline TriggerRef &operator =(Trigger &trigger)
 	{
-		if (&copytron != this)
-			setTriggerRef(copytron.triggerRef());
-		return *this;
+		return build(trigger);
 	}
-	/*! Change ITrigger of Trigger reference */
-	inline TriggerRef &operator =(ITriggerRef &itrigger)
+	/*! Change Trigger to reference */
+	inline TriggerRef &operator =(Trigger *trigPt)
 	{
-		setITrigger(itrigger.itrigger());
-		return *this;
+		return build(trigPt);
 	}
 	/*! Change Trigger to reference */
 	inline TriggerRef &operator =(mcr_Trigger *trigPt)
 	{
-		setTriggerRef(trigPt);
+		return build(trigPt);
+	}
+	/*! Change Trigger to reference */
+	inline TriggerRef &build(Trigger &trigger)
+	{
+		setTrigger(trigger);
 		return *this;
+	}
+	/*! Change Trigger to reference */
+	inline TriggerRef &build(Trigger *trigPt)
+	{
+		setTrigger(trigPt);
+		return *this;
+	}
+	/*! Change Trigger to reference */
+	inline TriggerRef &build(mcr_Trigger *trigPt)
+	{
+		setTrigger(trigPt);
+		return *this;
+	}
+
+	/*! Change ITrigger of Trigger reference */
+	inline TriggerRef &operator =(ITriggerRef &itrigger)
+	{
+		return build(itrigger);
 	}
 	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(mcr_ITrigger *itrigPt)
 	{
-		setITrigger(itrigPt);
-		return *this;
+		return build(itrigPt);
 	}
 	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(size_t id)
 	{
-		setId(id);
-		return *this;
+		return build(id);
 	}
 	/*! Change ITrigger of Trigger reference */
 	inline TriggerRef &operator =(const char *name)
+	{
+		return build(name);
+	}
+	inline TriggerRef &build(ITriggerRef &itrigger)
+	{
+		setITrigger(itrigger);
+		return *this;
+	}
+	inline TriggerRef &build(mcr_ITrigger *itrigPt)
+	{
+		setITrigger(itrigPt);
+		return *this;
+	}
+	inline TriggerRef &build(size_t id)
+	{
+		setId(id);
+		return *this;
+	}
+	inline TriggerRef &build(const char *name)
 	{
 		setName(name);
 		return *this;
@@ -250,24 +291,18 @@ public:
 #define localComparison(operation, comparisonPrefix, comparisonPostfix) \
 	inline bool operator operation (const TriggerRef &rhs) const \
 	{ \
-		if (&_context != &rhs._context) \
-			return false; \
-		return comparisonPrefix compare(rhs) comparisonPostfix; \
+		if (this == &rhs) \
+			return (this operation &rhs); \
+		return _context == rhs._context && (*this operation rhs.ptr()); \
 	} \
 	inline bool operator operation (const mcr_Trigger *rhs) const \
 	{ return comparisonPrefix compare(rhs) comparisonPostfix; }
 	/* compare == 0 */
 	localComparison(==, !, )
-//	/* compare != 0 */
-//	localComparison(!=, !!, )
 	/* compare < 0 */
 	localComparison(<,,< 0)
-//	/* compare <= 0 */
-//	localComparison(<=,,<= 0)
 	/* compare > 0 */
 	localComparison(>,,> 0)
-//	/* compare >= 0 */
-//	localComparison(>=,,>= 0)
 #undef localComparison
 
 	/*! Get Trigger reference, non-virtual */
@@ -294,13 +329,17 @@ public:
 	/* ITrigger manipulators */
 	virtual inline mcr_ITrigger *itrigger() const
 	{
-		return _trigPt ? _trigPt->itrigger : NULL;
+		return _trigPt ? _trigPt->itrigger : nullptr;
 	}
 	virtual inline ITriggerRef itriggerRef() const
 	{
 		return ITriggerRef(_context, itrigger());
 	}
 	virtual void setITrigger(mcr_ITrigger *itrigPt);
+	inline void setITrigger(ITriggerRef &itrigger)
+	{
+		setITrigger(itrigger.itrigger());
+	}
 
 	virtual inline size_t id() const
 	{
@@ -314,27 +353,45 @@ public:
 	virtual void setName(const char *val);
 
 	/* Trigger properties */
-	virtual inline mcr_Trigger *triggerRef() const
+	virtual inline mcr_Trigger *trigger() const
 	{
 		return _trigPt;
 	}
-	virtual inline void setTriggerRef(mcr_Trigger *trigPt)
+	virtual inline void setTrigger(mcr_Trigger *trigPt)
 	{
 		_trigPt = trigPt;
 	}
-
-	virtual inline mcr_Dispatcher_receive_fnc trigger() const
+	inline void setTrigger(const TriggerRef &copytron)
 	{
-		return _trigPt ? _trigPt->trigger : NULL;
+		if (&copytron != this)
+			setTrigger(copytron.trigger());
 	}
-	virtual inline void setTrigger(mcr_Dispatcher_receive_fnc val)
+	inline void setTrigger(Trigger &trigPt)
+	{
+		return setTrigger(trigPt.ptr());
+	}
+	inline void setTrigger(Trigger *trigPt)
+	{
+		return setTrigger(trigPt ? trigPt->ptr() : nullptr);
+	}
+
+	inline bool isEmpty() const
+	{
+		return !data<void *>();
+	}
+
+	virtual inline mcr_Dispatcher_receive_fnc triggerDispatch() const
+	{
+		return _trigPt ? _trigPt->trigger : nullptr;
+	}
+	virtual inline void setTriggerDispatch(mcr_Dispatcher_receive_fnc val)
 	{
 		if (_trigPt)
 			_trigPt->trigger = val;
 	}
 	virtual inline void *actor() const
 	{
-		return _trigPt ? _trigPt->actor : NULL;
+		return _trigPt ? _trigPt->actor : nullptr;
 	}
 	virtual inline void setActor(void *val)
 	{
@@ -346,23 +403,43 @@ public:
 	template <typename T>
 	inline const T *data() const
 	{
-		return (const T *)mcr_Instance_data(_trigPt);
+		return TriggerRef::data<T>(_trigPt);
 	}
 	template <typename T>
 	inline T *data()
 	{
-		return (T *)mcr_Instance_data(_trigPt);
+		return TriggerRef::data<T>(_trigPt);
 	}
-	virtual inline void mkdata()
+	template <typename T>
+	static inline const T *data(const mcr_Trigger &signal)
 	{
-		int err;
+		return static_cast<const T *>(signal.instance.data.data);
+	}
+	template <typename T>
+	static inline T *data(mcr_Trigger &signal)
+	{
+		return static_cast<T *>(signal.instance.data.data);
+	}
+	template <typename T>
+	static inline const T *data(const mcr_Trigger *trigPt)
+	{
+		return trigPt ? TriggerRef::data<T>(*trigPt) : nullptr;
+	}
+	template <typename T>
+	static inline T *data(mcr_Trigger *trigPt)
+	{
+		return trigPt ? TriggerRef::data<T>(*trigPt) : nullptr;
+	}
+	virtual inline TriggerRef &mkdata()
+	{
 		if (_trigPt && _trigPt->itrigger && _trigPt->itrigger->interface.data_size
-			&& !data<void *>()) {
-			if ((err = mcr_Instance_reset(_trigPt)))
-				throw err;
-			if (!data<void *>())
+			&& isEmpty()) {
+			if (mcr_Instance_reset(_trigPt))
+				throw mcr_err;
+			if (isEmpty())
 				throw mcr_err;
 		}
+		return *this;
 	}
 
 	virtual void copy(const mcr_Trigger *copytron);
@@ -378,160 +455,6 @@ public:
 private:
 	Libmacro *_context;
 	mcr_Trigger *_trigPt;
-};
-
-/*! Reference to Trigger of specific type.
- *
- * This class is intended to always have the same ITrigger. Setting
- * a trigger reference of a different type should reset it to the correct
- * type.
- */
-class MCR_EXTRAS_API TriggerManager : public TriggerRef
-{
-public:
-	virtual inline mcr_ITrigger *itrigger() const override
-	{
-		return _itrigPt;
-	}
-	virtual inline void setITrigger(mcr_ITrigger *itrigPt) override
-	{
-		if (itrigPt != _itrigPt)
-			throw EPERM;
-		TriggerRef::setITrigger(_itrigPt);
-	}
-	virtual inline void setId(size_t val) override
-	{
-		if (val != id())
-			throw EPERM;
-		TriggerRef::setITrigger(_itrigPt);
-	}
-	virtual inline void setName(const char *val) override
-	{
-		UNUSED(val);
-		TriggerRef::setITrigger(_itrigPt);
-	}
-	virtual inline void setTriggerRef(mcr_Trigger *trigPt) override
-	{
-		if (trigPt != triggerRef()) {
-			TriggerRef::setTriggerRef(trigPt);
-			TriggerRef::setITrigger(_itrigPt);
-		}
-	}
-	virtual void copy(const mcr_Trigger *copytron) override;
-	virtual void copy(const TriggerRef &copytron) override;
-protected:
-	/*! Please call \ref init after construction
-	 * \param context If null the last created context will be used.
-	 * Throws EINVAL if no context exists
-	 * \param trigPt Trigger reference to manage
-	 */
-	TriggerManager(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL,
-				   mcr_ITrigger *itrigPt = NULL)
-		: TriggerRef(context, trigPt), _itrigPt(itrigPt)
-	{
-		if (_itrigPt)
-			TriggerRef::setITrigger(_itrigPt);
-	}
-//	/*!//	 * \brief Please call \ref init after construction
-//	 * \param trigPt Trigger reference to manage
-//	 */
-//	TriggerManager(mcr_Trigger *trigPt)
-//		: TriggerRef(trigPt), _itrigPt(trigPt ? trigPt->itrigger : NULL)
-//	{
-//		if (_itrigPt)
-//			TriggerRef::setITrigger(_itrigPt);
-//	}
-	/*! \param itrigPt ITrigger used to manage Trigger reference */
-	inline void init(mcr_ITrigger *itrigPt)
-	{
-		if (!itrigPt)
-			throw EFAULT;
-		_itrigPt = itrigPt;
-		TriggerRef::setITrigger(_itrigPt);
-	}
-private:
-	mcr_ITrigger *_itrigPt;
-};
-
-class MCR_EXTRAS_API ActionRef : public TriggerManager
-{
-public:
-	ActionRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
-
-	inline unsigned int modifiers() const
-	{
-		if (data<mcr_Action>())
-			return data<mcr_Action>()->modifiers;
-		return 0;
-	}
-	inline void setModifiers(unsigned int val)
-	{
-		mkdata();
-		data<mcr_Action>()->modifiers = val;
-	}
-
-	inline unsigned int triggerFlags() const
-	{
-		if (data<mcr_Action>())
-			return data<mcr_Action>()->trigger_flags;
-		return 0;
-	}
-	inline void setTriggerFlags(int val)
-	{
-		mkdata();
-		data<mcr_Action>()->trigger_flags = val;
-	}
-};
-
-class MCR_EXTRAS_API StagedRef : public TriggerManager
-{
-public:
-	StagedRef(Libmacro *context = NULL, mcr_Trigger *trigPt = NULL);
-
-	inline bool block () const
-	{
-		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->block;
-		return 0;
-	}
-	inline void setBlock(bool val)
-	{
-		mkdata();
-		data<mcr_Staged>()->block = val;
-	}
-
-	inline mcr_Array *stagesRef()
-	{
-		if (data<mcr_Staged>())
-			return &data<mcr_Staged>()->stages;
-		return NULL;
-	}
-	inline mcr_Stage *stagesArr()
-	{
-		if (data<mcr_Staged>())
-			return (mcr_Stage *)data<mcr_Staged>()->stages.array;
-		return NULL;
-	}
-	inline size_t stageCount() const
-	{
-		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->stages.used;
-		return 0;
-	}
-	vector<Stage> stages() const;
-	void setStages(const vector<Stage> &val);
-
-	inline mcr_BlockStyle style () const
-	{
-		if (data<mcr_Staged>())
-			return data<mcr_Staged>()->style;
-		return (mcr_BlockStyle)0;
-	}
-	inline void setStyle(mcr_BlockStyle val)
-	{
-		mkdata();
-		data<mcr_Staged>()->style = val;
-	}
 };
 }
 

@@ -72,8 +72,7 @@ int mcr_Macro_init(void *mcrPt)
 	memset(localPt, 0, sizeof(struct mcr_Macro));
 	localPt->thread_max = 1;
 	localPt->interruptor = MCR_CONTINUE;
-	/* Instead of mutex locking, disable macro when modifying */
-	fixme;
+	/// \todo Instead of mutex locking, disable macro when modifying
 	if ((thrdErr = cnd_init(&localPt->cnd)) != thrd_success ||
 		(thrdErr =
 			 mtx_init(&localPt->lock, mtx_plain)) != thrd_success) {
@@ -91,8 +90,7 @@ int mcr_Macro_deinit(void *mcrPt)
 	int thrdErr;
 	if (!localPt)
 		return 0;
-	/* lock here? */
-	fixme;
+	/// \todo lock here?
 	if ((thrdErr = mtx_lock(&localPt->lock)) != thrd_success) {
 		thrd_conv_err(thrdErr);
 		return thrdErr;
@@ -111,12 +109,12 @@ int mcr_Macro_deinit(void *mcrPt)
 	return 0;
 }
 
-int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool block,
+int mcr_Macro_set_all(struct mcr_Macro *mcrPt, bool blocking,
 					  bool sticky, unsigned int threadMax, bool enable,
 					  struct mcr_context *ctx)
 {
 	dassert(mcrPt);
-	mcrPt->block = block;
+	mcrPt->blocking = blocking;
 	mcrPt->sticky = sticky;
 	mcrPt->thread_max = threadMax;
 	mcrPt->ctx = ctx;
@@ -138,7 +136,7 @@ int mcr_Macro_copy(void *dstPt, const void *srcPt)
 		thrd_conv_err(thrdErr);
 		ddo(return thrdErr);
 	}
-	dPt->block = sPt->block;
+	dPt->blocking = sPt->blocking;
 	dPt->sticky = sPt->sticky;
 	dPt->thread_max = sPt->thread_max;
 	if ((err = mcr_Macro_set_signals(dPt,
@@ -440,7 +438,7 @@ ddo( \
 		}
 		if (localPt->thread_count < localPt->thread_max &&
 			localPt->thread_count < MCR_THREAD_MAX) {
-			/* TODO: Possible unused threads if only one queued item. */
+			/// \todo Possible unused threads if only one queued item.
 			if ((thrdErr = thrd_create(&trd, thread_macro,
 									   localPt)) == thrd_success) {
 				++localPt->queued;
@@ -472,7 +470,7 @@ ddo( \
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
-	return localPt->block;
+	return localPt->blocking;
 #undef onErr
 }
 
@@ -504,7 +502,7 @@ ddo( \
 		}
 		if (mcrPt->thread_count < mcrPt->thread_max &&
 			mcrPt->thread_count < MCR_THREAD_MAX) {
-			/* TODO: Possible unused threads if only one queued item. */
+			/// \todo Possible unused threads if only one queued item.
 			if ((thrdErr = thrd_create(&trd, thread_macro,
 									   mcrPt)) == thrd_success) {
 				++mcrPt->queued;
@@ -536,7 +534,7 @@ ddo( \
 		thrd_conv_err(mtxErr);
 		ddo(exit(mtxErr));
 	}
-	return mcrPt->block;
+	return mcrPt->blocking;
 #undef onErr
 }
 
@@ -600,8 +598,7 @@ ddo( \
 		sigArr = (struct mcr_Signal *)mcrPt->signal_set.array;
 		index = 0;
 		/* Assuming continueFlag is still valid */
-		/* Unsafe loop in a non -critical seciton */
-		fixme;
+		/// \bug Unsafe loop in a non-critical seciton
 		while (continueFlag && index < mcrPt->signal_set.used) {
 			if (mcrPt->interruptor == MCR_INTERRUPT &&
 				mtx_trylock(&mcrPt->lock) == thrd_success) {
@@ -663,8 +660,7 @@ static int thread_wait_reset(void *data)
 static void clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
 						  bool stickyInterrupt)
 {
-	/* Do not rely on a timeout to say no threads exist */
-	fixme;
+	/// \todo Do not rely on a timeout to say no threads exist
 	/* If timed out then we probably have a long noop or alarm running.
 	 * As long as pthread_exit is not called, then the C runtime
 	 * will also exit other threads. In this case valgrind will report
@@ -689,25 +685,6 @@ static void clear_threads(struct mcr_Macro *mcrPt, enum mcr_Interrupt clearType,
 		mcrPt->thread_count = 0;
 	}
 }
-/* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
-#include "mcr/macro/macro.h"
 
 int mcr_macro_initialize(struct mcr_context *ctx)
 {

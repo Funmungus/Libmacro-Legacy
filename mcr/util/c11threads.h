@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
   Adapted from c11threads.h by John Tsiombikas <nuclear@member.fsf.org>
   Main project site: https://github.com/jtsiomb/c11threads
 
@@ -19,11 +19,11 @@
 */
 
 /*! \file
- * C11 threads.h file wrapper based on project
- * https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
- * by the compiler, we will wrap pthread function calls (required to link
- * pthread library, e.g. -lpthread).  Otherwise threads.h will be included
- * directly. Static inline function support is required.
+ *  C11 threads.h file wrapper based on project
+ *  https://github.com/jtsiomb/c11threads.  If __STDC_NO_THREADS__ is defined
+ *  by the compiler, we will wrap pthread function calls (required to link
+ *  pthread library, e.g. -lpthread).  Otherwise threads.h will be included
+ *  directly. Static inline function support is required.
  */
 
 #ifndef MCR_UTIL_C11THREADS_H_

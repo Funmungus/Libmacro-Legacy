@@ -54,7 +54,7 @@ int mcr_Stage_set_all(struct mcr_context *ctx, struct mcr_Stage *stagePt,
 					  unsigned int measurementError, unsigned int mods, int trigFlags)
 {
 	dassert(stagePt);
-	stagePt->block = blocking;
+	stagePt->blocking = blocking;
 	stagePt->measurement_error = measurementError;
 	stagePt->modifiers = mods;
 	stagePt->trigger_flags = trigFlags;
@@ -159,7 +159,7 @@ int mcr_Stage_compare(const void *lhs, const void *rhs)
 			if ((ret = MCR_CMP(lPt->trigger_flags,
 							   rPt->trigger_flags)))
 				return ret;
-			if ((ret = MCR_CMP(lPt->block, rPt->block)))
+			if ((ret = MCR_CMP(lPt->blocking, rPt->blocking)))
 				return ret;
 			return MCR_CMP(lPt->measurement_error,
 						   rPt->measurement_error);

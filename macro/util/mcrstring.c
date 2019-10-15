@@ -80,8 +80,7 @@ int mcr_atob(const char *value, bool * retVal)
 	return 0;
 }
 
-/* TODO: Allow wchar_t */
-fixme;
+/// \todo Allow wchar_t
 int mcr_String_init(void *strPt)
 {
 	if (strPt) {

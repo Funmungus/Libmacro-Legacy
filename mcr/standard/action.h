@@ -1,5 +1,5 @@
 /* Libmacro - A multi-platform, extendable macro and hotkey C library
-  Copyright (C) 2013  Jonathan D. Pelletier
+  Copyright (C) 2013 Jonathan Pelletier, New Paradigm Software
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 */
 
 /*! \file
- * \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
+ *  \brief \ref mcr_Action - Conditional trigger from intercepted modifiers
  */
 
 #ifndef MCR_STANDARD_ACTION_H_
@@ -34,19 +34,19 @@ struct mcr_Action {
 	/*! \ref mcr_ModFlags */
 	unsigned int modifiers;
 	/*! \ref mcr_TriggerFlags */
-	int trigger_flags;
+	unsigned int trigger_flags;
 };
 
 /*! \ref mcr_Action ctor
  *
- * Modifiers set to MCR_MF_NONE and flags set to MCR_TF_ALL
- * \param actPt \ref opt \ref mcr_Action
- * \return 0
+ *  Modifiers set to MCR_MF_NONE and flags set to MCR_TF_ALL
+ *  \param actPt \ref opt \ref mcr_Action
+ *  \return 0
  */
 MCR_API int mcr_Action_init(void *actPt);
 /* Default deinit, compare, copy */
 /*! \pre Trigger data is \ref mcr_Action
- * \brief \ref mcr_ITrigger.receive for \ref mcr_Action
+ *  \brief \ref mcr_ITrigger.receive for \ref mcr_Action
  */
 MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
 								unsigned int mods);
@@ -55,7 +55,7 @@ MCR_API bool mcr_Action_receive(void *trigPt, struct mcr_Signal *sigPt,
 MCR_API struct mcr_ITrigger *mcr_iAction(struct mcr_context *ctx);
 /*! \ref mcr_Action data from \ref mcr_Trigger */
 #define mcr_Action_data(trigPt) \
-((struct mcr_Action *)mcr_Instance_data(trigPt))
+mcr_castpt(struct mcr_Action, mcr_Instance_data(trigPt))
 
 #ifdef __cplusplus
 }

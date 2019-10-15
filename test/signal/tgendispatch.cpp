@@ -7,7 +7,7 @@ void TGenDispatch::initTestCase()
 	_ctx = mcr_allocate();
 	_ctx->signal.is_generic_dispatcher = true;
 	QCOMPARE(_ctx->signal.generic_dispatcher_pt,
-			 (mcr_Dispatcher *)&_ctx->signal.generic_dispatcher);
+			 &_ctx->signal.generic_dispatcher.dispatcher);
 }
 
 void TGenDispatch::cleanupTestCase()
@@ -19,17 +19,17 @@ void TGenDispatch::unspecific()
 {
 	mcr_Signal siggy;
 	mcr_Signal_init(&siggy);
-	QCOMPARE(mcr_Dispatcher_add_generic(_ctx, NULL, this, receive), 0);
-	QCOMPARE(_ctx->signal.generic_dispatcher.receivers.used, (size_t)1);
-	mcr_dispatch(_ctx, NULL);
+	QCOMPARE(mcr_Dispatcher_add_generic(_ctx, nullptr, this, receive), 0);
+	QCOMPARE(_ctx->signal.generic_dispatcher.receivers.used, static_cast<size_t>(1));
+	mcr_dispatch(_ctx, nullptr);
 	QVERIFY(_received);
 	_received = false;
 	mcr_dispatch(_ctx, &siggy);
 	QVERIFY(_received);
 	_received = false;
 
-	QCOMPARE(mcr_Dispatcher_remove(_ctx, NULL, this), 0);
-	QCOMPARE(_ctx->signal.generic_dispatcher.receivers.used, (size_t)0);
+	QCOMPARE(mcr_Dispatcher_remove(_ctx, nullptr, this), 0);
+	QCOMPARE(_ctx->signal.generic_dispatcher.receivers.used, static_cast<size_t>(0));
 }
 
 void TGenDispatch::specific()
@@ -43,35 +43,36 @@ void TGenDispatch::specific()
 	pair.dispatch = receive;
 	mcr_Signal_init(&siggy);
 	QCOMPARE(mcr_Dispatcher_add_generic(_ctx, &siggy, this, receive), 0);
-	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, (size_t)1);
+	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, static_cast<size_t>(1));
 	elementPt = mcr_Map_element(&_ctx->signal.generic_dispatcher.signal_receivers,
 								&keyPt);
-	QCOMPARE(elementPt, (void *)
-			 _ctx->signal.generic_dispatcher.signal_receivers.set.array);
+	QCOMPARE(elementPt, _ctx->signal.generic_dispatcher.signal_receivers.set.array);
 	keyPt = this;
-	pairPt = (mcr_DispatchPair *)mcr_Array_find((const mcr_Array *)MCR_MAP_VALUEOF(
-				 _ctx->signal.generic_dispatcher.signal_receivers, elementPt), &keyPt);
+	pairPt = static_cast<mcr_DispatchPair *>(mcr_Array_find(
+				 static_cast<const mcr_Array *>(MCR_MAP_VALUEOF(
+							 _ctx->signal.generic_dispatcher.signal_receivers,
+							 reinterpret_cast<char *>(elementPt))), &keyPt));
 	QVERIFY(!memcmp(&pair, pairPt, sizeof(mcr_DispatchPair)));
-	mcr_dispatch(_ctx, NULL);
+	mcr_dispatch(_ctx, nullptr);
 	QVERIFY(!_received);
 	mcr_dispatch(_ctx, &siggy);
 	QVERIFY(_received);
 	_received = false;
 
-	QCOMPARE(mcr_Dispatcher_remove(_ctx, NULL, this), 0);
+	QCOMPARE(mcr_Dispatcher_remove(_ctx, nullptr, this), 0);
 	keyPt = &siggy;
-	arrPt = (mcr_Array *)mcr_Map_value(
-				&_ctx->signal.generic_dispatcher.signal_receivers, &keyPt);
-	QCOMPARE(arrPt->used, (size_t)0);
-	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, (size_t)1);
+	arrPt = static_cast<mcr_Array *>(mcr_Map_value(
+										 &_ctx->signal.generic_dispatcher.signal_receivers, &keyPt));
+	QCOMPARE(arrPt->used, static_cast<size_t>(0));
+	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, static_cast<size_t>(1));
 	QCOMPARE(mcr_Map_clear(&_ctx->signal.generic_dispatcher.signal_receivers), 0);
-	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, (size_t)0);
+	QCOMPARE(_ctx->signal.generic_dispatcher.signal_receivers.set.used, static_cast<size_t>(0));
 }
 
 bool TGenDispatch::receive(void *receiver, mcr_Signal *dispatchSignal,
 						   unsigned int mods)
 {
-	return ((TGenDispatch *)receiver)->receive(dispatchSignal, mods);
+	return static_cast<TGenDispatch *>(receiver)->receive(dispatchSignal, mods);
 }
 
 bool TGenDispatch::receive(mcr_Signal *dispatchSignal, unsigned int mods)
