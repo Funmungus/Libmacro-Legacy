@@ -1,6 +1,6 @@
 # TODO cache variables or PARENT_SCOPE?
 set(MCR_VER_MAJ 0)
-set(MCR_VER_MIN 1)
+set(MCR_VER_MIN 2)
 set(MCR_VER ${MCR_VER_MAJ}.${MCR_VER_MIN})
 add_definitions(-DMCR_VER=${MCR_VER} -DMCR_VER_MAJ=${MCR_VER_MAJ}
 	-DMCR_VER_MIN=${MCR_VER_MIN} -DMCR_VER=${MCR_VER})

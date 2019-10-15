@@ -3,6 +3,8 @@
  Libmacro is a multi-platform, extendable macro and hotkey C library.  C++
  extras are also available in the "extras" module, included by default.
 
+ Libmacro has moved to [https://github.com/newpsoft/libmacro](https://github.com/newpsoft/libmacro)
+
 # License #
 
  Libmacro uses the LGPL v2.1 license.  Please refer to the [LICENSE](./LICENSE)
